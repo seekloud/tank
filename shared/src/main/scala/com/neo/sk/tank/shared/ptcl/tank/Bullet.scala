@@ -32,7 +32,7 @@ trait Bullet extends ObjectOfGame{
     null
   }
 
-  // TODO:
+
   def getBulletState(): BulletState = {
     BulletState(bId,tankId,position,damage,momentum,startPosition,createTime)
   }
@@ -43,7 +43,7 @@ trait Bullet extends ObjectOfGame{
     false
   }
 
-  // todo: 生命周期是否截至或者达到目标
+  // todo: 生命周期是否截至或者打到目标
   def isFlyEnd(boundary: Point,other:Seq[ObjectOfGame]):Boolean = {
     false
   }

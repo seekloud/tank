@@ -288,8 +288,7 @@ package object model {
 
 
   object BulletSize{
-    val w = 10
-    val h = 10
+    val r = 5
   }
 
 
