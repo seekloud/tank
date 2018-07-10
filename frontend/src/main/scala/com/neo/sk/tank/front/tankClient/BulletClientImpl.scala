@@ -3,6 +3,7 @@ package com.neo.sk.tank.front.tankClient
 import com.neo.sk.tank.shared.ptcl.model
 import com.neo.sk.tank.shared.ptcl.model.Point
 import com.neo.sk.tank.shared.ptcl.tank.Bullet
+import org.scalajs.dom
 
 /**
   * Created by hongruying on 2018/7/10
@@ -27,4 +28,11 @@ class BulletClientImpl(
 
 
 
+}
+
+object BulletClientImpl{
+  def drawBullet(ctx:dom.CanvasRenderingContext2D,bullet:BulletClientImpl,curFrame:Int) = {
+    val position = bullet.getPositionCurFrame(curFrame)
+
+  }
 }

@@ -40,12 +40,12 @@ trait Bullet extends ObjectOfGame{
 
   // TODO: 子弹碰撞检测
   def isIntersectsObject(o: ObjectOfGame):Boolean = {
-    false
+    getObjectRect().intersects(o.getObjectRect())
   }
 
   // todo: 生命周期是否截至或者打到目标
   def isFlyEnd(boundary: Point,other:Seq[ObjectOfGame]):Boolean = {
-    false
+    getObjectRect().intersects(other.map.)
   }
 
   // todo
@@ -55,7 +55,7 @@ trait Bullet extends ObjectOfGame{
 
   // todo 检测是否子弹有攻击到，攻击到，执行回调函数
   def checkAttackObject[T <: ObjectOfGame](o:T,attackCallBack:T => Unit):Unit = {
-
+    attackTankCallBack
   }
 
 
