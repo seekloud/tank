@@ -12,7 +12,7 @@ class BulletClientImpl(
                         override val tankId: Long,
                         override protected val startPosition: model.Point,
                         override protected val createTime: Long,
-                        override protected val damage: Int,
+                        override val damage: Int,
                         override protected val momentum: model.Point,
                         override protected var position: model.Point
                       ) extends Bullet{

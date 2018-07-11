@@ -1,5 +1,6 @@
 package com.neo.sk.tank.shared.ptcl.tank
 import com.neo.sk.tank.shared.ptcl.model
+import com.neo.sk.tank.shared.ptcl.model.Point
 
 /**
   * Created by hongruying on 2018/7/9
@@ -9,6 +10,8 @@ import com.neo.sk.tank.shared.ptcl.model
   * 3.炮弹威力增加
   * 4.医疗包
   */
+case class PropState(pId:Long,t:Int,p:Point)
+
 trait Prop extends ObjectOfGame{
 
   val pId:Long
@@ -20,7 +23,10 @@ trait Prop extends ObjectOfGame{
 
   override protected var position: model.Point
 
+  def getPropState:PropState = PropState(pId,propType,position)
+
 }
+
 
 case class AddBloodLevelProp(
                               override val pId: Long,

@@ -5,6 +5,7 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
+import com.neo.sk.tank.core.tank.TankServerImpl
 import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
 import org.slf4j.LoggerFactory
 
@@ -29,10 +30,12 @@ object UserActor {
 
   case class UserFrontActor(actor:ActorRef[WsProtocol.WsMsgServer]) extends Command
 
+  case class DispatchMsg(msg:WsProtocol.WsMsgServer) extends Command
+
   case object StartGame extends Command
 
 
-  case class JoinRoomSuccess(data:String) extends Command
+  case class JoinRoomSuccess(tank:TankServerImpl) extends Command
 
   final case class SwitchBehavior(
                                    name: String,
@@ -109,7 +112,7 @@ object UserActor {
     }
 
 
-  private def idle(uId:Long,name:String,frontActor:ActorRef[WsProtocol.FailMsgServer])(
+  private def idle(uId:Long,name:String,frontActor:ActorRef[WsProtocol.WsMsgServer])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command]
   ): Behavior[Command] =
@@ -119,10 +122,10 @@ object UserActor {
           //todo 往roomActor发消息获取坦克数据和当前游戏桢数据
           Behaviors.same
 
-        case JoinRoomSuccess(_) =>
+        case JoinRoomSuccess(tank) =>
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
-          play(uId,name,frontActor)
+          play(uId,name,tank,frontActor)
 
 
         case WebSocketMsg(reqOpt) =>
@@ -138,7 +141,11 @@ object UserActor {
     }
 
 
-  private def play(uId:Long,name:String,frontActor:ActorRef[WsProtocol.FailMsgServer])(
+  private def play(
+                    uId:Long,
+                    name:String,
+                    tank:TankServerImpl,
+                    frontActor:ActorRef[WsProtocol.WsMsgServer])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command]
   ): Behavior[Command] =
@@ -146,6 +153,16 @@ object UserActor {
       msg match {
         case WebSocketMsg(reqOpt) =>
           //todo 处理前端的请求数据
+          reqOpt match {
+            case Some(t:WsProtocol.TankAction) =>
+              //分发数据给roomActor
+            case _ =>
+
+          }
+          Behaviors.same
+
+        case DispatchMsg(m) =>
+          frontActor ! m
           Behaviors.same
 
 

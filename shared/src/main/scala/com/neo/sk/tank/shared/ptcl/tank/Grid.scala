@@ -4,6 +4,7 @@ import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicLong
 
 import com.neo.sk.tank.shared.ptcl.model._
+import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
 import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol.TankAction
 
 import scala.collection.mutable
@@ -11,6 +12,24 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/7/8
   */
+
+case class GridStateWithoutBullet(
+                                 f:Long,
+                                 tanks:List[TankState],
+                                 props:List[PropState],
+                                 obstacle:List[ObstacleState],
+                                 tankMoveAction:List[(Long,Int)]
+                                 )
+
+case class GridState(
+                                   f:Long,
+                                   tanks:List[TankState],
+                                   bullet:List[BulletState],
+                                   props:List[PropState],
+                                   obstacle:List[ObstacleState],
+                                   tankMoveAction:List[(Long,Int)]
+                                 )
+
 trait Grid {
 
   val boundary : Point
@@ -35,6 +54,9 @@ trait Grid {
   val obstacleMap = mutable.HashMap[Long,Obstacle]() //obstacleId -> Obstacle
   val propMap = mutable.HashMap[Long,Prop]() //propId -> prop 道具信息
 
+  protected var waitGenBullet:List[(Long,Bullet)] = Nil
+
+
   val tankMoveAction = mutable.HashMap[Long,mutable.HashSet[Int]]() //tankId -> pressed direction key code
 
   val tankActionQueueMap = mutable.HashMap[Long,mutable.Queue[(Long,TankAction)]]() //frame -> (tankId,TankAction)
@@ -55,7 +77,8 @@ trait Grid {
 
 
   def addBullet(frame:Long,bullet: Bullet) = {
-    bulletMap.put(bullet.bId,bullet)
+    waitGenBullet = (frame,bullet) :: waitGenBullet
+//    bulletMap.put(bullet.bId,bullet)
   }
 
 
@@ -81,25 +104,95 @@ trait Grid {
         Some(DirectionType.down)
       }else None
     }
-    //todo 需要调整
+
+    val tankList = tankMap.values.toList
+    val obstacleList = obstacleMap.values.toList
+    //坦克移动
+    tankMoveAction.foreach{
+      case (tankId,actionSet) =>
+        tankMap.get(tankId) match {
+          case Some(tank) =>
+            if(tankMap.contains(tankId)){
+              getDirection(actionSet) match {
+                case Some(d) =>
+                  tank.move(d,boundary,tankList.filter(_.tankId != tankId) ::: obstacleList)
+                case None =>
+              }
+            }
+          case None =>
+        }
+      case _ =>
+    }
+
+    tankMap.foreach{
+      case (_,tank) =>
+        propMap.values.foreach(tank.checkEatProp(_,tankEatProp(tank)))
+    }
+
+
 
   }
 
-  //todo this code need to rebuild 更新子弹的位置 碰撞检测 如果碰撞到障碍物和坦克，扣血操作等。
+  //todo 更新子弹的位置 碰撞检测 如果碰撞到障碍物和坦克，扣血操作等。 并且将waitBullet添加到bulletMap
   def updateBullet():Unit = {
+    val tankList = tankMap.values.toList
+    val obstacleList = obstacleMap.values.toList
+
+    bulletMap.foreach{
+      case (bId,bullet) =>
+        bullet.move(boundary,Nil)
+        tankList.filter(_.tankId != bullet.tankId).foreach(t => bullet.checkAttackObject(t,attackTankCallBack(bullet)))
+        obstacleList.foreach(t => bullet.checkAttackObject(t,attackObstacleCallBack(bullet)))
+    }
   }
+
+  def updateGenBullet():Unit = {
+    waitGenBullet.foreach{
+      case (frame,bullet) =>
+        if(frame <= systemFrame){
+          bulletMap.put(bullet.bId,bullet)
+        }else{
+          for(_ <- 1 to (frame - systemFrame).toInt) bullet.move(boundary,Nil)
+          bulletMap.put(bullet.bId,bullet)
+        }
+    }
+  }
+
   //处理本桢的移动
   def update():Unit ={
     handleCurFrameTankAction()
     updateTank() //更新坦克的移动
     updateBullet() //更新坦克的子弹
+    updateGenBullet() //更新刚发的子弹
     tankActionQueueMap -= systemFrame
     systemFrame += 1
   }
 
 
-  //todo 将本桢接受的所有操作，进行处理，更新坦克的移动操作和坦克炮的方向和开炮操作
+  // 将本桢接受的所有操作，进行处理，更新坦克的移动操作和坦克炮的方向和开炮操作
   private def handleCurFrameTankAction():Unit = {
+    val curActionQueue = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]())
+    while (curActionQueue.nonEmpty){
+      val (tankId,action) = curActionQueue.dequeue()
+      val tankMoveSet = tankMoveAction.getOrElse(tankId,mutable.HashSet[Int]())
+      tankMap.get(tankId) match {
+        case Some(tank) =>
+          action match {
+            case WsProtocol.MouseMove(d) => tank.setTankGunDirection(d)
+            case WsProtocol.PressKeyDown(k) =>
+              tankMoveSet.add(k)
+              tankMoveAction.put(tankId,tankMoveSet)
+            case WsProtocol.PressKeyUp(k) =>
+              tankMoveSet.remove(k)
+              tankMoveAction.put(tankId,tankMoveSet)
+            case WsProtocol.MouseClick(_) =>
+              tankExecuteLaunchBulletAction(tankId,tank)
+
+            case _ => debug(s"tankId=${tankId} action=${action} is no valid")
+          }
+        case None => debug(s"tankId=${tankId} action=${action} is no valid")
+      }
+    }
 
   }
 
@@ -108,22 +201,24 @@ trait Grid {
 
 
   // todo 子弹攻击到坦克的回调函数
-  private def attackTankCallBack(o:Tank):Unit = {
-
+  protected def attackTankCallBack(bullet: Bullet)(o:Tank):Unit = {
+    bulletMap.remove(bullet.bId)
   }
 
   //子弹攻击到障碍物的回调函数
-  private def attackObstacleCallBack(o:Obstacle):Unit = {
-
+  protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
+    bulletMap.remove(bullet.bId)
   }
 
   //todo 坦克吃到道具的回调函数
-  private def tankObtainProp(tank:Tank)(prop: Prop):Unit = {}
+  protected def tankEatProp(tank:Tank)(prop: Prop):Unit
 
 
 
-  //服务器端需要重写
-  def tankExecuteLaunchBulletAction(tankId:Long,tank:Tank,launchBulletCallback:Bullet => Unit) : Unit
+
+
+
+  protected def tankExecuteLaunchBulletAction(tankId:Long,tank:Tank) : Unit
 
 
 

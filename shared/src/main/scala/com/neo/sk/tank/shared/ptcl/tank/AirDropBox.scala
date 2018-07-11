@@ -7,11 +7,13 @@ import com.neo.sk.tank.shared.ptcl.model
   */
 trait AirDropBox extends Obstacle{
 
-  override protected val oId: Long
+  override val oId: Long
 
   protected final var curBlood = 10 //物体血量
 
   override protected var position: model.Point
+
+  def getObstacleState():ObstacleState = ObstacleState(oId,obstacleType,Some(curBlood),position)
 
 
 

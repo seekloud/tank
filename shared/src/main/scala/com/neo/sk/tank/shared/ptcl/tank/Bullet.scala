@@ -12,7 +12,7 @@ trait Bullet extends ObjectOfGame{
 
   override protected var position: model.Point
 
-  protected val damage:Int //威力
+  val damage:Int //威力
 
   protected val momentum: Point //动量
 

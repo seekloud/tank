@@ -7,7 +7,8 @@ import com.neo.sk.tank.shared.ptcl.tank.Tank
   * Created by hongruying on 2018/7/10
   */
 class TankClientImpl(
-                      override protected val tankId: Long,
+                      override protected val userId:Long,
+                      override val tankId: Long,
                       override protected var blood: Int,
                       override protected var bloodLevel: Int,
                       override protected var bulletPowerLevel: Int,
