@@ -7,7 +7,7 @@ import com.neo.sk.tank.shared.ptcl.model
   */
 trait Brick extends Obstacle{
 
-  override protected val oId: Long
+  override val oId: Long
 
   override protected val obstacleType:Int = model.ObstacleParameters.ObstacleType.brick
 
@@ -16,6 +16,8 @@ trait Brick extends Obstacle{
   protected var curBlood:Int //物体血量
 
   override protected var position: model.Point
+
+  def getObstacleState():ObstacleState = ObstacleState(oId,obstacleType,Some(curBlood),position)
 
 
   private val maxBlood:Int = model.ObstacleParameters.BrickDropBoxParameters.blood

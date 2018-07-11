@@ -283,7 +283,17 @@ package object model {
   object Boundary{
     val w = 120
     val h = 60
+
+    def getBoundary:Point = Point(w,h)
   }
+
+  object Frame{
+    val millsAServerFrame = 60
+
+
+  }
+
+
 
 
 
@@ -296,9 +306,26 @@ package object model {
   object TankParameters{
 
     object SpeedType {
-      val low = Point(5,0)
-      val intermediate = Point(5,0)
-      val high = Point(15,0)
+      val low = 1
+      val intermediate = 2
+      val high = 3
+    }
+
+    object TankBloodLevel{
+      val first = 1
+      val second = 2
+      val third = 3
+
+      def getTankBlood(level:Int) :Int  = {
+        level match {
+          case TankBloodLevel.first => 120
+          case TankBloodLevel.second => 200
+          case TankBloodLevel.third => 300
+
+        }
+
+      }
+
     }
 
 
@@ -308,11 +335,33 @@ package object model {
     }
 
     final val tankBulletMaxCapacity = 4
+
+    final val tankFillBulletSpeed = 1 // 1发/1s
+
+    object TankBulletBulletPowerLevel{
+
+      val first = 1
+      val second = 2
+      val third = 3
+
+
+
+      def getBulletDamage(l:Int):Int = {
+        l match {
+          case 1 => 20
+          case 2 => 30
+          case 3 => 40
+
+        }
+      }
+    }
   }
 
   object BulletParameters{
 
     final val maxFlyDistance = 20
+
+    final val bulletMomentum = Point(10,0)
   }
 
   object ObstacleParameters{
@@ -339,6 +388,8 @@ package object model {
         val h = 10
       }
     }
+
+
 
   }
 

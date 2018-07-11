@@ -7,7 +7,7 @@ import com.neo.sk.tank.shared.ptcl.tank.Brick
   * Created by hongruying on 2018/7/10
   */
 class BrickClientImpl(
-                       override protected val oId: Long,
+                       override val oId: Long,
                        override protected var curBlood: Int,
                        override protected var position: model.Point
                      ) extends Brick{

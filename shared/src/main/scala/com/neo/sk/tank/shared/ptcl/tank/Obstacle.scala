@@ -1,5 +1,6 @@
 package com.neo.sk.tank.shared.ptcl.tank
 import com.neo.sk.tank.shared.ptcl.model
+import com.neo.sk.tank.shared.ptcl.model.Point
 
 /**
   * Created by hongruying on 2018/7/9
@@ -9,9 +10,11 @@ import com.neo.sk.tank.shared.ptcl.model
   * --todo钢铁（）
   *
   */
+case class ObstacleState(oId:Long,t:Int,b:Option[Int],p:Point)
+
 trait Obstacle extends ObjectOfGame{
 
-  protected val oId:Long
+  val oId:Long
 
   protected val obstacleType:Int
 
@@ -22,5 +25,7 @@ trait Obstacle extends ObjectOfGame{
   def getObstacleType:Int = obstacleType
 
   def attacked(bullet: Bullet,destroyCallBack:Obstacle => Unit)
+
+  def getObstacleState():ObstacleState
 
 }

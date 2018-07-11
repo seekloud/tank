@@ -6,13 +6,15 @@ import com.neo.sk.tank.shared.ptcl.model.{Point, Rectangle}
   * Created by hongruying on 2018/7/8
   * 游戏中的坦克
   */
-case class TankState(tankId:Long,direction:Double,gunDirection:Double,blood:Int,bloodLevel:Int,speedLevel:Int,curBulletNum:Int,position:Point)
+case class TankState(userId:Long,tankId:Long,direction:Double,gunDirection:Double,blood:Int,bloodLevel:Int,speedLevel:Int,curBulletNum:Int,position:Point)
 
 trait Tank extends ObjectOfGame {
 
   override protected var position: model.Point
 
-  protected val tankId:Long
+  protected val userId:Long
+
+  val tankId:Long
 
   protected var blood:Int //当前血量
 
@@ -36,20 +38,28 @@ trait Tank extends ObjectOfGame {
 
   def isLived() : Boolean = blood > 0
 
+  def setTankGunDirection(d:Double) = {
+    gunDirection = d
+  }
 
 
-  def launchBullet():Option[(Double,Point)] = {
+
+  def launchBullet():Option[(Double,Point,Int)] = {
     if(curBulletNum > 0){
       curBulletNum = curBulletNum - 1
       if(!isFillingBullet){
         isFillingBullet = true
         startFillBullet()
       }
-      Some(direction,getLaunchBulletPosition())
+      Some(gunDirection,getLaunchBulletPosition(),getTankBulletDamage())
     }else None
   }
 
-  private def fillABullet():Unit = {
+  private def getTankBulletDamage():Int = {
+    model.TankParameters.TankBulletBulletPowerLevel.getBulletDamage(bulletPowerLevel)
+  }
+
+  def fillABullet():Unit = {
     if(curBulletNum < bulletMaxCapacity) {
       curBulletNum += 1
       if(curBulletNum >= bulletMaxCapacity) isFillingBullet = false
@@ -59,7 +69,7 @@ trait Tank extends ObjectOfGame {
 
   // 获取坦克状态
   def getTankState():TankState = {
-    TankState(tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position)
+    TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position)
   }
 
   // TODO: 开始填充炮弹
@@ -85,12 +95,16 @@ trait Tank extends ObjectOfGame {
 
 
   //检测是否获得道具
-  def checkObtainProp(p:Prop,obtainPropCallback:Prop => Unit):Unit = {
+  def checkEatProp(p:Prop,obtainPropCallback:Prop => Unit):Unit = {
 
   }
 
   // TODO: 根据方向和地图边界以及地图所有的物体（不包括子弹）进行碰撞检测和移动 
   def move(direction:Double,boundary: Point, otherObject:Seq[ObjectOfGame]):Unit = {
 
+  }
+
+  def isIntersectsObject(o:Seq[ObjectOfGame]):Boolean = {
+    false
   }
 }
