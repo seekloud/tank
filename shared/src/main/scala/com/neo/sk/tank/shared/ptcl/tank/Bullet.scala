@@ -29,7 +29,7 @@ trait Bullet extends ObjectOfGame{
 
   // TODO: 获取子弹外形
   override def getObjectRect(): model.Rectangle = {
-    null
+    ObstacleState
   }
 
 
@@ -55,7 +55,10 @@ trait Bullet extends ObjectOfGame{
 
   // todo 检测是否子弹有攻击到，攻击到，执行回调函数
   def checkAttackObject[T <: ObjectOfGame](o:T,attackCallBack:T => Unit):Unit = {
-    attackTankCallBack
+    if(this.getObjectRect().intersects(o.getObjectRect())){
+      attackCallBack(o)
+    }
+
   }
 
 
