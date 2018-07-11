@@ -22,7 +22,7 @@ class TankClientImpl(
                     ) extends Tank{
 
   def this(tankState:TankState) = {
-    this(tankState.userId,tankState.tankId,tankState.blood,tankState.bloodLevel,bulletPowerLevel,tankState.curBulletNum,tankState.direction,tankState.gunDirection,tankState.position,tankState.speedLevel)
+    this(tankState.userId,tankState.tankId,tankState.blood,tankState.bloodLevel,tankState.bulletPowerLevel,tankState.curBulletNum,tankState.direction,tankState.gunDirection,tankState.position,tankState.speedLevel)
   }
 
   override protected def startFillBullet(): Unit = {}

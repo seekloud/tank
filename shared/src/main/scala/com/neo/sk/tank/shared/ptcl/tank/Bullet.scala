@@ -43,13 +43,13 @@ trait Bullet extends ObjectOfGame{
     false
   }
 
-  // todo: 生命周期是否截至或者打到目标
-  def isFlyEnd(boundary: Point,other:Seq[ObjectOfGame]):Boolean = {
+  // todo: 生命周期是否截至或者打到地图边界
+  def isFlyEnd(boundary: Point):Boolean = {
     false
   }
 
-  // todo
-  def move(boundary: Point,other:Seq[ObjectOfGame]):Unit = {
+  // todo 先检测是否生命周期结束，如果结束
+  def move(boundary: Point,flyEndCallBack:Bullet => Unit):Unit = {
 
   }
 
