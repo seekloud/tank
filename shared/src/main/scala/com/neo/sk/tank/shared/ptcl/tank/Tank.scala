@@ -72,7 +72,7 @@ trait Tank extends ObjectOfGame {
     TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position)
   }
 
-  // TODO: 开始填充炮弹
+  //  开始填充炮弹
   protected def startFillBullet() :Unit
 
 
@@ -99,7 +99,7 @@ trait Tank extends ObjectOfGame {
 
   }
 
-  // TODO: 根据方向和地图边界以及地图所有的物体（不包括子弹）进行碰撞检测和移动 
+  // TODO: 根据方向和地图边界以及地图所有的障碍物和坦克（不包括子弹）进行碰撞检测和移动
   def move(direction:Double,boundary: Point, otherObject:Seq[ObjectOfGame]):Unit = {
 
   }

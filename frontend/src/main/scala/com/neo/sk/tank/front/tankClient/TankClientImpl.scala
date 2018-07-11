@@ -1,7 +1,7 @@
 package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.shared.ptcl.model
-import com.neo.sk.tank.shared.ptcl.tank.Tank
+import com.neo.sk.tank.shared.ptcl.tank.{Tank, TankState}
 
 /**
   * Created by hongruying on 2018/7/10
@@ -18,6 +18,10 @@ class TankClientImpl(
                       override protected var position: model.Point,
                       override protected var speedLevel: Int
                     ) extends Tank{
+
+  def this(tankState:TankState) = {
+    this(tankState.userId,tankState.tankId,tankState.blood,tankState.bloodLevel,bulletPowerLevel,tankState.curBulletNum,tankState.direction,tankState.gunDirection,tankState.position,tankState.speedLevel)
+  }
 
   override protected def startFillBullet(): Unit = {}
 
