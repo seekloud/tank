@@ -6,7 +6,7 @@ import com.neo.sk.tank.shared.ptcl.model.{Point, Rectangle}
   * Created by hongruying on 2018/7/8
   * 游戏中的坦克
   */
-case class TankState(userId:Long,tankId:Long,direction:Double,gunDirection:Double,blood:Int,bloodLevel:Int,speedLevel:Int,curBulletNum:Int,position:Point)
+case class TankState(userId:Long,tankId:Long,direction:Double,gunDirection:Double,blood:Int,bloodLevel:Int,speedLevel:Int,curBulletNum:Int,position:Point,bulletPowerLevel:Int)
 
 trait Tank extends ObjectOfGame {
 
@@ -69,10 +69,10 @@ trait Tank extends ObjectOfGame {
 
   // 获取坦克状态
   def getTankState():TankState = {
-    TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position)
+    TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position,bulletPowerLevel)
   }
 
-  // TODO: 开始填充炮弹
+  //  开始填充炮弹
   protected def startFillBullet() :Unit
 
 
@@ -99,7 +99,7 @@ trait Tank extends ObjectOfGame {
 
   }
 
-  // TODO: 根据方向和地图边界以及地图所有的物体（不包括子弹）进行碰撞检测和移动 
+  // TODO: 根据方向和地图边界以及地图所有的障碍物和坦克（不包括子弹）进行碰撞检测和移动
   def move(direction:Double,boundary: Point, otherObject:Seq[ObjectOfGame]):Unit = {
 
   }

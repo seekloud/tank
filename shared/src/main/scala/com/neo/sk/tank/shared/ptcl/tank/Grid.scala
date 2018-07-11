@@ -140,7 +140,7 @@ trait Grid {
 
     bulletMap.foreach{
       case (bId,bullet) =>
-        bullet.move(boundary,Nil)
+        bullet.move(boundary,bulletFlyEndCallback)
         tankList.filter(_.tankId != bullet.tankId).foreach(t => bullet.checkAttackObject(t,attackTankCallBack(bullet)))
         obstacleList.foreach(t => bullet.checkAttackObject(t,attackObstacleCallBack(bullet)))
     }
@@ -152,7 +152,7 @@ trait Grid {
         if(frame <= systemFrame){
           bulletMap.put(bullet.bId,bullet)
         }else{
-          for(_ <- 1 to (frame - systemFrame).toInt) bullet.move(boundary,Nil)
+          for(_ <- 1 to (frame - systemFrame).toInt) bullet.move(boundary,bulletFlyEndCallback)
           bulletMap.put(bullet.bId,bullet)
         }
     }
@@ -212,6 +212,10 @@ trait Grid {
 
   //todo 坦克吃到道具的回调函数
   protected def tankEatProp(tank:Tank)(prop: Prop):Unit
+
+  protected def bulletFlyEndCallback(bullet: Bullet):Unit = {
+    bulletMap.remove(bullet.bId)
+  }
 
 
 
