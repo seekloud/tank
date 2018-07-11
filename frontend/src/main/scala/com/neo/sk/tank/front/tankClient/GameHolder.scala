@@ -119,7 +119,7 @@ class GameHolder(canvasName:String) {
 
       case WsProtocol.TankLaunchBullet(frame,bullet) =>
 
-      case  _ => println(s"接收到无效消息")
+      case  _ => println(s"接收到无效消息ss")
 
 
     }
