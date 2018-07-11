@@ -16,10 +16,10 @@ package object ptcl {
 
 
 
-  trait Response{
-    val errCode: Int
-    val msg: String
-  }
+//  trait Response{
+//    val errCode: Int
+//    val msg: String
+//  }
   trait CommonRsp {
     val errCode: Int
     val msg: String

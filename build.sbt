@@ -1,4 +1,5 @@
-
+import sbt.Keys._
+import sbtcrossproject.{crossProject, CrossType}
 
 
 val scalaV = "2.12.6"
@@ -21,7 +22,7 @@ def commonSettings = Seq(
   )
 )
 
-lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
+lazy val shared = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure) in file("shared"))
   .settings(name := "shared")
   .settings(commonSettings: _*)
 

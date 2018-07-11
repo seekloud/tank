@@ -18,6 +18,7 @@ import akka.stream.scaladsl._
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.actor.typed.scaladsl.adapter._
+import com.neo.sk.tank.core.{RoomActor, UserManager}
 
 
 
@@ -42,6 +43,11 @@ object Boot extends HttpService {
   override implicit val timeout:Timeout = Timeout(20 seconds) // for actor asks
 
   val log: LoggingAdapter = Logging(system, getClass)
+
+
+  val roomActor:ActorRef[RoomActor.Command] = system.spawn(RoomActor.create(),"roomActor")
+
+  val userManager:ActorRef[UserManager.Command] = system.spawn(UserManager.create(),"userManager")
 
 
 

@@ -105,10 +105,7 @@ class GridServerImpl(
     dispatch(WsProtocol.TankEatProp(prop.pId,tank.tankId,prop.propType))
   }
 
-  def leftGame(tankId:Long):Unit = {
-    tankMoveAction.remove(tankId)
-    tankMap.remove(tankId)
-  }
+
 
   def getGridStateWithoutBullet():GridStateWithoutBullet = {
     GridStateWithoutBullet(

@@ -12,9 +12,9 @@ object WsProtocol {
 
   trait TankAction
 
-  final case class PressKeyDown(keyCode:Int) extends TankAction with WsMsgFront
+  final case class PressKeyDown(keyCodeDown:Int) extends TankAction with WsMsgFront
 
-  final case class PressKeyUp(keyCode:Int) extends TankAction with WsMsgFront
+  final case class PressKeyUp(keyCodeUp:Int) extends TankAction with WsMsgFront
 
   final case class MouseMove(d:Double) extends TankAction with WsMsgFront
 
@@ -39,7 +39,7 @@ object WsProtocol {
 
   case class GridSyncState(d:GridStateWithoutBullet) extends WsMsgServer
 
-  case class GridSyncAllState(d:GridState) extends WsMsgServer
+  case class GridSyncAllState(gState:GridState) extends WsMsgServer
 
   case class TankAttacked(bId:Long,tId:Long,d:Int) extends WsMsgServer
 

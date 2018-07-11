@@ -8,7 +8,7 @@ import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import com.neo.sk.tank.core.tank.TankServerImpl
 import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
 import org.slf4j.LoggerFactory
-
+import com.neo.sk.tank.Boot.roomActor
 import scala.concurrent.duration._
 /**
   * Created by hongruying on 2018/7/9
@@ -120,6 +120,7 @@ object UserActor {
       msg match {
         case StartGame =>
           //todo 往roomActor发消息获取坦克数据和当前游戏桢数据
+          roomActor ! RoomActor.JoinRoom(uId,name,ctx.self)
           Behaviors.same
 
         case JoinRoomSuccess(tank) =>

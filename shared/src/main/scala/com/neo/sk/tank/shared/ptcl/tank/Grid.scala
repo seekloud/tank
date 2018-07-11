@@ -224,6 +224,11 @@ trait Grid {
 
   protected def tankExecuteLaunchBulletAction(tankId:Long,tank:Tank) : Unit
 
+  def leftGame(tankId:Long):Unit = {
+    tankMoveAction.remove(tankId)
+    tankMap.remove(tankId)
+  }
+
 
 
 

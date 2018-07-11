@@ -1,5 +1,7 @@
 package com.neo.sk.tank.front.tankClient
 
+import com.neo.sk.tank.front.common.Routes
+import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
 import org.scalajs.dom
 import org.scalajs.dom.raw._
 
@@ -7,12 +9,14 @@ import org.scalajs.dom.raw._
   * Created by hongruying on 2018/7/9
   */
 class WebSocketClient(
-                       url:String,
                        connectSuccessCallback: Event => Unit,
                        connectErrorCallback:Event => Unit,
                        messageHandler:MessageEvent => Unit,
                        closeCallback:Event => Unit
                      ) {
+
+  import io.circe.generic.auto._
+  import io.circe.syntax._
 
   private var wsSetup = false
 
@@ -20,21 +24,21 @@ class WebSocketClient(
 
   def getWsState = wsSetup
 
-  def getWebSocketUri: String = {
+  def getWebSocketUri(name:String): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}/${url}"
+    s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name)}"
   }
 
-  def sendMsg(msg:String) = {
-    websocketStreamOpt.foreach(_.send(msg))
+  def sendMsg(msg:WsProtocol.WsMsgFront) = {
+    websocketStreamOpt.foreach(_.send(msg.asJson.noSpaces))
   }
 
 
-  def setup():Unit = {
+  def setup(name:String):Unit = {
     if(wsSetup){
       println(s"websocket已经启动")
     }else{
-      val websocketStream = new WebSocket(getWebSocketUri)
+      val websocketStream = new WebSocket(getWebSocketUri(name))
       websocketStreamOpt = Some(websocketStream)
       websocketStream.onopen = { (event: Event) =>
         wsSetup = true

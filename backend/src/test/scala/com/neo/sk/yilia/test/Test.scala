@@ -14,6 +14,8 @@ import scala.concurrent.Future
 import concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.FiniteDuration
 
+import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
+
 /**
   * Created by hongruying on 2018/3/11
   */
@@ -102,28 +104,41 @@ object Test {
 
 
   def main(args: Array[String]): Unit = {
+    import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
 
-    import akka.actor.typed.scaladsl.adapter._
+    sealed trait Foo
+    case class Bar(xs: Vector[String]) extends Foo
+    case class Qux(i: Int, d: Option[Double]) extends Foo
 
-    implicit val system = ActorSystem("mySystem")
-    // the executor should not be the default dispatcher.
-    implicit val executor: MessageDispatcher =
-    system.dispatchers.lookup("akka.actor.my-blocking-dispatcher")
+    val foo: Foo = Qux(13, Some(14.0))
 
-    implicit val materializer = ActorMaterializer()
+    val json = foo.asJson.noSpaces
+    println(json)
 
-    implicit val scheduler = system.scheduler
+    val decodedFoo = decode[WsProtocol.WsMsgServer](json)
+    println(decodedFoo)
 
-    implicit val timeout:Timeout = Timeout(20 seconds) // for actor asks
-
-    val actor = system.spawn(create(),"test")
-
-    actor ! Hello(id = autoLonger.getAndIncrement())
-    actor ! Hello(id = autoLonger.getAndIncrement())
-    actor ! Hello(id = autoLonger.getAndIncrement())
-    actor ! SwitchBehavior("idle",idle())
-    actor ! Hello(id = autoLonger.getAndIncrement())
-    actor ! Hello(id = autoLonger.getAndIncrement())
+//    import akka.actor.typed.scaladsl.adapter._
+//
+//    implicit val system = ActorSystem("mySystem")
+//    // the executor should not be the default dispatcher.
+//    implicit val executor: MessageDispatcher =
+//    system.dispatchers.lookup("akka.actor.my-blocking-dispatcher")
+//
+//    implicit val materializer = ActorMaterializer()
+//
+//    implicit val scheduler = system.scheduler
+//
+//    implicit val timeout:Timeout = Timeout(20 seconds) // for actor asks
+//
+//    val actor = system.spawn(create(),"test")
+//
+//    actor ! Hello(id = autoLonger.getAndIncrement())
+//    actor ! Hello(id = autoLonger.getAndIncrement())
+//    actor ! Hello(id = autoLonger.getAndIncrement())
+//    actor ! SwitchBehavior("idle",idle())
+//    actor ! Hello(id = autoLonger.getAndIncrement())
+//    actor ! Hello(id = autoLonger.getAndIncrement())
 
 
 
