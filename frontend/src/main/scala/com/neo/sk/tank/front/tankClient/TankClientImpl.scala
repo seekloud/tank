@@ -4,6 +4,7 @@ import com.neo.sk.tank.shared.ptcl.model
 import com.neo.sk.tank.shared.ptcl.model.Point
 import com.neo.sk.tank.shared.ptcl.tank.{Tank, TankState}
 import org.scalajs.dom
+import org.scalajs.dom.ext.Color
 
 /**
   * Created by hongruying on 2018/7/10
@@ -34,7 +35,19 @@ class TankClientImpl(
     * @param isMove 坦克是否移动
     * */
   def getPositionCurFrame(curFrame:Int,maxClientFrame:Int,isMove:Boolean):Point = {
-    Point(0,0)
+    position
+  }
+
+  //4个点
+  def getGunPosition():List[Point] = {
+    List(
+      Point(0,- model.TankParameters.TankSize.gunH / 2).rotate(this.gunDirection),
+      Point(0, model.TankParameters.TankSize.gunH / 2).rotate(this.gunDirection),
+      Point(model.TankParameters.TankSize.gunLen,model.TankParameters.TankSize.gunH / 2).rotate(this.gunDirection),
+      Point(model.TankParameters.TankSize.gunLen,- model.TankParameters.TankSize.gunH / 2).rotate(this.gunDirection)
+
+    ).map(_ + this.position)
+
   }
 
 
@@ -50,7 +63,21 @@ object TankClientImpl{
     * @param curFrame 动画渲染桢数 （0，1，2，3）
     * @param maxClientFrame 每个systemFrame 动画渲染的帧数
     * */
-  def drawGame(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int): Unit ={
+  def drawTank(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,canvasUnit:Int = 10): Unit ={
+    val position = tank.getPositionCurFrame(curFrame,maxClientFrame,true)
+
+    val gunPositionList = tank.getGunPosition().map(t => t * canvasUnit)
+    ctx.beginPath()
+    ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
+    gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
+    ctx.fillStyle = Color.Yellow.toString()
+    ctx.fill()
+    ctx.closePath()
+    ctx.beginPath()
+    ctx.arc(position.x*canvasUnit,position.y*canvasUnit,model.TankParameters.TankSize.r * canvasUnit ,0, 360)
+    ctx.fillStyle = Color.Yellow.toString()
+    ctx.fill()
+    ctx.closePath()
 
   }
 

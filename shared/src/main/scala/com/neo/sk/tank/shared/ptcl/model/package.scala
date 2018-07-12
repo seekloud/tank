@@ -315,6 +315,17 @@ package object model {
       val low = 1
       val intermediate = 2
       val high = 3
+
+
+      def tankSpeedByType(t:Int):Point = { //每桢移动多少
+        t match {
+          case SpeedType.low => Point(5,0)
+          case SpeedType.intermediate => Point(10,0)
+          case SpeedType.high => Point(15,0)
+        }
+      }
+
+      def getMoveByFrame(t:Int):Point = tankSpeedByType(t) * Frame.millsAServerFrame / 1000
     }
 
     object TankBloodLevel{
@@ -338,6 +349,11 @@ package object model {
     object TankSize{
       val w = 10
       val h = 10
+      val r = 10
+
+
+      val gunLen = 20
+      val gunH = 4
     }
 
     final val tankBulletMaxCapacity = 4

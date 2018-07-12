@@ -49,6 +49,7 @@ class GridServerImpl(
 
   override protected def attackTankCallBack(bullet: Bullet)(o:Tank):Unit = {
     super.attackTankCallBack(bullet)(o)
+    o.attackedBullet(bullet,dropTankCallBack)
     dispatch(WsProtocol.TankAttacked(bullet.bId,o.tankId,bullet.damage))
   }
 
@@ -128,6 +129,15 @@ class GridServerImpl(
       tankMoveAction = tankMoveAction.toList.flatMap(t => t._2.map(x => (t._1,x)))
     )
   }
+
+
+
+  private def dropTankCallBack(bullet:Bullet,tank:Tank):Unit = {
+    tankMap.remove(tank.tankId)
+    tankMoveAction.remove(tank.tankId)
+  }
+
+
 
   override def update(): Unit = {
     super.update()

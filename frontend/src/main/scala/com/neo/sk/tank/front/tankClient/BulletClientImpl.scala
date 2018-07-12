@@ -35,6 +35,8 @@ class BulletClientImpl(
 
 
 
+
+
 }
 
 object BulletClientImpl{
@@ -42,7 +44,7 @@ object BulletClientImpl{
     val position = bullet.getPositionCurFrame(curFrame)
     ctx.fillStyle = Color.Red.toString()
     ctx.beginPath()
-    ctx.arc(position.x*canvasUnit,position.y*canvasUnit,model.BulletSize.r*canvasUnit,0, 2*Math.PI)
+    ctx.arc(position.x*canvasUnit,position.y*canvasUnit,model.BulletSize.r*canvasUnit,0, 360)
     ctx.fill()
     ctx.closePath()
 

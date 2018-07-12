@@ -77,35 +77,45 @@ trait Tank extends ObjectOfGame {
 
 
 
-  // TODO: 获取发射子弹位置
+  // 获取发射子弹位置
   private def getLaunchBulletPosition():Point = {
-    Point(20,30)
+    position + Point(model.TankParameters.TankSize.gunLen,0).rotate(gunDirection)
   }
 
 
   // TODO: 根据坦克的位置获取坦克的外形，目前考虑以矩形来代表坦克 待实现
   override def getObjectRect(): Rectangle = {
-    null
+    Rectangle(position- Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r),position + Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r))
   }
 
   //todo
   def attackedBullet(bullet: Bullet,destroy:(Bullet,Tank) => Unit):Unit = {
-
+    this.blood -= bullet.damage
+    if(!isLived()) destroy(bullet,this)
   }
 
 
   //检测是否获得道具
   def checkEatProp(p:Prop,obtainPropCallback:Prop => Unit):Unit = {
-
+    if(this.getObjectRect().intersects(p.getObjectRect())){
+      eatProp(p)
+      obtainPropCallback(p)
+    }
   }
 
   // TODO: 根据方向和地图边界以及地图所有的障碍物和坦克（不包括子弹）进行碰撞检测和移动
   def move(direction:Double,boundary: Point, otherObject:Seq[ObjectOfGame]):Unit = {
-
+    this.direction = direction
+    val res = this.position + model.TankParameters.SpeedType.getMoveByFrame(speedLevel).rotate(direction)
+    val movedRec = Rectangle(res-Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r),res+Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r))
+    if(!otherObject.exists(t => t.getObjectRect().intersects(movedRec))){
+      position = res
+    }
   }
 
   def isIntersectsObject(o:Seq[ObjectOfGame]):Boolean = {
-    false
+    val rec = this.getObjectRect()
+    o.exists(t => t.getObjectRect().intersects(rec))
   }
 
 

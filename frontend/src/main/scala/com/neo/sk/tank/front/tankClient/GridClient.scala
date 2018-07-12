@@ -110,10 +110,14 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
 
   def draw(ctx:dom.CanvasRenderingContext2D,curFrame:Int,maxClientFrame:Int) = {
     bulletMap.values.foreach{ b =>
-
       BulletClientImpl.drawBullet(ctx,canvasUnit,b.asInstanceOf[BulletClientImpl],curFrame)
     }
+    tankMap.values.foreach{ t =>
+      TankClientImpl.drawTank(ctx,t.asInstanceOf[TankClientImpl],curFrame,maxClientFrame,canvasUnit)
+    }
   }
+
+  def tankIsLived(tankId:Long):Boolean = tankMap.contains(tankId)
 
 
 

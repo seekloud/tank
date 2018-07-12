@@ -123,7 +123,7 @@ class GameHolder(canvasName:String) {
       case WsProtocol.GridSyncState(d) =>
         justSynced = true
         gridStateWithoutBullet = Some(d)
-        println(grid.systemFrame,grid.bulletMap.values.map(_.getBulletState()),"---------",d,clientFrame)
+//        println(grid.systemFrame,grid.bulletMap.values.map(_.getBulletState()),"---------",d,clientFrame)
 //        grid.gridSyncStateWithoutBullet(d)
 
 
@@ -237,8 +237,10 @@ class GameHolder(canvasName:String) {
               justSynced = false
             }
           case false =>
-            if(clientFrame == maxClientFrameDrawForSystemFrame - 1)
+            if(clientFrame == maxClientFrameDrawForSystemFrame - 1){
               grid.update()
+            }
+
         }
         clientFrame += 1
         clientFrame = clientFrame % maxClientFrameDrawForSystemFrame
@@ -247,7 +249,9 @@ class GameHolder(canvasName:String) {
 
 
 
+
       case Constants.GameState.stop =>
+        drawGameStop()
         Shortcut.cancelSchedule(timer)
 
     }
@@ -266,10 +270,23 @@ class GameHolder(canvasName:String) {
   }
 
   def drawGame(curFrame:Int,maxClientFrame:Int): Unit ={
+    println(System.currentTimeMillis())
     ctx.fillStyle = Color.Black.toString()
     ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
     grid.draw(ctx,curFrame,maxClientFrame)
+    println(System.currentTimeMillis())
 
+  }
+
+  def drawGameStop():Unit = {
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
+    ctx.fillStyle = "rgb(250, 250, 250)"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    ctx.font = "36px Helvetica"
+    ctx.fillText("您已经死亡", 150, 180)
+    println()
   }
 
 
