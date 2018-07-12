@@ -254,6 +254,9 @@ class GameHolder(canvasName:String) {
   }
 
   def drawGame(curFrame:Int,maxClientFrame:Int): Unit ={
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
+    grid.draw(ctx,curFrame,maxClientFrame)
 
   }
 

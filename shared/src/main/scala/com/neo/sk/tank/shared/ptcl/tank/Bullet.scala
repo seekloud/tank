@@ -53,12 +53,11 @@ trait Bullet extends ObjectOfGame{
 
   // todo 先检测是否生命周期结束，如果没结束继续移动
   def move(boundary: Point,flyEndCallBack:Bullet => Unit):Unit = {
+    println(s"sssssssssssssssssssssssssss")
     if(isFlyEnd(boundary)){
       flyEndCallBack(this)
-    }
-
-    else
-      this.position + momentum / 1000 * model.Frame.millsAServerFrame
+    } else
+      this.position = this.position + momentum / 1000 * model.Frame.millsAServerFrame
 
   }
 

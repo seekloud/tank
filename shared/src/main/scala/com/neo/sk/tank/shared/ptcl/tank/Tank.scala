@@ -79,7 +79,7 @@ trait Tank extends ObjectOfGame {
 
   // TODO: 获取发射子弹位置
   private def getLaunchBulletPosition():Point = {
-    Point(0,0)
+    Point(20,30)
   }
 
 

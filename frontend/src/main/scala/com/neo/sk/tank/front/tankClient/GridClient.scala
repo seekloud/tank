@@ -107,6 +107,13 @@ class GridClient(override val boundary: model.Point) extends Grid {
     }
   }
 
+  def draw(ctx:dom.CanvasRenderingContext2D,curFrame:Int,maxClientFrame:Int) = {
+    bulletMap.values.foreach{ b =>
+      println(b.getBulletState())
+      BulletClientImpl.drawBullet(ctx,b.asInstanceOf[BulletClientImpl],curFrame)
+    }
+  }
+
 
 
 

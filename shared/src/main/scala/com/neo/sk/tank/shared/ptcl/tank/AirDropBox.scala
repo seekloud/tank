@@ -9,7 +9,7 @@ trait AirDropBox extends Obstacle{
 
   override val oId: Long
 
-  protected var curBlood = 10 //物体血量
+  protected var curBlood :Int //物体血量
 
   override protected var position: model.Point
 
