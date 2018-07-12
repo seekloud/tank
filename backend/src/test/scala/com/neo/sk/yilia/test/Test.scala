@@ -14,6 +14,8 @@ import scala.concurrent.Future
 import concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.FiniteDuration
 
+import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
+
 /**
   * Created by hongruying on 2018/3/11
   */
@@ -102,28 +104,65 @@ object Test {
 
 
   def main(args: Array[String]): Unit = {
-
+    import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
     import akka.actor.typed.scaladsl.adapter._
+    //
+        implicit val system = ActorSystem("mySystem")
+        // the executor should not be the default dispatcher.
+//        implicit val executor: MessageDispatcher =
+//        system.dispatchers.lookup("akka.actor.my-blocking-dispatcher")
 
-    implicit val system = ActorSystem("mySystem")
-    // the executor should not be the default dispatcher.
-    implicit val executor: MessageDispatcher =
-    system.dispatchers.lookup("akka.actor.my-blocking-dispatcher")
+        implicit val materializer = ActorMaterializer()
 
-    implicit val materializer = ActorMaterializer()
+    import akka.actor.typed.ActorRef
+    import akka.stream.OverflowStrategy
+    import akka.stream.scaladsl.{ Sink, Source }
+    import akka.stream.typed.scaladsl.ActorSource
 
-    implicit val scheduler = system.scheduler
+    trait Protocol
+    case class Message(msg: String) extends Protocol
+    case object Complete extends Protocol
+    case class Fail(ex: Exception) extends Protocol
 
-    implicit val timeout:Timeout = Timeout(20 seconds) // for actor asks
+    val source: Source[Protocol, ActorRef[Protocol]] = ActorSource.actorRef[Protocol](
+      completionMatcher = {
+        case Complete ⇒
+      },
+      failureMatcher = {
+        case Fail(ex) ⇒ ex
+      },
+      bufferSize = 8,
+      overflowStrategy = OverflowStrategy.fail
+    )
 
-    val actor = system.spawn(create(),"test")
+    val ref = source.collect {
+      case Message(msg) ⇒ msg
+    }.to(Sink.foreach(println)).run()
 
-    actor ! Hello(id = autoLonger.getAndIncrement())
-    actor ! Hello(id = autoLonger.getAndIncrement())
-    actor ! Hello(id = autoLonger.getAndIncrement())
-    actor ! SwitchBehavior("idle",idle())
-    actor ! Hello(id = autoLonger.getAndIncrement())
-    actor ! Hello(id = autoLonger.getAndIncrement())
+    ref ! Message("111")
+//    ref ! Fail(new Exception("sss"))
+
+
+//    val json = foo.asJson.noSpaces
+//    println(json)
+
+//    val decodedFoo = decode[WsProtocol.WsMsgServer](json)
+//    println(decodedFoo)
+
+//
+//
+//    implicit val scheduler = system.scheduler
+//
+//    implicit val timeout:Timeout = Timeout(20 seconds) // for actor asks
+//
+//    val actor = system.spawn(create(),"test")
+//
+//    actor ! Hello(id = autoLonger.getAndIncrement())
+//    actor ! Hello(id = autoLonger.getAndIncrement())
+//    actor ! Hello(id = autoLonger.getAndIncrement())
+//    actor ! SwitchBehavior("idle",idle())
+//    actor ! Hello(id = autoLonger.getAndIncrement())
+//    actor ! Hello(id = autoLonger.getAndIncrement())
 
 
 

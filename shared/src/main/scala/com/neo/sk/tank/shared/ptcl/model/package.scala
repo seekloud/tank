@@ -36,6 +36,10 @@ package object model {
       val (cos, sin) = (Math.cos(theta), math.sin(theta))
       Point(cos * x - sin * y, sin * x + cos * y)
     }
+
+    def getTheta(center:Point):Double = {
+      math.atan2(y - center.y,x - center.x)
+    }
   }
 
   case class Rectangle(topLeft: Point, downRight: Point){
@@ -289,6 +293,8 @@ package object model {
 
   object Frame{
     val millsAServerFrame = 60
+
+    val clientFrameAServerFrame = 4
 
 
   }

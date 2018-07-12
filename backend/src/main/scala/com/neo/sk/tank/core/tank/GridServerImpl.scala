@@ -63,6 +63,7 @@ class GridServerImpl(
     var objectOfGameList = tankMap.values.toList ::: obstacleMap.values.toList
     while (justJoinUser.nonEmpty){
       val u = justJoinUser.head
+      justJoinUser = justJoinUser.tail
       val tank = genATank(u._1,objectOfGameList)
       objectOfGameList = tank :: objectOfGameList
 
@@ -105,10 +106,7 @@ class GridServerImpl(
     dispatch(WsProtocol.TankEatProp(prop.pId,tank.tankId,prop.propType))
   }
 
-  def leftGame(tankId:Long):Unit = {
-    tankMoveAction.remove(tankId)
-    tankMap.remove(tankId)
-  }
+
 
   def getGridStateWithoutBullet():GridStateWithoutBullet = {
     GridStateWithoutBullet(

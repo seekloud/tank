@@ -4,8 +4,8 @@ import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicLong
 
 import com.neo.sk.tank.shared.ptcl.model._
-import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
-import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol.TankAction
+import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
+import com.neo.sk.tank.shared.ptcl.protocol.WsFrontProtocol.TankAction
 
 import scala.collection.mutable
 
@@ -178,14 +178,14 @@ trait Grid {
       tankMap.get(tankId) match {
         case Some(tank) =>
           action match {
-            case WsProtocol.MouseMove(d) => tank.setTankGunDirection(d)
-            case WsProtocol.PressKeyDown(k) =>
+            case WsFrontProtocol.MouseMove(d) => tank.setTankGunDirection(d)
+            case WsFrontProtocol.PressKeyDown(k) =>
               tankMoveSet.add(k)
               tankMoveAction.put(tankId,tankMoveSet)
-            case WsProtocol.PressKeyUp(k) =>
+            case WsFrontProtocol.PressKeyUp(k) =>
               tankMoveSet.remove(k)
               tankMoveAction.put(tankId,tankMoveSet)
-            case WsProtocol.MouseClick(_) =>
+            case WsFrontProtocol.MouseClick(_) =>
               tankExecuteLaunchBulletAction(tankId,tank)
 
             case _ => debug(s"tankId=${tankId} action=${action} is no valid")
@@ -223,6 +223,11 @@ trait Grid {
 
 
   protected def tankExecuteLaunchBulletAction(tankId:Long,tank:Tank) : Unit
+
+  def leftGame(tankId:Long):Unit = {
+    tankMoveAction.remove(tankId)
+    tankMap.remove(tankId)
+  }
 
 
 

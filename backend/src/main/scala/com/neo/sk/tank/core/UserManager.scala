@@ -7,7 +7,8 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors, TimerScheduler}
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.stream.{ActorAttributes, Supervision}
 import akka.stream.scaladsl.Flow
-import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
+import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
+import io.circe.{Decoder, Encoder}
 import org.slf4j.LoggerFactory
 
 /**
@@ -61,14 +62,15 @@ object UserManager {
   }
 
   private def getWebSocketFlow(userActor: ActorRef[UserActor.Command]):Flow[Message,Message,Any] = {
-
     import scala.language.implicitConversions
-    implicit def parseJsonString2WsMsgFront(s:String):Option[WsProtocol.WsMsgFront] = {
+
+
+    implicit def parseJsonString2WsMsgFront(s:String):Option[WsFrontProtocol.WsMsgFront] = {
       import io.circe.generic.auto._
       import io.circe.parser._
 
       try {
-        val wsMsg = decode[WsProtocol.WsMsgFront](s).right.get
+        val wsMsg = decode[WsFrontProtocol.WsMsgFront](s).right.get
         Some(wsMsg)
       }catch {
         case e:Exception =>
@@ -83,7 +85,12 @@ object UserManager {
           UserActor.WebSocketMsg(m)
       }.via(UserActor.flow(userActor))
         .map {
-        case _ => TextMessage.apply("")
+        case t:WsProtocol.WsMsgServer => TextMessage.apply(t.asJson.noSpaces)
+
+        case x =>
+          TextMessage.apply("")
+
+
 
       }.withAttributes(ActorAttributes.supervisionStrategy(decider))
 

@@ -20,6 +20,8 @@ class StartGameModal(gameState:Var[Int],startGame:(String) => Unit) extends Comp
 
   private val divStyle = gameState.map{
     case Constants.GameState.play => "display:none;"
+    case Constants.GameState.loadingPlay => "display:none;"
+
     case _ => "display:block;"
   }
 

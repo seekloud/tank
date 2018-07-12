@@ -8,7 +8,9 @@ package com.neo.sk.tank.front.common
 object Routes {
 
 
-  val base = "/tankDemo"
+  val base = "/tank"
+
+  def wsJoinGameUrl(name:String) = base + s"/game/join?name=${name}"
 
 
 
