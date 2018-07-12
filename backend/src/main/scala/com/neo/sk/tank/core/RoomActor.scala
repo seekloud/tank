@@ -118,12 +118,6 @@ object RoomActor {
           if (tickCount % 20 == 5) {
             val gridData = grid.getGridStateWithoutBullet()
             dispatch(subscribersMap)(WsProtocol.GridSyncState(gridData))
-          } else {
-
-            //更新子弹的
-//            if (feedApples.nonEmpty) {
-//              dispatch(Protocol.FeedApples(feedApples))
-//            }
           }
           if(tickCount % 20 == 1){
             dispatch(subscribersMap)(WsProtocol.Ranks(grid.currentRank,grid.historyRank))
