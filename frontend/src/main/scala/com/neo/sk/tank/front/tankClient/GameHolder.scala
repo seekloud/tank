@@ -231,13 +231,13 @@ class GameHolder(canvasName:String) {
       case Constants.GameState.play =>
         justSynced match {
           case true =>
-            if(clientFrame == 3){
+            if(clientFrame == maxClientFrameDrawForSystemFrame - 1){
               gridStateWithoutBullet.foreach(t =>grid.gridSyncStateWithoutBullet(t))
               gridAllState.foreach(t => grid.gridSyncState(_))
               justSynced = false
             }
           case false =>
-            if(clientFrame == 3)
+            if(clientFrame == maxClientFrameDrawForSystemFrame - 1)
               grid.update()
         }
         clientFrame += 1
