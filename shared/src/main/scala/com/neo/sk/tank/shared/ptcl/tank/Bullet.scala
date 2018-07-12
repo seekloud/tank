@@ -58,7 +58,7 @@ trait Bullet extends ObjectOfGame{
     }
 
     else
-      this.position + momentum
+      this.position + momentum / 1000 * model.Frame.millsAServerFrame
 
   }
 
