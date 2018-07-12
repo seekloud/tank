@@ -340,6 +340,11 @@ package object model {
       val h = 10
     }
 
+    object GunSize{
+      val w = 5
+      val h = 5
+    }
+
     final val tankBulletMaxCapacity = 4
 
     final val tankFillBulletSpeed = 1 // 1发/1s

@@ -1,6 +1,6 @@
 package com.neo.sk.tank.shared.ptcl.tank
 import com.neo.sk.tank.shared.ptcl.model
-import com.neo.sk.tank.shared.ptcl.model.{Point, Rectangle}
+import com.neo.sk.tank.shared.ptcl.model.{Point, Rectangle, DirectionType,BulletSize, TankParameters}
 
 /**
   * Created by hongruying on 2018/7/8
@@ -79,13 +79,23 @@ trait Tank extends ObjectOfGame {
 
   // TODO: 获取发射子弹位置
   private def getLaunchBulletPosition():Point = {
-    null
+    val baseLength = TankParameters.GunSize.h + BulletSize.r / 2
+    val (xPlus,yPlus) = (baseLength * Math.cos(gunDirection),baseLength * Math.sin(gunDirection))
+    Point(getTankState().position.x + xPlus,getTankState().position.y + yPlus)
   }
 
 
   // TODO: 根据坦克的位置获取坦克的外形，目前考虑以矩形来代表坦克 待实现
   override def getObjectRect(): Rectangle = {
-    null
+    val topLeft = Point(
+      getTankState().position.x - TankParameters.TankSize.w / 2,
+      getTankState().position.y - TankParameters.TankSize.h / 2
+    )
+    val downRight = Point(
+      getTankState().position.x + TankParameters.TankSize.w / 2,
+      getTankState().position.y + TankParameters.TankSize.h / 2
+    )
+    Rectangle(topLeft,downRight)
   }
 
   //todo
