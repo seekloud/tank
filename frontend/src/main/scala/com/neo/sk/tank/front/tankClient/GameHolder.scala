@@ -19,6 +19,9 @@ import scala.xml.Elem
   */
 class GameHolder(canvasName:String) {
 
+  import io.circe._, io.circe.generic.auto.exportDecoder, io.circe.parser._, io.circe.syntax._
+
+
   private[this] val canvas = dom.document.getElementById(canvasName).asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
@@ -87,7 +90,6 @@ class GameHolder(canvasName:String) {
 
   //todo
   private def wsMessageHandler(e:MessageEvent) = {
-    import io.circe._, io.circe.generic.auto.exportDecoder, io.circe.parser._, io.circe.syntax._
 
 
 
@@ -100,7 +102,11 @@ class GameHolder(canvasName:String) {
         println(s"玩家=${name} left tankId=${tankId}")
         grid.leftGame(tankId)
 
-      case WsProtocol.TankActionFrame(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+      case WsProtocol.TankActionFrameMouse(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+
+      case WsProtocol.TankActionFrameKeyDown(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+      case WsProtocol.TankActionFrameKeyUp(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+
 
       case WsProtocol.Ranks(currentRank,historyRank) =>
 
@@ -118,7 +124,8 @@ class GameHolder(canvasName:String) {
       case WsProtocol.TankEatProp(pId,tId,pType) =>
 
       case WsProtocol.TankLaunchBullet(frame,bullet) =>
-
+        println(s"recv msg:${e.data.toString}")
+//
       case  _ => println(s"接收到无效消息ss")
 
 
@@ -132,7 +139,7 @@ class GameHolder(canvasName:String) {
     gameState = s
   }
 
-  def sendMsg2Server(msg:WsProtocol.WsMsgFront):Unit ={
+  def sendMsg2Server(msg:WsFrontProtocol.WsMsgFront):Unit ={
     if(gameState == Constants.GameState.play)
       websocketClient.sendMsg(msg)
 
@@ -143,11 +150,11 @@ class GameHolder(canvasName:String) {
     canvas.onmousemove = { (e:dom.MouseEvent) =>
       val point = Point(e.clientX,e.clientY)
       val theta = point.getTheta(canvasBoundary / 2)
-      sendMsg2Server(WsProtocol.MouseMove(theta))//发送鼠标位置
+      sendMsg2Server(WsFrontProtocol.MouseMove(theta))//发送鼠标位置
       e.preventDefault()
     }
     canvas.onclick = {(e:MouseEvent) =>
-      sendMsg2Server(WsProtocol.MouseClick(System.currentTimeMillis()))//发送炮弹数据
+      sendMsg2Server(WsFrontProtocol.MouseClick(System.currentTimeMillis()))//发送炮弹数据
       e.preventDefault()
     }
 
@@ -155,7 +162,7 @@ class GameHolder(canvasName:String) {
       (e: dom.KeyboardEvent) => {
         if (watchKeys.contains(e.keyCode)) {
           println(s"key down: [${e.keyCode}]")
-          sendMsg2Server(WsProtocol.PressKeyDown(e.keyCode))//发送操作指令
+          sendMsg2Server(WsFrontProtocol.PressKeyDown(e.keyCode))//发送操作指令
           e.preventDefault()
         }
       }
@@ -165,7 +172,7 @@ class GameHolder(canvasName:String) {
       (e: dom.KeyboardEvent) => {
         if (watchKeys.contains(e.keyCode)) {
           println(s"key up: [${e.keyCode}]")
-          sendMsg2Server(WsProtocol.PressKeyUp(e.keyCode))//发送操作指令
+          sendMsg2Server(WsFrontProtocol.PressKeyUp(e.keyCode))//发送操作指令
           e.preventDefault()
         }
       }
@@ -183,7 +190,7 @@ class GameHolder(canvasName:String) {
       gameLoop()
       timer = Shortcut.schedule(gameLoop,ptcl.model.Frame.millsAServerFrame / ptcl.model.Frame.clientFrameAServerFrame)
     } else if(websocketClient.getWsState){
-      websocketClient.sendMsg(WsProtocol.RestartGame(name))
+      websocketClient.sendMsg(WsFrontProtocol.RestartGame(name))
       setGameState(Constants.GameState.loadingPlay)
       timer = Shortcut.schedule(gameLoop,ptcl.model.Frame.millsAServerFrame / ptcl.model.Frame.clientFrameAServerFrame)
     }else{

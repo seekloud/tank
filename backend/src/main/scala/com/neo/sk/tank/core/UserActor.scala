@@ -1,14 +1,16 @@
 package com.neo.sk.tank.core
 
+import akka.actor.Terminated
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import com.neo.sk.tank.core.tank.TankServerImpl
-import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
+import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol, WsServerSourceProtocol}
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.Boot.roomActor
+
 import scala.concurrent.duration._
 /**
   * Created by hongruying on 2018/7/9
@@ -23,19 +25,21 @@ object UserActor {
 
   sealed trait Command
 
-  case class WebSocketMsg(reqOpt:Option[WsProtocol.WsMsgFront]) extends Command
+  case class WebSocketMsg(reqOpt:Option[WsFrontProtocol.WsMsgFront]) extends Command
 
   case object CompleteMsgFront extends Command
   case class FailMsgFront(ex: Throwable) extends Command
 
-  case class UserFrontActor(actor:ActorRef[WsProtocol.WsMsgServer]) extends Command
+  case class UserFrontActor(actor:ActorRef[WsServerSourceProtocol.WsMsgSource]) extends Command
 
-  case class DispatchMsg(msg:WsProtocol.WsMsgServer) extends Command
+  case class DispatchMsg(msg:WsServerSourceProtocol.WsMsgSource) extends Command
 
   case object StartGame extends Command
 
 
   case class JoinRoomSuccess(tank:TankServerImpl) extends Command
+
+  case class UserLeft[U](actorRef:ActorRef[U]) extends Command
 
   final case class SwitchBehavior(
                                    name: String,
@@ -63,15 +67,15 @@ object UserActor {
     onFailureMessage = FailMsgFront.apply
   )
 
-  def flow(actor:ActorRef[UserActor.Command]):Flow[WebSocketMsg,WsProtocol.WsMsgServer,Any] = {
+  def flow(actor:ActorRef[UserActor.Command]):Flow[WebSocketMsg,WsServerSourceProtocol.WsMsgSource,Any] = {
     val in = Flow[WebSocketMsg].to(sink(actor))
     val out =
-      ActorSource.actorRef[WsProtocol.WsMsgServer](
+      ActorSource.actorRef[WsServerSourceProtocol.WsMsgSource](
         completionMatcher = {
-          case WsProtocol.CompleteMsgServer ⇒
+          case WsServerSourceProtocol.CompleteMsgServer ⇒
         },
         failureMatcher = {
-          case WsProtocol.FailMsgServer(e)  ⇒ e
+          case WsServerSourceProtocol.FailMsgServer(e)  ⇒ e
         },
         bufferSize = 8,
         overflowStrategy = OverflowStrategy.fail
@@ -98,8 +102,15 @@ object UserActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case UserFrontActor(frontActor) =>
+          ctx.watchWith(frontActor,UserLeft(frontActor))
           ctx.self ! StartGame
           switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+
+        case UserLeft(actor) =>
+          ctx.unwatch(actor)
+          Behaviors.stopped
+
+
 
         case TimeOut(m) =>
           log.debug(s"${ctx.self.path} is time out when busy,msg=${m}")
@@ -112,7 +123,7 @@ object UserActor {
     }
 
 
-  private def idle(uId:Long,name:String,frontActor:ActorRef[WsProtocol.WsMsgServer])(
+  private def idle(uId:Long,name:String,frontActor:ActorRef[WsServerSourceProtocol.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command]
   ): Behavior[Command] =
@@ -126,13 +137,17 @@ object UserActor {
         case JoinRoomSuccess(tank) =>
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
-          play(uId,name,tank,frontActor)
+          switchBehavior(ctx,"play",play(uId,name,tank,frontActor))
 
 
         case WebSocketMsg(reqOpt) =>
 
         //todo 如果是重玩游戏，往roomActor发消息获取坦克数据和当前游戏桢数据
           Behaviors.same
+
+        case UserLeft(actor) =>
+          ctx.unwatch(actor)
+          Behaviors.stopped
 
 
 
@@ -146,7 +161,7 @@ object UserActor {
                     uId:Long,
                     name:String,
                     tank:TankServerImpl,
-                    frontActor:ActorRef[WsProtocol.WsMsgServer])(
+                    frontActor:ActorRef[WsServerSourceProtocol.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command]
   ): Behavior[Command] =
@@ -155,20 +170,30 @@ object UserActor {
         case WebSocketMsg(reqOpt) =>
           //todo 处理前端的请求数据
           reqOpt match {
-            case Some(t:WsProtocol.TankAction) =>
+            case Some(t:WsFrontProtocol.TankAction) =>
               //分发数据给roomActor
+              roomActor ! RoomActor.WebSocketMsg(uId,tank.tankId,t)
             case _ =>
 
           }
           Behaviors.same
 
         case DispatchMsg(m) =>
+          m match {
+
+            case t:WsProtocol.TankLaunchBullet =>
+            case _ =>
+          }
+//          log.debug(s"${ctx.self.path} recv a msg=${m}")
           frontActor ! m
           Behaviors.same
 
 
 
-
+        case UserLeft(actor) =>
+          ctx.unwatch(actor)
+          roomActor ! RoomActor.LeftRoom(uId,tank.tankId,name)
+          Behaviors.stopped
 
 
 

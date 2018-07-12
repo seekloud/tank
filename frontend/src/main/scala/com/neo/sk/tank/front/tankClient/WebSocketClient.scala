@@ -1,7 +1,7 @@
 package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.front.common.Routes
-import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
+import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
 import org.scalajs.dom
 import org.scalajs.dom.raw._
 
@@ -29,7 +29,7 @@ class WebSocketClient(
     s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name)}"
   }
 
-  def sendMsg(msg:WsProtocol.WsMsgFront) = {
+  def sendMsg(msg:WsFrontProtocol.WsMsgFront) = {
     websocketStreamOpt.foreach(_.send(msg.asJson.noSpaces))
   }
 
@@ -51,6 +51,7 @@ class WebSocketClient(
       }
 
       websocketStream.onmessage = { (event: MessageEvent) =>
+//        println(s"recv msg:${event.data.toString}")
         messageHandler(event)
       }
 
