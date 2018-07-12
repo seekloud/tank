@@ -80,8 +80,8 @@ trait Tank extends ObjectOfGame {
   // TODO: 获取发射子弹位置
   private def getLaunchBulletPosition():Point = {
     val baseLength = TankParameters.GunSize.h + BulletSize.r / 2
-    val (xPlus,yPlus) = (baseLength * Math.cos(gunDirection),baseLength * Math.sin(gunDirection))
-    Point(getTankState().position.x + xPlus,getTankState().position.y + yPlus)
+    val plus = Point(baseLength * Math.cos(gunDirection),baseLength * Math.sin(gunDirection))
+    getTankState().position + plus
   }
 
 

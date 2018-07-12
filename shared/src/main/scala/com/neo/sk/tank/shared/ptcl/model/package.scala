@@ -317,6 +317,8 @@ package object model {
       val high = 3
     }
 
+    final val baseSpeed = 5 //每秒移动距离
+
     object TankBloodLevel{
       val first = 1
       val second = 2

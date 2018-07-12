@@ -1,9 +1,11 @@
 package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.shared.ptcl.model
-import com.neo.sk.tank.shared.ptcl.model.Point
+import com.neo.sk.tank.shared.ptcl.model.{Frame, Point, TankParameters,Boundary}
 import com.neo.sk.tank.shared.ptcl.tank.{Tank, TankState}
 import org.scalajs.dom
+import org.scalajs.dom.ext.Color
+import com.neo.sk.tank.front.tankClient.GameHolder
 
 /**
   * Created by hongruying on 2018/7/10
@@ -34,7 +36,13 @@ class TankClientImpl(
     * @param isMove 坦克是否移动
     * */
   def getPositionCurFrame(curFrame:Int,maxClientFrame:Int,isMove:Boolean):Point = {
-    Point(0,0)
+    var position:Point = this.position
+    if(isMove){
+      val distance = (curFrame + 1) * TankParameters.baseSpeed * this.speedLevel * Frame.millsAServerFrame / 1000//每帧移动的距离
+      val plus = Point(distance * Math.cos(this.direction),distance * Math.sin(this.direction))
+      position = this.position + plus
+    }
+    position
   }
 
 
@@ -51,7 +59,10 @@ object TankClientImpl{
     * @param maxClientFrame 每个systemFrame 动画渲染的帧数
     * */
   def drawGame(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int): Unit ={
-
+    ctx.fillStyle = Color.Green.toString()
+    ctx.fillRect(0,0,Boundary.w,Boundary.h)
+//    tank.position
+//    tank.getPositionCurFrame(curFrame,maxClientFrame,true)
   }
 
 
