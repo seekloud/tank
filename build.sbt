@@ -1,8 +1,10 @@
 import sbt.Keys._
 import sbtcrossproject.{crossProject, CrossType}
+import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 
-val scalaV = "2.12.6"
+
+val scalaV = "2.12.4"
 //val scalaV = "2.11.8"
 
 val projectName = "tank"

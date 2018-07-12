@@ -5,7 +5,7 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerSch
 import akka.http.scaladsl.model.ws.Message
 import akka.stream.scaladsl.Flow
 import com.neo.sk.tank.core.tank.GridServerImpl
-import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
+import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
 import org.slf4j.LoggerFactory
 
 import concurrent.duration._
@@ -33,7 +33,7 @@ object RoomActor {
 
   case class JoinRoom(uid:Long,name:String,userActor:ActorRef[UserActor.Command]) extends Command
 
-  case class WebSocketMsg(uid:Long,tankId:Long,req:WsProtocol.TankAction) extends Command
+  case class WebSocketMsg(uid:Long,tankId:Long,req:WsFrontProtocol.TankAction) extends Command
 
   case class LeftRoom(uid:Long,tankId:Long,name:String) extends Command
 
@@ -94,15 +94,23 @@ object RoomActor {
 
         case WebSocketMsg(uid,tankId,req) =>
           grid.addAction(tankId,req)
-          if(!req.isInstanceOf[WsProtocol.MouseClick])
-            dispatch(subscribersMap)(WsProtocol.TankActionFrame(tankId,grid.systemFrame,req))
+          req match {
+            case r:WsFrontProtocol.MouseMove => dispatch(subscribersMap)(WsProtocol.TankActionFrameMouse(tankId,grid.systemFrame,r))
+            case r:WsFrontProtocol.MouseClick =>
+            case r:WsFrontProtocol.PressKeyDown => dispatch(subscribersMap)(WsProtocol.TankActionFrameKeyDown(tankId,grid.systemFrame,r))
+            case r:WsFrontProtocol.PressKeyUp => dispatch(subscribersMap)(WsProtocol.TankActionFrameKeyUp(tankId,grid.systemFrame,r))
+            case _ =>
+          }
+
+
+
           Behaviors.same
 
         case LeftRoom(uid,tankId,name) =>
           subscribersMap.remove(uid)
           grid.leftGame(tankId)
           dispatch(subscribersMap)(WsProtocol.UserLeftRoom(tankId,name))
-          Behaviors.same
+          idle(justJoinUser.filter(_._1 != uid),subscribersMap,grid,tickCount)
 
         case GameLoop =>
           grid.update()

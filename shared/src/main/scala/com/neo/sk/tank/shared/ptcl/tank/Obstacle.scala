@@ -28,4 +28,12 @@ trait Obstacle extends ObjectOfGame{
 
   def getObstacleState():ObstacleState
 
+  def attackDamage(d:Int):Unit
+
+  def isLived():Boolean
+
+
+
 }
+
+

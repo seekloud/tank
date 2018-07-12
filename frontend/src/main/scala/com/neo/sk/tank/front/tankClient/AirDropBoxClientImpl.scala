@@ -1,14 +1,19 @@
 package com.neo.sk.tank.front.tankClient
 
+import com.neo.sk.tank.shared.ptcl
 import com.neo.sk.tank.shared.ptcl.model
-import com.neo.sk.tank.shared.ptcl.tank.{AirDropBox, Prop}
+import com.neo.sk.tank.shared.ptcl.tank.{AirDropBox, ObstacleState, Prop}
 
 /**
   * Created by hongruying on 2018/7/10
   */
 class AirDropBoxClientImpl(
                             override val oId: Long,
+                            override protected var curBlood:Int,
                             override protected var position: model.Point
                           ) extends AirDropBox{
+  def this(o:ObstacleState) = {
+    this(o.oId,o.b.getOrElse(ptcl.model.ObstacleParameters.AirDropBoxParameters.blood),o.p)
+  }
 
 }

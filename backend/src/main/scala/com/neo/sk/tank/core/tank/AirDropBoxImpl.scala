@@ -8,6 +8,7 @@ import com.neo.sk.tank.shared.ptcl.tank.AirDropBox
   */
 class AirDropBoxImpl(
                       override val oId: Long,
+                      override protected var curBlood:Int,
                       override protected var position: model.Point
                     ) extends AirDropBox{
 }

@@ -27,6 +27,18 @@ trait Prop extends ObjectOfGame{
 
 }
 
+object Prop{
+  def apply(p:PropState): Prop = {
+    p.t match {
+      case 1 => AddBloodLevelProp(p.pId,position = p.p)
+      case 2 => AddSpeedLevelProp(p.pId,position = p.p)
+      case 3 => AddBulletLevelProp(p.pId,position = p.p)
+      case 4 => AddBloodProp(p.pId,position = p.p)
+
+    }
+  }
+}
+
 
 case class AddBloodLevelProp(
                               override val pId: Long,

@@ -1,139 +1,26 @@
 <!DOCTYPE html>
-<html lang="en" style="margin:0;height:100%">
-
-
+<html lang="en" style="height: 100%;">
 <head>
-    <style>
-        body
-        {
-            margin:0;
-            padding:0;
-            height:100%;
-        }
 
-    </style>
+
+    <link rel="stylesheet" href="/tank/static/css/weui.min.css"/>
+    <link rel="stylesheet" href="/tank/static/css/bootstrap.css" />
+    <!--<link rel="stylesheet" href="/tank/static/css/sticky.css" />-->
+
+    <!--<link rel="stylesheet" href="/tank/static/css/postManagePage.css" />-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <!--<meta name="viewport" content="width=device-width, initial-scale=1">-->
-    <meta name="renderer" content="webkit">
-    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=0">
-    <!--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">-->
-
-
-    <!--<link rel="stylesheet" href="css/pure-min.css"></head>-->
-
-    <!--[if lte IE 8]>
-    <!--<link rel="stylesheet" href="/niska/static/css/grids-responsive-old-ie-min.css">-->
-    <!--<![endif]&ndash;&gt;-->
-    <!--[if gt IE 8]><!-->
-    <!--<link rel="stylesheet" href="/niska/static/css/grids-responsive-min.css">-->
-    <!--<![endif]-->
-
-    <!--<script src="http://cdn.bootcss.com/fetch/2.0.1/fetch.js"></script>-->
-    <script src="/yilia/static/js/fetch.min.js"></script>
-    <script src="https://cdn.bootcss.com/es6-promise/4.1.0/es6-promise.auto.min.js"></script>
-    <!--<script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>-->
-
-    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
-    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-
-    <!--<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>    &lt;!&ndash;<script src="/hw201701a/static/js/Chart.bundle.min.js"></script>&ndash;&gt;-->
-    <!--<link rel="stylesheet" href="/niska/static/css/user.css">-->
-    <!--<link href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">-->
-    <!--<link href="/yilia/static/css/bootstrap.min.css" rel="stylesheet">-->
-    <!--<link rel="stylesheet" href="/yilia/static/css/modal.css">-->
-    <link href="/yilia/static/css/admin.css" rel="stylesheet">
-    <link href="/yilia/static/css/loading.css" rel="stylesheet">
-
-    <title>yilia</title>
-
-    <script>
-        (function(designWidth, maxWidth) {
-            var doc = document,
-                win = window;
-            var docEl = doc.documentElement;
-            var tid;
-            var rootItem,rootStyle;
-
-            function refreshRem() {
-                var width = docEl.getBoundingClientRect().width;
-                if (!maxWidth) {
-                    maxWidth = 540;
-                };
-                if (width > maxWidth) {
-                    width = maxWidth;
-                }
-                //与淘宝做法不同，直接采用简单的rem换算方法1rem=100px
-                var rem = width * 20 / designWidth;
-                //兼容UC开始
-                rootStyle="html{font-size:"+rem+'px !important}';
-                rootItem = document.getElementById('rootsize') || document.createElement("style");
-                if(!document.getElementById('rootsize')){
-                    document.getElementsByTagName("head")[0].appendChild(rootItem);
-                    rootItem.id='rootsize';
-                }
-                if(rootItem.styleSheet){
-                    rootItem.styleSheet.disabled||(rootItem.styleSheet.cssText=rootStyle)
-                }else{
-                    try{rootItem.innerHTML=rootStyle}catch(f){rootItem.innerText=rootStyle}
-                }
-                //兼容UC结束
-                docEl.style.fontSize = rem + "px";
-            };
-            refreshRem();
-
-            win.addEventListener("resize", function() {
-                clearTimeout(tid); //防止执行两次
-                tid = setTimeout(refreshRem, 300);
-            }, false);
-
-            win.addEventListener("pageshow", function(e) {
-                if (e.persisted) { // 浏览器后退的时候重新计算
-                    clearTimeout(tid);
-                    tid = setTimeout(refreshRem, 300);
-                }
-            }, false);
-
-            if (doc.readyState === "complete") {
-                doc.body.style.fontSize = "16px";
-            } else {
-                doc.addEventListener("DOMContentLoaded", function(e) {
-                    doc.body.style.fontSize = "16px";
-                }, false);
-            }
-        })(640, 640);
-    </script>
-
+    <title>Galaxy</title>
 </head>
+<body style="height: 100%;">
+<!--<script src="/tank/static/js/jquery-3.1.1.min.js"></script>-->
+<!--<script src="/tank/static/js/bootstrap.js"></script>-->
 
+<!--<script type="text/javascript" src="/tank/static/js/es6-promise.auto.min.js"></script>-->
+<!--<script type="text/javascript" src="/tank/static/js/fetch.min.js"></script>-->
+<script type="text/javascript" src="/tank/static/sjsout/frontend-fastopt.js"></script>
 
-<body>
+<script>front.Main.run()</script>
 
-<!--<script type="text/javascript" defer="defer" src="/yilia/static/sjsout/collectfrontend-fastopt.js"></script>-->
-<script type="text/javascript" defer="defer" src="/yilia/static/sjsout/frontend-fastopt.js"></script>
-<script src="/yilia/static/js/Chart.bundle.min.js"></script>
-<script src="/yilia/static/js/WdatePicker.js"></script>
-<!--<script type="text/javascript" src="http://flowdev.neoap.com/niska/static/js/niskaLauncher.js?id=haofnhaononoabnaoifnwekoq"></script>-->
-<!--<script type="text/javascript" src="/niska/static/sjsout/frontend-opt.js"></script>-->
-<!--<script type="text/javascript" src="/superpay/static/js/vconsole.min.js"></script>-->
-<script>
-    var script =document.createElement("script");
-    script.type = "text/javascript";
-    script.async = true;
-    script.id="niuap-legion"
-    script.src = "https://prod.niuap.com/legion/static/js/legionLauncher.js?id=MTAwMDY%3D";
-    document.getElementsByTagName("body")[0].appendChild(script);
-//    window.localStorage.setItem("legion-userId", "");-->
-//    此项为设置此页面的登陆用户id，若用户登陆，需要按照用户唯一标识进行统计，需要进行设置，否则可以不调用，系统会分配随机id给此用户-->
-</script>
-<!--<script>-->
-    <!--var script = document.createElement("script");-->
-    <!--script.type = "text/javascript";-->
-    <!--script.async = true;-->
-    <!--script.src = "http://flowdev.neoap.com/legion/static/js/legionLauncher.js?id=Ng%3D%3D";-->
-    <!--document.getElementsByTagName("body")[0].appendChild(script);-->
-    <!--&lt;!&ndash;window.localStorage.setItem("legion-userId", "");&ndash;&gt;-->
-    <!--&lt;!&ndash;此项为设置此页面的登陆用户id，若用户登陆，需要按照用户唯一标识进行统计，需要进行设置，否则可以不调用，系统会分配随机id给此用户&ndash;&gt;-->
-<!--</script>-->
 </body>
 </html>

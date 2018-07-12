@@ -45,12 +45,15 @@ trait HttpService
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath) {
     resourceRoutes ~
-      (path("game") & get){
+      (pathPrefix("game") & get){
         pathEndOrSingleSlash{
-          getFromResource("html/index.html")
-        }~ path("join"){
+          getFromResource("html/admin.html")
+        } ~
+          path("join"){
           parameter('name){ name =>
+            log.debug(s"sssssssssname=${name}")
             val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_))
+            complete("sss")
             dealFutureResult(
               flowFuture.map(t => handleWebSocketMessages(t))
             )

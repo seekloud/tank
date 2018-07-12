@@ -117,4 +117,13 @@ trait Tank extends ObjectOfGame {
   def isIntersectsObject(o:Seq[ObjectOfGame]):Boolean = {
     false
   }
+
+
+  def attackedDamage(d:Int):Unit = {
+    blood -= d
+  }
+
+  def eatProp(p:Prop):Unit = {
+
+  }
 }
