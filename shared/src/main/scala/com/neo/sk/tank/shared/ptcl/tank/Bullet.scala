@@ -27,9 +27,9 @@ trait Bullet extends ObjectOfGame{
   private val maxFlyDistance = model.BulletParameters.maxFlyDistance
 
 
-  // TODO: 获取子弹外形
+  // 获取子弹外形
   override def getObjectRect(): model.Rectangle = {
-    null
+    model.Rectangle(this.position - Point(model.BulletSize.r,model.BulletSize.r),this.position + Point(model.BulletSize.r,model.BulletSize.r))
   }
 
 
@@ -40,21 +40,33 @@ trait Bullet extends ObjectOfGame{
 
   // TODO: 子弹碰撞检测
   def isIntersectsObject(o: ObjectOfGame):Boolean = {
-    false
+    getObjectRect().intersects(o.getObjectRect())
   }
 
   // todo: 生命周期是否截至或者打到地图边界
   def isFlyEnd(boundary: Point):Boolean = {
-    false
+   if( this.position.distance(startPosition) > maxFlyDistance || this.position > boundary ||this.position ==boundary ||this.position < Point(0,0)||this.position ==Point(0,0))
+     true
+    else
+     false
   }
 
-  // todo 先检测是否生命周期结束，如果结束
+  // todo 先检测是否生命周期结束，如果没结束继续移动
   def move(boundary: Point,flyEndCallBack:Bullet => Unit):Unit = {
+    if(isFlyEnd(boundary)){
+      flyEndCallBack(this)
+    }
+
+    else
+      this.position + momentum / 1000 * model.Frame.millsAServerFrame
 
   }
 
   // todo 检测是否子弹有攻击到，攻击到，执行回调函数
   def checkAttackObject[T <: ObjectOfGame](o:T,attackCallBack:T => Unit):Unit = {
+    if(this.getObjectRect().intersects(o.getObjectRect())){
+      attackCallBack(o)
+    }
 
   }
 

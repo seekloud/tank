@@ -110,9 +110,9 @@ class GridClient(override val boundary: model.Point) extends Grid {
 
 
 
-  def drawBullet(ctx:dom.CanvasRenderingContext2D,bullet:BulletClientImpl,curFrame:Int) = {
-    val position = bullet.getPositionCurFrame(curFrame)
-    
-  }
+//  def drawBullet(ctx:dom.CanvasRenderingContext2D,bullet:BulletClientImpl,curFrame:Int) = {
+//    val position = bullet.getPositionCurFrame(curFrame)
+//
+//  }
 
 }
