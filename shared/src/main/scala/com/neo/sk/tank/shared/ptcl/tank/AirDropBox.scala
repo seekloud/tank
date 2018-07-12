@@ -9,7 +9,7 @@ trait AirDropBox extends Obstacle{
 
   override val oId: Long
 
-  protected final var curBlood = 10 //物体血量
+  protected var curBlood = 10 //物体血量
 
   override protected var position: model.Point
 
@@ -32,5 +32,14 @@ trait AirDropBox extends Obstacle{
 
   //todo 被子弹攻击，血量下降，当血量小于0，随机爆出道具
   def attacked(bullet: Bullet,destroyCallBack:Obstacle => Unit):Unit = {}
+
+  override def attackDamage(d: Int): Unit = {
+    curBlood -= d
+  }
+
+  override def isLived(): Boolean = {
+    if(curBlood > 0) true
+    else false
+  }
 
 }

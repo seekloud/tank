@@ -137,6 +137,7 @@ object UserActor {
         case JoinRoomSuccess(tank) =>
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
+          frontActor ! WsProtocol.YourInfo(uId,tank.tankId)
           switchBehavior(ctx,"play",play(uId,name,tank,frontActor))
 
 

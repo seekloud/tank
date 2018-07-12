@@ -94,9 +94,16 @@ class GameHolder(canvasName:String) {
 
 
     decode[WsProtocol.WsMsgServer](e.data.toString).right.get match {
+      case WsProtocol.YourInfo(uId,tankId) =>
+        myId = uId
+        myTankId = tankId
+
+
       case WsProtocol.UserEnterRoom(userId,name,tank) =>
-        myId = userId
-        myTankId = tank.tankId
+        if(myId != userId){
+          grid.playerJoin(tank)
+        }
+
 
       case WsProtocol.UserLeftRoom(tankId,name) =>
         println(s"玩家=${name} left tankId=${tankId}")
@@ -111,20 +118,30 @@ class GameHolder(canvasName:String) {
       case WsProtocol.Ranks(currentRank,historyRank) =>
 
       case WsProtocol.GridSyncState(d) =>
+        grid.gridSyncStateWithoutBullet(d)
 
 
       case WsProtocol.GridSyncAllState(gridState) =>
         println("已同步游戏中所有数据，进行渲染")
+        grid.gridSyncState(gridState)
         setGameState(Constants.GameState.play)
 
       case WsProtocol.TankAttacked(bId,tId,damage) =>
+//        grid.attackTankCallBack(bId,null)
+        //移除子弹并且进行血量计算
+        grid.recvTankAttacked(bId,tId,damage)
+
 
       case WsProtocol.ObstacleAttacked(bId,oId,damage) =>
+        //移除子弹并且进行血量计算
+        grid.recvObstacleAttacked(bId,oId,damage)
 
       case WsProtocol.TankEatProp(pId,tId,pType) =>
+        grid.recvTankEatProp(tId,pId,pType)
 
       case WsProtocol.TankLaunchBullet(frame,bullet) =>
         println(s"recv msg:${e.data.toString}")
+        grid.addBullet(frame,new BulletClientImpl(bullet))
 //
       case  _ => println(s"接收到无效消息ss")
 

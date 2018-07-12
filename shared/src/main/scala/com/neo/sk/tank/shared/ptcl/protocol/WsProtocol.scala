@@ -15,6 +15,7 @@ object WsProtocol {
   sealed trait WsMsgServer extends WsServerSourceProtocol.WsMsgSource
 
 
+  case class YourInfo(uId:Long,tankId:Long) extends WsMsgServer
 
   case class UserEnterRoom(userId:Long,name:String,tank:TankState) extends WsMsgServer
 

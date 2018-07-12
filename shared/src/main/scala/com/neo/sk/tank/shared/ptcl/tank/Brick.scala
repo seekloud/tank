@@ -32,6 +32,18 @@ trait Brick extends Obstacle{
 
 
   //todo 被子弹攻击，血量下降，当血量小于0，消失
-  def attacked(bullet: Bullet,destroyCallBack:Obstacle => Unit):Unit = {}
+  def attacked(bullet: Bullet,destroyCallBack:Obstacle => Unit):Unit = {
+
+
+  }
+
+  override def attackDamage(d: Int): Unit = {
+    curBlood -= d
+  }
+
+  override def isLived(): Boolean = {
+    if(curBlood > 0) true
+    else false
+  }
 
 }

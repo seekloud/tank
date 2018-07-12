@@ -2,7 +2,7 @@ package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.shared.ptcl.model
 import com.neo.sk.tank.shared.ptcl.model.Point
-import com.neo.sk.tank.shared.ptcl.tank.Bullet
+import com.neo.sk.tank.shared.ptcl.tank.{Bullet, BulletState}
 
 /**
   * Created by hongruying on 2018/7/10
@@ -16,6 +16,11 @@ class BulletClientImpl(
                         override protected val momentum: model.Point,
                         override protected var position: model.Point
                       ) extends Bullet{
+  def this(b:BulletState) = {
+    this(b.bId,b.tankId,b.startPosition,b.createTime,b.damage,b.momentum,b.position)
+  }
+
+
 
   //todo
   def getPositionCurFrame(curFrame:Int):Point = {
