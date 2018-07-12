@@ -10,7 +10,7 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/7/9
   */
-class GridClient(override val boundary: model.Point) extends Grid {
+class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid {
 
 
   override def debug(msg: String): Unit = {}
@@ -27,6 +27,7 @@ class GridClient(override val boundary: model.Point) extends Grid {
   }
 
   def gridSyncStateWithoutBullet(d:GridStateWithoutBullet) = {
+    super.update()
     systemFrame = d.f
     tankMap.clear()
     obstacleMap.clear()
@@ -109,8 +110,8 @@ class GridClient(override val boundary: model.Point) extends Grid {
 
   def draw(ctx:dom.CanvasRenderingContext2D,curFrame:Int,maxClientFrame:Int) = {
     bulletMap.values.foreach{ b =>
-      println(b.getBulletState())
-      BulletClientImpl.drawBullet(ctx,b.asInstanceOf[BulletClientImpl],curFrame)
+
+      BulletClientImpl.drawBullet(ctx,canvasUnit,b.asInstanceOf[BulletClientImpl],curFrame)
     }
   }
 

@@ -6,6 +6,7 @@ import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.ptcl
 import com.neo.sk.tank.shared.ptcl.model.{Boundary, Point}
 import com.neo.sk.tank.shared.ptcl.protocol._
+import com.neo.sk.tank.shared.ptcl.tank.{GridState, GridStateWithoutBullet}
 import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
@@ -33,7 +34,7 @@ class GameHolder(canvasName:String) {
   private[this] var myTankId = -1L
   private[this] var myName = ""
 
-  private[this] val grid = new GridClient(bounds)
+  private[this] val grid = new GridClient(bounds,canvasUnit:Int)
 
   private[this] var firstCome = true
   private[this] var justSyncedFromServer = false
@@ -52,9 +53,11 @@ class GameHolder(canvasName:String) {
   private var timer:Int = 0
 
   private var justSynced:Boolean = false
+  private var gridAllState:Option[GridState] = None
+  private var gridStateWithoutBullet:Option[GridStateWithoutBullet] = None
 
   private val maxClientFrameDrawForSystemFrame:Int = 4 //比系统桢多渲染3桢
-  private var clientFrame:Int = 1
+  private var clientFrame:Int = 0
 
   val watchKeys = Set(
     KeyCode.Left,
@@ -118,12 +121,17 @@ class GameHolder(canvasName:String) {
       case WsProtocol.Ranks(currentRank,historyRank) =>
 
       case WsProtocol.GridSyncState(d) =>
-        grid.gridSyncStateWithoutBullet(d)
+        justSynced = true
+        gridStateWithoutBullet = Some(d)
+        println(grid.systemFrame,grid.bulletMap.values.map(_.getBulletState()),"---------",d,clientFrame)
+//        grid.gridSyncStateWithoutBullet(d)
 
 
       case WsProtocol.GridSyncAllState(gridState) =>
         println("已同步游戏中所有数据，进行渲染")
-        grid.gridSyncState(gridState)
+//        grid.gridSyncState(gridState)
+        justSynced = true
+        gridAllState = Some(gridState)
         setGameState(Constants.GameState.play)
 
       case WsProtocol.TankAttacked(bId,tId,damage) =>
@@ -223,15 +231,19 @@ class GameHolder(canvasName:String) {
       case Constants.GameState.play =>
         justSynced match {
           case true =>
-
-
-            clientFrame = maxClientFrameDrawForSystemFrame
+            if(clientFrame == 3){
+              gridStateWithoutBullet.foreach(t =>grid.gridSyncStateWithoutBullet(t))
+              gridAllState.foreach(t => grid.gridSyncState(_))
+              justSynced = false
+            }
           case false =>
-            if(clientFrame == maxClientFrameDrawForSystemFrame)
+            if(clientFrame == 3)
               grid.update()
         }
+        clientFrame += 1
+        clientFrame = clientFrame % maxClientFrameDrawForSystemFrame
         drawGame(clientFrame,maxClientFrameDrawForSystemFrame)
-        clientFrame = clientFrame % maxClientFrameDrawForSystemFrame + 1
+
 
 
 

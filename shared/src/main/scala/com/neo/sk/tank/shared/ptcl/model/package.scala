@@ -304,7 +304,7 @@ package object model {
 
 
   object BulletSize{
-    val r = 5
+    val r = 2
   }
 
 
@@ -365,9 +365,9 @@ package object model {
 
   object BulletParameters{
 
-    final val maxFlyDistance = 20
+    final val maxFlyDistance = 10
 
-    final val bulletMomentum = Point(30,0)
+    final val bulletMomentum = Point(20,0)
   }
 
   object ObstacleParameters{

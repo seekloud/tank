@@ -156,6 +156,7 @@ trait Grid {
           bulletMap.put(bullet.bId,bullet)
         }
     }
+    waitGenBullet = Nil
   }
 
   //处理本桢的移动
