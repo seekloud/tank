@@ -22,7 +22,7 @@ class BulletClientImpl(
   //todo
   def getPositionCurFrame(curFrame:Int):Point = {
     //计算当前子弹动画渲染的位置
-    this.position + momentum * curFrame
+    this.position + momentum * curFrame / 1000 * model.Frame.millsAServerFrame / model.Frame.clientFrameAServerFrame
   }
 
 
