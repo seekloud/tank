@@ -48,6 +48,13 @@ class TankClientImpl(
 
     ).map(_ + this.position)
 
+  def getPositionCurFrame(isMove:Boolean):Point = {
+    if(isMove){
+      val distance = TankParameters.baseSpeed * this.speedLevel * Frame.millsAServerFrame / 1000//每帧移动的距离
+      val plus = Point(distance * Math.cos(this.direction),distance * Math.sin(this.direction))
+      this.position = this.position + plus
+    }
+    this.position
   }
 
 

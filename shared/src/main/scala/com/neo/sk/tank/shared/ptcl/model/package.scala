@@ -328,6 +328,8 @@ package object model {
       def getMoveByFrame(t:Int):Point = tankSpeedByType(t) * Frame.millsAServerFrame / 1000
     }
 
+    final val baseSpeed = 5 //每秒移动距离
+
     object TankBloodLevel{
       val first = 1
       val second = 2
@@ -354,6 +356,11 @@ package object model {
 
       val gunLen = 20
       val gunH = 4
+    }
+
+    object GunSize{
+      val w = 5
+      val h = 5
     }
 
     final val tankBulletMaxCapacity = 4
