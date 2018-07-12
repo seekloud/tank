@@ -35,6 +35,13 @@ class TankClientImpl(
     * @param isMove 坦克是否移动
     * */
   def getPositionCurFrame(curFrame:Int,maxClientFrame:Int,isMove:Boolean):Point = {
+
+//    if(isMove){
+//      val distance = TankParameters.baseSpeed * this.speedLevel * Frame.millsAServerFrame / 1000//每帧移动的距离
+//      val plus = Point(distance * Math.cos(this.direction),distance * Math.sin(this.direction))
+//      this.position = this.position + plus
+//    }
+//    this.position
     position
   }
 
@@ -47,14 +54,6 @@ class TankClientImpl(
       Point(model.TankParameters.TankSize.gunLen,- model.TankParameters.TankSize.gunH / 2).rotate(this.gunDirection)
 
     ).map(_ + this.position)
-
-  def getPositionCurFrame(isMove:Boolean):Point = {
-    if(isMove){
-      val distance = TankParameters.baseSpeed * this.speedLevel * Frame.millsAServerFrame / 1000//每帧移动的距离
-      val plus = Point(distance * Math.cos(this.direction),distance * Math.sin(this.direction))
-      this.position = this.position + plus
-    }
-    this.position
   }
 
 
