@@ -31,18 +31,15 @@ class TankClientImpl(
 
   /**
     * tank知道当前systemFrame的初始位置（position），如果isMove，根据(curFrame/maxClientFrame)计算当前动画桢的位置
-    * @param curFrame 当前动画帧的帧数
-    * @param maxClientFrame 一个systemFrame下动画帧的渲染最大帧数
     * @param isMove 坦克是否移动
     * */
-  def getPositionCurFrame(curFrame:Int,maxClientFrame:Int,isMove:Boolean):Point = {
-    var position:Point = this.position
+  def getPositionCurFrame(isMove:Boolean):Point = {
     if(isMove){
-      val distance = (curFrame + 1) * TankParameters.baseSpeed * this.speedLevel * Frame.millsAServerFrame / 1000//每帧移动的距离
+      val distance = TankParameters.baseSpeed * this.speedLevel * Frame.millsAServerFrame / 1000//每帧移动的距离
       val plus = Point(distance * Math.cos(this.direction),distance * Math.sin(this.direction))
-      position = this.position + plus
+      this.position = this.position + plus
     }
-    position
+    this.position
   }
 
 
@@ -59,10 +56,14 @@ object TankClientImpl{
     * @param maxClientFrame 每个systemFrame 动画渲染的帧数
     * */
   def drawGame(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int): Unit ={
-    ctx.fillStyle = Color.Green.toString()
-    ctx.fillRect(0,0,Boundary.w,Boundary.h)
-//    tank.position
-//    tank.getPositionCurFrame(curFrame,maxClientFrame,true)
+    ctx.fillStyle = Color.Blue.toString()
+    for(curFrame <- maxClientFrame){
+      val position = tank.getPositionCurFrame(true)
+      ctx.beginPath()
+      ctx.arc(position.x,position.y,model.TankParameters.TankSize.w / 2,0,2 * Math.PI)
+      ctx.fill()
+      ctx.closePath()
+    }
   }
 
 

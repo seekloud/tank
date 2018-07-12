@@ -87,15 +87,8 @@ trait Tank extends ObjectOfGame {
 
   // TODO: 根据坦克的位置获取坦克的外形，目前考虑以矩形来代表坦克 待实现
   override def getObjectRect(): Rectangle = {
-    val topLeft = Point(
-      getTankState().position.x - TankParameters.TankSize.w / 2,
-      getTankState().position.y - TankParameters.TankSize.h / 2
-    )
-    val downRight = Point(
-      getTankState().position.x + TankParameters.TankSize.w / 2,
-      getTankState().position.y + TankParameters.TankSize.h / 2
-    )
-    Rectangle(topLeft,downRight)
+    val plus = Point(TankParameters.TankSize.w / 2,TankParameters.TankSize.h / 2)
+    Rectangle(getTankState().position - plus,getTankState().position + plus)
   }
 
   //todo
