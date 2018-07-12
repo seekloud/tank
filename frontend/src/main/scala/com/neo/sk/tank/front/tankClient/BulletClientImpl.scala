@@ -35,7 +35,7 @@ object BulletClientImpl{
   def drawBullet(ctx:dom.CanvasRenderingContext2D,bullet:BulletClientImpl,curFrame:Int) = {
     val position = bullet.getPositionCurFrame(curFrame)
     ctx.fillStyle = Color.Red.toString()
-    ctx.arc(position.x,position.y,5,0, 2*Math.PI)
+    ctx.arc(position.x,position.y,model.BulletSize.r,0, 2*Math.PI)
 
 
 //    ctx.canvas (bullet.getObjectRect(position - Point(model.BulletSize.r,model.BulletSize.r),position + Point(model.BulletSize.r,model.BulletSize.r)))
