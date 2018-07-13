@@ -45,7 +45,7 @@ trait Bullet extends ObjectOfGame{
 
   // todo: 生命周期是否截至或者打到地图边界
   def isFlyEnd(boundary: Point):Boolean = {
-   if( this.position.distance(startPosition) > maxFlyDistance || this.position > boundary ||this.position ==boundary ||this.position < Point(0,0)||this.position ==Point(0,0))
+   if( this.position.distance(startPosition) > maxFlyDistance || position.x <= 0 || position.y <= 0 || position.x >= boundary.x || position.y >= boundary.y)
      true
     else
      false

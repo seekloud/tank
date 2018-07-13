@@ -142,6 +142,11 @@ object UserActor {
 
 
         case WebSocketMsg(reqOpt) =>
+          reqOpt match {
+            case Some(t:WsFrontProtocol.RestartGame) =>
+              roomActor ! RoomActor.JoinRoom(uId,name,ctx.self)
+            case _ =>
+          }
 
         //todo 如果是重玩游戏，往roomActor发消息获取坦克数据和当前游戏桢数据
           Behaviors.same
@@ -181,13 +186,17 @@ object UserActor {
 
         case DispatchMsg(m) =>
           m match {
+            case t:WsProtocol.YouAreKilled =>
+              frontActor ! m
+              roomActor ! RoomActor.LeftRoom(uId,tank.tankId,name)
+              switchBehavior(ctx,"idle",idle(uId,name,frontActor))
 
-            case t:WsProtocol.TankLaunchBullet =>
             case _ =>
+              frontActor ! m
+              Behaviors.same
           }
 //          log.debug(s"${ctx.self.path} recv a msg=${m}")
-          frontActor ! m
-          Behaviors.same
+
 
 
 

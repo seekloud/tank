@@ -5,11 +5,15 @@ import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicLong
 
 import scala.collection.mutable
+import scala.util.Random
 
 /**
   * Created by hongruying on 2018/7/7
   */
 package object model {
+
+
+  val random = new Random(System.currentTimeMillis())
 
   case class Score(id:Long,n:String,k:Int,d:Int,t:Option[Long])
 
@@ -325,6 +329,13 @@ package object model {
 
 
   object Boundary{
+    val w = 1200
+    val h = 600
+
+    def getBoundary:Point = Point(w,h)
+  }
+
+  object CanvasBoundary{
     val w = 120
     val h = 60
 
@@ -344,17 +355,43 @@ package object model {
 
 
   object BulletSize{
-    val r = 2
+    val r = 1
   }
 
 
 
   object TankParameters{
 
+    object TankColor{
+      val blue = "#1E90FF"
+      val green = "#4EEE94"
+      val red = "#EE4000"
+
+      val tankColorList = List(blue,green,red)
+
+      val gun = "#7A7A7A"
+
+      def getRandomColorType():Int = random.nextInt(tankColorList.size)
+    }
+
+
+
+
     object SpeedType {
       val low = 1
       val intermediate = 2
       val high = 3
+
+
+      def tankSpeedByType(t:Int):Point = { //每桢移动多少
+        t match {
+          case SpeedType.low => Point(20,0)
+          case SpeedType.intermediate => Point(30,0)
+          case SpeedType.high => Point(35,0)
+        }
+      }
+
+      def getMoveByFrame(t:Int):Point = tankSpeedByType(t) * Frame.millsAServerFrame / 1000
     }
 
     final val baseSpeed = 5 //每秒移动距离
@@ -378,8 +415,13 @@ package object model {
 
 
     object TankSize{
-      val w = 10
-      val h = 10
+      val w = 6
+      val h = 6
+      val r = 3
+
+
+      val gunLen = 5
+      val gunH = 2
     }
 
     object GunSize{
@@ -412,7 +454,7 @@ package object model {
 
   object BulletParameters{
 
-    final val maxFlyDistance = 10
+    final val maxFlyDistance = 70
 
     final val bulletMomentum = Point(20,0)
   }

@@ -49,13 +49,14 @@ class GridServerImpl(
 
   override protected def attackTankCallBack(bullet: Bullet)(o:Tank):Unit = {
     super.attackTankCallBack(bullet)(o)
-    dispatch(WsProtocol.TankAttacked(bullet.bId,o.tankId,bullet.damage))
+    o.attackedBullet(bullet,dropTankCallBack)
+    dispatch(WsProtocol.TankAttacked(systemFrame,bullet.bId,o.tankId,bullet.damage))
   }
 
   //子弹攻击到障碍物的回调函数
   override protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
     super.attackObstacleCallBack(bullet)(o)
-    dispatch(WsProtocol.ObstacleAttacked(bullet.bId,o.oId,bullet.damage))
+    dispatch(WsProtocol.ObstacleAttacked(systemFrame,bullet.bId,o.oId,bullet.damage))
   }
 
   //生成坦克的
@@ -103,7 +104,7 @@ class GridServerImpl(
 
   override protected def tankEatProp(tank:Tank)(prop: Prop):Unit = {
     propMap.remove(prop.pId)
-    dispatch(WsProtocol.TankEatProp(prop.pId,tank.tankId,prop.propType))
+    dispatch(WsProtocol.TankEatProp(systemFrame,prop.pId,tank.tankId,prop.propType))
   }
 
 
@@ -128,6 +129,17 @@ class GridServerImpl(
       tankMoveAction = tankMoveAction.toList.flatMap(t => t._2.map(x => (t._1,x)))
     )
   }
+
+
+
+  private def dropTankCallBack(bullet:Bullet,tank:Tank):Unit = {
+    tankMap.remove(tank.tankId)
+    tankMoveAction.remove(tank.tankId)
+    dispatchTo(tank.getTankState().userId,WsProtocol.YouAreKilled(bullet.tankId,0L))
+
+  }
+
+
 
   override def update(): Unit = {
     super.update()
