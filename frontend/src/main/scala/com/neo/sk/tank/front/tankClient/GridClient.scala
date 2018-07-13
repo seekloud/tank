@@ -162,7 +162,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
   private def drawBackground(ctx:dom.CanvasRenderingContext2D,offset:Point,canvasBoundary:Point) = {
     ctx.fillStyle = Color.White.toString()
     ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    for(i <- 0 to(boundary.x.toInt,10)){
+    for(i <- 0 to(boundary.x.toInt,20)){
       ctx.beginPath()
       ctx.strokeStyle = Color.Black.toString()
       ctx.moveTo((i + offset.x) * canvasUnit, (0 + offset.y) * canvasUnit)
@@ -171,7 +171,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       ctx.closePath()
     }
 
-    for(i <- 0 to(boundary.y.toInt,10)){
+    for(i <- 0 to(boundary.y.toInt,20)){
       ctx.beginPath()
       ctx.strokeStyle = Color.Black.toString()
       ctx.moveTo((0 + offset.x) * canvasUnit, (i + offset.y) * canvasUnit)
