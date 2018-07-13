@@ -311,7 +311,7 @@ package object model {
 
 
   object BulletSize{
-    val r = 2
+    val r = 1
   }
 
 
@@ -326,9 +326,9 @@ package object model {
 
       def tankSpeedByType(t:Int):Point = { //每桢移动多少
         t match {
-          case SpeedType.low => Point(10,0)
-          case SpeedType.intermediate => Point(20,0)
-          case SpeedType.high => Point(25,0)
+          case SpeedType.low => Point(20,0)
+          case SpeedType.intermediate => Point(30,0)
+          case SpeedType.high => Point(35,0)
         }
       }
 

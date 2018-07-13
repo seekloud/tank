@@ -1,7 +1,7 @@
 package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.shared.ptcl.model
-import com.neo.sk.tank.shared.ptcl.model.Point
+import com.neo.sk.tank.shared.ptcl.model.{Point,TankParameters}
 import com.neo.sk.tank.shared.ptcl.tank.{Tank, TankState}
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
@@ -55,6 +55,15 @@ class TankClientImpl(
     )
   }
 
+  //三个点
+  def getSliderPosition(a:Int,bloodPercent:Double):List[Point] = {
+    List(
+      this.position - Point(0.8 * TankParameters.TankSize.r,a + TankParameters.TankSize.r),
+      this.position - Point((1 - bloodPercent * 2) * 0.8 * TankParameters.TankSize.r,a + TankParameters.TankSize.r),
+      this.position + Point(0.8 * TankParameters.TankSize.r,- a - TankParameters.TankSize.r)
+    )
+  }
+
 
 
 }
@@ -72,6 +81,9 @@ object TankClientImpl{
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt)
 
     val gunPositionList = tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
+    val bloodSliderList = tank.getSliderPosition(3,tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(t => (t + offset) * canvasUnit)
+//    val bloodSliderList = tank.getSliderPosition(3,0.4).map(t => (t + offset) * canvasUnit)
+
     ctx.beginPath()
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
     gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
@@ -84,6 +96,19 @@ object TankClientImpl{
     ctx.fill()
     ctx.closePath()
 
+    for(i <- 0 to bloodSliderList.length - 2){
+      ctx.beginPath()
+      ctx.lineWidth = 0.3 * canvasUnit
+      if(i == 1){
+        ctx.strokeStyle = Color.Cyan.toString()
+      }else{
+        ctx.strokeStyle = Color.Red.toString()
+      }
+      ctx.moveTo(bloodSliderList(i).x,bloodSliderList(i).y)
+      ctx.lineTo(bloodSliderList(i + 1).x,bloodSliderList(i + 1).y)
+      ctx.stroke()
+      ctx.closePath()
+    }
   }
 
 

@@ -126,7 +126,6 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
   }
 
   def draw(ctx:dom.CanvasRenderingContext2D,myTankId:Long,curFrame:Int,maxClientFrame:Int,canvasBoundary:Point) = {
-
     var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
     val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
     action.map(_._2).foreach{
@@ -163,19 +162,22 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
   private def drawBackground(ctx:dom.CanvasRenderingContext2D,offset:Point,canvasBoundary:Point) = {
     ctx.fillStyle = Color.White.toString()
     ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    ctx.fillStyle = Color.Black.toString()
-    for(i <- 0 to(boundary.x.toInt,20)){
+    for(i <- 0 to(boundary.x.toInt,10)){
       ctx.beginPath()
+      ctx.strokeStyle = Color.Black.toString()
       ctx.moveTo((i + offset.x) * canvasUnit, (0 + offset.y) * canvasUnit)
       ctx.lineTo((i + offset.x) * canvasUnit, (boundary.y + offset.y) * canvasUnit)
       ctx.stroke()
+      ctx.closePath()
     }
 
-    for(i <- 0 to(boundary.y.toInt,20)){
+    for(i <- 0 to(boundary.y.toInt,10)){
       ctx.beginPath()
+      ctx.strokeStyle = Color.Black.toString()
       ctx.moveTo((0 + offset.x) * canvasUnit, (i + offset.y) * canvasUnit)
       ctx.lineTo((boundary.x + offset.x) * canvasUnit,(i + offset.y)  * canvasUnit)
       ctx.stroke()
+      ctx.closePath()
     }
   }
 
