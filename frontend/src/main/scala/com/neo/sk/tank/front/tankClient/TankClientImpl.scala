@@ -19,14 +19,17 @@ class TankClientImpl(
                       override protected var direction: Double,
                       override protected var gunDirection: Double,
                       override protected var position: model.Point,
-                      override protected var speedLevel: Int
+                      override protected var speedLevel: Int,
+                      override protected val tankColorType: Int
                     ) extends Tank{
 
   def this(tankState:TankState) = {
-    this(tankState.userId,tankState.tankId,tankState.blood,tankState.bloodLevel,tankState.bulletPowerLevel,tankState.curBulletNum,tankState.direction,tankState.gunDirection,tankState.position,tankState.speedLevel)
+    this(tankState.userId,tankState.tankId,tankState.blood,tankState.bloodLevel,tankState.bulletPowerLevel,tankState.curBulletNum,tankState.direction,tankState.gunDirection,tankState.position,tankState.speedLevel,tankState.tankColorType)
   }
 
   override protected def startFillBullet(): Unit = {}
+
+  def getColor():String = model.TankParameters.TankColor.tankColorList(tankColorType)
 
   /**
     * tank知道当前systemFrame的初始位置（position），如果isMove，根据(curFrame/maxClientFrame)计算当前动画桢的位置
@@ -79,7 +82,6 @@ object TankClientImpl{
     * */
   def drawTank(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,offset:Point,directionOpt:Option[Double],canvasUnit:Int = 10): Unit ={
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt)
-
     val gunPositionList = tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
     val bloodSliderList = tank.getSliderPosition(3,tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(t => (t + offset) * canvasUnit)
 //    val bloodSliderList = tank.getSliderPosition(3,0.4).map(t => (t + offset) * canvasUnit)
@@ -87,13 +89,18 @@ object TankClientImpl{
     ctx.beginPath()
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
     gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
-    ctx.fillStyle = Color.Yellow.toString()
+    ctx.fillStyle = model.TankParameters.TankColor.gun
+    ctx.strokeStyle = "#383838"
     ctx.fill()
+    ctx.lineWidth = 3
+    ctx.stroke()
     ctx.closePath()
     ctx.beginPath()
     ctx.arc((position.x + offset.x) * canvasUnit,(position.y + offset.y)*canvasUnit,model.TankParameters.TankSize.r * canvasUnit ,0, 360)
-    ctx.fillStyle = Color.Yellow.toString()
+    ctx.fillStyle = tank.getColor()
+    ctx.strokeStyle = "#383838"
     ctx.fill()
+    ctx.stroke()
     ctx.closePath()
 
     for(i <- 0 to bloodSliderList.length - 2){

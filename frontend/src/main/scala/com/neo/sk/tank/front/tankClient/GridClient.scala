@@ -3,7 +3,7 @@ package com.neo.sk.tank.front.tankClient
 import com.neo.sk.tank.shared.ptcl
 import com.neo.sk.tank.shared.ptcl.model
 import com.neo.sk.tank.shared.ptcl.model.Point
-import com.neo.sk.tank.shared.ptcl.protocol.WsFrontProtocol
+import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
 import com.neo.sk.tank.shared.ptcl.protocol.WsFrontProtocol.TankAction
 import com.neo.sk.tank.shared.ptcl.tank._
 import org.scalajs.dom
@@ -24,6 +24,13 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
 
 
   override protected def tankEatProp(tank:Tank)(prop: Prop):Unit = {}
+
+  private var recvTankAttackedList:List[WsProtocol.TankAttacked] = Nil
+  private var recvObstacleAttackedList:List[WsProtocol.ObstacleAttacked] = Nil
+  private var recvTankEatPropList:List[WsProtocol.TankEatProp] = Nil
+
+
+
 
   def playerJoin(tank:TankState) = {
     tankMap.put(tank.tankId,new TankClientImpl(tank))
@@ -90,7 +97,15 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
     d.bullet.foreach(t => bulletMap.put(t.bId,new BulletClientImpl(t)))
   }
 
-  def recvTankAttacked(bId:Long,tId:Long,d:Int) = {
+  def recvTankAttacked(t:WsProtocol.TankAttacked) = {
+    if(t.frame < systemFrame){
+      updateTankAttacked(t.bId,t.tId,t.d)
+    }else{
+      recvTankAttackedList = t :: recvTankAttackedList
+    }
+  }
+
+  def updateTankAttacked(bId:Long,tId:Long,d:Int) = {
     bulletMap.remove(bId)
     tankMap.get(tId) match {
       case Some(t) =>
@@ -99,12 +114,19 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
           tankMap.remove(tId)
           tankMoveAction.remove(tId)
         }
-
       case None =>
     }
   }
 
-  def recvObstacleAttacked(bId:Long,oId:Long,d:Int) = {
+  def recvObstacleAttacked(t:WsProtocol.ObstacleAttacked) = {
+    if(t.frame < systemFrame){
+      updateObstacleAttacked(t.bId,t.oId,t.d)
+    }else{
+      recvObstacleAttackedList = t :: recvObstacleAttackedList
+    }
+  }
+
+  def updateObstacleAttacked(bId:Long,oId:Long,d:Int) = {
     bulletMap.remove(bId)
     obstacleMap.get(oId) match {
       case Some(t) =>
@@ -116,7 +138,15 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
     }
   }
 
-  def recvTankEatProp(tId:Long,pId:Long,pType:Int) = {
+  def recvTankEatProp(t:WsProtocol.TankEatProp) = {
+    if(t.frame < systemFrame){
+      updateTankEatProp(t.tId,t.pId,t.pType)
+    }else{
+      recvTankEatPropList = t :: recvTankEatPropList
+    }
+  }
+
+  def updateTankEatProp(tId:Long,pId:Long,pType:Int) = {
     propMap.remove(pId)
     tankMap.get(tId) match {
       case Some(t) =>
@@ -179,6 +209,24 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       ctx.stroke()
       ctx.closePath()
     }
+  }
+
+
+  override def update(): Unit = {
+    recvTankAttackedList.filter(_.frame == systemFrame).foreach{t =>
+      updateTankAttacked(t.bId,t.tId,t.d)
+    }
+    recvTankAttackedList = recvTankAttackedList.filter(_.frame > systemFrame)
+    recvObstacleAttackedList.filter(_.frame == systemFrame).foreach{t =>
+      updateObstacleAttacked(t.bId,t.oId,t.d)
+    }
+    recvObstacleAttackedList = recvObstacleAttackedList.filter(_.frame > systemFrame)
+    recvTankEatPropList.filter(_.frame == systemFrame).foreach{t =>
+      updateTankEatProp(t.tId,t.pId,t.pType)
+    }
+    recvTankEatPropList = recvTankEatPropList.filter(_.frame > systemFrame)
+
+    super.update()
   }
 
 

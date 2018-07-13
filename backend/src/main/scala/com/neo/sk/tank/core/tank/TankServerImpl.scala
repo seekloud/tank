@@ -24,7 +24,8 @@ class TankServerImpl (
                        override protected var direction: Double,
                        override protected var gunDirection: Double,
                        override protected var position: model.Point,
-                       override protected var speedLevel: Int
+                       override protected var speedLevel: Int,
+                       override protected val tankColorType: Int
                      ) extends Tank{
 
 
@@ -46,7 +47,9 @@ class TankServerImpl (
       0,
       0,
       position,
-      ptcl.model.TankParameters.SpeedType.low)
+      ptcl.model.TankParameters.SpeedType.low,
+      model.TankParameters.TankColor.getRandomColorType()
+    )
   }
 
   override protected def startFillBullet(): Unit = {

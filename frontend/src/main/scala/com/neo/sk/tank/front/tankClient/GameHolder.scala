@@ -141,18 +141,18 @@ class GameHolder(canvasName:String) {
         gridAllState = Some(gridState)
         setGameState(Constants.GameState.play)
 
-      case WsProtocol.TankAttacked(bId,tId,damage) =>
+      case t:WsProtocol.TankAttacked =>
 //        grid.attackTankCallBack(bId,null)
         //移除子弹并且进行血量计算
-        grid.recvTankAttacked(bId,tId,damage)
+        grid.recvTankAttacked(t)
 
 
-      case WsProtocol.ObstacleAttacked(bId,oId,damage) =>
+      case t:WsProtocol.ObstacleAttacked =>
         //移除子弹并且进行血量计算
-        grid.recvObstacleAttacked(bId,oId,damage)
+        grid.recvObstacleAttacked(t)
 
-      case WsProtocol.TankEatProp(pId,tId,pType) =>
-        grid.recvTankEatProp(tId,pId,pType)
+      case t:WsProtocol.TankEatProp =>
+        grid.recvTankEatProp(t)
 
       case WsProtocol.TankLaunchBullet(frame,bullet) =>
         println(s"recv msg:${e.data.toString}")

@@ -37,11 +37,11 @@ object WsProtocol {
 
   case class GridSyncAllState(gState:GridState) extends WsMsgServer
 
-  case class TankAttacked(bId:Long,tId:Long,d:Int) extends WsMsgServer
+  case class TankAttacked(frame:Long,bId:Long,tId:Long,d:Int) extends WsMsgServer
 
-  case class ObstacleAttacked(bId:Long,oId:Long,d:Int) extends WsMsgServer
+  case class ObstacleAttacked(frame:Long,bId:Long,oId:Long,d:Int) extends WsMsgServer
 
-  case class TankEatProp(pId:Long,tId:Long,pType:Int) extends WsMsgServer
+  case class TankEatProp(frame:Long,pId:Long,tId:Long,pType:Int) extends WsMsgServer
 
   case class TankLaunchBullet(f:Long,bullet:BulletState) extends WsMsgServer
 

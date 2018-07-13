@@ -6,7 +6,7 @@ import com.neo.sk.tank.shared.ptcl.model.{Point, Rectangle}
   * Created by hongruying on 2018/7/8
   * 游戏中的坦克
   */
-case class TankState(userId:Long,tankId:Long,direction:Double,gunDirection:Double,blood:Int,bloodLevel:Int,speedLevel:Int,curBulletNum:Int,position:Point,bulletPowerLevel:Int)
+case class TankState(userId:Long,tankId:Long,direction:Double,gunDirection:Double,blood:Int,bloodLevel:Int,speedLevel:Int,curBulletNum:Int,position:Point,bulletPowerLevel:Int,tankColorType:Int)
 
 trait Tank extends ObjectOfGame {
 
@@ -31,6 +31,8 @@ trait Tank extends ObjectOfGame {
   protected var gunDirection:Double //
 
   protected var bulletPowerLevel:Int //子弹等级
+
+  protected val tankColorType:Int
 
   private var isFillingBullet:Boolean = false
 
@@ -69,7 +71,7 @@ trait Tank extends ObjectOfGame {
 
   // 获取坦克状态
   def getTankState():TankState = {
-    TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position,bulletPowerLevel)
+    TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position,bulletPowerLevel,tankColorType)
   }
 
   //  开始填充炮弹

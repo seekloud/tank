@@ -188,6 +188,7 @@ object UserActor {
           m match {
             case t:WsProtocol.YouAreKilled =>
               frontActor ! m
+              roomActor ! RoomActor.LeftRoom(uId,tank.tankId,name)
               switchBehavior(ctx,"idle",idle(uId,name,frontActor))
 
             case _ =>
