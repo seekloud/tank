@@ -135,6 +135,7 @@ class GridServerImpl(
   private def dropTankCallBack(bullet:Bullet,tank:Tank):Unit = {
     tankMap.remove(tank.tankId)
     tankMoveAction.remove(tank.tankId)
+    dispatchTo(tank.getTankState().userId,WsProtocol.YouAreKilled(bullet.tankId,0L))
   }
 
 

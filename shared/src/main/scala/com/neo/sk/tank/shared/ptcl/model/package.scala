@@ -285,6 +285,13 @@ package object model {
 
 
   object Boundary{
+    val w = 1200
+    val h = 600
+
+    def getBoundary:Point = Point(w,h)
+  }
+
+  object CanvasBoundary{
     val w = 120
     val h = 60
 
@@ -319,9 +326,9 @@ package object model {
 
       def tankSpeedByType(t:Int):Point = { //每桢移动多少
         t match {
-          case SpeedType.low => Point(5,0)
-          case SpeedType.intermediate => Point(10,0)
-          case SpeedType.high => Point(15,0)
+          case SpeedType.low => Point(50,0)
+          case SpeedType.intermediate => Point(70,0)
+          case SpeedType.high => Point(90,0)
         }
       }
 
@@ -388,7 +395,7 @@ package object model {
 
   object BulletParameters{
 
-    final val maxFlyDistance = 10
+    final val maxFlyDistance = 70
 
     final val bulletMomentum = Point(20,0)
   }

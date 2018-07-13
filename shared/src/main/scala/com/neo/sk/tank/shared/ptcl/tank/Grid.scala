@@ -83,27 +83,49 @@ trait Grid {
 
 
 
+  def getDirection(actionSet:mutable.HashSet[Int]):Option[Double] = {
+    if(actionSet.contains(KeyEvent.VK_LEFT) && actionSet.contains(KeyEvent.VK_UP)){
+      Some(DirectionType.upLeft)
+    }else if(actionSet.contains(KeyEvent.VK_RIGHT) && actionSet.contains(KeyEvent.VK_UP)){
+      Some(DirectionType.upRight)
+    }else if(actionSet.contains(KeyEvent.VK_LEFT) && actionSet.contains(KeyEvent.VK_DOWN)){
+      Some(DirectionType.downLeft)
+    }else if(actionSet.contains(KeyEvent.VK_RIGHT) && actionSet.contains(KeyEvent.VK_DOWN)){
+      Some(DirectionType.downRight)
+    }else if(actionSet.contains(KeyEvent.VK_RIGHT)){
+      Some(DirectionType.right)
+    }else if(actionSet.contains(KeyEvent.VK_LEFT)){
+      Some(DirectionType.left)
+    }else if(actionSet.contains(KeyEvent.VK_UP) ){
+      Some(DirectionType.up)
+    }else if(actionSet.contains(KeyEvent.VK_DOWN)){
+      Some(DirectionType.down)
+    }else None
+  }
+
+  def getDirection(actionSet:Set[Int]):Option[Double] = {
+    if(actionSet.contains(KeyEvent.VK_LEFT) && actionSet.contains(KeyEvent.VK_UP)){
+      Some(DirectionType.upLeft)
+    }else if(actionSet.contains(KeyEvent.VK_RIGHT) && actionSet.contains(KeyEvent.VK_UP)){
+      Some(DirectionType.upRight)
+    }else if(actionSet.contains(KeyEvent.VK_LEFT) && actionSet.contains(KeyEvent.VK_DOWN)){
+      Some(DirectionType.downLeft)
+    }else if(actionSet.contains(KeyEvent.VK_RIGHT) && actionSet.contains(KeyEvent.VK_DOWN)){
+      Some(DirectionType.downRight)
+    }else if(actionSet.contains(KeyEvent.VK_RIGHT)){
+      Some(DirectionType.right)
+    }else if(actionSet.contains(KeyEvent.VK_LEFT)){
+      Some(DirectionType.left)
+    }else if(actionSet.contains(KeyEvent.VK_UP) ){
+      Some(DirectionType.up)
+    }else if(actionSet.contains(KeyEvent.VK_DOWN)){
+      Some(DirectionType.down)
+    }else None
+  }
+
   //todo this code need to rebuild 碰撞检测，坦克移动 以及吃道具的判定
   def updateTank():Unit = {
-    def getDirection(actionSet:mutable.HashSet[Int]):Option[Double] = {
-      if(actionSet.contains(KeyEvent.VK_LEFT) && actionSet.contains(KeyEvent.VK_UP)){
-        Some(DirectionType.upLeft)
-      }else if(actionSet.contains(KeyEvent.VK_RIGHT) && actionSet.contains(KeyEvent.VK_UP)){
-        Some(DirectionType.upRight)
-      }else if(actionSet.contains(KeyEvent.VK_LEFT) && actionSet.contains(KeyEvent.VK_DOWN)){
-        Some(DirectionType.downLeft)
-      }else if(actionSet.contains(KeyEvent.VK_RIGHT) && actionSet.contains(KeyEvent.VK_DOWN)){
-        Some(DirectionType.downRight)
-      }else if(actionSet.contains(KeyEvent.VK_RIGHT)){
-        Some(DirectionType.right)
-      }else if(actionSet.contains(KeyEvent.VK_LEFT)){
-        Some(DirectionType.left)
-      }else if(actionSet.contains(KeyEvent.VK_UP) ){
-        Some(DirectionType.up)
-      }else if(actionSet.contains(KeyEvent.VK_DOWN)){
-        Some(DirectionType.down)
-      }else None
-    }
+
 
     val tankList = tankMap.values.toList
     val obstacleList = obstacleMap.values.toList
@@ -171,7 +193,7 @@ trait Grid {
 
 
   // 将本桢接受的所有操作，进行处理，更新坦克的移动操作和坦克炮的方向和开炮操作
-  private def handleCurFrameTankAction():Unit = {
+  def handleCurFrameTankAction():Unit = {
     val curActionQueue = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]())
     while (curActionQueue.nonEmpty){
       val (tankId,action) = curActionQueue.dequeue()

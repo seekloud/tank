@@ -21,6 +21,8 @@ object WsProtocol {
 
   case class UserLeftRoom(tankId:Long,name:String) extends WsMsgServer
 
+  case class YouAreKilled(tankId:Long,userId:Long) extends WsMsgServer
+
   case class TankActionFrameMouse(tankId:Long,frame:Long,actM:WsFrontProtocol.MouseMove) extends WsMsgServer
 
   case class TankActionFrameKeyDown(tankId:Long,frame:Long,actKd:WsFrontProtocol.PressKeyDown) extends WsMsgServer
@@ -42,6 +44,7 @@ object WsProtocol {
   case class TankEatProp(pId:Long,tId:Long,pType:Int) extends WsMsgServer
 
   case class TankLaunchBullet(f:Long,bullet:BulletState) extends WsMsgServer
+
 
 //  case class DirectionAction
 

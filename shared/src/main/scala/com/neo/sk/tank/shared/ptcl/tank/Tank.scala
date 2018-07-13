@@ -108,7 +108,7 @@ trait Tank extends ObjectOfGame {
     this.direction = direction
     val res = this.position + model.TankParameters.SpeedType.getMoveByFrame(speedLevel).rotate(direction)
     val movedRec = Rectangle(res-Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r),res+Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r))
-    if(!otherObject.exists(t => t.getObjectRect().intersects(movedRec))){
+    if(!otherObject.exists(t => t.getObjectRect().intersects(movedRec)) && Rectangle(Point(0,0),boundary).intersects(movedRec) ){
       position = res
     }
   }

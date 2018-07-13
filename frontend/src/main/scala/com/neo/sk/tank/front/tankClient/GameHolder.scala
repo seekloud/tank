@@ -13,6 +13,7 @@ import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html.Canvas
 import org.scalajs.dom.raw.{Event, MessageEvent, MouseEvent}
 
+import scala.collection.mutable
 import scala.xml.Elem
 
 /**
@@ -27,8 +28,9 @@ class GameHolder(canvasName:String) {
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
   private[this] val bounds = Point(ptcl.model.Boundary.w,ptcl.model.Boundary.h)
+  private[this] val canvasBounds = ptcl.model.CanvasBoundary.getBoundary
   private[this] val canvasUnit = 10
-  private[this] val canvasBoundary = bounds * canvasUnit
+  private[this] val canvasBoundary = canvasBounds * canvasUnit
 
   private[this] var myId = -1L
   private[this] var myTankId = -1L
@@ -112,6 +114,11 @@ class GameHolder(canvasName:String) {
         println(s"玩家=${name} left tankId=${tankId}")
         grid.leftGame(tankId)
 
+
+      case WsProtocol.YouAreKilled(tankId,userId) =>
+        println(s"you are killed")
+        setGameState(Constants.GameState.stop)
+
       case WsProtocol.TankActionFrameMouse(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
 
       case WsProtocol.TankActionFrameKeyDown(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
@@ -128,7 +135,7 @@ class GameHolder(canvasName:String) {
 
 
       case WsProtocol.GridSyncAllState(gridState) =>
-        println("已同步游戏中所有数据，进行渲染")
+        println(s"已同步游戏中所有数据，进行渲染，${gridState}")
 //        grid.gridSyncState(gridState)
         justSynced = true
         gridAllState = Some(gridState)
@@ -170,6 +177,8 @@ class GameHolder(canvasName:String) {
 
   }
 
+  private val keySet = mutable.HashSet[Int]()
+
   def addActionListenEvent():Unit = {
     canvas.focus()
     canvas.onmousemove = { (e:dom.MouseEvent) =>
@@ -185,7 +194,8 @@ class GameHolder(canvasName:String) {
 
     canvas.onkeydown = {
       (e: dom.KeyboardEvent) => {
-        if (watchKeys.contains(e.keyCode)) {
+        if (watchKeys.contains(e.keyCode) && !keySet.contains(e.keyCode)) {
+          keySet.add(e.keyCode)
           println(s"key down: [${e.keyCode}]")
           sendMsg2Server(WsFrontProtocol.PressKeyDown(e.keyCode))//发送操作指令
           e.preventDefault()
@@ -196,6 +206,7 @@ class GameHolder(canvasName:String) {
     canvas.onkeyup = {
       (e: dom.KeyboardEvent) => {
         if (watchKeys.contains(e.keyCode)) {
+          keySet.remove(e.keyCode)
           println(s"key up: [${e.keyCode}]")
           sendMsg2Server(WsFrontProtocol.PressKeyUp(e.keyCode))//发送操作指令
           e.preventDefault()
@@ -224,6 +235,7 @@ class GameHolder(canvasName:String) {
   }
 
   def gameLoop():Unit = {
+//    println(s"----${System.currentTimeMillis()}")
     gameState match {
       case Constants.GameState.loadingPlay =>
         println(s"等待同步数据")
@@ -233,18 +245,27 @@ class GameHolder(canvasName:String) {
           case true =>
             if(clientFrame == maxClientFrameDrawForSystemFrame - 1){
               gridStateWithoutBullet.foreach(t =>grid.gridSyncStateWithoutBullet(t))
-              gridAllState.foreach(t => grid.gridSyncState(_))
+              gridStateWithoutBullet = None
+              gridAllState.foreach(t => grid.gridSyncState(t))
+              gridAllState = None
               justSynced = false
             }
           case false =>
             if(clientFrame == maxClientFrameDrawForSystemFrame - 1){
+              val x = System.currentTimeMillis()
               grid.update()
+//              if(grid.systemFrame % 10 == 0)
+//                println(s"${grid.systemFrame} user ${System.currentTimeMillis() - x}")
             }
 
         }
         clientFrame += 1
         clientFrame = clientFrame % maxClientFrameDrawForSystemFrame
+        val x = System.currentTimeMillis()
         drawGame(clientFrame,maxClientFrameDrawForSystemFrame)
+//        if(grid.systemFrame % 10 == 0)
+//          println(s"${grid.systemFrame} 动画 ${System.currentTimeMillis() - x}")
+
 
 
 
@@ -260,7 +281,7 @@ class GameHolder(canvasName:String) {
 
   def drawGameLoading():Unit = {
     ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
+    ctx.fillRect(0, 0, canvasBounds.x * canvasUnit, canvasBounds.y * canvasUnit)
     ctx.fillStyle = "rgb(250, 250, 250)"
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
@@ -270,17 +291,15 @@ class GameHolder(canvasName:String) {
   }
 
   def drawGame(curFrame:Int,maxClientFrame:Int): Unit ={
-    println(System.currentTimeMillis())
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
-    grid.draw(ctx,curFrame,maxClientFrame)
-    println(System.currentTimeMillis())
+
+
+    grid.draw(ctx,myTankId,curFrame,maxClientFrame,canvasBounds)
 
   }
 
   def drawGameStop():Unit = {
     ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
+    ctx.fillRect(0, 0, canvasBounds.x * canvasUnit, canvasBounds.y * canvasUnit)
     ctx.fillStyle = "rgb(250, 250, 250)"
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
