@@ -115,7 +115,7 @@ object RoomActor {
         case GameLoop =>
           grid.update()
 
-          if (tickCount % 100 == 5) {
+          if (tickCount % 20 == 5) {
             val gridData = grid.getGridStateWithoutBullet()
             dispatch(subscribersMap)(WsProtocol.GridSyncState(gridData))
           }
