@@ -50,6 +50,10 @@ class GridServerImpl(
   override protected def attackTankCallBack(bullet: Bullet)(o:Tank):Unit = {
     super.attackTankCallBack(bullet)(o)
     o.attackedBullet(bullet,dropTankCallBack)
+    tankMap.get(bullet.tankId) match {
+      case Some(tank) => tank.damageTank += bullet.damage
+      case None =>
+    }
     dispatch(WsProtocol.TankAttacked(systemFrame,bullet.bId,o.tankId,bullet.damage))
   }
 
@@ -65,7 +69,7 @@ class GridServerImpl(
     while (justJoinUser.nonEmpty){
       val u = justJoinUser.head
       justJoinUser = justJoinUser.tail
-      val tank = genATank(u._1,objectOfGameList)
+      val tank = genATank(u._1,u._2,objectOfGameList)
       objectOfGameList = tank :: objectOfGameList
 
       dispatch(WsProtocol.UserEnterRoom(u._1,u._2,tank.getTankState()))
@@ -74,13 +78,13 @@ class GridServerImpl(
     }
   }
 
-  private def genATank(uId:Long,objectOfGameList:List[ObjectOfGame]):TankServerImpl = {
+  private def genATank(uId:Long,name:String,objectOfGameList:List[ObjectOfGame]):TankServerImpl = {
     val tId = tankIdGenerator.getAndIncrement()
     val position = genTankPositionRandom()
-    var n = new TankServerImpl(ctx.self,uId,tId,position)
+    var n = new TankServerImpl(ctx.self,uId,tId,name,position)
     while (n.isIntersectsObject(objectOfGameList)){
       val position = genTankPositionRandom()
-      n = new TankServerImpl(ctx.self,uId,tId,position)
+      n = new TankServerImpl(ctx.self,uId,tId,name,position)
     }
     n
   }
@@ -135,6 +139,10 @@ class GridServerImpl(
   private def dropTankCallBack(bullet:Bullet,tank:Tank):Unit = {
     tankMap.remove(tank.tankId)
     tankMoveAction.remove(tank.tankId)
+    tankMap.get(bullet.tankId) match {
+      case Some(tank) => tank.killTankNum += 1
+      case None =>
+    }
     dispatchTo(tank.getTankState().userId,WsProtocol.YouAreKilled(bullet.tankId,0L))
 
   }

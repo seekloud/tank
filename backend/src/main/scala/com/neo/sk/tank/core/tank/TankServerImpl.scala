@@ -25,7 +25,10 @@ class TankServerImpl (
                        override protected var gunDirection: Double,
                        override protected var position: model.Point,
                        override protected var speedLevel: Int,
-                       override protected val tankColorType: Int
+                       override protected val tankColorType: Int,
+                       override val name: String,
+                       override val killTankNum: Int,
+                       override val damageTank: Int
                      ) extends Tank{
 
 
@@ -34,6 +37,7 @@ class TankServerImpl (
             roomActor:ActorRef[RoomActor.Command],
             userId:Long,
             tankId: Long,
+            name:String,
             position:Point
           ) = {
     this(
@@ -48,7 +52,8 @@ class TankServerImpl (
       0,
       position,
       ptcl.model.TankParameters.SpeedType.low,
-      model.TankParameters.TankColor.getRandomColorType()
+      model.TankParameters.TankColor.getRandomColorType(),
+      name,0,0
     )
   }
 

@@ -22,11 +22,14 @@ class TankClientImpl(
                       override protected var gunDirection: Double,
                       override protected var position: model.Point,
                       override protected var speedLevel: Int,
-                      override protected val tankColorType: Int
+                      override protected val tankColorType: Int,
+                      override val name: String,
+                      override val killTankNum: Int,
+                      override val damageTank: Int
                     ) extends Tank{
 
   def this(tankState:TankState) = {
-    this(tankState.userId,tankState.tankId,tankState.blood,tankState.bloodLevel,tankState.bulletPowerLevel,tankState.curBulletNum,tankState.direction,tankState.gunDirection,tankState.position,tankState.speedLevel,tankState.tankColorType)
+    this(tankState.userId,tankState.tankId,tankState.blood,tankState.bloodLevel,tankState.bulletPowerLevel,tankState.curBulletNum,tankState.direction,tankState.gunDirection,tankState.position,tankState.speedLevel,tankState.tankColorType,tankState.name,tankState.killTankNum,tankState.damageTank)
   }
 
   override protected def startFillBullet(): Unit = {}
