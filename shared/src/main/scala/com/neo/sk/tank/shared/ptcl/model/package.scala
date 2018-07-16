@@ -337,6 +337,8 @@ package object model {
 
 
 
+    val addBlood = 20
+
     object SpeedType {
       val low = 1
       val intermediate = 2
@@ -427,25 +429,20 @@ package object model {
 
     object AirDropBoxParameters{
       val blood = 100
-
-      object Size {
-        val w = 10
-        val h = 10
-      }
+      val num = 30
     }
 
+    val border = 5
+    val halfBorder = 2.5
 
     object BrickDropBoxParameters{
       val blood = 100
-
-      object Size {
-        val w = 10
-        val h = 10
-      }
+      val num = 120
     }
+  }
 
-
-
+  object PropParameters{
+    val r = 1.5
   }
 
 

@@ -233,7 +233,13 @@ trait Grid {
   //子弹攻击到障碍物的回调函数
   protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
     bulletMap.remove(bullet.bId)
+    o.attackDamage(bullet.damage)
+    if(!o.isLived()){
+      obstacleMap.remove(o.oId)
+    }
   }
+
+
 
   //todo 坦克吃到道具的回调函数
   protected def tankEatProp(tank:Tank)(prop: Prop):Unit

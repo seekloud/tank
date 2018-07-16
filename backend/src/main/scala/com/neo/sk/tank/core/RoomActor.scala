@@ -30,7 +30,6 @@ object RoomActor {
 
   sealed trait Command
 
-
   case class JoinRoom(uid:Long,name:String,userActor:ActorRef[UserActor.Command]) extends Command
 
   case class WebSocketMsg(uid:Long,tankId:Long,req:WsFrontProtocol.TankAction) extends Command
@@ -71,6 +70,7 @@ object RoomActor {
           implicit timer =>
             val subscribersMap = mutable.HashMap[Long,ActorRef[UserActor.Command]]()
             val grid = new GridServerImpl(ctx,log,dispatch(subscribersMap),dispatchTo(subscribersMap),ptcl.model.Boundary.getBoundary)
+            grid.obstaclesInit()
             timer.startPeriodicTimer(GameLoopKey,GameLoop,ptcl.model.Frame.millsAServerFrame.millis)
             idle(Nil,subscribersMap,grid,0L)
         }
@@ -89,6 +89,7 @@ object RoomActor {
       msg match {
         case JoinRoom(uid,name,userActor) =>
           grid.joinGame(uid,name,userActor)
+
           //这一桢结束时会告诉所有新加入用户的tank信息以及地图全量数据
           idle((uid,userActor) :: justJoinUser, subscribersMap, grid, tickCount)
 
@@ -151,7 +152,6 @@ object RoomActor {
   def dispatchTo(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(id:Long,msg:WsProtocol.WsMsgServer) = {
     subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(msg))
   }
-
 
 
 

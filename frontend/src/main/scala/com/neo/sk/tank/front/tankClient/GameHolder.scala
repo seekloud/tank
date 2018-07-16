@@ -8,6 +8,7 @@ import com.neo.sk.tank.shared.ptcl.model.{Boundary, Point}
 import com.neo.sk.tank.shared.ptcl.protocol._
 import com.neo.sk.tank.shared.ptcl.tank.{GridState, GridStateWithoutBullet}
 import mhtml.Var
+import com.neo.sk.tank.shared.ptcl.tank.Prop
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html.Canvas
@@ -153,6 +154,8 @@ class GameHolder(canvasName:String) {
 
       case t:WsProtocol.TankEatProp =>
         grid.recvTankEatProp(t)
+      case WsProtocol.AddProp(pId,propState) =>
+        grid.propMap.put(pId,Prop.apply(propState))
 
       case WsProtocol.TankLaunchBullet(frame,bullet) =>
         println(s"recv msg:${e.data.toString}")

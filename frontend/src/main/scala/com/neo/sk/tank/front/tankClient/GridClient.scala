@@ -147,16 +147,15 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
   }
 
   def updateTankEatProp(tId:Long,pId:Long,pType:Int) = {
-    propMap.remove(pId)
     tankMap.get(tId) match {
       case Some(t) =>
-        t.eatProp(Prop(PropState(pId,pType,Point(0,0))))
+        t.eatProp(propMap.get(pId).get)
       case None =>
     }
+    propMap.remove(pId)
   }
 
   def draw(ctx:dom.CanvasRenderingContext2D,myTankId:Long,curFrame:Int,maxClientFrame:Int,canvasBoundary:Point) = {
-
     var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
     val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
     action.map(_._2).foreach{
@@ -174,6 +173,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       BulletClientImpl.drawBullet(ctx,canvasUnit,b.asInstanceOf[BulletClientImpl],curFrame,offset)
     }
     tankMap.values.foreach{ t =>
+
       var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
       val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
       action.map(_._2).foreach{
@@ -189,6 +189,24 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
 
   def tankIsLived(tankId:Long):Boolean = tankMap.contains(tankId)
 
+  def drawProps(ctx:dom.CanvasRenderingContext2D,offset:Point) = {
+    propMap.values.foreach{
+      p=>
+        val color = p.getPropState.t match {
+          case 1 => Color.Red
+          case 2 => Color.Yellow
+          case 3 => Color.Green
+          case 4 => Color.Blue
+        }
+        ctx.fillStyle = color.toString()
+        ctx.strokeStyle = color.toString()
+        ctx.beginPath()
+        ctx.arc((p.getPropState.p.x + offset.x) * canvasUnit,(p.getPropState.p.y + offset.y) * canvasUnit,model.PropParameters.r * canvasUnit,0,360)
+        ctx.fill()
+        ctx.stroke()
+    }
+  }
+
   private def drawBackground(ctx:dom.CanvasRenderingContext2D,offset:Point,canvasBoundary:Point) = {
     //#F0F0F0   #CCCCCC
 //    ctx.fillStyle = "#CCCCCC"
@@ -198,7 +216,15 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
     ctx.strokeStyle = "#A3A3A3"
     ctx.fillStyle = "#FCFCFC"
     ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y  * canvasUnit)
-
+    obstacleMap.values.foreach {
+      o =>
+        if (o.obstacleType == model.ObstacleParameters.ObstacleType.airDropBox) {
+          AirDropBoxClientImpl.drawAirDrop(ctx, offset, canvasUnit, o)
+        } else {
+          BrickClientImpl.drawBrick(ctx,offset,canvasUnit,o)
+        }
+    }
+    drawProps(ctx,offset)
     ctx.fillStyle = Color.Black.toString()
     for(i <- 0 to(boundary.x.toInt,3)){
       ctx.beginPath()
@@ -217,7 +243,6 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       ctx.stroke()
       ctx.closePath()
     }
-
   }
 
 
