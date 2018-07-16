@@ -1,7 +1,7 @@
 package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.shared.ptcl.model
-import com.neo.sk.tank.shared.ptcl.model.{Point, TankParameters}
+import com.neo.sk.tank.shared.ptcl.model.{Point, TankParameters, CanvasBoundary}
 import com.neo.sk.tank.shared.ptcl.tank.{Tank, TankState}
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
@@ -61,11 +61,11 @@ class TankClientImpl(
   }
 
   //三个点
-  def getSliderPosition(a:Int,bloodPercent:Double):List[Point] = {
+  def getSliderPosition(offset:Int,bloodPercent:Double):List[Point] = {
     List(
-      this.position - Point(0.8 * TankParameters.TankSize.r,a + TankParameters.TankSize.r),
-      this.position - Point((1 - bloodPercent * 2) * 0.8 * TankParameters.TankSize.r,a + TankParameters.TankSize.r),
-      this.position + Point(0.8 * TankParameters.TankSize.r,- a - TankParameters.TankSize.r)
+       Point(- 0.8 * TankParameters.TankSize.r,- (offset + TankParameters.TankSize.r)),
+       Point(- (1 - bloodPercent * 2) * 0.8 * TankParameters.TankSize.r,- (offset + TankParameters.TankSize.r)),
+       Point(0.8 * TankParameters.TankSize.r,- offset - TankParameters.TankSize.r)
     )
   }
 
@@ -85,9 +85,7 @@ object TankClientImpl{
   def drawTank(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,offset:Point,directionOpt:Option[Double],canvasUnit:Int = 10): Unit ={
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt)
     val gunPositionList = tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
-    val bloodSliderList = tank.getSliderPosition(3,tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(t => (t + offset) * canvasUnit)
-//    val bloodSliderList = tank.getSliderPosition(3,(new Random(System.currentTimeMillis())).nextDouble()).map(t => (t + offset) * canvasUnit)
-
+    val bloodSliderList = tank.getSliderPosition(3,1.0 * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
     ctx.beginPath()
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
     gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
@@ -118,6 +116,14 @@ object TankClientImpl{
       ctx.stroke()
       ctx.closePath()
     }
+    ctx.beginPath()
+    ctx.font = "normal normal 24px 楷体"
+    ctx.textAlign = "center"
+    ctx.fillStyle = Color.Red.toString()
+    ctx.strokeText(s"血量等级：${tank.bloodLevel}",CanvasBoundary.w * canvasUnit / 1.2,1.5 * canvasUnit,80 * canvasUnit)
+    ctx.strokeText(s"速度等级：${tank.speedLevel}",CanvasBoundary.w * canvasUnit / 1.2,5 * canvasUnit,40 * canvasUnit)
+    ctx.strokeText(s"炮弹威力等级：${tank.bulletPowerLevel}",CanvasBoundary.w * canvasUnit / 1.2,8 * canvasUnit,40 * canvasUnit)
+    ctx.closePath()
   }
 
 
