@@ -15,7 +15,7 @@ package object model {
 
   val random = new Random(System.currentTimeMillis())
 
-  case class Score(id:Long,n:String,k:Int,d:Int,t:Option[Long])
+  case class Score(id:Long,n:String,k:Int,d:Int,t:Option[Long] =None)
 
   case class Point(x: Double, y: Double){
     def +(other: Point) = Point(x + other.x, y + other.y)
@@ -58,6 +58,46 @@ package object model {
         (th < ty || th > ry)
     }
   }
+//  def DistanceBetweenTwoPoints(x1:Double,y1:Double,x2:Double,y2:Double)={
+//    Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
+//  }
+//  def DistanceFromPointToLine(x:Double,y:Double,x1:Double,y1:Double,x2:Double,y2:Double)={
+//    val a = y2 - y1
+//    val b= x1 - x2
+//    val c= x2 * y1-x1 * y2
+//    math.abs(a * x + b * y +c)/ math.sqrt(a * a + b * b)
+//  }
+//  def IsCircleIntersectRectangle(x:Double,y:Double,r:Double,x0:Double,y0:Double,x1:Double,y1:Double,x2:Double,y2:Double)={
+//    val w1 = DistanceBetweenTwoPoints(x0, y0, x2, y2)
+//    val h1 = DistanceBetweenTwoPoints(x0, y0, x1, y1)
+//    val w2 = DistanceFromPointToLine(x, y, x0, y0, x1, y1)
+//    val h2 = DistanceFromPointToLine(x, y, x0, y0, x2, y2)
+//    if(w2 > w1 + r)
+//      false
+//    if(h2 > h1 + r)
+//      false
+//    if(w2 <= w1)
+//      true
+//    if(h2 <= h1)
+//      true
+//
+//    (w2 - w1) * (w2 - w1) + (h2 - h1) * (h2 - h1) <= r * r
+//  }
+
+//  def ComputerCollision(w:Double,h:Double,r:Double,rx:Double,ry:Double)={
+//    val dx = math.min(rx ,w * 0.5)
+//    val dx1 =math.max(dx ,-w * 0.5)
+//    val dy =math.min(ry,h * 0.5)
+//    val dy1 =math.max(dy,-h * 0.5)
+//
+//    (dx1 - rx) * ( dx1 - rx) + (dy1 - ry) * (dy - ry) <= r * r
+//}
+//  def getNewRx_Ry(x1:Double,y1:Double,x2:Double,y2:Double)={
+//    val newRotation =math.rot(x1,y1,x2,y2) - rotation
+//  }
+
+
+
 
 //  trait Bullet {
 //    val startPosition:Point

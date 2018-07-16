@@ -30,6 +30,9 @@ trait AirDropBox extends Obstacle{
 
 
 
+
+
+
   //todo 被子弹攻击，血量下降，当血量小于0，随机爆出道具
   def attacked(bullet: Bullet,destroyCallBack:Obstacle => Unit):Unit = {}
 

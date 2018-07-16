@@ -28,6 +28,9 @@ trait Tank extends ObjectOfGame {
 
 
 
+
+
+
   protected var curBulletNum:Int //当前子弹数量
 
   protected var direction:Double //移动方向

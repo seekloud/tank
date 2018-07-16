@@ -39,8 +39,11 @@ trait Grid {
   def info(msg: String): Unit
 
   var currentRank = List.empty[Score]
-  var historyRank = List.empty[Score]
 
+  var historyRankMap =Map.empty[Long,Score]
+  var historyRank = historyRankMap.values.toList.sortBy(_.d).reverse
+  var historyRankThreshold =if (historyRank.isEmpty)-1 else historyRank.map(_.d).min
+  val historyRankLength =5
 
   val bulletIdGenerator = new AtomicLong(100L)
   val tankIdGenerator = new AtomicLong(100L)
