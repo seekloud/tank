@@ -442,7 +442,7 @@ package object model {
   }
 
   object PropParameters{
-    val r = 2
+    val r = 1.5
   }
 
 

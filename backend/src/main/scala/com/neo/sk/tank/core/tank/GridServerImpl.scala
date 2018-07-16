@@ -60,7 +60,7 @@ class GridServerImpl(
       val objectOfGameList = tankMap.values.toList ::: obstacleMap.values.toList ::: propMap.values.toList
       val box = if(o.obstacleType == model.ObstacleParameters.ObstacleType.airDropBox){
         val pId = propIdGenerator.getAndIncrement()
-        propMap.put(pId,Prop.apply(PropState(pId,random.nextInt(100)%4 + 1,o.getObstacleState().p)))
+        propMap.put(pId,Prop.apply(PropState(pId,(random.nextInt(Int.MaxValue)%4+1),o.getObstacleState().p)))
         dispatch(WsProtocol.AddProp(pId,propMap.get(pId).get.getPropState))
         genADrop(objectOfGameList)
       }else{
@@ -68,7 +68,7 @@ class GridServerImpl(
       }
       obstacleMap.put(box.oId,box)
     }
-    dispatch(WsProtocol.ObstacleAttacked(bullet.bId,o.oId,bullet.damage))
+    dispatch(WsProtocol.ObstacleAttacked(systemFrame,bullet.bId,o.oId,bullet.damage))
   }
 
   //生成坦克的

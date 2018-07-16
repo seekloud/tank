@@ -134,9 +134,6 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
         t.attackDamage(d)
         if(!t.isLived()){
           obstacleMap.remove(oId)
-          if (t.obstacleType == model.ObstacleParameters.ObstacleType.airDropBox) {
-            val pId = propIdGenerator.getAndIncrement()
-          }
         }
       case None =>
     }
@@ -203,7 +200,6 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
           case 3 => Color.Green
           case 4 => Color.Blue
         }
-
         ctx.fillStyle = color.toString()
         ctx.strokeStyle = color.toString()
         ctx.beginPath()
