@@ -5,11 +5,15 @@ import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicLong
 
 import scala.collection.mutable
+import scala.util.Random
 
 /**
   * Created by hongruying on 2018/7/7
   */
 package object model {
+
+
+  val random = new Random(System.currentTimeMillis())
 
   case class Score(id:Long,n:String,k:Int,d:Int,t:Option[Long])
 
@@ -309,13 +313,29 @@ package object model {
 
 
 
+
   object BulletSize{
-    val r = 2
+    val r = 1
   }
 
 
 
   object TankParameters{
+
+    object TankColor{
+      val blue = "#1E90FF"
+      val green = "#4EEE94"
+      val red = "#EE4000"
+
+      val tankColorList = List(blue,green,red)
+
+      val gun = "#7A7A7A"
+
+      def getRandomColorType():Int = random.nextInt(tankColorList.size)
+    }
+
+
+
 
     val addBlood = 20
 
@@ -327,9 +347,9 @@ package object model {
 
       def tankSpeedByType(t:Int):Point = { //每桢移动多少
         t match {
-          case SpeedType.low => Point(10,0)
-          case SpeedType.intermediate => Point(20,0)
-          case SpeedType.high => Point(25,0)
+          case SpeedType.low => Point(20,0)
+          case SpeedType.intermediate => Point(30,0)
+          case SpeedType.high => Point(35,0)
         }
       }
 
@@ -424,6 +444,7 @@ package object model {
   object PropParameters{
     val r = 2
   }
+
 
 
 

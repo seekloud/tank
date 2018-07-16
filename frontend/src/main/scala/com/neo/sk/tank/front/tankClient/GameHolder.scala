@@ -33,7 +33,6 @@ class GameHolder(canvasName:String) {
   private[this] val canvasUnit = 10
   private[this] val canvasBoundary = canvasBounds * canvasUnit
 
-
   private[this] var myId = -1L
   private[this] var myTankId = -1L
   private[this] var myName = ""
@@ -143,21 +142,20 @@ class GameHolder(canvasName:String) {
         gridAllState = Some(gridState)
         setGameState(Constants.GameState.play)
 
-      case WsProtocol.TankAttacked(bId,tId,damage) =>
+      case t:WsProtocol.TankAttacked =>
 //        grid.attackTankCallBack(bId,null)
         //移除子弹并且进行血量计算
-        grid.recvTankAttacked(bId,tId,damage)
+        grid.recvTankAttacked(t)
 
 
-      case WsProtocol.ObstacleAttacked(bId,oId,damage) =>
+      case t:WsProtocol.ObstacleAttacked =>
         //移除子弹并且进行血量计算
-        grid.recvObstacleAttacked(bId,oId,damage)
+        grid.recvObstacleAttacked(t)
 
+      case t:WsProtocol.TankEatProp =>
+        grid.recvTankEatProp(t)
       case WsProtocol.AddProp(pId,propState) =>
         grid.propMap.put(pId,Prop.apply(propState))
-
-      case WsProtocol.TankEatProp(pId,tId,pType) =>
-        grid.recvTankEatProp(tId,pId,pType)
 
       case WsProtocol.TankLaunchBullet(frame,bullet) =>
         println(s"recv msg:${e.data.toString}")

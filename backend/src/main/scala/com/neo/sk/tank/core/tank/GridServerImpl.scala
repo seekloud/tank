@@ -50,7 +50,7 @@ class GridServerImpl(
   override protected def attackTankCallBack(bullet: Bullet)(o:Tank):Unit = {
     super.attackTankCallBack(bullet)(o)
     o.attackedBullet(bullet,dropTankCallBack)
-    dispatch(WsProtocol.TankAttacked(bullet.bId,o.tankId,bullet.damage))
+    dispatch(WsProtocol.TankAttacked(systemFrame,bullet.bId,o.tankId,bullet.damage))
   }
 
   //子弹攻击到障碍物的回调函数
@@ -122,7 +122,7 @@ class GridServerImpl(
 
   override protected def tankEatProp(tank:Tank)(prop: Prop):Unit = {
     propMap.remove(prop.pId)
-    dispatch(WsProtocol.TankEatProp(prop.pId,tank.tankId,prop.propType))
+    dispatch(WsProtocol.TankEatProp(systemFrame,prop.pId,tank.tankId,prop.propType))
   }
 
 
