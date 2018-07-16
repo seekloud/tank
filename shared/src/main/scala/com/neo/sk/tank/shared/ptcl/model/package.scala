@@ -329,8 +329,8 @@ package object model {
 
 
   object Boundary{
-    val w = 1200
-    val h = 600
+    val w = 120
+    val h = 60
 
     def getBoundary:Point = Point(w,h)
   }
@@ -343,7 +343,7 @@ package object model {
   }
 
   object Frame{
-    val millsAServerFrame = 60
+    val millsAServerFrame = 120
 
     val clientFrameAServerFrame = 4
 
@@ -377,7 +377,7 @@ package object model {
 
 
 
-    val addBlood = 20
+    val addBlood = 40
 
     object SpeedType {
       val low = 1
@@ -469,7 +469,7 @@ package object model {
 
     object AirDropBoxParameters{
       val blood = 100
-      val num = 30
+      val num = 3
     }
 
     val border = 5
@@ -477,7 +477,7 @@ package object model {
 
     object BrickDropBoxParameters{
       val blood = 100
-      val num = 120
+      val num = 5
     }
   }
 

@@ -49,13 +49,10 @@ class TankClientImpl(
     * @param directionOpt 坦克是否移动
     * */
   def getPositionCurFrame(curFrame:Int,maxClientFrame:Int,directionOpt:Option[Double]):Point = {
-//    this.position + momentum * curFrame / 1000 * model.Frame.millsAServerFrame / model.Frame.clientFrameAServerFrame
-    if(directionOpt.nonEmpty){
+   if(directionOpt.nonEmpty){
       val distance = model.TankParameters.SpeedType.getMoveByFrame(speedLevel) / maxClientFrame * curFrame //每帧移动的距离
       this.position + distance.rotate(directionOpt.get)
     }else position
-//    this.position
-
   }
 
   //4个点
@@ -93,6 +90,7 @@ object TankClientImpl{
     * */
   def drawTank(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,offset:Point,directionOpt:Option[Double],canvasUnit:Int = 10): Unit ={
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt)
+    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
     val gunPositionList = tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
     val bloodSliderList = tank.getSliderPosition(3,1.0 * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
     ctx.beginPath()
@@ -114,7 +112,7 @@ object TankClientImpl{
 
     for(i <- 0 to bloodSliderList.length - 2){
       ctx.beginPath()
-      ctx.lineWidth = 3
+      ctx.lineWidth = 5
       if(i == 1){
         ctx.strokeStyle = "#8B8682"
       }else{
@@ -131,6 +129,7 @@ object TankClientImpl{
     ctx.beginPath()
     ctx.font = "normal normal 24px 楷体"
     ctx.fillStyle = Color.Red.toString()
+    ctx.lineWidth = 3
     ctx.textAlign = "center"
     ctx.strokeText(s"血量等级：${tank.bloodLevel}",13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2,80 * canvasUnit)
     ctx.strokeText(s"速度等级：${tank.speedLevel}",13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 2.5 * canvasUnit,40 * canvasUnit)

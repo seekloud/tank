@@ -218,8 +218,7 @@ implicit val scoreOrdering = new Ordering[Score] {
 }
 
   private[this] def updateRanksByDamage()= {
-
-    currentRank = tankMap.values.map(s => Score(s.tankId, s.name, s.killTankNum, s.damageTank)).toList.sorted
+    currentRank = tankMap.values.map(s => Score(s.tankId, s.name, s.killTankNum, s.damageTank)).toList.sortWith(_.d > _.d)
     var historyChange = false
     currentRank.foreach { cScore =>
       historyRankMap.get(cScore.id) match {
@@ -237,7 +236,7 @@ implicit val scoreOrdering = new Ordering[Score] {
     }
 
     if (historyChange) {
-      historyRank = historyRankMap.values.toList.sorted.take(historyRankLength)
+      historyRank = historyRankMap.values.toList.sortWith(_.d > _.d).take(historyRankLength)
       historyRankThreshold = historyRank.lastOption.map(_.d).getOrElse(-1)
       historyRankMap = historyRank.map(s => s.id -> s).toMap
 
