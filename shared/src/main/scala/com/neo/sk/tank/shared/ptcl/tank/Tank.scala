@@ -17,8 +17,8 @@ trait Tank extends ObjectOfGame {
 
   val tankId:Long
   val name:String
-  val killTankNum:Int
-  val damageTank:Int
+  var killTankNum:Int
+  var damageTank:Int
 
   protected var blood:Int //当前血量
 

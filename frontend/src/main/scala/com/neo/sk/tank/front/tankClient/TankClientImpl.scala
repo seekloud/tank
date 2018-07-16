@@ -24,8 +24,8 @@ class TankClientImpl(
                       override protected var speedLevel: Int,
                       override protected val tankColorType: Int,
                       override val name: String,
-                      override val killTankNum: Int,
-                      override val damageTank: Int
+                      override var killTankNum: Int,
+                      override var damageTank: Int
                     ) extends Tank{
 
   def this(tankState:TankState) = {
