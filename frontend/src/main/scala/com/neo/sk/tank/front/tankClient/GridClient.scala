@@ -109,27 +109,30 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
     obstacleMap.get(oId) match {
       case Some(t) =>
         t.attackDamage(d)
-        if(!t.isLived()){
+        if(!t.isLived()) {
           obstacleMap.remove(oId)
+          if (t.obstacleType == model.ObstacleParameters.ObstacleType.airDropBox) {
+            val pId = propIdGenerator.getAndIncrement()
+          }
         }
       case None =>
     }
   }
 
   def recvTankEatProp(tId:Long,pId:Long,pType:Int) = {
-    propMap.remove(pId)
     tankMap.get(tId) match {
       case Some(t) =>
-        t.eatProp(Prop(PropState(pId,pType,Point(0,0))))
+        t.eatProp(propMap.get(pId).get)
       case None =>
     }
+    propMap.remove(pId)
   }
 
   def draw(ctx:dom.CanvasRenderingContext2D,myTankId:Long,curFrame:Int,maxClientFrame:Int,canvasBoundary:Point) = {
 
-    var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
-    val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
-    action.map(_._2).foreach{
+    var moveSet: Set[Int] = tankMoveAction.getOrElse(myTankId, mutable.HashSet[Int]()).toSet
+    val action = tankActionQueueMap.getOrElse(systemFrame, mutable.Queue[(Long, TankAction)]()).filter(_._1 == myTankId).toList
+    action.map(_._2).foreach {
       case WsFrontProtocol.PressKeyDown(k) => moveSet = moveSet + k
       case WsFrontProtocol.PressKeyUp(k) => moveSet = moveSet - k
       case WsFrontProtocol.MouseMove(k) =>
@@ -137,33 +140,64 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
     }
     val directionOpt = getDirection(moveSet)
 
-    val offset = tankMap.get(myTankId).map((canvasBoundary / 2) - _.asInstanceOf[TankClientImpl].getPositionCurFrame(curFrame,maxClientFrame,directionOpt)).getOrElse(Point(0,0))
-//    println(s"curFrame=${curFrame},offset=${offset}")
-    drawBackground(ctx,offset,canvasBoundary)
-    bulletMap.values.foreach{ b =>
-      BulletClientImpl.drawBullet(ctx,canvasUnit,b.asInstanceOf[BulletClientImpl],curFrame,offset)
+    val offset = tankMap.get(myTankId).map((canvasBoundary / 2) - _.asInstanceOf[TankClientImpl].getPositionCurFrame(curFrame, maxClientFrame, directionOpt)).getOrElse(Point(0, 0))
+    //    println(s"curFrame=${curFrame},offset=${offset}")
+    drawBackground(ctx, offset, canvasBoundary)
+    bulletMap.values.foreach { b =>
+      BulletClientImpl.drawBullet(ctx, canvasUnit, b.asInstanceOf[BulletClientImpl], curFrame, offset)
     }
-    tankMap.values.foreach{ t =>
-      val isMove:Boolean = tankMoveAction.getOrElse(t.tankId,mutable.HashSet[Int]()).nonEmpty
-      var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
-      val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
-      action.map(_._2).foreach{
+    tankMap.values.foreach { t =>
+      val isMove: Boolean = tankMoveAction.getOrElse(t.tankId, mutable.HashSet[Int]()).nonEmpty
+      var moveSet: Set[Int] = tankMoveAction.getOrElse(myTankId, mutable.HashSet[Int]()).toSet
+      val action = tankActionQueueMap.getOrElse(systemFrame, mutable.Queue[(Long, TankAction)]()).filter(_._1 == myTankId).toList
+      action.map(_._2).foreach {
         case WsFrontProtocol.PressKeyDown(k) => moveSet = moveSet + k
         case WsFrontProtocol.PressKeyUp(k) => moveSet = moveSet - k
         case WsFrontProtocol.MouseMove(k) =>
         case _ =>
       }
       val directionOpt = getDirection(moveSet)
-      TankClientImpl.drawTank(ctx,t.asInstanceOf[TankClientImpl],curFrame,maxClientFrame,offset,directionOpt,canvasUnit)
+      TankClientImpl.drawTank(ctx, t.asInstanceOf[TankClientImpl], curFrame, maxClientFrame, offset, directionOpt, canvasUnit)
     }
+
+
   }
 
   def tankIsLived(tankId:Long):Boolean = tankMap.contains(tankId)
 
+  def drawProps(ctx:dom.CanvasRenderingContext2D,offset:Point) = {
+    propMap.values.foreach{
+      p=>
+        val color = p.getPropState.t match {
+          case 1 => Color.Red
+          case 2 => Color.Yellow
+          case 3 => Color.Green
+          case 4 => Color.Blue
+        }
+
+        ctx.fillStyle = color.toString()
+        ctx.strokeStyle = color.toString()
+        ctx.beginPath()
+        ctx.arc((p.getPropState.p.x + offset.x) * canvasUnit,(p.getPropState.p.y + offset.y) * canvasUnit,model.PropParameters.r * canvasUnit,0,360)
+        ctx.fill()
+        ctx.stroke()
+    }
+  }
+
   private def drawBackground(ctx:dom.CanvasRenderingContext2D,offset:Point,canvasBoundary:Point) = {
     ctx.fillStyle = Color.White.toString()
     ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    ctx.fillStyle = Color.Black.toString()
+
+    obstacleMap.values.foreach {
+      o =>
+        if (o.obstacleType == model.ObstacleParameters.ObstacleType.airDropBox) {
+          AirDropBoxClientImpl.drawAirDrop(ctx, offset, canvasUnit, o)
+        } else {
+          BrickClientImpl.drawBrick(ctx,offset,canvasUnit,o)
+        }
+    }
+    drawProps(ctx,offset)
+    ctx.strokeStyle = Color.Black.toString()
     for(i <- 0 to(boundary.x.toInt,20)){
       ctx.beginPath()
       ctx.moveTo((i + offset.x) * canvasUnit, (0 + offset.y) * canvasUnit)

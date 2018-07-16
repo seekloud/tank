@@ -19,7 +19,11 @@ trait Prop extends ObjectOfGame{
   val propType:Int
 
   //todo
-  override def getObjectRect(): model.Rectangle = null
+  override def getObjectRect(): model.Rectangle = {
+    model.Rectangle(Point(position.x - 2 * model.PropParameters.r/3, position.y - 2 * model.PropParameters.r/3),
+      Point(position.x + 2 * model.PropParameters.r/3,position.y + 2 * model.PropParameters.r/3))
+  }
+
 
   override protected var position: model.Point
 

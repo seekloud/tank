@@ -8,6 +8,12 @@ import org.scalajs.dom.ext.Color
 
 /**
   * Created by hongruying on 2018/7/10
+  * * 道具
+  * * 1.增加生命最大上限
+  * * 2.移动速度增加
+  * * 3.炮弹威力增加
+  * * 4.医疗包
+
   */
 class TankClientImpl(
                       override protected val userId:Long,

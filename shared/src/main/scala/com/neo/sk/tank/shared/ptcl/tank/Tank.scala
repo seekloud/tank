@@ -124,6 +124,15 @@ trait Tank extends ObjectOfGame {
   }
 
   def eatProp(p:Prop):Unit = {
-
+    p.getPropState.t match {
+      case 1 => if(bloodLevel < 3) bloodLevel += 1
+      case 2 => if(speedLevel < 3) speedLevel += 1
+      case 3 => if(bulletPowerLevel < 3) bulletPowerLevel += 1
+      case 4 =>
+        blood += model.TankParameters.addBlood
+        if(blood > model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)){
+          blood = model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)
+        }
+    }
   }
 }

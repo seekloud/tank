@@ -16,7 +16,7 @@ trait Obstacle extends ObjectOfGame{
 
   val oId:Long
 
-  protected val obstacleType:Int
+  val obstacleType:Int
 
   override protected var position: model.Point
 

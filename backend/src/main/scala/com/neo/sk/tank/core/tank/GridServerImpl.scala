@@ -56,6 +56,18 @@ class GridServerImpl(
   //子弹攻击到障碍物的回调函数
   override protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
     super.attackObstacleCallBack(bullet)(o)
+    if(!o.isLived()){
+      val objectOfGameList = tankMap.values.toList ::: obstacleMap.values.toList ::: propMap.values.toList
+      val box = if(o.obstacleType == model.ObstacleParameters.ObstacleType.airDropBox){
+        val pId = propIdGenerator.getAndIncrement()
+        propMap.put(pId,Prop.apply(PropState(pId,random.nextInt(100)%4 + 1,o.getObstacleState().p)))
+        dispatch(WsProtocol.AddProp(pId,propMap.get(pId).get.getPropState))
+        genADrop(objectOfGameList)
+      }else{
+        genABrick(objectOfGameList)
+      }
+      obstacleMap.put(box.oId,box)
+    }
     dispatch(WsProtocol.ObstacleAttacked(bullet.bId,o.oId,bullet.damage))
   }
 
@@ -98,6 +110,12 @@ class GridServerImpl(
     Point(random.nextInt(boundary.x.toInt),random.nextInt(boundary.y.toInt))
   }
 
+  private def genObstaclePositionRandom():Point = {
+    Point(random.nextInt(boundary.x.toInt - model.ObstacleParameters.border) + model.ObstacleParameters.halfBorder
+      ,random.nextInt(boundary.y.toInt - model.ObstacleParameters.border) + model.ObstacleParameters.halfBorder)
+  }
+
+
   def joinGame(uid:Long,name:String,userActor:ActorRef[UserActor.Command]):Unit = {
     justJoinUser = (uid,name,userActor) :: justJoinUser
   }
@@ -130,6 +148,43 @@ class GridServerImpl(
     )
   }
 
+  private def genADrop(objectOfGameList : List[ObjectOfGame]) = {
+    val bId = obstacleIdGenerator.getAndIncrement()
+    val position = genObstaclePositionRandom()
+    var n = new AirDropBoxImpl(bId,position)
+    while (n.isIntersectsObject(objectOfGameList)){
+      val position = genTankPositionRandom()
+      n = new AirDropBoxImpl(bId,position)
+    }
+    n
+  }
+
+  private def genABrick(objectOfGameList : List[ObjectOfGame]) = {
+    val bId = obstacleIdGenerator.getAndIncrement()
+    val position = genObstaclePositionRandom()
+    var n = new BrickServerImpl(bId,position)
+    while (n.isIntersectsObject(objectOfGameList)){
+      val position = genTankPositionRandom()
+      n = new BrickServerImpl(bId,position)
+    }
+    n
+  }
+
+  def obstaclesInit() = {
+    for (i <- 0 to model.ObstacleParameters.AirDropBoxParameters.num) {
+      var objectOfGameList = tankMap.values.toList ::: obstacleMap.values.toList ::: propMap.values.toList
+      val box = genADrop(objectOfGameList)
+      objectOfGameList = box :: objectOfGameList
+      obstacleMap.put(box.oId, box)
+    }
+
+    for (i <- 0 to model.ObstacleParameters.BrickDropBoxParameters.num) {
+      var objectOfGameList = tankMap.values.toList ::: obstacleMap.values.toList ::: propMap.values.toList
+      val box = genABrick(objectOfGameList)
+      objectOfGameList = box :: objectOfGameList
+      obstacleMap.put(box.oId, box)
+    }
+  }
 
 
   private def dropTankCallBack(bullet:Bullet,tank:Tank):Unit = {

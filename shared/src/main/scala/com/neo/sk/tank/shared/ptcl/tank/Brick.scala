@@ -9,7 +9,7 @@ trait Brick extends Obstacle{
 
   override val oId: Long
 
-  override protected val obstacleType:Int = model.ObstacleParameters.ObstacleType.brick
+  override val obstacleType:Int = model.ObstacleParameters.ObstacleType.brick
 
 
 

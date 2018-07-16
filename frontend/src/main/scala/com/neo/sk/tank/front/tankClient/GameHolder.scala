@@ -8,6 +8,7 @@ import com.neo.sk.tank.shared.ptcl.model.{Boundary, Point}
 import com.neo.sk.tank.shared.ptcl.protocol._
 import com.neo.sk.tank.shared.ptcl.tank.{GridState, GridStateWithoutBullet}
 import mhtml.Var
+import com.neo.sk.tank.shared.ptcl.tank.Prop
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html.Canvas
@@ -31,6 +32,7 @@ class GameHolder(canvasName:String) {
   private[this] val canvasBounds = ptcl.model.CanvasBoundary.getBoundary
   private[this] val canvasUnit = 10
   private[this] val canvasBoundary = canvasBounds * canvasUnit
+
 
   private[this] var myId = -1L
   private[this] var myTankId = -1L
@@ -150,6 +152,9 @@ class GameHolder(canvasName:String) {
       case WsProtocol.ObstacleAttacked(bId,oId,damage) =>
         //移除子弹并且进行血量计算
         grid.recvObstacleAttacked(bId,oId,damage)
+
+      case WsProtocol.AddProp(pId,propState) =>
+        grid.propMap.put(pId,Prop.apply(propState))
 
       case WsProtocol.TankEatProp(pId,tId,pType) =>
         grid.recvTankEatProp(tId,pId,pType)
