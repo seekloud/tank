@@ -63,9 +63,9 @@ class TankClientImpl(
   //三个点
   def getSliderPosition(offset:Int,bloodPercent:Double):List[Point] = {
     List(
-      this.position - Point(0.8 * TankParameters.TankSize.r,offset + TankParameters.TankSize.r),
-      this.position - Point((1 - bloodPercent * 2) * 0.8 * TankParameters.TankSize.r,offset + TankParameters.TankSize.r),
-      this.position + Point(0.8 * TankParameters.TankSize.r,- offset - TankParameters.TankSize.r)
+       Point(- 0.8 * TankParameters.TankSize.r,- (offset + TankParameters.TankSize.r)),
+       Point(- (1 - bloodPercent * 2) * 0.8 * TankParameters.TankSize.r,- (offset + TankParameters.TankSize.r)),
+       Point(0.8 * TankParameters.TankSize.r,- offset - TankParameters.TankSize.r)
     )
   }
 
@@ -85,8 +85,8 @@ object TankClientImpl{
   def drawTank(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,offset:Point,directionOpt:Option[Double],canvasUnit:Int = 10): Unit ={
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt)
     val gunPositionList = tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
-//    val bloodSliderList = tank.getSliderPosition(3,tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(t => (t + offset) * canvasUnit)
-    val bloodSliderList = tank.getSliderPosition(3,(new Random(System.currentTimeMillis())).nextDouble()).map(t => (t + offset) * canvasUnit)
+    val bloodSliderList = tank.getSliderPosition(3,tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
+//    val bloodSliderList = tank.getSliderPosition(3,(new Random(System.currentTimeMillis())).nextDouble()).map(_ + position).map(t => (t + offset) * canvasUnit)
     ctx.beginPath()
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
     gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
