@@ -2,7 +2,7 @@ package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.shared.ptcl
 import com.neo.sk.tank.shared.ptcl.model
-import com.neo.sk.tank.shared.ptcl.model.Point
+import com.neo.sk.tank.shared.ptcl.model.{CanvasBoundary, Point}
 import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
 import com.neo.sk.tank.shared.ptcl.protocol.WsFrontProtocol.TankAction
 import com.neo.sk.tank.shared.ptcl.tank._
@@ -165,7 +165,6 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       case _ =>
     }
     val directionOpt = getDirection(moveSet)
-
     val offset = tankMap.get(myTankId).map((canvasBoundary / 2) - _.asInstanceOf[TankClientImpl].getPositionCurFrame(curFrame,maxClientFrame,directionOpt)).getOrElse(Point(0,0))
 //    println(s"curFrame=${curFrame},offset=${offset}")
     drawBackground(ctx,offset,canvasBoundary)
@@ -185,6 +184,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       val directionOpt = getDirection(moveSet)
       TankClientImpl.drawTank(ctx,t.asInstanceOf[TankClientImpl],curFrame,maxClientFrame,offset,directionOpt,canvasUnit)
     }
+    TankClientImpl.drawTankInfo(ctx,tankMap(myTankId).asInstanceOf[TankClientImpl],canvasUnit)
   }
 
   def tankIsLived(tankId:Long):Boolean = tankMap.contains(tankId)

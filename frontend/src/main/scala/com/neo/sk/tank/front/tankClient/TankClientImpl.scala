@@ -125,14 +125,18 @@ object TankClientImpl{
       ctx.stroke()
       ctx.closePath()
     }
+  }
+
+  def drawTankInfo(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,canvasUnit:Int = 10) = {
     ctx.beginPath()
     ctx.font = "normal normal 24px 楷体"
-    ctx.textAlign = "center"
     ctx.fillStyle = Color.Red.toString()
-    ctx.strokeText(s"血量等级：${tank.bloodLevel}",CanvasBoundary.w * canvasUnit / 1.2,1.5 * canvasUnit,80 * canvasUnit)
-    ctx.strokeText(s"速度等级：${tank.speedLevel}",CanvasBoundary.w * canvasUnit / 1.2,5 * canvasUnit,40 * canvasUnit)
-    ctx.strokeText(s"炮弹威力等级：${tank.bulletPowerLevel}",CanvasBoundary.w * canvasUnit / 1.2,8 * canvasUnit,40 * canvasUnit)
+    ctx.textAlign = "center"
+    ctx.strokeText(s"血量等级：${tank.bloodLevel}",13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2,80 * canvasUnit)
+    ctx.strokeText(s"速度等级：${tank.speedLevel}",13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 2.5 * canvasUnit,40 * canvasUnit)
+    ctx.strokeText(s"炮弹威力等级：${tank.bulletPowerLevel}",13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 5.5 * canvasUnit,40 * canvasUnit)
     ctx.closePath()
+
   }
 
 
