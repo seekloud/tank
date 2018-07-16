@@ -26,9 +26,7 @@ trait Tank extends ObjectOfGame {
 
   protected var speedLevel:Int //移动速度等级
 
-  val name:String
-  val damage: Int
-  val kill: Int
+
 
 
 

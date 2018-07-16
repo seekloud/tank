@@ -218,7 +218,37 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       ctx.closePath()
     }
 
+    //绘制当前排行榜
+    val textLineHeight = 14
+    val leftBegin = 10
+    val rightBegin = canvasBoundary.x.toInt - 150
+
+    def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0) = {
+      ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
+    }
+    ctx.font = "12px Helvetica"
+    val currentRankBaseLine = 5
+    var index = 0
+    drawTextLine(s" --- Current Rank --- ", leftBegin, index, currentRankBaseLine)
+    currentRank.foreach{ score =>
+      index += 1
+      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, index, currentRankBaseLine)
+
+    }
+
+    val historyRankBaseLine =1
+    index = 0
+    drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
+    historyRank.foreach { score =>
+      index += 1
+      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", rightBegin, index, historyRankBaseLine)
+    }
+
+
   }
+
+
+
 
 
   override def update(): Unit = {

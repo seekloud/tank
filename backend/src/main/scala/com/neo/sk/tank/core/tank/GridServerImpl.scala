@@ -153,7 +153,7 @@ class GridServerImpl(
 
   private[this] def updateRanksByDamage()= {
 
-    currentRank = tankMap.values.map(s => Score(s.tankId, s.name, s.kill, s.damage)).toList.sorted
+    currentRank = tankMap.values.map(s => Score(s.tankId, s.name, s.killTankNum, s.damageTank)).toList.sorted
     var historyChange = false
     currentRank.foreach { cScore =>
       historyRankMap.get(cScore.id) match {
