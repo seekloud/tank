@@ -1,10 +1,12 @@
 package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.shared.ptcl.model
-import com.neo.sk.tank.shared.ptcl.model.{Point,TankParameters}
+import com.neo.sk.tank.shared.ptcl.model.{Point, TankParameters}
 import com.neo.sk.tank.shared.ptcl.tank.{Tank, TankState}
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
+
+import scala.util.Random
 
 /**
   * Created by hongruying on 2018/7/10
@@ -84,7 +86,7 @@ object TankClientImpl{
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt)
     val gunPositionList = tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
     val bloodSliderList = tank.getSliderPosition(3,tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(t => (t + offset) * canvasUnit)
-//    val bloodSliderList = tank.getSliderPosition(3,0.4).map(t => (t + offset) * canvasUnit)
+//    val bloodSliderList = tank.getSliderPosition(3,(new Random(System.currentTimeMillis())).nextDouble()).map(t => (t + offset) * canvasUnit)
 
     ctx.beginPath()
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
@@ -105,11 +107,11 @@ object TankClientImpl{
 
     for(i <- 0 to bloodSliderList.length - 2){
       ctx.beginPath()
-      ctx.lineWidth = 0.3 * canvasUnit
+      ctx.lineWidth = 3
       if(i == 1){
-        ctx.strokeStyle = Color.Cyan.toString()
+        ctx.strokeStyle = "#8B8682"
       }else{
-        ctx.strokeStyle = Color.Red.toString()
+        ctx.strokeStyle = "#DC143C"
       }
       ctx.moveTo(bloodSliderList(i).x,bloodSliderList(i).y)
       ctx.lineTo(bloodSliderList(i + 1).x,bloodSliderList(i + 1).y)
