@@ -15,7 +15,7 @@ package object model {
 
   val random = new Random(System.currentTimeMillis())
 
-  case class Score(id:Long,n:String,k:Int,d:Int,t:Option[Long])
+  case class Score(id:Long,n:String,k:Int,d:Int,t:Option[Long] =None)
 
   case class Point(x: Double, y: Double){
     def +(other: Point) = Point(x + other.x, y + other.y)

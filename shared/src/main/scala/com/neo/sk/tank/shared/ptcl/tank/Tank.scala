@@ -22,6 +22,11 @@ trait Tank extends ObjectOfGame {
 
   protected var speedLevel:Int //移动速度等级
 
+  val name:String
+  val damage: Int
+  val kill: Int
+
+
 
 
   protected var curBulletNum:Int //当前子弹数量

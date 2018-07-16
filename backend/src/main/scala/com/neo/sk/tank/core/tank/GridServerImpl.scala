@@ -5,7 +5,7 @@ import akka.actor.typed.scaladsl.ActorContext
 import com.neo.sk.tank.core.{RoomActor, UserActor}
 import com.neo.sk.tank.shared.ptcl
 import com.neo.sk.tank.shared.ptcl.model
-import com.neo.sk.tank.shared.ptcl.model.Point
+import com.neo.sk.tank.shared.ptcl.model.{Point, Score}
 import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
 import com.neo.sk.tank.shared.ptcl.tank._
 import org.slf4j.Logger
@@ -139,11 +139,44 @@ class GridServerImpl(
 
   }
 
+//  private[this] def updateRanksByKill(tankId:Long,attackTankId:Long)= {
+//
+//  }
+
+  private[this] def updateRanksByDamage()= {
+
+    currentRank = tankMap.values.map(s => Score(s.tankId, s.name, s.kill, s.damage)).toList.sorted
+    var historyChange = false
+    currentRank.foreach { cScore =>
+      historyRankMap.get(cScore.id) match {
+        case Some(oldScore) if cScore.d > oldScore.d =>
+          historyRankMap += (cScore.id -> cScore)
+          historyChange = true
+        case None if cScore.d > historyRankThreshold =>
+          historyRankMap += (cScore.id -> cScore)
+          historyChange = true
+        case _ =>
+
+      }
+
+
+    }
+
+    if (historyChange) {
+      historyRank = historyRankMap.values.toList.sorted.take(historyRankLength)
+      historyRankThreshold = historyRank.lastOption.map(_.d).getOrElse(-1)
+      historyRankMap = historyRank.map(s => s.id -> s).toMap
+
+
+    }
+  }
+
 
 
   override def update(): Unit = {
     super.update()
     genTank()
+    updateRanksByDamage()
   }
 
 
