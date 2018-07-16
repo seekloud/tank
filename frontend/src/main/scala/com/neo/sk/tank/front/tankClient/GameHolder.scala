@@ -127,6 +127,8 @@ class GameHolder(canvasName:String) {
 
 
       case WsProtocol.Ranks(currentRank,historyRank) =>
+        grid.currentRank = currentRank
+        grid.historyRank = historyRank
 
       case WsProtocol.GridSyncState(d) =>
         justSynced = true

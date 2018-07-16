@@ -172,9 +172,8 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       BulletClientImpl.drawBullet(ctx,canvasUnit,b.asInstanceOf[BulletClientImpl],curFrame,offset)
     }
     tankMap.values.foreach{ t =>
-
-      var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
-      val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
+      var moveSet:Set[Int] = tankMoveAction.getOrElse(t.tankId,mutable.HashSet[Int]()).toSet
+      val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == t.tankId).toList
       action.map(_._2).foreach{
         case WsFrontProtocol.PressKeyDown(k) => moveSet = moveSet + k
         case WsFrontProtocol.PressKeyUp(k) => moveSet = moveSet - k
@@ -246,8 +245,8 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
 
     //绘制当前排行榜
     val textLineHeight = 14
-    val leftBegin = 10
-    val rightBegin = canvasBoundary.x.toInt - 150
+    val leftBegin = 10 * canvasUnit
+    val rightBegin = (canvasBoundary.x.toInt-10) * canvasUnit
 
     def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0) = {
       ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
@@ -259,7 +258,6 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
     currentRank.foreach{ score =>
       index += 1
       drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, index, currentRankBaseLine)
-
     }
 
     val historyRankBaseLine =1
