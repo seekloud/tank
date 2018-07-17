@@ -9,9 +9,9 @@ import com.neo.sk.tank.shared.ptcl.model.{Point, Rectangle}
 case class TankState(userId:Long,tankId:Long,direction:Double,gunDirection:Double,blood:Int,bloodLevel:Int,speedLevel:Int,curBulletNum:Int,position:Point,bulletPowerLevel:Int,tankColorType:Int,
                      name:String,killTankNum:Int,damageTank:Int)
 
-trait Tank extends ObjectOfGame {
+trait Tank extends CircleObjectOfGame {
 
-  override protected var position: model.Point
+  override var position: model.Point
 
   protected val userId:Long
 
@@ -44,6 +44,8 @@ trait Tank extends ObjectOfGame {
   private var isFillingBullet:Boolean = false
 
   protected val bulletMaxCapacity:Int = model.TankParameters.tankBulletMaxCapacity //子弹最大容量
+
+  override protected val r: Double = model.TankParameters.TankSize.r
 
   def isLived() : Boolean = blood > 0
 
@@ -92,10 +94,10 @@ trait Tank extends ObjectOfGame {
   }
 
 
-  // TODO: 根据坦克的位置获取坦克的外形，目前考虑以矩形来代表坦克 待实现
-  override def getObjectRect(): Rectangle = {
-    Rectangle(position- Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r),position + Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r))
-  }
+//  //
+//  override def getObjectRect(): Rectangle = {
+//    Rectangle(position- Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r),position + Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r))
+//  }
 
   //todo
   def attackedBullet(bullet: Bullet,destroy:(Bullet,Tank) => Unit):Unit = {

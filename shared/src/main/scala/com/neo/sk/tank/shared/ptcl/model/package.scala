@@ -4,6 +4,7 @@ import java.awt.Rectangle
 import java.awt.event.KeyEvent
 import java.util.concurrent.atomic.AtomicLong
 
+
 import scala.collection.mutable
 import scala.util.Random
 
@@ -46,7 +47,29 @@ package object model {
     }
   }
 
-  case class Rectangle(topLeft: Point, downRight: Point){
+  trait Shape{
+    protected var position: Point
+
+    def isIntersects(o:Shape):Boolean
+  }
+
+  case class Rectangle(topLeft: Point, downRight: Point) extends Shape {
+
+    override protected var position: Point = (topLeft + downRight) / 2
+    private val width:Double = math.abs(downRight.x - topLeft.x)
+    private val height:Double = math.abs(downRight.y - topLeft.y)
+
+
+    override protected def isIntersects(o: Shape): Boolean = {
+      o match {
+        case t:Rectangle =>
+          intersects(t)
+
+        case _ =>
+          false
+      }
+    }
+
     def intersects(r: Rectangle):Boolean = {
       val (rx,rw,ry,rh) = (r.topLeft.x,r.downRight.x,r.topLeft.y,r.downRight.y)
       val (tx,tw,ty,th) = (topLeft.x,downRight.x,topLeft.y,downRight.y)
@@ -56,6 +79,40 @@ package object model {
         (rh < ry || rh > ty) &&
         (tw < tx || tw > rx) &&
         (th < ty || th > ry)
+    }
+
+    def intersects(r:Circle):Boolean ={
+      if(r.center > topLeft && r.center < downRight){
+        true
+      }else{
+        val relativeCircleCenter:Point = r.center - position
+        val dx = math.min(relativeCircleCenter.x, width / 2)
+        val dx1 = math.max(dx, - width / 2)
+        val dy = math.min(relativeCircleCenter.y, height / 2)
+        val dy1 = math.max(dy, - height / 2)
+        Point(dx1,dy1).distance(relativeCircleCenter) < r.r
+      }
+    }
+  }
+
+  case class Circle(center:Point,r:Double) extends Shape{
+
+    override protected var position: Point = center
+
+
+    override protected def isIntersects(o: Shape): Boolean = {
+      o match {
+        case t:Rectangle => intersects(t)
+        case t:Circle => intersects(t)
+      }
+    }
+
+    def intersects(r: Rectangle):Boolean = {
+      r.intersects(this)
+    }
+
+    def intersects(r: Circle):Boolean = {
+      r.center.distance(this.center) <= (r.r + this.r)
     }
   }
 //  def DistanceBetweenTwoPoints(x1:Double,y1:Double,x2:Double,y2:Double)={

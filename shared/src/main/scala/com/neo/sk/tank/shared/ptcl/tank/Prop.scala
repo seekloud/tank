@@ -12,7 +12,7 @@ import com.neo.sk.tank.shared.ptcl.model.Point
   */
 case class PropState(pId:Long,t:Int,p:Point)
 
-trait Prop extends ObjectOfGame{
+trait Prop extends CircleObjectOfGame{
 
   val pId:Long
 
@@ -25,9 +25,13 @@ trait Prop extends ObjectOfGame{
   }
 
 
-  override protected var position: model.Point
+
+
+  override var position: model.Point
 
   def getPropState:PropState = PropState(pId,propType,position)
+
+  override protected val r: Double = model.PropParameters.r
 
 }
 

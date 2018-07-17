@@ -23,11 +23,7 @@ trait Brick extends Obstacle{
   private val maxBlood:Int = model.ObstacleParameters.BrickDropBoxParameters.blood
 
 
-
-
-
-  //todo
-  override def getObjectRect(): model.Rectangle = null
+  override protected val height: Double = model.ObstacleParameters.BrickDropBoxParameters.
 
 
 

@@ -12,13 +12,13 @@ import com.neo.sk.tank.shared.ptcl.model.Point
   */
 case class ObstacleState(oId:Long,t:Int,b:Option[Int],p:Point)
 
-trait Obstacle extends ObjectOfGame{
+trait Obstacle extends RectangleObjectOfGame{
 
   val oId:Long
 
   val obstacleType:Int
 
-  override protected var position: model.Point
+  override var position: model.Point
 
   override def getObjectRect(): model.Rectangle
 

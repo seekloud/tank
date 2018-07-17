@@ -8,9 +8,9 @@ import com.neo.sk.tank.shared.ptcl.model.Point
   */
 case class BulletState(bId:Long,tankId:Long,position:Point,damage:Int,momentum:Point,startPosition:Point,createTime:Long)
 
-trait Bullet extends ObjectOfGame{
+trait Bullet extends CircleObjectOfGame{
 
-  override protected var position: model.Point
+  override var position: model.Point
 
   val damage:Int //威力
 
@@ -26,11 +26,13 @@ trait Bullet extends ObjectOfGame{
 
   private val maxFlyDistance = model.BulletParameters.maxFlyDistance
 
+  override protected val r: Double = model.BulletSize.r
 
-  // 获取子弹外形
-  override def getObjectRect(): model.Rectangle = {
-    model.Rectangle(this.position - Point(model.BulletSize.r,model.BulletSize.r),this.position + Point(model.BulletSize.r,model.BulletSize.r))
-  }
+
+//  // 获取子弹外形
+//  override def getObjectRect(): model.Rectangle = {
+//    model.Rectangle(this.position - Point(model.BulletSize.r,model.BulletSize.r),this.position + Point(model.BulletSize.r,model.BulletSize.r))
+//  }
 
 
   def getBulletState(): BulletState = {
