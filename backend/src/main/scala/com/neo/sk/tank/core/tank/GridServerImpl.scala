@@ -192,6 +192,9 @@ class GridServerImpl(
 
 
   private def dropTankCallBack(bullet:Bullet,tank:Tank):Unit = {
+    val pId = propIdGenerator.getAndIncrement()
+    propMap.put(pId,Prop.apply(PropState(pId,(random.nextInt(Int.MaxValue)%4+1),tank.getTankState().position)))
+    dispatch(WsProtocol.AddProp(pId,propMap.get(pId).get.getPropState))
     tankMap.remove(tank.tankId)
     tankMoveAction.remove(tank.tankId)
     tankMap.get(bullet.tankId) match {

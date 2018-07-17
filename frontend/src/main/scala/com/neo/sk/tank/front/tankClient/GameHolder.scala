@@ -156,6 +156,7 @@ class GameHolder(canvasName:String) {
 
       case t:WsProtocol.TankEatProp =>
         grid.recvTankEatProp(t)
+
       case WsProtocol.AddProp(pId,propState) =>
         grid.propMap.put(pId,Prop.apply(propState))
 
