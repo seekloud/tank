@@ -19,7 +19,7 @@ trait AirDropBox extends Obstacle{
 
   override val obstacleType = model.ObstacleParameters.ObstacleType.airDropBox
 
-  private val maxBlood = model.ObstacleParameters.AirDropBoxParameters.blood
+  val maxBlood = model.ObstacleParameters.AirDropBoxParameters.blood
 
 
 

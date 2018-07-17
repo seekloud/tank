@@ -20,7 +20,7 @@ trait Brick extends Obstacle{
   def getObstacleState():ObstacleState = ObstacleState(oId,obstacleType,Some(curBlood),position)
 
 
-  private val maxBlood:Int = model.ObstacleParameters.BrickDropBoxParameters.blood
+  val maxBlood:Int = model.ObstacleParameters.BrickDropBoxParameters.blood
 
 
 
