@@ -241,24 +241,40 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
     }
 
     //绘制当前排行榜
-    val textLineHeight = 14
-    val leftBegin = 10 * canvasUnit
-    val rightBegin = (canvasBoundary.x.toInt-10) * canvasUnit
+    val textLineHeight = 18
+    val leftBegin =7 * canvasUnit
+    val rightBegin = (canvasBoundary.x.toInt-8) * canvasUnit
+    object MyColors {
+      val rankList = "#FFE384"
+      val background = "#9933FA"
+//      val stripe = "rgba(181, 181, 181, 0.5)"
+//      val myHeader = "#cccccc"
+//      val myBody = "#FFFFFF"
+//      val otherHeader = "rgba(78,69,69,0.82)"
+//      val otherBody = "#696969"
+    }
+
 
     def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0) = {
       ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
     }
     ctx.font = "12px Helvetica"
-    val currentRankBaseLine = 5
+    ctx.fillStyle =MyColors.rankList
+    ctx.fillRect(0,0,150,200)
+
+    val currentRankBaseLine = 1
     var index = 0
+    ctx.fillStyle = MyColors.background
     drawTextLine(s" --- Current Rank --- ", leftBegin, index, currentRankBaseLine)
     currentRank.foreach{ score =>
       index += 1
       drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, index, currentRankBaseLine)
     }
-
+    ctx.fillStyle =MyColors.rankList
+    ctx.fillRect(1050,0,200,200)
     val historyRankBaseLine =1
     index = 0
+    ctx.fillStyle = MyColors.background
     drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
     historyRank.foreach { score =>
       index += 1
