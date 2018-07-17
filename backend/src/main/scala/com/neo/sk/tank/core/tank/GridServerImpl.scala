@@ -175,14 +175,14 @@ class GridServerImpl(
   }
 
   def obstaclesInit() = {
-    for (i <- 0 to model.ObstacleParameters.AirDropBoxParameters.num) {
+    for (i <- 0 until model.ObstacleParameters.AirDropBoxParameters.num) {
       var objectOfGameList = tankMap.values.toList ::: obstacleMap.values.toList ::: propMap.values.toList
       val box = genADrop(objectOfGameList)
       objectOfGameList = box :: objectOfGameList
       obstacleMap.put(box.oId, box)
     }
 
-    for (i <- 0 to model.ObstacleParameters.BrickDropBoxParameters.num) {
+    for (i <- 0 until model.ObstacleParameters.BrickDropBoxParameters.num) {
       var objectOfGameList = tankMap.values.toList ::: obstacleMap.values.toList ::: propMap.values.toList
       val box = genABrick(objectOfGameList)
       objectOfGameList = box :: objectOfGameList
