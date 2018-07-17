@@ -17,7 +17,7 @@ class BulletClientImpl(
                         override protected val createTime: Long,
                         override val damage: Int,
                         override protected val momentum: model.Point,
-                        override protected var position: model.Point
+                        override var position: model.Point
                       ) extends Bullet{
   def this(b:BulletState) = {
     this(b.bId,b.tankId,b.startPosition,b.createTime,b.damage,b.momentum,b.position)

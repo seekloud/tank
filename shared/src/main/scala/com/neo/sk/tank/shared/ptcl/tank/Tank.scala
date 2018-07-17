@@ -45,7 +45,7 @@ trait Tank extends CircleObjectOfGame {
 
   protected val bulletMaxCapacity:Int = model.TankParameters.tankBulletMaxCapacity //子弹最大容量
 
-  override protected val r: Double = model.TankParameters.TankSize.r
+  override val r: Double = model.TankParameters.TankSize.r
 
   def isLived() : Boolean = blood > 0
 

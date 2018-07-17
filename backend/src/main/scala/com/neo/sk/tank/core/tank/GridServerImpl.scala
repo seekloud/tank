@@ -207,18 +207,18 @@ class GridServerImpl(
 //  private[this] def updateRanksByKill(tankId:Long,attackTankId:Long)= {
 //
 //  }
-implicit val scoreOrdering = new Ordering[Score] {
-  override def compare(x: Score, y: Score): Int = {
-    var r = y.k - x.k
-    if (r == 0) {
-      r = y.d - x.d
+  implicit val scoreOrdering = new Ordering[Score] {
+    override def compare(x: Score, y: Score): Int = {
+      var r = y.k - x.k
+      if (r == 0) {
+        r = y.d - x.d
+      }
+      if (r == 0) {
+        r = (x.id - y.id).toInt
+      }
+      r
     }
-    if (r == 0) {
-      r = (x.id - y.id).toInt
-    }
-    r
   }
-}
 
   private[this] def updateRanksByDamage()= {
     currentRank = tankMap.values.map(s => Score(s.tankId, s.name, s.killTankNum, s.damageTank)).toList.sorted

@@ -9,7 +9,7 @@ import com.neo.sk.tank.shared.ptcl.tank.{AirDropBox, Bullet, ObjectOfGame, Obsta
 class AirDropBoxImpl(
                       override val oId: Long,
                       override protected var curBlood:Int,
-                      override protected var position: model.Point
+                      override var position: model.Point
                     ) extends AirDropBox{
 
   def this(oId:Long,position:model.Point)= {

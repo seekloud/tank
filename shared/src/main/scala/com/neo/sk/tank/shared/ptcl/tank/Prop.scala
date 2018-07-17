@@ -31,7 +31,7 @@ trait Prop extends CircleObjectOfGame{
 
   def getPropState:PropState = PropState(pId,propType,position)
 
-  override protected val r: Double = model.PropParameters.r
+  override val r: Double = model.PropParameters.r
 
 }
 
@@ -51,25 +51,25 @@ object Prop{
 case class AddBloodLevelProp(
                               override val pId: Long,
                               override val propType: Int = 1,
-                              override protected var position: model.Point
+                              override var position: model.Point
                             ) extends Prop
 
 case class AddSpeedLevelProp(
                               override val pId: Long,
                               override val propType: Int = 2,
-                              override protected var position: model.Point
+                              override var position: model.Point
                             ) extends Prop
 
 case class AddBulletLevelProp(
                               override val pId: Long,
                               override val propType: Int = 3,
-                              override protected var position: model.Point
+                              override var position: model.Point
                             ) extends Prop
 
 case class AddBloodProp(
                               override val pId: Long,
                               override val propType: Int = 4,
-                              override protected var position: model.Point
+                              override var position: model.Point
                             ) extends Prop
 
 

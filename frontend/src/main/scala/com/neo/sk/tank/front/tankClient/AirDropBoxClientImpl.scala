@@ -14,7 +14,7 @@ import org.scalajs.dom.ext.Color
 class AirDropBoxClientImpl(
                             override val oId: Long,
                             override protected var curBlood:Int,
-                            override protected var position: model.Point
+                            override var position: model.Point
                           ) extends AirDropBox{
   def this(o:ObstacleState) = {
     this(o.oId,o.b.getOrElse(ptcl.model.ObstacleParameters.AirDropBoxParameters.blood),o.p)

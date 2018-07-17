@@ -11,7 +11,7 @@ trait AirDropBox extends Obstacle{
 
   protected var curBlood :Int //物体血量
 
-  override protected var position: model.Point
+  override var position: model.Point
 
   def getObstacleState():ObstacleState = ObstacleState(oId,obstacleType,Some(curBlood),position)
 
@@ -21,12 +21,12 @@ trait AirDropBox extends Obstacle{
 
   private val maxBlood = model.ObstacleParameters.AirDropBoxParameters.blood
 
+  override protected val height: Double = model.ObstacleParameters.border
+  override protected val width: Double = model.ObstacleParameters.border
 
 
 
 
-  //todo
-  override def getObjectRect(): model.Rectangle = null
 
 
 

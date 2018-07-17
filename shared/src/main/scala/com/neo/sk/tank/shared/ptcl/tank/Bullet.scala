@@ -26,7 +26,7 @@ trait Bullet extends CircleObjectOfGame{
 
   private val maxFlyDistance = model.BulletParameters.maxFlyDistance
 
-  override protected val r: Double = model.BulletSize.r
+  override val r: Double = model.BulletSize.r
 
 
 //  // 获取子弹外形

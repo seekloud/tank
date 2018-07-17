@@ -32,6 +32,7 @@ case class GridState(
 
 trait Grid {
 
+
   val boundary : Point
 
   def debug(msg: String): Unit
@@ -63,6 +64,8 @@ trait Grid {
   val tankMoveAction = mutable.HashMap[Long,mutable.HashSet[Int]]() //tankId -> pressed direction key code
 
   val tankActionQueueMap = mutable.HashMap[Long,mutable.Queue[(Long,TankAction)]]() //frame -> (tankId,TankAction)
+
+  private val quadTree : QuadTree = new QuadTree(Rectangle(Point(0,0),boundary)) //四叉树的引用
 
 
 

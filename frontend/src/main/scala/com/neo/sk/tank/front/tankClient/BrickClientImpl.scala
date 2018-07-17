@@ -13,7 +13,7 @@ import org.scalajs.dom.ext.Color
 class BrickClientImpl(
                        override val oId: Long,
                        override protected var curBlood: Int,
-                       override protected var position: model.Point
+                       override var position: model.Point
                      ) extends Brick{
 
   def this(o:ObstacleState) = {

@@ -60,7 +60,7 @@ package object model {
     private val height:Double = math.abs(downRight.y - topLeft.y)
 
 
-    override protected def isIntersects(o: Shape): Boolean = {
+    override def isIntersects(o: Shape): Boolean = {
       o match {
         case t:Rectangle =>
           intersects(t)
@@ -100,7 +100,7 @@ package object model {
     override protected var position: Point = center
 
 
-    override protected def isIntersects(o: Shape): Boolean = {
+    override def isIntersects(o: Shape): Boolean = {
       o match {
         case t:Rectangle => intersects(t)
         case t:Circle => intersects(t)

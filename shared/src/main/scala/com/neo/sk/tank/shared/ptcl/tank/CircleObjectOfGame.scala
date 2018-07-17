@@ -8,7 +8,7 @@ trait CircleObjectOfGame extends ObjectOfGame{
 
   override var position: model.Point
 
-  protected val r:Double
+  val r:Double
 
   override def getObjectRect(): model.Rectangle = {
     model.Rectangle(position - model.Point(r,r),position + model.Point(r,r))

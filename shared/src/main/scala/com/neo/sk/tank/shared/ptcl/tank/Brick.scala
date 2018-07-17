@@ -15,7 +15,7 @@ trait Brick extends Obstacle{
 
   protected var curBlood:Int //物体血量
 
-  override protected var position: model.Point
+  override var position: model.Point
 
   def getObstacleState():ObstacleState = ObstacleState(oId,obstacleType,Some(curBlood),position)
 
@@ -23,13 +23,13 @@ trait Brick extends Obstacle{
   private val maxBlood:Int = model.ObstacleParameters.BrickDropBoxParameters.blood
 
 
-  override protected val height: Double = model.ObstacleParameters.BrickDropBoxParameters.
+  override protected val height: Double = model.ObstacleParameters.border
+  override protected val width: Double = model.ObstacleParameters.border
 
 
 
   //todo 被子弹攻击，血量下降，当血量小于0，消失
   def attacked(bullet: Bullet,destroyCallBack:Obstacle => Unit):Unit = {
-
 
   }
 
