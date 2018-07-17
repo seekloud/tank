@@ -155,7 +155,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
     propMap.remove(pId)
   }
 
-  def draw(ctx:dom.CanvasRenderingContext2D,myTankId:Long,curFrame:Int,maxClientFrame:Int,canvasBoundary:Point) = {
+  def draw(ctx:dom.CanvasRenderingContext2D,myName:String,myTankId:Long,curFrame:Int,maxClientFrame:Int,canvasBoundary:Point) = {
     var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
     val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
     action.map(_._2).foreach{
@@ -183,7 +183,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       val directionOpt = getDirection(moveSet)
       TankClientImpl.drawTank(ctx,t.asInstanceOf[TankClientImpl],curFrame,maxClientFrame,offset,directionOpt,canvasUnit)
     }
-    TankClientImpl.drawTankInfo(ctx,tankMap(myTankId).asInstanceOf[TankClientImpl],canvasUnit)
+    TankClientImpl.drawTankInfo(ctx,myName,tankMap(myTankId).asInstanceOf[TankClientImpl],canvasUnit)
   }
 
   def tankIsLived(tankId:Long):Boolean = tankMap.contains(tankId)
