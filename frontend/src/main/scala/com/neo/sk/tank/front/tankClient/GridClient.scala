@@ -40,15 +40,12 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
 //    super.update()
     updateBullet()
 
-    println("--------------------")
-    println(systemFrame)
-    println(d.f)
     if(tankMap.values.nonEmpty && d.tanks.nonEmpty){
-      println(tankMap.values.head.getTankState().position)
-      println(d.tanks.head.position)
+//      println(tankMap.values.head.getTankState().position)
+//      println(d.tanks.head.position)
     }
-    println(d.tanks.head.position)
-    println("--------------------")
+//    println(d.tanks.head.position)
+//    println("--------------------")
 
 
     systemFrame = d.f

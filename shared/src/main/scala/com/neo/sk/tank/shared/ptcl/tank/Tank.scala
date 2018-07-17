@@ -143,5 +143,6 @@ trait Tank extends ObjectOfGame {
           blood = model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)
         }
     }
+
   }
 }
