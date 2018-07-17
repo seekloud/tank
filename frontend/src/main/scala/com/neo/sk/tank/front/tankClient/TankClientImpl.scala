@@ -139,7 +139,7 @@ object TankClientImpl{
     )
     val bulletPowerList = List(
       Point(13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 5.5 * canvasUnit),
-      Point(13 * canvasUnit + length * 1.0 * tank.bloodLevel / TankParameters.TankBloodLevel.third,CanvasBoundary.h * canvasUnit / 1.2 + 5.5 * canvasUnit),
+      Point(13 * canvasUnit + length * 1.0 * tank.bulletPowerLevel / TankParameters.TankBloodLevel.third,CanvasBoundary.h * canvasUnit / 1.2 + 5.5 * canvasUnit),
       Point(13 * canvasUnit + length * 1.0,CanvasBoundary.h * canvasUnit / 1.2 + 5.5 * canvasUnit)
     )
     drawLine(ctx,bloodList)
