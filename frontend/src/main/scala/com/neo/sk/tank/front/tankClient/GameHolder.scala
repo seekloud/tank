@@ -297,9 +297,11 @@ class GameHolder(canvasName:String) {
   }
 
   def drawGame(curFrame:Int,maxClientFrame:Int): Unit ={
+    println(myName,myId,myTankId)
+    println("111111111111111111111")
 
 
-    grid.draw(ctx,myTankId,curFrame,maxClientFrame,canvasBounds)
+    grid.draw(ctx,myName,myTankId,curFrame,maxClientFrame,canvasBounds)
 
   }
 

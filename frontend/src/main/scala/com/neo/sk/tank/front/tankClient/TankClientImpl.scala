@@ -125,16 +125,53 @@ object TankClientImpl{
     }
   }
 
-  def drawTankInfo(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,canvasUnit:Int = 10) = {
+  def drawTankInfo(ctx:dom.CanvasRenderingContext2D,myName:String,tank: TankClientImpl,canvasUnit:Int = 10) = {
+    val length = 20 * canvasUnit
+    val bloodList = List(
+      Point(13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2),
+      Point(13 * canvasUnit + length * 1.0 * tank.bloodLevel / TankParameters.TankBloodLevel.third,CanvasBoundary.h * canvasUnit / 1.2),
+      Point(13 * canvasUnit + length * 1.0,CanvasBoundary.h * canvasUnit / 1.2)
+    )
+    val speedList = List(
+      Point(13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 2.5 * canvasUnit),
+      Point(13 * canvasUnit + length * 1.0 * tank.speedLevel / TankParameters.SpeedType.high,CanvasBoundary.h * canvasUnit / 1.2 + 2.5 * canvasUnit),
+      Point(13 * canvasUnit + length * 1.0,CanvasBoundary.h * canvasUnit / 1.2 + 2.5 * canvasUnit)
+    )
+    val bulletPowerList = List(
+      Point(13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 5.5 * canvasUnit),
+      Point(13 * canvasUnit + length * 1.0 * tank.bloodLevel / TankParameters.TankBloodLevel.third,CanvasBoundary.h * canvasUnit / 1.2 + 5.5 * canvasUnit),
+      Point(13 * canvasUnit + length * 1.0,CanvasBoundary.h * canvasUnit / 1.2 + 5.5 * canvasUnit)
+    )
+    drawLine(ctx,bloodList)
+    drawLine(ctx,speedList)
+    drawLine(ctx,bulletPowerList)
     ctx.beginPath()
-    ctx.font = "normal normal 24px 楷体"
-    ctx.fillStyle = Color.Red.toString()
-    ctx.lineWidth = 3
-    ctx.textAlign = "center"
-    ctx.strokeText(s"血量等级：${tank.bloodLevel}",13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2,80 * canvasUnit)
-    ctx.strokeText(s"速度等级：${tank.speedLevel}",13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 2.5 * canvasUnit,40 * canvasUnit)
-    ctx.strokeText(s"炮弹威力等级：${tank.bulletPowerLevel}",13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 5.5 * canvasUnit,40 * canvasUnit)
+    ctx.font = "normal normal 20px 楷体"
+    ctx.fillStyle = Color.Black.toString()
+    ctx.lineWidth = 1
+    ctx.fillText(s"${myName}",15 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 - 4 * canvasUnit, 40 * canvasUnit)
+    ctx.fillText(s"血量等级",5 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 - canvasUnit,20 * canvasUnit)
+    ctx.fillText(s"速度等级",5 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 1.5 * canvasUnit,20 * canvasUnit)
+    ctx.fillText(s"炮弹等级",5 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 4.5 * canvasUnit,20 * canvasUnit)
     ctx.closePath()
+
+  }
+  def drawLine(ctx:dom.CanvasRenderingContext2D,ls:List[Point]) = {
+    for(i <- 0 to ls.length - 2){
+      ctx.beginPath()
+      ctx.lineWidth = 8
+      if(i == 1){
+        ctx.strokeStyle = "#8B8682"
+      }else{
+        ctx.strokeStyle = "#DC143C"
+      }
+      ctx.moveTo(ls(i).x,ls(i).y)
+      ctx.lineTo(ls(i + 1).x,ls(i + 1).y)
+      ctx.stroke()
+      ctx.closePath()
+    }
+
+
 
   }
 
