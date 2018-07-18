@@ -126,25 +126,36 @@ object TankClientImpl{
   }
 
   def drawTankInfo(ctx:dom.CanvasRenderingContext2D,myName:String,tank: TankClientImpl,canvasUnit:Int = 10) = {
+    val basePoint = Point(13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2)
     val length = 20 * canvasUnit
     val bloodList = List(
-      Point(13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2),
-      Point(13 * canvasUnit + length * 1.0 * tank.bloodLevel / TankParameters.TankBloodLevel.third,CanvasBoundary.h * canvasUnit / 1.2),
-      Point(13 * canvasUnit + length * 1.0,CanvasBoundary.h * canvasUnit / 1.2)
+      basePoint,
+      basePoint + Point(length * 1.0 * tank.bloodLevel / TankParameters.TankBloodLevel.third,0),
+      basePoint + Point(length * 1.0,0)
     )
     val speedList = List(
-      Point(13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 2.5 * canvasUnit),
-      Point(13 * canvasUnit + length * 1.0 * tank.speedLevel / TankParameters.SpeedType.high,CanvasBoundary.h * canvasUnit / 1.2 + 2.5 * canvasUnit),
-      Point(13 * canvasUnit + length * 1.0,CanvasBoundary.h * canvasUnit / 1.2 + 2.5 * canvasUnit)
+      basePoint + Point(0,2.5 * canvasUnit),
+      basePoint + Point(length * 1.0 * tank.speedLevel / TankParameters.SpeedType.high,2.5 * canvasUnit),
+      basePoint + Point(length * 1.0,2.5 * canvasUnit)
     )
     val bulletPowerList = List(
-      Point(13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 5.5 * canvasUnit),
-      Point(13 * canvasUnit + length * 1.0 * tank.bulletPowerLevel / TankParameters.TankBloodLevel.third,CanvasBoundary.h * canvasUnit / 1.2 + 5.5 * canvasUnit),
-      Point(13 * canvasUnit + length * 1.0,CanvasBoundary.h * canvasUnit / 1.2 + 5.5 * canvasUnit)
+      basePoint + Point(0,5.5 * canvasUnit),
+      basePoint + Point(length * 1.0 * tank.bulletPowerLevel / TankParameters.TankBloodLevel.third,5.5 * canvasUnit),
+      basePoint + Point(length * 1.0,5.5 * canvasUnit)
     )
     drawLine(ctx,bloodList)
     drawLine(ctx,speedList)
     drawLine(ctx,bulletPowerList)
+    val breakPointList:List[Point] = BreakPointPosition(basePoint,canvasUnit,length,1.0 / 45)
+    for(i <- Range(0,breakPointList.length - 1,2)){
+      ctx.beginPath()
+      ctx.strokeStyle = "#8B8682"
+      ctx.lineWidth = 8
+      ctx.moveTo(breakPointList(i).x,breakPointList(i).y)
+      ctx.lineTo(breakPointList(i + 1).x,breakPointList(i + 1).y)
+      ctx.stroke()
+      ctx.closePath()
+    }
     ctx.beginPath()
     ctx.font = "normal normal 20px 楷体"
     ctx.fillStyle = Color.Black.toString()
@@ -170,9 +181,23 @@ object TankClientImpl{
       ctx.stroke()
       ctx.closePath()
     }
+  }
 
-
-
+  def BreakPointPosition(basePoint:Point,canvasUnit:Int,length:Int,ratio:Double) = {
+    List(
+      basePoint + Point(length * 1.0 / 3 - length * ratio,0),
+      basePoint + Point(length * 1.0 / 3 + length * ratio,0),
+      basePoint + Point(length * 2.0 / 3 - length * ratio,0),
+      basePoint + Point(length * 2.0 / 3 + length * ratio,0),
+      basePoint + Point(length * 1.0 / 3 - length * ratio,2.5  * canvasUnit),
+      basePoint + Point(length * 1.0 / 3 + length * ratio,2.5  * canvasUnit),
+      basePoint + Point(length * 2.0 / 3 - length * ratio,2.5 * canvasUnit),
+      basePoint + Point(length * 2.0 / 3 + length * ratio,2.5  * canvasUnit),
+      basePoint + Point(length * 1.0 / 3 - length * ratio,5.5 * canvasUnit),
+      basePoint + Point(length * 1.0 / 3 + length * ratio,5.5 * canvasUnit),
+      basePoint + Point(length * 2.0 / 3 - length * ratio,5.5 * canvasUnit),
+      basePoint + Point(length * 2.0 / 3 + length * ratio,5.5 * canvasUnit)
+    )
   }
 
 
