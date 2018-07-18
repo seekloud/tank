@@ -57,14 +57,16 @@ trait Bullet extends CircleObjectOfGame{
   def move(boundary: Point,flyEndCallBack:Bullet => Unit):Unit = {
     if(isFlyEnd(boundary)){
       flyEndCallBack(this)
-    } else
+    } else{
       this.position = this.position + momentum / 1000 * model.Frame.millsAServerFrame
+    }
+
 
   }
 
   // todo 检测是否子弹有攻击到，攻击到，执行回调函数
   def checkAttackObject[T <: ObjectOfGame](o:T,attackCallBack:T => Unit):Unit = {
-    if(this.getObjectRect().intersects(o.getObjectRect())){
+    if(this.isIntersects(o)){
       attackCallBack(o)
     }
 

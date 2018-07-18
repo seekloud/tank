@@ -65,7 +65,7 @@ trait Grid {
 
   val tankActionQueueMap = mutable.HashMap[Long,mutable.Queue[(Long,TankAction)]]() //frame -> (tankId,TankAction)
 
-  private val quadTree : QuadTree = new QuadTree(Rectangle(Point(0,0),boundary)) //四叉树的引用
+  protected val quadTree : QuadTree = new QuadTree(Rectangle(Point(0,0),boundary)) //四叉树的引用
 
 
 
@@ -143,7 +143,7 @@ trait Grid {
             if(tankMap.contains(tankId)){
               getDirection(actionSet) match {
                 case Some(d) =>
-                  tank.move(d,boundary,tankList.filter(_.tankId != tankId) ::: obstacleList)
+                  tank.move(d,boundary, quadTree)
                 case None =>
               }
             }
@@ -154,7 +154,9 @@ trait Grid {
 
     tankMap.foreach{
       case (_,tank) =>
-        propMap.values.foreach(tank.checkEatProp(_,tankEatProp(tank)))
+        val tankMayEatProps = quadTree.retrieveFilter(tank).filter(_.isInstanceOf[Prop]).map(_.asInstanceOf[Prop])
+        tankMayEatProps.foreach(tank.checkEatProp(_,tankEatProp(tank)))
+//        propMap.values.foreach(tank.checkEatProp(_,tankEatProp(tank)))
     }
 
 
@@ -169,22 +171,29 @@ trait Grid {
     bulletMap.foreach{
       case (bId,bullet) =>
         bullet.move(boundary,bulletFlyEndCallback)
-        tankList.filter(_.tankId != bullet.tankId).foreach(t => bullet.checkAttackObject(t,attackTankCallBack(bullet)))
-        obstacleList.foreach(t => bullet.checkAttackObject(t,attackObstacleCallBack(bullet)))
+        quadTree.retrieveFilter(bullet).filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]).filter(_.tankId != bullet.tankId)
+          .foreach(t => bullet.checkAttackObject(t,attackTankCallBack(bullet)))
+        quadTree.retrieveFilter(bullet).filter(_.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
+          .foreach(t => bullet.checkAttackObject(t,attackObstacleCallBack(bullet)))
+
+
+//        tankList.filter(_.tankId != bullet.tankId).foreach(t => bullet.checkAttackObject(t,attackTankCallBack(bullet)))
+//        obstacleList.foreach(t => bullet.checkAttackObject(t,attackObstacleCallBack(bullet)))
     }
   }
 
   def updateGenBullet():Unit = {
-    waitGenBullet.foreach{
+    waitGenBullet.filter(_._1 <= systemFrame).foreach{
       case (frame,bullet) =>
-        if(frame <= systemFrame){
+        if(frame == systemFrame){
           bulletMap.put(bullet.bId,bullet)
         }else{
-          for(_ <- 1 to (frame - systemFrame).toInt) bullet.move(boundary,bulletFlyEndCallback)
+          for(_ <- 1 to (systemFrame - frame).toInt) bullet.move(boundary,bulletFlyEndCallback)
           bulletMap.put(bullet.bId,bullet)
         }
+        quadTree.insert(bullet)
     }
-    waitGenBullet = Nil
+    waitGenBullet = waitGenBullet.filter(_._1 > systemFrame)
   }
 
   //处理本桢的移动
@@ -232,6 +241,7 @@ trait Grid {
   // todo 子弹攻击到坦克的回调函数
   protected def attackTankCallBack(bullet: Bullet)(o:Tank):Unit = {
     bulletMap.remove(bullet.bId)
+    quadTree.remove(bullet)
   }
 
 
@@ -239,10 +249,7 @@ trait Grid {
   //子弹攻击到障碍物的回调函数
   protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
     bulletMap.remove(bullet.bId)
-    o.attackDamage(bullet.damage)
-    if(!o.isLived()){
-      obstacleMap.remove(o.oId)
-    }
+    quadTree.remove(bullet)
   }
 
 
@@ -252,6 +259,7 @@ trait Grid {
 
   protected def bulletFlyEndCallback(bullet: Bullet):Unit = {
     bulletMap.remove(bullet.bId)
+    quadTree.remove(bullet)
   }
 
 
@@ -263,7 +271,9 @@ trait Grid {
 
   def leftGame(tankId:Long):Unit = {
     tankMoveAction.remove(tankId)
+    tankMap.get(tankId).foreach(t => quadTree.remove(t))
     tankMap.remove(tankId)
+
   }
 
 

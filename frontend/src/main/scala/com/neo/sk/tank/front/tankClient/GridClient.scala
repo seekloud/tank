@@ -28,43 +28,54 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
   private var recvTankAttackedList:List[WsProtocol.TankAttacked] = Nil
   private var recvObstacleAttackedList:List[WsProtocol.ObstacleAttacked] = Nil
   private var recvTankEatPropList:List[WsProtocol.TankEatProp] = Nil
+  private var recvAddPropList:List[WsProtocol.AddProp] = Nil
 
 
 
 
   def playerJoin(tank:TankState) = {
-    tankMap.put(tank.tankId,new TankClientImpl(tank))
+    val tankImpl = new TankClientImpl(tank)
+    tankMap.put(tank.tankId,tankImpl)
+    quadTree.insert(tankImpl)
   }
 
   def gridSyncStateWithoutBullet(d:GridStateWithoutBullet) = {
 //    super.update()
     updateBullet()
 
-    println("--------------------")
-    println(systemFrame)
-    println(d.f)
-    if(tankMap.values.nonEmpty && d.tanks.nonEmpty){
-      println(tankMap.values.head.getTankState().position)
-      println(d.tanks.head.position)
-    }
-    println(d.tanks.head.position)
-    println("--------------------")
-
-
+//    println("--------------------")
+//    println(systemFrame)
+//    println(d.f)
+    quadTree.clear()
+    bulletMap.foreach(t => quadTree.insert(t._2))
     systemFrame = d.f
     tankMap.clear()
     obstacleMap.clear()
     propMap.clear()
     tankMoveAction.clear()
-    d.tanks.foreach(t => tankMap.put(t.tankId,new TankClientImpl(t)))
+    d.tanks.foreach{t =>
+      val tank = new TankClientImpl(t)
+      quadTree.insert(tank)
+      tankMap.put(t.tankId,tank)
+    }
     d.obstacle.foreach{o =>
       o.t match {
-        case ptcl.model.ObstacleParameters.ObstacleType.airDropBox => obstacleMap.put(o.oId,new AirDropBoxClientImpl(o))
-        case ptcl.model.ObstacleParameters.ObstacleType.brick => obstacleMap.put(o.oId,new BrickClientImpl(o))
+        case ptcl.model.ObstacleParameters.ObstacleType.airDropBox =>
+          val obstacle = new AirDropBoxClientImpl(o)
+          quadTree.insert(obstacle)
+          obstacleMap.put(o.oId,obstacle)
+        case ptcl.model.ObstacleParameters.ObstacleType.brick =>
+          val obstacle = new BrickClientImpl(o)
+          quadTree.insert(obstacle)
+          obstacleMap.put(o.oId,obstacle)
         case _ =>
       }
     }
-    d.props.foreach(t => propMap.put(t.pId,Prop(t)))
+    d.props.foreach{t =>
+      val prop = Prop(t)
+      quadTree.insert(prop)
+      propMap.put(t.pId,prop)
+    }
     d.tankMoveAction.foreach{t =>
       val set = tankMoveAction.getOrElse(t._1,mutable.HashSet[Int]())
       set.add(t._2)
@@ -73,28 +84,47 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
   }
 
   def gridSyncState(d:GridState) = {
-    updateBullet()
+
     systemFrame = d.f
+    quadTree.clear()
     tankMap.clear()
     obstacleMap.clear()
     propMap.clear()
     tankMoveAction.clear()
     bulletMap.clear()
-    d.tanks.foreach(t => tankMap.put(t.tankId,new TankClientImpl(t)))
+    d.tanks.foreach{t =>
+      val tank = new TankClientImpl(t)
+      quadTree.insert(tank)
+      tankMap.put(t.tankId,tank)
+    }
     d.obstacle.foreach{o =>
       o.t match {
-        case ptcl.model.ObstacleParameters.ObstacleType.airDropBox => obstacleMap.put(o.oId,new AirDropBoxClientImpl(o))
-        case ptcl.model.ObstacleParameters.ObstacleType.brick => obstacleMap.put(o.oId,new BrickClientImpl(o))
+        case ptcl.model.ObstacleParameters.ObstacleType.airDropBox =>
+          val obstacle = new AirDropBoxClientImpl(o)
+          quadTree.insert(obstacle)
+          obstacleMap.put(o.oId,obstacle)
+        case ptcl.model.ObstacleParameters.ObstacleType.brick =>
+          val obstacle = new BrickClientImpl(o)
+          quadTree.insert(obstacle)
+          obstacleMap.put(o.oId,obstacle)
         case _ =>
       }
     }
-    d.props.foreach(t => propMap.put(t.pId,Prop(t)))
+    d.props.foreach{t =>
+      val prop = Prop(t)
+      quadTree.insert(prop)
+      propMap.put(t.pId,prop)
+    }
     d.tankMoveAction.foreach{t =>
       val set = tankMoveAction.getOrElse(t._1,mutable.HashSet[Int]())
       set.add(t._2)
       tankMoveAction.put(t._1,set)
     }
-    d.bullet.foreach(t => bulletMap.put(t.bId,new BulletClientImpl(t)))
+    d.bullet.foreach{t =>
+      val bullet = new BulletClientImpl(t)
+      quadTree.insert(bullet)
+      bulletMap.put(t.bId,bullet)
+    }
   }
 
   def recvTankAttacked(t:WsProtocol.TankAttacked) = {
@@ -106,11 +136,14 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
   }
 
   def updateTankAttacked(bId:Long,tId:Long,d:Int) = {
+    bulletMap.get(bId).foreach(b => quadTree.remove(b))
     bulletMap.remove(bId)
+
     tankMap.get(tId) match {
       case Some(t) =>
         t.attackedDamage(d)
         if(!t.isLived()){
+          quadTree.remove(t)
           tankMap.remove(tId)
           tankMoveAction.remove(tId)
         }
@@ -127,11 +160,18 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
   }
 
   def updateObstacleAttacked(bId:Long,oId:Long,d:Int) = {
+    bulletMap.get(bId).foreach(b => quadTree.remove(b))
     bulletMap.remove(bId)
+    println("-------------")
     obstacleMap.get(oId) match {
       case Some(t) =>
         t.attackDamage(d)
+        println("-------------")
+        println(t.getObstacleState())
+        println("++++++++++++")
+
         if(!t.isLived()){
+          quadTree.remove(t)
           obstacleMap.remove(oId)
         }
       case None =>
@@ -152,7 +192,22 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
         t.eatProp(propMap.get(pId).get)
       case None =>
     }
+    propMap.get(pId).foreach(p => quadTree.remove(p))
     propMap.remove(pId)
+  }
+
+  def recvAddProp(t:WsProtocol.AddProp) = {
+    if(t.frame < systemFrame){
+      updateAddProp(t)
+    }else{
+      recvAddPropList = t :: recvAddPropList
+    }
+  }
+
+  def updateAddProp(t:WsProtocol.AddProp) = {
+    val prop = Prop(t.propState)
+    propMap.put(prop.pId,prop)
+    quadTree.insert(prop)
   }
 
   def draw(ctx:dom.CanvasRenderingContext2D,myTankId:Long,curFrame:Int,maxClientFrame:Int,canvasBoundary:Point) = {
@@ -288,7 +343,10 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       updateTankEatProp(t.tId,t.pId,t.pType)
     }
     recvTankEatPropList = recvTankEatPropList.filter(_.frame > systemFrame)
-
+    recvAddPropList.filter(_.frame == systemFrame).foreach{t =>
+      updateAddProp(t)
+    }
+    recvAddPropList = recvAddPropList.filter(_.frame > systemFrame)
     super.update()
   }
 

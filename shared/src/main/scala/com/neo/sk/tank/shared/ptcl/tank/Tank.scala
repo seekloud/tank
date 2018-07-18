@@ -108,25 +108,30 @@ trait Tank extends CircleObjectOfGame {
 
   //检测是否获得道具
   def checkEatProp(p:Prop,obtainPropCallback:Prop => Unit):Unit = {
-    if(this.getObjectRect().intersects(p.getObjectRect())){
+    if(this.isIntersects(p)){
       eatProp(p)
       obtainPropCallback(p)
     }
   }
 
-  // TODO: 根据方向和地图边界以及地图所有的障碍物和坦克（不包括子弹）进行碰撞检测和移动
-  def move(direction:Double,boundary: Point, otherObject:Seq[ObjectOfGame]):Unit = {
+  // 根据方向和地图边界以及地图所有的障碍物和坦克（不包括子弹）进行碰撞检测和移动
+  def move(direction:Double,boundary: Point,quadTree: QuadTree):Unit = {
     this.direction = direction
-    val res = this.position + model.TankParameters.SpeedType.getMoveByFrame(speedLevel).rotate(direction)
-    val movedRec = Rectangle(res-Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r),res+Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r))
-    if(!otherObject.exists(t => t.getObjectRect().intersects(movedRec)) && Rectangle(Point(0,0),boundary).intersects(movedRec) ){
-      position = res
+    val originPosition = this.position
+    this.position = this.position + model.TankParameters.SpeedType.getMoveByFrame(speedLevel).rotate(direction)
+    val movedRec = Rectangle(this.position-Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r),this.position+Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r))
+    val otherObjects = quadTree.retrieveFilter(this).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
+
+    if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
+      //更新坦克的位置
+      quadTree.updateObject(this)
+    }else{
+      this.position = originPosition
     }
   }
 
   def isIntersectsObject(o:Seq[ObjectOfGame]):Boolean = {
-    val rec = this.getObjectRect()
-    o.exists(t => t.getObjectRect().intersects(rec))
+    o.exists(t => t.isIntersects(this))
   }
 
 

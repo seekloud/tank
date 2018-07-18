@@ -133,13 +133,11 @@ class GameHolder(canvasName:String) {
       case WsProtocol.GridSyncState(d) =>
         justSynced = true
         gridStateWithoutBullet = Some(d)
-//        println(grid.systemFrame,grid.bulletMap.values.map(_.getBulletState()),"---------",d,clientFrame)
-//        grid.gridSyncStateWithoutBullet(d)
+
 
 
       case WsProtocol.GridSyncAllState(gridState) =>
         println(s"已同步游戏中所有数据，进行渲染，${gridState}")
-//        grid.gridSyncState(gridState)
         justSynced = true
         gridAllState = Some(gridState)
         setGameState(Constants.GameState.play)
@@ -157,11 +155,10 @@ class GameHolder(canvasName:String) {
       case t:WsProtocol.TankEatProp =>
         grid.recvTankEatProp(t)
 
-      case WsProtocol.AddProp(pId,propState) =>
-        grid.propMap.put(pId,Prop.apply(propState))
+      case t:WsProtocol.AddProp =>
+        grid.recvAddProp(t)
 
       case WsProtocol.TankLaunchBullet(frame,bullet) =>
-        println(s"recv msg:${e.data.toString}")
         grid.addBullet(frame,new BulletClientImpl(bullet))
 //
       case  _ => println(s"接收到无效消息ss")

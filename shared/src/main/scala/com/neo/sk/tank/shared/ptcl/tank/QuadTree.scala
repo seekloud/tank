@@ -197,6 +197,16 @@ class QuadTree(bounds:model.Rectangle,level :Int = 0) {
     }
   }
 
+  def updateObject(o:ObjectOfGame):Unit = {
+    remove(o)
+    insert(o)
+  }
+
+  def clear():Unit = {
+    this.objects = Nil
+    this.children = Nil
+  }
+
 
 
 

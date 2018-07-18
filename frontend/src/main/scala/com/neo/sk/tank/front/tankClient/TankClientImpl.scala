@@ -90,7 +90,7 @@ object TankClientImpl{
     * */
   def drawTank(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,offset:Point,directionOpt:Option[Double],canvasUnit:Int = 10): Unit ={
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt)
-    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
+//    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
     val gunPositionList = tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
     val bloodSliderList = tank.getSliderPosition(3,1.0 * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
     ctx.beginPath()

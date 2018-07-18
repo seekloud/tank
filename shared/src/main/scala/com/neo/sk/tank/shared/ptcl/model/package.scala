@@ -526,7 +526,7 @@ package object model {
 
     object AirDropBoxParameters{
       val blood = 100
-      val num = 3
+      val num = 5
     }
 
     val border = 5

@@ -32,8 +32,7 @@ class BrickServerImpl(
   }
 
   def isIntersectsObject(o:Seq[ObjectOfGame]):Boolean = {
-    val rec = this.getObjectRect()
-    o.exists(t => t.getObjectRect().intersects(rec))
+    o.exists(t => t.isIntersects(this))
   }
 
 }

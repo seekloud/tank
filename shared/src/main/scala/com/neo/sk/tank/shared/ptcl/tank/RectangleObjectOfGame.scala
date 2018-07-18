@@ -32,7 +32,7 @@ trait RectangleObjectOfGame extends ObjectOfGame{
   private def isIntersects(o: CircleObjectOfGame): Boolean = {
     val topLeft = position - model.Point(width / 2, height / 2)
     val downRight = position + model.Point(width / 2, height / 2)
-    if(o.position < topLeft && o.position < downRight){
+    if(o.position > topLeft && o.position < downRight){
       true
     }else{
       val relativeCircleCenter:Point = o.position - position
@@ -40,6 +40,15 @@ trait RectangleObjectOfGame extends ObjectOfGame{
       val dx1 = math.max(dx, - width / 2)
       val dy = math.min(relativeCircleCenter.y, height / 2)
       val dy1 = math.max(dy, - height / 2)
+//      println("-----------------------")
+//      println("circle",o.getObjectShape())
+//      println("rectange",this.getObjectShape())
+//
+//      println(Point(dx1,dy1).distance(relativeCircleCenter))
+//      println(o.r)
+//
+//      println("+++++++++++++++++++++++")
+
       Point(dx1,dy1).distance(relativeCircleCenter) < o.r
     }
   }

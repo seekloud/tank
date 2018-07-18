@@ -43,7 +43,7 @@ object WsProtocol {
 
   case class TankEatProp(frame:Long,pId:Long,tId:Long,pType:Int) extends WsMsgServer
 
-  case class AddProp(pId:Long,propState: PropState) extends WsMsgServer
+  case class AddProp(frame:Long,pId:Long,propState: PropState) extends WsMsgServer
 
   case class TankLaunchBullet(f:Long,bullet:BulletState) extends WsMsgServer
 
