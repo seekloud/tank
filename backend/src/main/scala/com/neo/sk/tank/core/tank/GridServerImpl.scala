@@ -101,6 +101,7 @@ class GridServerImpl(
     val tId = tankIdGenerator.getAndIncrement()
     val position = genTankPositionRandom()
     var n = new TankServerImpl(ctx.self,uId,tId,name,position)
+    val tankRec = n.getObjectRect()
     val objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
     while (n.isIntersectsObject(objects)){
       val position = genTankPositionRandom()
@@ -119,7 +120,8 @@ class GridServerImpl(
   }
 
   private def genTankPositionRandom():Point = {
-    Point(random.nextInt(boundary.x.toInt),random.nextInt(boundary.y.toInt))
+    Point(random.nextInt(boundary.x.toInt - (2 * model.TankParameters.TankSize.r)) + model.TankParameters.TankSize.r,
+      random.nextInt(boundary.y.toInt - (2 * model.TankParameters.TankSize.r)) + model.TankParameters.TankSize.r)
   }
 
   private def genObstaclePositionRandom():Point = {

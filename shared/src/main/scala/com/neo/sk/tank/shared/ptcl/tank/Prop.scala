@@ -20,8 +20,8 @@ trait Prop extends CircleObjectOfGame{
 
   //todo
   override def getObjectRect(): model.Rectangle = {
-    model.Rectangle(Point(position.x - 2 * model.PropParameters.r/3, position.y - 2 * model.PropParameters.r/3),
-      Point(position.x + 2 * model.PropParameters.r/3,position.y + 2 * model.PropParameters.r/3))
+    model.Rectangle(Point(position.x - model.PropParameters.r, position.y - model.PropParameters.r),
+      Point(position.x + model.PropParameters.r,position.y + model.PropParameters.r))
   }
 
 

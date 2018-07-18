@@ -202,6 +202,7 @@ trait Grid {
     updateTank() //更新坦克的移动
     updateBullet() //更新坦克的子弹
     updateGenBullet() //更新刚发的子弹
+    quadTree.refresh(quadTree)
     tankActionQueueMap -= systemFrame
     systemFrame += 1
   }
