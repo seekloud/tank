@@ -236,10 +236,6 @@ trait Grid {
   //子弹攻击到障碍物的回调函数
   protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
     bulletMap.remove(bullet.bId)
-    o.attackDamage(bullet.damage)
-    if(!o.isLived()){
-      obstacleMap.remove(o.oId)
-    }
   }
 
 

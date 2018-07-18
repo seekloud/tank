@@ -59,9 +59,12 @@ class GridServerImpl(
 
   //子弹攻击到障碍物的回调函数
   override protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
-    super.attackObstacleCallBack(bullet)(o)
+    bulletMap.remove(bullet.bId)
+    o.attackDamage(bullet.damage)
+    dispatch(WsProtocol.ObstacleAttacked(systemFrame, bullet.bId, o.oId, bullet.damage))
     if(!o.isLived()){
-      val objectOfGameList = tankMap.values.toList ::: obstacleMap.values.toList ::: propMap.values.toList
+      obstacleMap.remove(o.oId)
+      val objectOfGameList = tankMap.values.toList ::: obstacleMap.values.toList ::: propMap.values.toList ::: List(o)
       val box = if(o.obstacleType == model.ObstacleParameters.ObstacleType.airDropBox){
         val pId = propIdGenerator.getAndIncrement()
         propMap.put(pId,Prop.apply(PropState(pId,(random.nextInt(Int.MaxValue)%4+1),o.getObstacleState().p)))
@@ -71,8 +74,8 @@ class GridServerImpl(
         genABrick(objectOfGameList)
       }
       obstacleMap.put(box.oId,box)
+      dispatch(WsProtocol.AddObstacle(box.oId,box.getObstacleState()))
     }
-    dispatch(WsProtocol.ObstacleAttacked(systemFrame,bullet.bId,o.oId,bullet.damage))
   }
 
   //生成坦克的
@@ -115,8 +118,8 @@ class GridServerImpl(
   }
 
   private def genObstaclePositionRandom():Point = {
-    Point(random.nextInt(boundary.x.toInt - model.ObstacleParameters.border) + model.ObstacleParameters.halfBorder
-      ,random.nextInt(boundary.y.toInt - model.ObstacleParameters.border) + model.ObstacleParameters.halfBorder)
+    Point(random.nextInt(boundary.x.toInt - 6) +3
+      ,random.nextInt(boundary.y.toInt - 6) + 3)
   }
 
 
