@@ -242,8 +242,8 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
 
     //绘制当前排行榜
     val textLineHeight = 18
-    val leftBegin =7 * canvasUnit
-    val rightBegin = (canvasBoundary.x.toInt-8) * canvasUnit
+    val leftBegin =0 * canvasUnit
+    val rightBegin = (canvasBoundary.x.toInt-15) * canvasUnit
     object MyColors {
       val rankList = "#FFE384"
       val background = "#9933FA"
