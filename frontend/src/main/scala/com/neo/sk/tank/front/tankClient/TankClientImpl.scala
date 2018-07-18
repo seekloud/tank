@@ -125,17 +125,79 @@ object TankClientImpl{
     }
   }
 
-  def drawTankInfo(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,canvasUnit:Int = 10) = {
+  def drawTankInfo(ctx:dom.CanvasRenderingContext2D,myName:String,tank: TankClientImpl,canvasUnit:Int = 10) = {
+    val basePoint = Point(13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2)
+    val length = 20 * canvasUnit
+    val bloodList = List(
+      basePoint,
+      basePoint + Point(length * 1.0 * tank.bloodLevel / TankParameters.TankBloodLevel.third,0),
+      basePoint + Point(length * 1.0,0)
+    )
+    val speedList = List(
+      basePoint + Point(0,2.5 * canvasUnit),
+      basePoint + Point(length * 1.0 * tank.speedLevel / TankParameters.SpeedType.high,2.5 * canvasUnit),
+      basePoint + Point(length * 1.0,2.5 * canvasUnit)
+    )
+    val bulletPowerList = List(
+      basePoint + Point(0,5.5 * canvasUnit),
+      basePoint + Point(length * 1.0 * tank.bulletPowerLevel / TankParameters.TankBloodLevel.third,5.5 * canvasUnit),
+      basePoint + Point(length * 1.0,5.5 * canvasUnit)
+    )
+    drawLine(ctx,bloodList)
+    drawLine(ctx,speedList)
+    drawLine(ctx,bulletPowerList)
+    val breakPointList:List[Point] = BreakPointPosition(basePoint,canvasUnit,length,1.0 / 45)
+    for(i <- Range(0,breakPointList.length - 1,2)){
+      ctx.beginPath()
+      ctx.strokeStyle = "#8B8682"
+      ctx.lineWidth = 8
+      ctx.moveTo(breakPointList(i).x,breakPointList(i).y)
+      ctx.lineTo(breakPointList(i + 1).x,breakPointList(i + 1).y)
+      ctx.stroke()
+      ctx.closePath()
+    }
     ctx.beginPath()
-    ctx.font = "normal normal 24px 楷体"
-    ctx.fillStyle = Color.Red.toString()
-    ctx.lineWidth = 3
-    ctx.textAlign = "center"
-    ctx.strokeText(s"血量等级：${tank.bloodLevel}",13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2,80 * canvasUnit)
-    ctx.strokeText(s"速度等级：${tank.speedLevel}",13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 2.5 * canvasUnit,40 * canvasUnit)
-    ctx.strokeText(s"炮弹威力等级：${tank.bulletPowerLevel}",13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 5.5 * canvasUnit,40 * canvasUnit)
+    ctx.font = "normal normal 20px 楷体"
+    ctx.fillStyle = Color.Black.toString()
+    ctx.lineWidth = 1
+    ctx.fillText(s"${myName}",15 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 - 4 * canvasUnit, 40 * canvasUnit)
+    ctx.fillText(s"血量等级",5 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 - canvasUnit,20 * canvasUnit)
+    ctx.fillText(s"速度等级",5 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 1.5 * canvasUnit,20 * canvasUnit)
+    ctx.fillText(s"炮弹等级",5 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 4.5 * canvasUnit,20 * canvasUnit)
     ctx.closePath()
 
+  }
+  def drawLine(ctx:dom.CanvasRenderingContext2D,ls:List[Point]) = {
+    for(i <- 0 to ls.length - 2){
+      ctx.beginPath()
+      ctx.lineWidth = 8
+      if(i == 1){
+        ctx.strokeStyle = "#8B8682"
+      }else{
+        ctx.strokeStyle = "#DC143C"
+      }
+      ctx.moveTo(ls(i).x,ls(i).y)
+      ctx.lineTo(ls(i + 1).x,ls(i + 1).y)
+      ctx.stroke()
+      ctx.closePath()
+    }
+  }
+
+  def BreakPointPosition(basePoint:Point,canvasUnit:Int,length:Int,ratio:Double) = {
+    List(
+      basePoint + Point(length * 1.0 / 3 - length * ratio,0),
+      basePoint + Point(length * 1.0 / 3 + length * ratio,0),
+      basePoint + Point(length * 2.0 / 3 - length * ratio,0),
+      basePoint + Point(length * 2.0 / 3 + length * ratio,0),
+      basePoint + Point(length * 1.0 / 3 - length * ratio,2.5  * canvasUnit),
+      basePoint + Point(length * 1.0 / 3 + length * ratio,2.5  * canvasUnit),
+      basePoint + Point(length * 2.0 / 3 - length * ratio,2.5 * canvasUnit),
+      basePoint + Point(length * 2.0 / 3 + length * ratio,2.5  * canvasUnit),
+      basePoint + Point(length * 1.0 / 3 - length * ratio,5.5 * canvasUnit),
+      basePoint + Point(length * 1.0 / 3 + length * ratio,5.5 * canvasUnit),
+      basePoint + Point(length * 2.0 / 3 - length * ratio,5.5 * canvasUnit),
+      basePoint + Point(length * 2.0 / 3 + length * ratio,5.5 * canvasUnit)
+    )
   }
 
 

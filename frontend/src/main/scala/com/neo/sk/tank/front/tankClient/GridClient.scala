@@ -211,6 +211,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
   }
 
   def draw(ctx:dom.CanvasRenderingContext2D,myTankId:Long,curFrame:Int,maxClientFrame:Int,canvasBoundary:Point) = {
+  def draw(ctx:dom.CanvasRenderingContext2D,myName:String,myTankId:Long,curFrame:Int,maxClientFrame:Int,canvasBoundary:Point) = {
     var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
     val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
     action.map(_._2).foreach{
@@ -238,7 +239,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       val directionOpt = getDirection(moveSet)
       TankClientImpl.drawTank(ctx,t.asInstanceOf[TankClientImpl],curFrame,maxClientFrame,offset,directionOpt,canvasUnit)
     }
-    TankClientImpl.drawTankInfo(ctx,tankMap(myTankId).asInstanceOf[TankClientImpl],canvasUnit)
+    TankClientImpl.drawTankInfo(ctx,myName,tankMap(myTankId).asInstanceOf[TankClientImpl],canvasUnit)
   }
 
   def tankIsLived(tankId:Long):Boolean = tankMap.contains(tankId)
@@ -299,24 +300,40 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
     }
 
     //绘制当前排行榜
-    val textLineHeight = 14
-    val leftBegin = 10 * canvasUnit
-    val rightBegin = (canvasBoundary.x.toInt-10) * canvasUnit
+    val textLineHeight = 18
+    val leftBegin =0 * canvasUnit
+    val rightBegin = (canvasBoundary.x.toInt-15) * canvasUnit
+    object MyColors {
+      val rankList = "#FFE384"
+      val background = "#9933FA"
+//      val stripe = "rgba(181, 181, 181, 0.5)"
+//      val myHeader = "#cccccc"
+//      val myBody = "#FFFFFF"
+//      val otherHeader = "rgba(78,69,69,0.82)"
+//      val otherBody = "#696969"
+    }
+
 
     def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0) = {
       ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
     }
     ctx.font = "12px Helvetica"
-    val currentRankBaseLine = 5
+    ctx.fillStyle =MyColors.rankList
+    ctx.fillRect(0,0,150,200)
+
+    val currentRankBaseLine = 1
     var index = 0
+    ctx.fillStyle = MyColors.background
     drawTextLine(s" --- Current Rank --- ", leftBegin, index, currentRankBaseLine)
     currentRank.foreach{ score =>
       index += 1
       drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, index, currentRankBaseLine)
     }
-
+    ctx.fillStyle =MyColors.rankList
+    ctx.fillRect(1050,0,200,200)
     val historyRankBaseLine =1
     index = 0
+    ctx.fillStyle = MyColors.background
     drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
     historyRank.foreach { score =>
       index += 1

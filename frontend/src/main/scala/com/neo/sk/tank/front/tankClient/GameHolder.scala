@@ -4,7 +4,7 @@ import com.neo.sk.tank.front.common.Constants
 import com.neo.sk.tank.front.components.StartGameModal
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.ptcl
-import com.neo.sk.tank.shared.ptcl.model.{Boundary, Point}
+import com.neo.sk.tank.shared.ptcl.model.{Boundary, Point,ObstacleParameters}
 import com.neo.sk.tank.shared.ptcl.protocol._
 import com.neo.sk.tank.shared.ptcl.tank.{GridState, GridStateWithoutBullet}
 import mhtml.Var
@@ -152,6 +152,15 @@ class GameHolder(canvasName:String) {
         //移除子弹并且进行血量计算
         grid.recvObstacleAttacked(t)
 
+      case WsProtocol.AddObstacle(oId,obstacleState) =>
+        if(obstacleState.t == ObstacleParameters.ObstacleType.airDropBox){
+          grid.obstacleMap.put(oId, new AirDropBoxClientImpl(obstacleState))
+        }else{
+          grid.obstacleMap.put(oId, new BrickClientImpl(obstacleState))
+        }
+
+
+
       case t:WsProtocol.TankEatProp =>
         grid.recvTankEatProp(t)
 
@@ -159,6 +168,7 @@ class GameHolder(canvasName:String) {
         grid.recvAddProp(t)
 
       case WsProtocol.TankLaunchBullet(frame,bullet) =>
+//        println(s"recv msg:${e.data.toString}")
         grid.addBullet(frame,new BulletClientImpl(bullet))
 //
       case  _ => println(s"接收到无效消息ss")
@@ -238,7 +248,7 @@ class GameHolder(canvasName:String) {
   }
 
   def gameLoop():Unit = {
-//    println(s"----${System.currentTimeMillis()}")
+//    ln(s"----${System.currentTimeMillis()}")
     gameState match {
       case Constants.GameState.loadingPlay =>
         println(s"等待同步数据")
@@ -294,9 +304,11 @@ class GameHolder(canvasName:String) {
   }
 
   def drawGame(curFrame:Int,maxClientFrame:Int): Unit ={
+//
+    // rintln("111111111111111111111")
 
 
-    grid.draw(ctx,myTankId,curFrame,maxClientFrame,canvasBounds)
+    grid.draw(ctx,myName,myTankId,curFrame,maxClientFrame,canvasBounds)
 
   }
 

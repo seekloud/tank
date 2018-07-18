@@ -78,6 +78,7 @@ class GridServerImpl(
       }
       quadTree.insert(box)
       obstacleMap.put(box.oId,box)
+      dispatch(WsProtocol.AddObstacle(box.oId,box.getObstacleState()))
     }
     dispatch(WsProtocol.ObstacleAttacked(systemFrame,bullet.bId,o.oId,bullet.damage))
   }
