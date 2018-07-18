@@ -57,7 +57,7 @@ object AirDropBoxClientImpl{
       model.ObstacleParameters.border * canvasUnit , model.ObstacleParameters.border * canvasUnit)
     ctx.stroke()
     ctx.lineWidth =1
-    println((model.ObstacleParameters.border * curBlood).toFloat/ model.ObstacleParameters.AirDropBoxParameters.blood)
+//    println((model.ObstacleParameters.border * curBlood).toFloat/ model.ObstacleParameters.AirDropBoxParameters.blood)
   }
 
 }

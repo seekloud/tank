@@ -45,7 +45,7 @@ object WsProtocol {
 
   case class AddProp(frame:Long,pId:Long,propState: PropState) extends WsMsgServer
 
-  case class AddObstacle(oId :Long,obstacleState: ObstacleState) extends WsMsgServer
+  case class AddObstacle(frame:Long, oId :Long,obstacleState: ObstacleState) extends WsMsgServer
 
   case class TankLaunchBullet(f:Long,bullet:BulletState) extends WsMsgServer
 

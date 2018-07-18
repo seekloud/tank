@@ -61,6 +61,7 @@ class GridServerImpl(
   override protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
     super.attackObstacleCallBack(bullet)(o)
     o.attackDamage(bullet.damage)
+    dispatch(WsProtocol.ObstacleAttacked(systemFrame,bullet.bId,o.oId,bullet.damage))
     if(!o.isLived()){
       quadTree.remove(o)
       obstacleMap.remove(o.oId)
@@ -78,9 +79,9 @@ class GridServerImpl(
       }
       quadTree.insert(box)
       obstacleMap.put(box.oId,box)
-      dispatch(WsProtocol.AddObstacle(box.oId,box.getObstacleState()))
+      dispatch(WsProtocol.AddObstacle(systemFrame,box.oId,box.getObstacleState()))
     }
-    dispatch(WsProtocol.ObstacleAttacked(systemFrame,bullet.bId,o.oId,bullet.damage))
+
   }
 
   //生成坦克的

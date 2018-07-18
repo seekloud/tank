@@ -48,8 +48,8 @@ class TankClientImpl(
     * @param maxClientFrame 一个systemFrame下动画帧的渲染最大帧数
     * @param directionOpt 坦克是否移动
     * */
-  def getPositionCurFrame(curFrame:Int,maxClientFrame:Int,directionOpt:Option[Double]):Point = {
-   if(directionOpt.nonEmpty){
+  def getPositionCurFrame(curFrame:Int,maxClientFrame:Int,directionOpt:Option[Double],canMove:Boolean):Point = {
+   if(directionOpt.nonEmpty && canMove){
       val distance = model.TankParameters.SpeedType.getMoveByFrame(speedLevel) / maxClientFrame * curFrame //每帧移动的距离
       this.position + distance.rotate(directionOpt.get)
     }else position
@@ -88,8 +88,8 @@ object TankClientImpl{
     * @param curFrame 动画渲染桢数 （0，1，2，3）
     * @param maxClientFrame 每个systemFrame 动画渲染的帧数
     * */
-  def drawTank(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,offset:Point,directionOpt:Option[Double],canvasUnit:Int = 10): Unit ={
-    val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt)
+  def drawTank(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,offset:Point,directionOpt:Option[Double],canMove:Boolean,canvasUnit:Int = 10): Unit ={
+    val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt,canMove)
 //    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
     val gunPositionList = tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
     val bloodSliderList = tank.getSliderPosition(3,1.0 * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)

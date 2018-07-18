@@ -66,8 +66,25 @@ class GameHolder(canvasName:String) {
     KeyCode.Left,
     KeyCode.Up,
     KeyCode.Right,
-    KeyCode.Down,
+    KeyCode.Down
   )
+
+  val watchBakKeys = Set(
+    KeyCode.W,
+    KeyCode.S,
+    KeyCode.A,
+    KeyCode.D
+  )
+
+  private var spaceKeyUpState = true
+
+  private def getWatchBakKeys(k:Int):Int = k match {
+    case KeyCode.W => KeyCode.Up
+    case KeyCode.S => KeyCode.Down
+    case KeyCode.A => KeyCode.Left
+    case KeyCode.D => KeyCode.Right
+    case _ => KeyCode.Escape
+  }
 
   def getStartGameModal():Elem = {
     startGameModal.render
@@ -152,12 +169,8 @@ class GameHolder(canvasName:String) {
         //移除子弹并且进行血量计算
         grid.recvObstacleAttacked(t)
 
-      case WsProtocol.AddObstacle(oId,obstacleState) =>
-        if(obstacleState.t == ObstacleParameters.ObstacleType.airDropBox){
-          grid.obstacleMap.put(oId, new AirDropBoxClientImpl(obstacleState))
-        }else{
-          grid.obstacleMap.put(oId, new BrickClientImpl(obstacleState))
-        }
+      case t:WsProtocol.AddObstacle =>
+        grid.recvAddObstacle(t)
 
 
 
@@ -197,6 +210,7 @@ class GameHolder(canvasName:String) {
     canvas.onmousemove = { (e:dom.MouseEvent) =>
       val point = Point(e.clientX,e.clientY)
       val theta = point.getTheta(canvasBoundary / 2)
+
       sendMsg2Server(WsFrontProtocol.MouseMove(theta))//发送鼠标位置
       e.preventDefault()
     }
@@ -212,6 +226,18 @@ class GameHolder(canvasName:String) {
           println(s"key down: [${e.keyCode}]")
           sendMsg2Server(WsFrontProtocol.PressKeyDown(e.keyCode))//发送操作指令
           e.preventDefault()
+        } else if(watchBakKeys.contains(e.keyCode)){
+          val directionKey = getWatchBakKeys(e.keyCode)
+          if(!keySet.contains(directionKey)){
+            keySet.add(directionKey)
+            println(s"key down: [${e.keyCode}]")
+            sendMsg2Server(WsFrontProtocol.PressKeyDown(directionKey))//发送操作指令
+          }
+          e.preventDefault()
+        } else if(e.keyCode == KeyCode.Space && spaceKeyUpState){
+          spaceKeyUpState = false
+          sendMsg2Server(WsFrontProtocol.MouseClick(System.currentTimeMillis()))//发送炮弹数据
+          e.preventDefault()
         }
       }
     }
@@ -222,6 +248,15 @@ class GameHolder(canvasName:String) {
           keySet.remove(e.keyCode)
           println(s"key up: [${e.keyCode}]")
           sendMsg2Server(WsFrontProtocol.PressKeyUp(e.keyCode))//发送操作指令
+          e.preventDefault()
+        } else if(watchBakKeys.contains(e.keyCode)){
+          val directionKey = getWatchBakKeys(e.keyCode)
+          keySet.remove(directionKey)
+          println(s"key up: [${e.keyCode}]")
+          sendMsg2Server(WsFrontProtocol.PressKeyUp(directionKey))//发送操作指令
+          e.preventDefault()
+        } else if(e.keyCode == KeyCode.Space){
+          spaceKeyUpState = true
           e.preventDefault()
         }
       }

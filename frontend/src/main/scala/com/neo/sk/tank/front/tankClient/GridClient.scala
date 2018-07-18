@@ -29,6 +29,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
   private var recvObstacleAttackedList:List[WsProtocol.ObstacleAttacked] = Nil
   private var recvTankEatPropList:List[WsProtocol.TankEatProp] = Nil
   private var recvAddPropList:List[WsProtocol.AddProp] = Nil
+  private var recvAddObstacleList:List[WsProtocol.AddObstacle] = Nil
 
 
 
@@ -162,13 +163,10 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
   def updateObstacleAttacked(bId:Long,oId:Long,d:Int) = {
     bulletMap.get(bId).foreach(b => quadTree.remove(b))
     bulletMap.remove(bId)
-    println("-------------")
+
     obstacleMap.get(oId) match {
       case Some(t) =>
         t.attackDamage(d)
-        println("-------------")
-        println(t.getObstacleState())
-        println("++++++++++++")
 
         if(!t.isLived()){
           quadTree.remove(t)
@@ -210,7 +208,24 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
     quadTree.insert(prop)
   }
 
-  def draw(ctx:dom.CanvasRenderingContext2D,myTankId:Long,curFrame:Int,maxClientFrame:Int,canvasBoundary:Point) = {
+  def recvAddObstacle(t:WsProtocol.AddObstacle) = {
+    if(t.frame < systemFrame){
+      updateAddObstacle(t)
+    }else{
+      recvAddObstacleList = t :: recvAddObstacleList
+    }
+  }
+
+  def updateAddObstacle(t:WsProtocol.AddObstacle) = {
+    val obstacle = if(t.obstacleState.t == model.ObstacleParameters.ObstacleType.airDropBox){
+      new AirDropBoxClientImpl(t.obstacleState)
+    }else{
+      new BrickClientImpl(t.obstacleState)
+    }
+    obstacleMap.put(obstacle.oId,obstacle)
+    quadTree.insert(obstacle)
+  }
+
   def draw(ctx:dom.CanvasRenderingContext2D,myName:String,myTankId:Long,curFrame:Int,maxClientFrame:Int,canvasBoundary:Point) = {
     var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
     val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
@@ -221,7 +236,13 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       case _ =>
     }
     val directionOpt = getDirection(moveSet)
-    val offset = tankMap.get(myTankId).map((canvasBoundary / 2) - _.asInstanceOf[TankClientImpl].getPositionCurFrame(curFrame,maxClientFrame,directionOpt)).getOrElse(Point(0,0))
+    val tankCanMove:Boolean = directionOpt.exists{t =>
+      tankMap.get(myTankId) match {
+        case Some(tank) => tank.canMove(t,boundary,quadTree)
+        case None => false
+      }
+    }
+    val offset = tankMap.get(myTankId).map((canvasBoundary / 2) - _.asInstanceOf[TankClientImpl].getPositionCurFrame(curFrame,maxClientFrame,directionOpt,tankCanMove)).getOrElse(Point(0,0))
 //    println(s"curFrame=${curFrame},offset=${offset}")
     drawBackground(ctx,offset,canvasBoundary)
     bulletMap.values.foreach{ b =>
@@ -237,7 +258,8 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
         case _ =>
       }
       val directionOpt = getDirection(moveSet)
-      TankClientImpl.drawTank(ctx,t.asInstanceOf[TankClientImpl],curFrame,maxClientFrame,offset,directionOpt,canvasUnit)
+      val tankCanMove:Boolean = directionOpt.exists(d => t.canMove(d,boundary,quadTree))
+      TankClientImpl.drawTank(ctx,t.asInstanceOf[TankClientImpl],curFrame,maxClientFrame,offset,directionOpt,tankCanMove,canvasUnit)
     }
     TankClientImpl.drawTankInfo(ctx,myName,tankMap(myTankId).asInstanceOf[TankClientImpl],canvasUnit)
   }
@@ -364,6 +386,12 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       updateAddProp(t)
     }
     recvAddPropList = recvAddPropList.filter(_.frame > systemFrame)
+
+    recvAddObstacleList = recvAddObstacleList.filter(_.frame > systemFrame)
+    recvAddObstacleList.filter(_.frame == systemFrame).foreach{t =>
+      updateAddObstacle(t)
+    }
+    recvAddObstacleList = recvAddObstacleList.filter(_.frame > systemFrame)
     super.update()
   }
 

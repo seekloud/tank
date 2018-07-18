@@ -130,6 +130,20 @@ trait Tank extends CircleObjectOfGame {
     }
   }
 
+  def canMove(direction:Double,boundary:Point,quadTree:QuadTree):Boolean = {
+    val originPosition = this.position
+    this.position = this.position + model.TankParameters.SpeedType.getMoveByFrame(speedLevel).rotate(direction)
+    val movedRec = Rectangle(this.position-Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r),this.position+Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r))
+    val otherObjects = quadTree.retrieveFilter(this).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
+    val result = if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
+      true
+    }else{
+      false
+    }
+    this.position = originPosition
+    result
+  }
+
   def isIntersectsObject(o:Seq[ObjectOfGame]):Boolean = {
     o.exists(t => t.isIntersects(this))
   }

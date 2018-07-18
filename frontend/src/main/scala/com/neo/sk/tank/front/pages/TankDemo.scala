@@ -52,7 +52,7 @@ object TankDemo extends Page{
     Shortcut.scheduleOnce(() =>init(),0)
     <div>
       <div>{modal}</div>
-      <h1>坦克世界demo</h1>
+
       {cannvas}
     </div>
   }
