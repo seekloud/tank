@@ -4,9 +4,10 @@ import java.util.concurrent.atomic.AtomicLong
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, TimerScheduler}
-import akka.http.scaladsl.model.ws.{Message, TextMessage}
+import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.stream.{ActorAttributes, Supervision}
 import akka.stream.scaladsl.Flow
+import akka.util.ByteString
 import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
 import io.circe.{Decoder, Encoder}
 import org.slf4j.LoggerFactory
@@ -63,6 +64,8 @@ object UserManager {
 
   private def getWebSocketFlow(userActor: ActorRef[UserActor.Command]):Flow[Message,Message,Any] = {
     import scala.language.implicitConversions
+    import com.neo.sk.utils.byteObject.MiddleBufferInJvm
+    import com.neo.sk.utils.byteObject.ByteObject._
 
 
     implicit def parseJsonString2WsMsgFront(s:String):Option[WsFrontProtocol.WsMsgFront] = {
@@ -83,9 +86,21 @@ object UserManager {
       .collect{
         case TextMessage.Strict(m) =>
           UserActor.WebSocketMsg(m)
+
+        case BinaryMessage.Strict(m) =>
+          val buffer = new MiddleBufferInJvm(m.asByteBuffer)
+          bytesDecode[WsFrontProtocol.WsMsgFront](buffer) match {
+            case Right(req) => UserActor.WebSocketMsg(Some(req))
+            case Left(e) =>
+              log.error(s"decode binaryMessage failed,error:${e.message}")
+              UserActor.WebSocketMsg(None)
+          }
       }.via(UserActor.flow(userActor))
         .map {
-        case t:WsProtocol.WsMsgServer => TextMessage.apply(t.asJson.noSpaces)
+        case t:WsProtocol.WsMsgServer =>
+//          TextMessage.apply(t.asJson.noSpaces)
+          val sendBuffer = new MiddleBufferInJvm(4096)
+          BinaryMessage.Strict(ByteString(t.fillMiddleBuffer(sendBuffer).result()))
 
         case x =>
           TextMessage.apply("")

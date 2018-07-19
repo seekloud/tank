@@ -2,19 +2,22 @@ package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.front.common.Constants
 import com.neo.sk.tank.front.components.StartGameModal
+import com.neo.sk.tank.front.utils.byteObject.MiddleBufferInJs
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.ptcl
-import com.neo.sk.tank.shared.ptcl.model.{Boundary, Point,ObstacleParameters}
+import com.neo.sk.tank.shared.ptcl.model.{Boundary, ObstacleParameters, Point}
 import com.neo.sk.tank.shared.ptcl.protocol._
 import com.neo.sk.tank.shared.ptcl.tank.{GridState, GridStateWithoutBullet}
 import mhtml.Var
 import com.neo.sk.tank.shared.ptcl.tank.Prop
 import org.scalajs.dom
+import org.scalajs.dom.Blob
 import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html.Canvas
-import org.scalajs.dom.raw.{Event, MessageEvent, MouseEvent}
+import org.scalajs.dom.raw.{Event, FileReader, MessageEvent, MouseEvent}
 
 import scala.collection.mutable
+import scala.scalajs.js.typedarray.ArrayBuffer
 import scala.xml.Elem
 
 /**
@@ -113,81 +116,165 @@ class GameHolder(canvasName:String) {
 
   //todo
   private def wsMessageHandler(e:MessageEvent) = {
+    import com.neo.sk.tank.front.utils.byteObject.ByteObject._
+    e.data match {
+      case blobMsg:Blob =>
+        val fr = new FileReader()
+        fr.readAsArrayBuffer(blobMsg)
+        fr.onloadend = { _: Event =>
+          val buf = fr.result.asInstanceOf[ArrayBuffer]
+          val middleDataInJs = new MiddleBufferInJs(buf)
+          bytesDecode[WsProtocol.WsMsgServer](middleDataInJs) match {
+            case Right(data) =>
+              data match {
+                case WsProtocol.YourInfo(uId,tankId) =>
+                  myId = uId
+                  myTankId = tankId
+
+
+                case WsProtocol.UserEnterRoom(userId,name,tank) =>
+                  if(myId != userId){
+                    grid.playerJoin(tank)
+                  }
+
+
+                case WsProtocol.UserLeftRoom(tankId,name) =>
+                  println(s"玩家=${name} left tankId=${tankId}")
+                  grid.leftGame(tankId)
+
+
+                case WsProtocol.YouAreKilled(tankId,userId) =>
+                  println(s"you are killed")
+                  setGameState(Constants.GameState.stop)
+
+                case WsProtocol.TankActionFrameMouse(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+
+                case WsProtocol.TankActionFrameKeyDown(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+                case WsProtocol.TankActionFrameKeyUp(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+
+
+                case WsProtocol.Ranks(currentRank,historyRank) =>
+                  grid.currentRank = currentRank
+                  grid.historyRank = historyRank
+
+                case WsProtocol.GridSyncState(d) =>
+                  justSynced = true
+                  gridStateWithoutBullet = Some(d)
 
 
 
-    decode[WsProtocol.WsMsgServer](e.data.toString).right.get match {
-      case WsProtocol.YourInfo(uId,tankId) =>
-        myId = uId
-        myTankId = tankId
+                case WsProtocol.GridSyncAllState(gridState) =>
+                  println(s"已同步游戏中所有数据，进行渲染，${gridState}")
+                  justSynced = true
+                  gridAllState = Some(gridState)
+                  setGameState(Constants.GameState.play)
+
+                case t:WsProtocol.TankAttacked =>
+                  //        grid.attackTankCallBack(bId,null)
+                  //移除子弹并且进行血量计算
+                  grid.recvTankAttacked(t)
 
 
-      case WsProtocol.UserEnterRoom(userId,name,tank) =>
-        if(myId != userId){
-          grid.playerJoin(tank)
+                case t:WsProtocol.ObstacleAttacked =>
+                  //移除子弹并且进行血量计算
+                  grid.recvObstacleAttacked(t)
+
+                case t:WsProtocol.AddObstacle =>
+                  grid.recvAddObstacle(t)
+
+
+
+                case t:WsProtocol.TankEatProp =>
+                  grid.recvTankEatProp(t)
+
+                case t:WsProtocol.AddProp =>
+                  grid.recvAddProp(t)
+
+                case WsProtocol.TankLaunchBullet(frame,bullet) =>
+                  //        println(s"recv msg:${e.data.toString}")
+                  grid.addBullet(frame,new BulletClientImpl(bullet))
+                //
+                case  _ => println(s"接收到无效消息ss")
+              }
+            case Left(error) =>
+              println(s"decode msg failed,error:${error.message}")
+          }
         }
-
-
-      case WsProtocol.UserLeftRoom(tankId,name) =>
-        println(s"玩家=${name} left tankId=${tankId}")
-        grid.leftGame(tankId)
-
-
-      case WsProtocol.YouAreKilled(tankId,userId) =>
-        println(s"you are killed")
-        setGameState(Constants.GameState.stop)
-
-      case WsProtocol.TankActionFrameMouse(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
-
-      case WsProtocol.TankActionFrameKeyDown(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
-      case WsProtocol.TankActionFrameKeyUp(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
-
-
-      case WsProtocol.Ranks(currentRank,historyRank) =>
-        grid.currentRank = currentRank
-        grid.historyRank = historyRank
-
-      case WsProtocol.GridSyncState(d) =>
-        justSynced = true
-        gridStateWithoutBullet = Some(d)
-
-
-
-      case WsProtocol.GridSyncAllState(gridState) =>
-        println(s"已同步游戏中所有数据，进行渲染，${gridState}")
-        justSynced = true
-        gridAllState = Some(gridState)
-        setGameState(Constants.GameState.play)
-
-      case t:WsProtocol.TankAttacked =>
-//        grid.attackTankCallBack(bId,null)
-        //移除子弹并且进行血量计算
-        grid.recvTankAttacked(t)
-
-
-      case t:WsProtocol.ObstacleAttacked =>
-        //移除子弹并且进行血量计算
-        grid.recvObstacleAttacked(t)
-
-      case t:WsProtocol.AddObstacle =>
-        grid.recvAddObstacle(t)
-
-
-
-      case t:WsProtocol.TankEatProp =>
-        grid.recvTankEatProp(t)
-
-      case t:WsProtocol.AddProp =>
-        grid.recvAddProp(t)
-
-      case WsProtocol.TankLaunchBullet(frame,bullet) =>
-//        println(s"recv msg:${e.data.toString}")
-        grid.addBullet(frame,new BulletClientImpl(bullet))
-//
-      case  _ => println(s"接收到无效消息ss")
-
-
+      case unknow =>
+        println(s"recv unknow msg:${unknow}")
     }
+//    decode[WsProtocol.WsMsgServer](e.data.toString).right.get match {
+//      case WsProtocol.YourInfo(uId,tankId) =>
+//        myId = uId
+//        myTankId = tankId
+//
+//
+//      case WsProtocol.UserEnterRoom(userId,name,tank) =>
+//        if(myId != userId){
+//          grid.playerJoin(tank)
+//        }
+//
+//
+//      case WsProtocol.UserLeftRoom(tankId,name) =>
+//        println(s"玩家=${name} left tankId=${tankId}")
+//        grid.leftGame(tankId)
+//
+//
+//      case WsProtocol.YouAreKilled(tankId,userId) =>
+//        println(s"you are killed")
+//        setGameState(Constants.GameState.stop)
+//
+//      case WsProtocol.TankActionFrameMouse(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+//
+//      case WsProtocol.TankActionFrameKeyDown(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+//      case WsProtocol.TankActionFrameKeyUp(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+//
+//
+//      case WsProtocol.Ranks(currentRank,historyRank) =>
+//        grid.currentRank = currentRank
+//        grid.historyRank = historyRank
+//
+//      case WsProtocol.GridSyncState(d) =>
+//        justSynced = true
+//        gridStateWithoutBullet = Some(d)
+//
+//
+//
+//      case WsProtocol.GridSyncAllState(gridState) =>
+//        println(s"已同步游戏中所有数据，进行渲染，${gridState}")
+//        justSynced = true
+//        gridAllState = Some(gridState)
+//        setGameState(Constants.GameState.play)
+//
+//      case t:WsProtocol.TankAttacked =>
+////        grid.attackTankCallBack(bId,null)
+//        //移除子弹并且进行血量计算
+//        grid.recvTankAttacked(t)
+//
+//
+//      case t:WsProtocol.ObstacleAttacked =>
+//        //移除子弹并且进行血量计算
+//        grid.recvObstacleAttacked(t)
+//
+//      case t:WsProtocol.AddObstacle =>
+//        grid.recvAddObstacle(t)
+//
+//
+//
+//      case t:WsProtocol.TankEatProp =>
+//        grid.recvTankEatProp(t)
+//
+//      case t:WsProtocol.AddProp =>
+//        grid.recvAddProp(t)
+//
+//      case WsProtocol.TankLaunchBullet(frame,bullet) =>
+////        println(s"recv msg:${e.data.toString}")
+//        grid.addBullet(frame,new BulletClientImpl(bullet))
+////
+//      case  _ => println(s"接收到无效消息ss")
+//
+//
+//    }
     e
   }
 

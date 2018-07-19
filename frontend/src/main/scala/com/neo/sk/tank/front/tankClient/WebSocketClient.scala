@@ -1,9 +1,11 @@
 package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.front.common.Routes
+import com.neo.sk.tank.front.utils.byteObject.MiddleBufferInJs
 import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
 import org.scalajs.dom
 import org.scalajs.dom.raw._
+
 
 /**
   * Created by hongruying on 2018/7/9
@@ -29,8 +31,13 @@ class WebSocketClient(
     s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name)}"
   }
 
+  private val sendBuffer:MiddleBufferInJs = new MiddleBufferInJs(2048)
+
   def sendMsg(msg:WsFrontProtocol.WsMsgFront) = {
-    websocketStreamOpt.foreach(_.send(msg.asJson.noSpaces))
+    import com.neo.sk.tank.front.utils.byteObject.ByteObject._
+    websocketStreamOpt.foreach{s =>
+      s.send(msg.fillMiddleBuffer(sendBuffer).result())
+    }
   }
 
 
