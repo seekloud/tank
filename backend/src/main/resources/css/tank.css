@@ -1,0 +1,54 @@
+.input_mask {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    opacity: 0.6;
+    z-index: 99;
+    background: rgb(0, 0, 0);
+}
+
+.input_div {
+    position: fixed;
+    top: 30%;
+    left: 0;
+    right: 0;
+    width: 500px;
+    margin: 0 auto;
+    z-index: 100;
+    padding: 20px 50px;
+}
+
+.input_title{
+    color: white;
+    font-size: 20px;
+    text-align: center;
+}
+
+
+.input_elem {
+    margin-top: 20px;
+}
+
+#TankGameNameInput{
+    width: 336px;
+    height: 43px;
+    line-height: 38.7px;
+    font-size: 38.7px;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-left: 50px;
+    background-color: #f3ebeb;
+    font-family: 'Ubuntu';
+    padding: 0;
+    border: 0;
+    outline: none;
+    color: #332c2c;
+}
+
+.input_button {
+    text-align: center;
+    margin-top: 20px;
+}
+

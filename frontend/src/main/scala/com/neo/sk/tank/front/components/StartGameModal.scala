@@ -35,12 +35,18 @@ class StartGameModal(gameState:Var[Int],startGame:(String) => Unit) extends Comp
     }
   }
 
-  override def render: Elem =
+  override def render: Elem = {
     <div style={divStyle}>
-      <div>{title}</div>
-      <div>{inputElem}</div>
-      <div><button onclick ={() => clickEnter()}>进入</button></div>
-
+      <div class ="input_mask">
+      </div>
+      <div class ="input_div">
+        <div class ="input_title">{title}</div>
+        <div class ="input_elem">{inputElem}</div>
+        <div class ="input_button"><button class ="btn btn-info" onclick ={() => clickEnter()}>进入</button></div>
+      </div>
     </div>
+
+  }
+
 
 }

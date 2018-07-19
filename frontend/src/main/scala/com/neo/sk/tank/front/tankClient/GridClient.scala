@@ -13,7 +13,7 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/7/9
   */
-class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid {
+class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundary:model.Point) extends Grid {
 
 
   override def debug(msg: String): Unit = {}
@@ -261,7 +261,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       val tankCanMove:Boolean = directionOpt.exists(d => t.canMove(d,boundary,quadTree))
       TankClientImpl.drawTank(ctx,t.asInstanceOf[TankClientImpl],curFrame,maxClientFrame,offset,directionOpt,tankCanMove,canvasUnit)
     }
-    TankClientImpl.drawTankInfo(ctx,myName,tankMap(myTankId).asInstanceOf[TankClientImpl],canvasUnit)
+    TankClientImpl.drawTankInfo(ctx,myName,tankMap(myTankId).asInstanceOf[TankClientImpl],canvasBoundary,canvasUnit)
   }
 
   def tankIsLived(tankId:Long):Boolean = tankMap.contains(tankId)
@@ -352,7 +352,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int) extends Grid
       drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, index, currentRankBaseLine)
     }
     ctx.fillStyle =MyColors.rankList
-    ctx.fillRect(1050,0,200,200)
+    ctx.fillRect(canvasBoundary.x*canvasUnit-200,0,200,200)
     val historyRankBaseLine =1
     index = 0
     ctx.fillStyle = MyColors.background

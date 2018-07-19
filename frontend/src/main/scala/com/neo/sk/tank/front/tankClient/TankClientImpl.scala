@@ -125,8 +125,8 @@ object TankClientImpl{
     }
   }
 
-  def drawTankInfo(ctx:dom.CanvasRenderingContext2D,myName:String,tank: TankClientImpl,canvasUnit:Int = 10) = {
-    val basePoint = Point(13 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2)
+  def drawTankInfo(ctx:dom.CanvasRenderingContext2D,myName:String,tank: TankClientImpl,canvasBoundary:model.Point,canvasUnit:Int = 10) = {
+    val basePoint = Point(13 * canvasUnit,canvasBoundary.y * canvasUnit / 1.2)
     val length = 20 * canvasUnit
     val bloodList = List(
       basePoint,
@@ -160,10 +160,10 @@ object TankClientImpl{
     ctx.font = "normal normal 20px 楷体"
     ctx.fillStyle = Color.Black.toString()
     ctx.lineWidth = 1
-    ctx.fillText(s"${myName}",15 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 - 4 * canvasUnit, 40 * canvasUnit)
-    ctx.fillText(s"血量等级",5 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 - canvasUnit,20 * canvasUnit)
-    ctx.fillText(s"速度等级",5 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 1.5 * canvasUnit,20 * canvasUnit)
-    ctx.fillText(s"炮弹等级",5 * canvasUnit,CanvasBoundary.h * canvasUnit / 1.2 + 4.5 * canvasUnit,20 * canvasUnit)
+    ctx.fillText(s"${myName}",15 * canvasUnit,canvasBoundary.y * canvasUnit / 1.2 - 4 * canvasUnit, 40 * canvasUnit)
+    ctx.fillText(s"血量等级",5 * canvasUnit,canvasBoundary.y * canvasUnit / 1.2 - canvasUnit,20 * canvasUnit)
+    ctx.fillText(s"速度等级",5 * canvasUnit,canvasBoundary.y * canvasUnit / 1.2 + 1.5 * canvasUnit,20 * canvasUnit)
+    ctx.fillText(s"炮弹等级",5 * canvasUnit,canvasBoundary.y * canvasUnit / 1.2 + 4.5 * canvasUnit,20 * canvasUnit)
     ctx.closePath()
 
   }

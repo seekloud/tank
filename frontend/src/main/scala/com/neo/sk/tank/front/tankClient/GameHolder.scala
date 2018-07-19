@@ -19,6 +19,7 @@ import org.scalajs.dom.raw.{Event, FileReader, MessageEvent, MouseEvent}
 import scala.collection.mutable
 import scala.scalajs.js.typedarray.ArrayBuffer
 import scala.xml.Elem
+import org.scalajs.dom
 
 /**
   * Created by hongruying on 2018/7/9
@@ -32,15 +33,18 @@ class GameHolder(canvasName:String) {
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
   private[this] val bounds = Point(ptcl.model.Boundary.w,ptcl.model.Boundary.h)
-  private[this] val canvasBounds = ptcl.model.CanvasBoundary.getBoundary
+
+
   private[this] val canvasUnit = 10
-  private[this] val canvasBoundary = canvasBounds * canvasUnit
+  private[this] val canvasBoundary = ptcl.model.Point(dom.window.innerWidth,dom.window.innerHeight)
+
+  private[this] val canvasBounds = canvasBoundary / canvasUnit
 
   private[this] var myId = -1L
   private[this] var myTankId = -1L
   private[this] var myName = ""
 
-  private[this] val grid = new GridClient(bounds,canvasUnit:Int)
+  private[this] val grid = new GridClient(bounds,canvasUnit,canvasBounds)
 
   private[this] var firstCome = true
   private[this] var justSyncedFromServer = false

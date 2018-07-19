@@ -155,7 +155,12 @@ trait Tank extends CircleObjectOfGame {
 
   def eatProp(p:Prop):Unit = {
     p.getPropState.t match {
-      case 1 => if(bloodLevel < 3) bloodLevel += 1
+      case 1 =>
+        if(bloodLevel < 3){
+          val diff = model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel) - blood
+          bloodLevel += 1
+          blood = model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel) - diff
+        }
       case 2 => if(speedLevel < 3) speedLevel += 1
       case 3 => if(bulletPowerLevel < 3) bulletPowerLevel += 1
       case 4 =>
