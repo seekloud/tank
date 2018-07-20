@@ -31,11 +31,12 @@ class TankClientImpl(
                       override protected val tankColorType: Int,
                       override val name: String,
                       override var killTankNum: Int,
-                      override var damageTank: Int
+                      override var damageTank: Int,
+                      override var invincible:Boolean
                     ) extends Tank{
 
   def this(tankState:TankState) = {
-    this(tankState.userId,tankState.tankId,tankState.blood,tankState.bloodLevel,tankState.bulletPowerLevel,tankState.curBulletNum,tankState.direction,tankState.gunDirection,tankState.position,tankState.speedLevel,tankState.tankColorType,tankState.name,tankState.killTankNum,tankState.damageTank)
+    this(tankState.userId,tankState.tankId,tankState.blood,tankState.bloodLevel,tankState.bulletPowerLevel,tankState.curBulletNum,tankState.direction,tankState.gunDirection,tankState.position,tankState.speedLevel,tankState.tankColorType,tankState.name,tankState.killTankNum,tankState.damageTank,tankState.invincible)
   }
 
   override protected def startFillBullet(): Unit = {}
@@ -102,6 +103,14 @@ object TankClientImpl{
     ctx.lineWidth = 3
     ctx.stroke()
     ctx.closePath()
+    if(tank.invincible == true) {
+
+      ctx.beginPath()
+      ctx.fillStyle = "rgba(128, 100, 162, 0.2)"
+      ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.invincibleSize.r * canvasUnit, 0, 360)
+      ctx.fill()
+      ctx.closePath()
+    }
     ctx.beginPath()
     ctx.arc((position.x + offset.x) * canvasUnit,(position.y + offset.y)*canvasUnit,model.TankParameters.TankSize.r * canvasUnit ,0, 360)
     ctx.fillStyle = tank.getColor()

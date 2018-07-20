@@ -41,6 +41,8 @@ object RoomActor {
 
   case class TankFillABullet(tId:Long) extends Command
 
+  case class TankInvincible(tId:Long)extends  Command
+
 
 
   final case class SwitchBehavior(
@@ -133,6 +135,11 @@ object RoomActor {
 
         case TankFillABullet(tId) =>
           grid.tankFillABullet(tId)
+          Behaviors.same
+
+        case TankInvincible(tId) =>
+          grid.tankInvincible(tId)
+          dispatch(subscribersMap)(WsProtocol.TankInvincible(grid.systemFrame,tId))
           Behaviors.same
 
         case _ =>
