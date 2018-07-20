@@ -415,9 +415,18 @@ package object model {
     val r = 1
   }
 
+//  object invincibleSize{
+//    val r = 8
+//  }
+
 
 
   object TankParameters{
+
+
+    object invincibleSize{
+      val r = 5.5
+    }
 
     object TankColor{
       val blue = "#1E90FF"
@@ -491,6 +500,8 @@ package object model {
     final val tankBulletMaxCapacity = 4
 
     final val tankFillBulletSpeed = 1 // 1发/1s
+
+    final val tankInvincibleTime = 5
 
     object TankBulletBulletPowerLevel{
 
