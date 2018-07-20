@@ -123,6 +123,16 @@ object TankClientImpl{
       ctx.stroke()
       ctx.closePath()
     }
+    ctx.beginPath()
+    val namePosition = (position + Point(0,5) + offset) * canvasUnit
+    ctx.fillStyle = "#006699"
+    ctx.textAlign = "center"
+    ctx.font = "normal normal 20px 楷体"
+    ctx.lineWidth = 2
+    ctx.fillText(s"${tank.name}",namePosition.x,namePosition.y,20 * canvasUnit)
+    ctx.closePath()
+
+
   }
 
   def drawTankInfo(ctx:dom.CanvasRenderingContext2D,myName:String,tank: TankClientImpl,canvasBoundary:model.Point,canvasUnit:Int = 10) = {
