@@ -246,7 +246,8 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
 //    println(s"curFrame=${curFrame},offset=${offset}")
     drawBackground(ctx,offset,canvasBoundary)
     bulletMap.values.foreach{ b =>
-      BulletClientImpl.drawBullet(ctx,canvasUnit,b.asInstanceOf[BulletClientImpl],curFrame,offset)
+      val bulletPowerLevel = TankClientImpl.getBulletPowerLevel(tankMap(b.tankId).asInstanceOf[TankClientImpl])
+      BulletClientImpl.drawBullet(ctx,canvasUnit,b.asInstanceOf[BulletClientImpl],bulletPowerLevel,curFrame,offset)
     }
     tankMap.values.foreach{ t =>
       var moveSet:Set[Int] = tankMoveAction.getOrElse(t.tankId,mutable.HashSet[Int]()).toSet
