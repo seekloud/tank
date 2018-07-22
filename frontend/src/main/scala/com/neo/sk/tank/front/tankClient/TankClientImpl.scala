@@ -219,5 +219,9 @@ object TankClientImpl{
     )
   }
 
+  def getBulletPowerLevel(tank:TankClientImpl) = {
+    tank.bulletPowerLevel
+  }
+
 
 }
