@@ -497,7 +497,7 @@ package object model {
       val h = 5
     }
 
-    final val tankBulletMaxCapacity = 100
+    final val tankBulletMaxCapacity = 10
 
     final val tankFillBulletSpeed = 1 // 1发/1s
 
@@ -537,7 +537,7 @@ package object model {
 
     object AirDropBoxParameters{
       val blood = 100
-      val num = 15
+      val num = 5
     }
 
     val border = 5
@@ -545,7 +545,7 @@ package object model {
 
     object BrickDropBoxParameters{
       val blood = 100
-      val num = 30
+      val num = 5
     }
   }
 
