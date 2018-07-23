@@ -9,8 +9,17 @@ import com.neo.sk.tank.shared.ptcl.model.{Point, Score}
 import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
 import com.neo.sk.tank.shared.ptcl.tank._
 import org.slf4j.Logger
-
+import com.neo.sk.tank.Boot.{executor, scheduler}
+import concurrent.duration._
+import com.neo.sk.tank.core.RoomActor
 import scala.util.Random
+import akka.actor.typed.ActorRef
+import com.neo.sk.tank.core.RoomActor
+import com.neo.sk.tank.shared.ptcl.model
+import com.neo.sk.tank.shared.ptcl.tank.Tank
+import com.neo.sk.tank.Boot.{executor, scheduler}
+import com.neo.sk.tank.shared.ptcl
+import com.neo.sk.tank.shared.ptcl.model.Point
 
 /**
   * Created by hongruying on 2018/7/10
@@ -94,6 +103,10 @@ class GridServerImpl(
       u._3 ! UserActor.JoinRoomSuccess(tank)
       tankMap.put(tank.tankId,tank)
       quadTree.insert(tank)
+      scheduler.scheduleOnce(ptcl.model.TankParameters.tankInvincibleTime.second){
+        ctx.self!RoomActor.TankInvincible(tank.tankId)
+
+      }
     }
   }
 
@@ -117,6 +130,13 @@ class GridServerImpl(
   def tankFillABullet(tankId:Long):Unit = {
     tankMap.get(tankId) match {
       case Some(tank) => tank.fillABullet()
+      case None =>
+    }
+  }
+
+  def tankInvincible(tankId:Long):Unit ={
+    tankMap.get(tankId)match{
+      case Some(tank) =>tank.isInvincibleTime()
       case None =>
     }
   }

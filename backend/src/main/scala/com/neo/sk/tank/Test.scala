@@ -1,6 +1,6 @@
 package com.neo.sk.tank
 
-import com.neo.sk.tank.shared.ptcl.tank.{Obstacle, QuadTree}
+import com.neo.sk.tank.shared.ptcl.tank.QuadTree
 import com.neo.sk.tank.shared.ptcl.model
 import com.neo.sk.tank.core.tank.{BrickServerImpl, TankServerImpl}
 

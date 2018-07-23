@@ -40,9 +40,14 @@ class BulletClientImpl(
 }
 
 object BulletClientImpl{
-  def drawBullet(ctx:dom.CanvasRenderingContext2D,canvasUnit:Int,bullet:BulletClientImpl,curFrame:Int,offset:Point) = {
+  def drawBullet(ctx:dom.CanvasRenderingContext2D,canvasUnit:Int,bullet:BulletClientImpl,bulletPowerLevel:Int,curFrame:Int,offset:Point) = {
     val position = bullet.getPositionCurFrame(curFrame)
-    ctx.fillStyle = Color.Red.toString()
+    val color = bulletPowerLevel match {
+      case 1 => "#CD6600"
+      case 2 => "#FF4500"
+      case 3 => "#8B2323"
+    }
+    ctx.fillStyle = color.toString()
     ctx.beginPath()
     ctx.arc((position.x  + offset.x) * canvasUnit,(position.y  + offset.y)*canvasUnit,model.BulletSize.r*canvasUnit,0, 360)
     ctx.fill()
