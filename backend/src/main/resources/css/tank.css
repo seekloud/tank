@@ -22,7 +22,7 @@
 
 .input_title{
     color: white;
-    font-size: 20px;
+    font-size: 18px;
     text-align: center;
 }
 
@@ -32,7 +32,7 @@
 }
 
 #TankGameNameInput{
-    width: 336px;
+    width: 307px;
     height: 43px;
     line-height: 38.7px;
     font-size: 38.7px;
@@ -45,6 +45,7 @@
     border: 0;
     outline: none;
     color: #332c2c;
+
 }
 
 .input_button {
