@@ -44,9 +44,12 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
 //    super.update()
     updateBullet()
 
-//    println("--------------------")
-//    println(systemFrame)
-//    println(d.f)
+    if(d.f - 1 != systemFrame){
+      println("-------------------")
+      println(s"server sync frame=${d.f}, systemFrame=${systemFrame}")
+      println("+++++++++++++++++++")
+
+    }
     quadTree.clear()
     bulletMap.foreach(t => quadTree.insert(t._2))
     systemFrame = d.f

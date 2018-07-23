@@ -373,8 +373,19 @@ class GameHolder(canvasName:String) {
     }
   }
 
+//  var tickCount = 0L
+//  var testStartTime = System.currentTimeMillis()
+//  var testEndTime = System.currentTimeMillis()
+
   def gameLoop():Unit = {
 //    ln(s"----${System.currentTimeMillis()}")
+//    tickCount += 1
+//    val startTime = System.currentTimeMillis()
+//    if(tickCount % 100 == 0){
+//      testEndTime = System.currentTimeMillis()
+//      println(s"user Time = ${testEndTime - testStartTime}")
+//      testStartTime = testEndTime
+//    }
     gameState match {
       case Constants.GameState.loadingPlay =>
         println(s"等待同步数据")
@@ -402,6 +413,10 @@ class GameHolder(canvasName:String) {
         clientFrame = clientFrame % maxClientFrameDrawForSystemFrame
         val x = System.currentTimeMillis()
         drawGame(clientFrame,maxClientFrameDrawForSystemFrame)
+//        if(tickCount % 100 == 0){
+//          val end = System.currentTimeMillis()
+//          println(s"cur Frame=${grid.systemFrame} use time=${end-startTime}")
+//        }
 //        if(grid.systemFrame % 10 == 0)
 //          println(s"${grid.systemFrame} 动画 ${System.currentTimeMillis() - x}")
 
