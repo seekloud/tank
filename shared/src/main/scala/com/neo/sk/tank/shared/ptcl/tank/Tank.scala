@@ -7,7 +7,7 @@ import com.neo.sk.tank.shared.ptcl.model.{Point, Rectangle}
   * 游戏中的坦克
   */
 case class TankState(userId:Long,tankId:Long,direction:Double,gunDirection:Double,blood:Int,bloodLevel:Int,speedLevel:Int,curBulletNum:Int,position:Point,bulletPowerLevel:Int,tankColorType:Int,
-                     name:String,killTankNum:Int,damageTank:Int)
+                     name:String,killTankNum:Int,damageTank:Int,invincible:Boolean)
 
 trait Tank extends CircleObjectOfGame {
 
@@ -40,6 +40,8 @@ trait Tank extends CircleObjectOfGame {
   protected var bulletPowerLevel:Int //子弹等级
 
   protected val tankColorType:Int
+
+  protected var invincible:Boolean
 
   private var isFillingBullet:Boolean = false
 
@@ -78,9 +80,13 @@ trait Tank extends CircleObjectOfGame {
     }
   }
 
+  def isInvincibleTime():Unit ={
+    invincible = false
+  }
+
   // 获取坦克状态
   def getTankState():TankState = {
-    TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position,bulletPowerLevel,tankColorType,name,killTankNum,damageTank)
+    TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position,bulletPowerLevel,tankColorType,name,killTankNum,damageTank,invincible)
   }
 
   //  开始填充炮弹
@@ -101,8 +107,10 @@ trait Tank extends CircleObjectOfGame {
 
   //todo
   def attackedBullet(bullet: Bullet,destroy:(Bullet,Tank) => Unit):Unit = {
-    this.blood -= bullet.damage
-    if(!isLived()) destroy(bullet,this)
+    if(invincible == false) {
+      this.blood -= bullet.damage
+      if (!isLived()) destroy(bullet, this)
+    }
   }
 
 
@@ -150,6 +158,7 @@ trait Tank extends CircleObjectOfGame {
 
 
   def attackedDamage(d:Int):Unit = {
+    if(invincible == false)
     blood -= d
   }
 

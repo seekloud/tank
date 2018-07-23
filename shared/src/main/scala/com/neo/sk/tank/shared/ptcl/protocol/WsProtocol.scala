@@ -49,6 +49,8 @@ object WsProtocol {
 
   case class TankLaunchBullet(f:Long,bullet:BulletState) extends WsMsgServer
 
+  case class TankInvincible(f:Long,tId:Long) extends WsMsgServer
+
 
 //  case class DirectionAction
 
