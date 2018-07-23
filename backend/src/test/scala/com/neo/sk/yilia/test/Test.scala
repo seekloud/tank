@@ -6,15 +6,18 @@ import akka.actor.ActorSystem
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.dispatch.MessageDispatcher
+import akka.shapeless.HNil
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import org.slf4j.LoggerFactory
+
 import concurrent.duration._
 import scala.concurrent.Future
 import concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.FiniteDuration
-
 import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
+import shapeless.labelled.FieldType
+import shapeless.{::, HList, LabelledGeneric, Lazy, Witness}
 
 /**
   * Created by hongruying on 2018/3/11
@@ -102,75 +105,125 @@ object Test {
       }
     }
 
+//  sealed trait JsonValue
+//  case class JsonObject(fields:List[(String,JsonValue)]) extends JsonValue
+//  case class JsonArray(items: List[JsonValue]) extends JsonValue
+//  case class JsonString(value:String) extends JsonValue
+//  case class JsonNumber(value:Double) extends JsonValue
+//  case class JsonBoolean(value:Boolean) extends JsonValue
+//  case object JsonNull extends JsonValue
+//
+//
+//  trait JsonEncoder[A]{
+//    def encode(value:A):JsonValue
+//  }
+//
+//  object JsonEncoder {
+//    def apply[A](implicit enc:JsonEncoder[A]): JsonEncoder[A] = enc
+//
+//    def createEncoder[A](func: A => JsonValue) : JsonEncoder[A] = new JsonEncoder[A] {
+//      def encode(value:A):JsonValue = func(value)
+//    }
+//
+//
+//    implicit val stringEncoder: JsonEncoder[String] = createEncoder(str => JsonString(str))
+//    implicit val doubleEncoder: JsonEncoder[Double] = createEncoder(d => JsonNumber(d))
+//    implicit val intEncoder: JsonEncoder[Int] = createEncoder(num => JsonNumber(num))
+//    implicit val booleanEncoder: JsonEncoder[Boolean] = createEncoder(b => JsonBoolean(b))
+//
+//    implicit def listEncoder[A](implicit enc: JsonEncoder[A]):JsonEncoder[List[A]] = {
+//      createEncoder(list => JsonArray(list.map(enc.encode)))
+//    }
+//
+//    implicit def optionEncoder[A](implicit enc: JsonEncoder[A]):JsonEncoder[Option[A]] = {
+//      createEncoder(opt => opt.map(enc.encode).getOrElse(JsonNull))
+//    }
+//  }
+//
+//  case class IceCream(name:String,num:Int,c:Boolean)
+//
+//  trait JsonObjectEncoder[A] extends JsonEncoder[A]{
+//    def encode(value:A):JsonObject
+//  }
+//
+//  def createObjectEncoder[A](fn:A => JsonObject):JsonObjectEncoder[A] =
+//    new JsonObjectEncoder[A] {
+//      override def encode(value: A): JsonObject = fn(value)
+//    }
+//
+//  implicit val hnilEncoder:JsonObjectEncoder[HNil] = createObjectEncoder(t => JsonObject(Nil))
+//
+//
+//  implicit def hlistObjectEncoder[K <: Symbol,H, T <: HList](
+//                                                implicit
+//                                                witness:Witness.Aux[K],
+//                                                hEncoder:Lazy[JsonEncoder[H]],
+//                                                tEncoder:JsonObjectEncoder[T]
+//                                                ):JsonObjectEncoder[FieldType[K,H] :: T] = {
+//    val fieldName = witness.value.name
+//    createObjectEncoder{ hList =>
+//      val head = hEncoder.value.encode(hList.head)
+//      val tail = tEncoder.encode(hList.tail)
+//
+//      JsonObject((fieldName,head) :: tail.fields)
+//    }
+//  }
+//
+//  implicit def hlistObjectEncoder22[H, T <: HList](
+//                                                              implicit
+//                                                              hEncoder:JsonEncoder[H],
+//                                                              tEncoder:JsonObjectEncoder[T]
+//                                                            ):JsonObjectEncoder[H :: T] = {
+//    createObjectEncoder{ hList =>
+//      val head = hEncoder.encode(hList.head)
+//      val tail = tEncoder.encode(hList.tail)
+//
+//      JsonObject(("",head) :: tail.fields)
+//    }
+//  }
+//
+//  import JsonEncoder._
+//
+//  implicit def genericObjectEncoder[A,H](
+//                                        implicit
+//                                        generic:LabelledGeneric.Aux[A,H],
+//                                        hEncoder:Lazy[JsonObjectEncoder[H]]
+//                                        ):JsonEncoder[A] = {
+//    createObjectEncoder{ value =>
+//      hEncoder.value.encode(generic.to(value))
+//    }
+//  }
+//
+//  val iceCream = IceCream("11",1,true)
+//
+//  import io.circe.Encoder
+//
+//  val gen = LabelledGeneric[IceCream]
+//
+//
+// type XXX = Int :: HNil
+//  println(JsonEncoder[Int :: HNil](hlistObjectEncoder22(intEncoder,hnilEncoder)))
+//  val x = JsonEncoder[IceCream].encode(iceCream)
+//  println(x)
+//
+
+
+
 
   def main(args: Array[String]): Unit = {
-    import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
-    import akka.actor.typed.scaladsl.adapter._
-    //
-        implicit val system = ActorSystem("mySystem")
-        // the executor should not be the default dispatcher.
-//        implicit val executor: MessageDispatcher =
-//        system.dispatchers.lookup("akka.actor.my-blocking-dispatcher")
-
-        implicit val materializer = ActorMaterializer()
-
-    import akka.actor.typed.ActorRef
-    import akka.stream.OverflowStrategy
-    import akka.stream.scaladsl.{ Sink, Source }
-    import akka.stream.typed.scaladsl.ActorSource
-
-    trait Protocol
-    case class Message(msg: String) extends Protocol
-    case object Complete extends Protocol
-    case class Fail(ex: Exception) extends Protocol
-
-    val source: Source[Protocol, ActorRef[Protocol]] = ActorSource.actorRef[Protocol](
-      completionMatcher = {
-        case Complete ⇒
-      },
-      failureMatcher = {
-        case Fail(ex) ⇒ ex
-      },
-      bufferSize = 8,
-      overflowStrategy = OverflowStrategy.fail
-    )
-
-    val ref = source.collect {
-      case Message(msg) ⇒ msg
-    }.to(Sink.foreach(println)).run()
-
-    ref ! Message("111")
-//    ref ! Fail(new Exception("sss"))
 
 
-//    val json = foo.asJson.noSpaces
-//    println(json)
-
-//    val decodedFoo = decode[WsProtocol.WsMsgServer](json)
-//    println(decodedFoo)
-
+//    val iceJson:JsonValue = JsonObject(List(
+//      ("name",JsonString("xxx")),
+//      ("num",JsonNumber(1)),
+//      ("c",JsonBoolean(true))
+//    ))
 //
-//
-//    implicit val scheduler = system.scheduler
-//
-//    implicit val timeout:Timeout = Timeout(20 seconds) // for actor asks
-//
-//    val actor = system.spawn(create(),"test")
-//
-//    actor ! Hello(id = autoLonger.getAndIncrement())
-//    actor ! Hello(id = autoLonger.getAndIncrement())
-//    actor ! Hello(id = autoLonger.getAndIncrement())
-//    actor ! SwitchBehavior("idle",idle())
-//    actor ! Hello(id = autoLonger.getAndIncrement())
-//    actor ! Hello(id = autoLonger.getAndIncrement())
+//    import shapeless.LabelledGeneric
+//    import JsonEncoder._
 
 
 
-//    val xxx = Future.sequence(List(Future{Thread.sleep(2000);println("sssss")},Future{Thread.sleep(1000);println("------")})).onComplete{
-//      _ =>
-//      println("end")
-//    }
-//    Thread.sleep(100000)
 
   }
 
