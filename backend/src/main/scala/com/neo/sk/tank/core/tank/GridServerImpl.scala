@@ -102,10 +102,12 @@ class GridServerImpl(
     val position = genTankPositionRandom()
     var n = new TankServerImpl(ctx.self,uId,tId,name,position)
     val tankRec = n.getObjectRect()
-    val objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
+    var objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
     while (n.isIntersectsObject(objects)){
       val position = genTankPositionRandom()
       n = new TankServerImpl(ctx.self,uId,tId,name,position)
+      objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
+
     }
     n
   }
@@ -167,10 +169,11 @@ class GridServerImpl(
     val bId = obstacleIdGenerator.getAndIncrement()
     val position = genObstaclePositionRandom()
     var n = new AirDropBoxImpl(bId,position)
-    val objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle] || t.isInstanceOf[Prop])
+    var objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle] || t.isInstanceOf[Prop])
     while (n.isIntersectsObject(objects)){
       val position = genTankPositionRandom()
       n = new AirDropBoxImpl(bId,position)
+      objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Prop] || t.isInstanceOf[Obstacle])
     }
     n
   }
@@ -179,11 +182,13 @@ class GridServerImpl(
     val bId = obstacleIdGenerator.getAndIncrement()
     val position = genObstaclePositionRandom()
     var n = new BrickServerImpl(bId,position)
-    val objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Prop] || t.isInstanceOf[Obstacle])
+    var objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Prop] || t.isInstanceOf[Obstacle])
     while (n.isIntersectsObject(objects)){
       val position = genTankPositionRandom()
       n = new BrickServerImpl(bId,position)
+      objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Prop] || t.isInstanceOf[Obstacle])
     }
+
     n
   }
 

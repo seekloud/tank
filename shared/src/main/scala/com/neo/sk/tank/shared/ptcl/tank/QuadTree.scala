@@ -207,6 +207,24 @@ class QuadTree(bounds:model.Rectangle,level :Int = 0) {
     this.children = Nil
   }
 
+  def contain(o:ObjectOfGame):Boolean = {
+    if(this.objects.exists(_.eq(o))) true
+    else if(this.children.nonEmpty){
+      this.children.exists(_.contain(o))
+    }else false
+  }
+
+
+  def getPath(o:ObjectOfGame):List[Int] = {
+    if(this.children.nonEmpty){
+      getIndex(o) match {
+        case Some(x) => this.children(x).getPath(o) ::: List(x)
+        case None => List(-1)
+      }
+    }else List(-1)
+
+  }
+
 
 
 

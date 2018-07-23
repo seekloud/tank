@@ -114,6 +114,8 @@ object RoomActor {
           idle(justJoinUser.filter(_._1 != uid),subscribersMap,grid,tickCount)
 
         case GameLoop =>
+          val startTime = System.currentTimeMillis()
+
           grid.update()
 
           if (tickCount % 20 == 5) {
@@ -129,9 +131,14 @@ object RoomActor {
           justJoinUser.foreach{t =>
             dispatchTo(subscribersMap)(t._1,WsProtocol.GridSyncAllState(gridState))
           }
+          val endTime = System.currentTimeMillis()
+          if(tickCount % 100 == 2){
+            log.debug(s"${ctx.self.path} curFrame=${grid.systemFrame} use time=${endTime-startTime}")
+          }
           idle(Nil,subscribersMap,grid,tickCount+1)
 
         case TankFillABullet(tId) =>
+//          log.debug(s"${ctx.self.path} recv a msg=${msg}")
           grid.tankFillABullet(tId)
           Behaviors.same
 
