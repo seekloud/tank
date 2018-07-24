@@ -392,6 +392,11 @@ package object model {
     def getBoundary:Point = Point(w,h)
   }
 
+  object LittleMap {
+    val w = 10
+    val h = 5
+  }
+
   object CanvasBoundary{
     val w = 120
     val h = 60
