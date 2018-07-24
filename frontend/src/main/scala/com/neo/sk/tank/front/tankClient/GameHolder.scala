@@ -7,13 +7,12 @@ import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.ptcl
 import com.neo.sk.tank.shared.ptcl.model.{Boundary, ObstacleParameters, Point}
 import com.neo.sk.tank.shared.ptcl.protocol._
-import com.neo.sk.tank.shared.ptcl.tank.{GridState, GridStateWithoutBullet}
+import com.neo.sk.tank.shared.ptcl.tank.{GridState, GridStateWithoutBullet, Prop, TankState}
 import mhtml.Var
-import com.neo.sk.tank.shared.ptcl.tank.Prop
 import org.scalajs.dom
 import org.scalajs.dom.Blob
 import org.scalajs.dom.ext.{Color, KeyCode}
-import org.scalajs.dom.html.Canvas
+import org.scalajs.dom.html.{Canvas, Image}
 import org.scalajs.dom.raw.{Event, FileReader, MessageEvent, MouseEvent}
 
 import scala.collection.mutable
@@ -33,6 +32,8 @@ class GameHolder(canvasName:String) {
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
   private[this] val bounds = Point(ptcl.model.Boundary.w,ptcl.model.Boundary.h)
+
+  private[this] val SmallMap = Point(ptcl.model.LittleMap.w,ptcl.model.LittleMap.h)
 
 
   private[this] val canvasUnit = 10
@@ -462,6 +463,29 @@ class GameHolder(canvasName:String) {
     ctx.font = "36px Helvetica"
     ctx.fillText("您已经死亡", 150, 180)
     println()
+  }
+  object color{
+    val mapColor = "rgb(41,238,238)"
+  }
+
+//  private val myHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
+
+  def drawSmallMap(myHeader:Point,otherTank:List[TankState]):Unit = {
+    val offX = myHeader.x / bounds.x * SmallMap.x
+    val offY = myHeader.y / bounds.y * SmallMap.y
+    ctx.fillStyle = color.mapColor
+    ctx.fillRect(dom.window.innerWidth * canvasUnit - ptcl.model.LittleMap.w * canvasUnit,dom.window.innerHeight * canvasUnit - ptcl.model.LittleMap.h * canvasUnit,ptcl.model.LittleMap.w * canvasUnit,ptcl.model.LittleMap.h * canvasUnit)
+//    ctx.drawImage(my)
+    otherTank.foreach{ i =>
+      val x = i.position.x / bounds.x * SmallMap.x
+      val y = i.position.y / bounds.x * SmallMap.y
+
+      ctx.fillStyle = i.tankColorType
+      ctx.fillRect(dom.window.innerWidth * canvasUnit - ptcl.model.LittleMap.w * canvasUnit + x *canvasUnit / 2,dom.window.innerHeight * canvasUnit - ptcl.model.LittleMap.h * canvasUnit + y * canvasUnit / 2,canvasUnit / 2, canvasUnit / 2)
+
+    }
+
+
   }
 
 
