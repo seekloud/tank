@@ -462,6 +462,11 @@ class GameHolder(canvasName:String) {
 
 
     grid.draw(ctx,myName,myTankId,curFrame,maxClientFrame,canvasBounds)
+    val tankList =grid.tankMap.values.map(_.getTankState())
+    val otherTank = tankList.filterNot(_.tankId == myTankId)
+
+    val lastHeader = tankList.find(_.tankId == myTankId).map(_.position)
+    drawSmallMap(lastHeader,otherTank.toList)
 
   }
 
@@ -487,14 +492,14 @@ class GameHolder(canvasName:String) {
 //    val offX = myHeader.x / bounds.x * SmallMap.x
 //    val offY = myHeader.y / bounds.y * SmallMap.y
     ctx.fillStyle = color.mapColor
-    ctx.fillRect(dom.window.innerWidth - ptcl.model.LittleMap.w ,dom.window.innerHeight  - ptcl.model.LittleMap.h ,ptcl.model.LittleMap.w ,ptcl.model.LittleMap.h )
+    ctx.fillRect((canvasBounds.x - ptcl.model.LittleMap.w) * canvasUnit,(canvasBounds.y  - ptcl.model.LittleMap.h) * canvasUnit ,ptcl.model.LittleMap.w * canvasUnit ,ptcl.model.LittleMap.h * canvasUnit )
 
     ctx.beginPath()
     ctx.fillStyle = color.myself
     myHeader.foreach{ point=>
       val offX = point.x / bounds.x * SmallMap.x
       val offY = point.y / bounds.y * SmallMap.y
-      ctx.arc(dom.window.innerWidth - ptcl.model.LittleMap.w + offX,dom.window.innerHeight  - ptcl.model.LittleMap.h + offY,2,0,2*Math.PI)
+      ctx.arc((canvasBounds.x - ptcl.model.LittleMap.w + offX) * canvasUnit, (canvasBounds.y  - ptcl.model.LittleMap.h + offY) * canvasUnit, 2 * canvasUnit,0,2*Math.PI)
 
     }
     ctx.fill()
@@ -515,11 +520,7 @@ class GameHolder(canvasName:String) {
 
 
   }
-  val tankList =grid.tankMap.values.map(_.getTankState())
-  val otherTank = tankList.filterNot(_.tankId == myTankId)
 
-  val lastHeader = tankList.find(_.tankId == myTankId).map(_.position)
-  drawSmallMap(lastHeader,otherTank.toList)
 //  val tank =
 //  val otherTank = tank.fil
 //  drawSmallMap(lastHeader,otherTank)
