@@ -44,7 +44,7 @@ class GridServerImpl(
   private val random = new Random(System.currentTimeMillis())
 
 
-  override def tankExecuteLaunchBulletAction(tankId: Long, tank: Tank): Unit = {
+  override def tankExecuteLaunchBulletAction(tankId: Int, tank: Tank): Unit = {
     tank.launchBullet() match {
       case Some((bulletDirection,position,damage)) =>
         val m = ptcl.model.BulletParameters.bulletMomentum.rotate(bulletDirection)
@@ -78,7 +78,7 @@ class GridServerImpl(
     if(!o.isLived()){
       val box = if(o.obstacleType == model.ObstacleParameters.ObstacleType.airDropBox){
         val pId = propIdGenerator.getAndIncrement()
-        val prop = Prop.apply(PropState(pId,random.nextInt(Int.MaxValue)%4+1,o.position))
+        val prop = Prop.apply(PropState(pId,(random.nextInt(Int.MaxValue)%4+1).toByte,o.position))
         propMap.put(pId,prop)
         quadTree.insert(prop)
         dispatch(WsProtocol.AddProp(systemFrame,pId,propMap.get(pId).get.getPropState))
@@ -127,14 +127,14 @@ class GridServerImpl(
 
 
 
-  def tankFillABullet(tankId:Long):Unit = {
+  def tankFillABullet(tankId:Int):Unit = {
     tankMap.get(tankId) match {
       case Some(tank) => tank.fillABullet()
       case None =>
     }
   }
 
-  def tankInvincible(tankId:Long):Unit ={
+  def tankInvincible(tankId:Int):Unit ={
     tankMap.get(tankId)match{
       case Some(tank) =>tank.isInvincibleTime()
       case None =>
@@ -147,8 +147,8 @@ class GridServerImpl(
   }
 
   private def genObstaclePositionRandom():Point = {
-    Point(random.nextInt(boundary.x.toInt - model.ObstacleParameters.border) + model.ObstacleParameters.halfBorder
-      ,random.nextInt(boundary.y.toInt - model.ObstacleParameters.border) + model.ObstacleParameters.halfBorder)
+    Point(random.nextInt(boundary.x.toInt - model.ObstacleParameters.border.toInt) + model.ObstacleParameters.halfBorder
+      ,random.nextInt(boundary.y.toInt - model.ObstacleParameters.border.toInt) + model.ObstacleParameters.halfBorder)
   }
 
 
@@ -170,7 +170,7 @@ class GridServerImpl(
       tankMap.values.map(_.getTankState()).toList,
       propMap.values.map(_.getPropState).toList,
       obstacleMap.values.map(_.getObstacleState()).toList,
-      tankMoveAction = tankMoveAction.toList.flatMap(t => t._2.map(x => (t._1,x)))
+      tankMoveAction = tankMoveAction.toList.map(t => (t._1,t._2.toList))
     )
   }
 
@@ -181,7 +181,7 @@ class GridServerImpl(
       bulletMap.values.map(_.getBulletState()).toList,
       propMap.values.map(_.getPropState).toList,
       obstacleMap.values.map(_.getObstacleState()).toList,
-      tankMoveAction = tankMoveAction.toList.flatMap(t => t._2.map(x => (t._1,x)))
+      tankMoveAction = tankMoveAction.toList.map(t => (t._1,t._2.toList))
     )
   }
 
@@ -229,7 +229,7 @@ class GridServerImpl(
 
   private def dropTankCallBack(bullet:Bullet,tank:Tank):Unit = {
     val pId = propIdGenerator.getAndIncrement()
-    val prop = Prop.apply(PropState(pId,random.nextInt(Int.MaxValue) % 4 + 1,tank.position))
+    val prop = Prop.apply(PropState(pId,(random.nextInt(Int.MaxValue) % 4 + 1).toByte,tank.position))
     propMap.put(pId,prop)
     quadTree.insert(prop)
     dispatch(WsProtocol.AddProp(systemFrame,pId,propMap.get(pId).get.getPropState))

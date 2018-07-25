@@ -16,16 +16,16 @@ package object model {
 
   val random = new Random(System.currentTimeMillis())
 
-  case class Score(id:Long,n:String,k:Int,d:Int,t:Option[Long] =None)
+  case class Score(id:Int,n:String,k:Int,d:Int,t:Option[Long] =None)
 
-  case class Point(x: Double, y: Double){
+  case class Point(x: Float, y: Float){
     def +(other: Point) = Point(x + other.x, y + other.y)
     def -(other: Point) = Point(x - other.x, y - other.y)
     def %(other: Point) = Point(x % other.x, y % other.y)
     def <(other: Point) = x < other.x && y < other.y
     def >(other: Point) = x > other.x && y > other.y
-    def /(value: Double) = Point(x / value, y / value)
-    def *(value: Double) = Point(x * value, y * value)
+    def /(value: Float) = Point(x / value, y / value)
+    def *(value: Float) = Point(x * value, y * value)
     def *(other: Point) = x * other.x + y * other.y
     def length = Math.sqrt(lengthSquared)
     def lengthSquared = x * x + y * y
@@ -37,9 +37,9 @@ package object model {
         y >= min(a.y, b.y) - extra.x &&
         y < max(a.y, b.y) + extra.y
     }
-    def rotate(theta: Double) = {
+    def rotate(theta: Float) = {
       val (cos, sin) = (Math.cos(theta), math.sin(theta))
-      Point(cos * x - sin * y, sin * x + cos * y)
+      Point((cos * x - sin * y).toFloat, (sin * x + cos * y).toFloat)
     }
 
     def getTheta(center:Point):Double = {
@@ -56,8 +56,8 @@ package object model {
   case class Rectangle(topLeft: Point, downRight: Point) extends Shape {
 
     override protected var position: Point = (topLeft + downRight) / 2
-    private val width:Double = math.abs(downRight.x - topLeft.x)
-    private val height:Double = math.abs(downRight.y - topLeft.y)
+    private val width:Float = math.abs(downRight.x - topLeft.x)
+    private val height:Float = math.abs(downRight.y - topLeft.y)
 
 
     override def isIntersects(o: Shape): Boolean = {
@@ -95,7 +95,7 @@ package object model {
     }
   }
 
-  case class Circle(center:Point,r:Double) extends Shape{
+  case class Circle(center:Point,r:Float) extends Shape{
 
     override protected var position: Point = center
 
@@ -373,7 +373,7 @@ package object model {
 //  }
 
   object DirectionType {
-    final val right = 0
+    final val right:Float = 0
     final val upRight = math.Pi / 4 * 7
     final val up = math.Pi / 2 * 3
     final val upLeft = math.Pi / 4 * 5
@@ -442,7 +442,7 @@ package object model {
 
       val gun = "#7A7A7A"
 
-      def getRandomColorType():Int = random.nextInt(tankColorList.size)
+      def getRandomColorType():Byte = random.nextInt(tankColorList.size).toByte
     }
 
 
@@ -451,9 +451,9 @@ package object model {
     val addBlood = 40
 
     object SpeedType {
-      val low = 1
-      val intermediate = 2
-      val high = 3
+      val low:Byte = 1
+      val intermediate:Byte = 2
+      val high:Byte = 3
 
 
       def tankSpeedByType(t:Int):Point = { //每桢移动多少
@@ -470,9 +470,9 @@ package object model {
     final val baseSpeed = 5 //每秒移动距离
 
     object TankBloodLevel{
-      val first = 1
-      val second = 2
-      val third = 3
+      val first:Byte = 1
+      val second:Byte = 2
+      val third:Byte = 3
 
       def getTankBlood(level:Int) :Int  = {
         level match {
@@ -510,9 +510,9 @@ package object model {
 
     object TankBulletBulletPowerLevel{
 
-      val first = 1
-      val second = 2
-      val third = 3
+      val first:Byte = 1
+      val second:Byte = 2
+      val third:Byte = 3
 
 
 
@@ -536,8 +536,8 @@ package object model {
 
   object ObstacleParameters{
     object ObstacleType{
-      val airDropBox = 1
-      val brick = 2
+      val airDropBox:Byte = 1
+      val brick:Byte = 2
     }
 
     object AirDropBoxParameters{
@@ -545,8 +545,8 @@ package object model {
       val num = 5
     }
 
-    val border = 5
-    val halfBorder = 2.5
+    val border:Float = 5f
+    val halfBorder:Float = 2.5f
 
     object BrickDropBoxParameters{
       val blood = 100
@@ -555,9 +555,9 @@ package object model {
   }
 
   object PropParameters{
+    val r:Float = 1.5f
     val l = 3
-    val half = 1.5
-    val r = 1.5
+    val half:Float = 1.5f
   }
 
 

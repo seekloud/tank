@@ -10,8 +10,8 @@ trait RectangleObjectOfGame extends ObjectOfGame{
 
   override var position: model.Point
 
-  protected val width : Double
-  protected val height : Double
+  protected val width : Float
+  protected val height : Float
 
 
   override def getObjectRect(): model.Rectangle = {

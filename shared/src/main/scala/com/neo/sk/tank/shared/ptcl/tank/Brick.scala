@@ -7,9 +7,9 @@ import com.neo.sk.tank.shared.ptcl.model
   */
 trait Brick extends Obstacle{
 
-  override val oId: Long
+  override val oId: Int
 
-  override val obstacleType:Int = model.ObstacleParameters.ObstacleType.brick
+  override val obstacleType:Byte = model.ObstacleParameters.ObstacleType.brick
 
 
 
@@ -23,8 +23,8 @@ trait Brick extends Obstacle{
   val maxBlood:Int = model.ObstacleParameters.BrickDropBoxParameters.blood
 
 
-  override protected val height: Double = model.ObstacleParameters.border
-  override protected val width: Double = model.ObstacleParameters.border
+  override protected val height: Float = model.ObstacleParameters.border
+  override protected val width: Float = model.ObstacleParameters.border
 
 
 

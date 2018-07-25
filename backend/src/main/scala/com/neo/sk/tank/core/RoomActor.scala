@@ -32,16 +32,16 @@ object RoomActor {
 
   case class JoinRoom(uid:Long,name:String,userActor:ActorRef[UserActor.Command]) extends Command
 
-  case class WebSocketMsg(uid:Long,tankId:Long,req:WsFrontProtocol.TankAction) extends Command
+  case class WebSocketMsg(uid:Long,tankId:Int,req:WsFrontProtocol.TankAction) extends Command
 
-  case class LeftRoom(uid:Long,tankId:Long,name:String) extends Command
+  case class LeftRoom(uid:Long,tankId:Int,name:String) extends Command
 
 
   case object GameLoop extends Command
 
-  case class TankFillABullet(tId:Long) extends Command
+  case class TankFillABullet(tId:Int) extends Command
 
-  case class TankInvincible(tId:Long)extends  Command
+  case class TankInvincible(tId:Int)extends  Command
 
 
 
