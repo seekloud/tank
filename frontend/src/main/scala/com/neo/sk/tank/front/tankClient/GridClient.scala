@@ -26,7 +26,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
 
   override def info(msg: String): Unit = println(msg)
 
-  override def tankExecuteLaunchBulletAction(tankId: Long, tank: Tank): Unit = {}
+  override def tankExecuteLaunchBulletAction(tankId: Int, tank: Tank): Unit = {}
 
 
   override protected def tankEatProp(tank:Tank)(prop: Prop):Unit = {}
@@ -88,7 +88,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     }
     d.tankMoveAction.foreach{t =>
       val set = tankMoveAction.getOrElse(t._1,mutable.HashSet[Int]())
-      set.add(t._2)
+      t._2.foreach(set.add)
       tankMoveAction.put(t._1,set)
     }
   }
@@ -127,7 +127,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     }
     d.tankMoveAction.foreach{t =>
       val set = tankMoveAction.getOrElse(t._1,mutable.HashSet[Int]())
-      set.add(t._2)
+      t._2.foreach(set.add)
       tankMoveAction.put(t._1,set)
     }
     d.bullet.foreach{t =>
@@ -145,7 +145,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     }
   }
 
-  def updateTankAttacked(bId:Long,tId:Long,d:Int) = {
+  def updateTankAttacked(bId:Int,tId:Int,d:Int) = {
     bulletMap.get(bId).foreach(b => quadTree.remove(b))
     bulletMap.remove(bId)
 
@@ -169,7 +169,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     }
   }
 
-  def updateObstacleAttacked(bId:Long,oId:Long,d:Int) = {
+  def updateObstacleAttacked(bId:Int,oId:Int,d:Int) = {
     bulletMap.get(bId).foreach(b => quadTree.remove(b))
     bulletMap.remove(bId)
 
@@ -193,7 +193,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     }
   }
 
-  def updateTankEatProp(tId:Long,pId:Long,pType:Int) = {
+  def updateTankEatProp(tId:Int,pId:Int,pType:Byte) = {
     tankMap.get(tId) match {
       case Some(t) =>
         t.eatProp(propMap.get(pId).get)
@@ -235,7 +235,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     quadTree.insert(obstacle)
   }
 
-  def draw(ctx:dom.CanvasRenderingContext2D,myName:String,myTankId:Long,curFrame:Int,maxClientFrame:Int,canvasBoundary:Point) = {
+  def draw(ctx:dom.CanvasRenderingContext2D,myName:String,myTankId:Int,curFrame:Int,maxClientFrame:Int,canvasBoundary:Point) = {
     var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
     val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
     action.map(_._2).foreach{
@@ -247,7 +247,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     val directionOpt = getDirection(moveSet)
     val tankCanMove:Boolean = directionOpt.exists{t =>
       tankMap.get(myTankId) match {
-        case Some(tank) => tank.canMove(t,boundary,quadTree)
+        case Some(tank) => tank.canMove(t.toFloat,boundary,quadTree)
         case None => false
       }
     }
@@ -268,13 +268,13 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
         case _ =>
       }
       val directionOpt = getDirection(moveSet)
-      val tankCanMove:Boolean = directionOpt.exists(d => t.canMove(d,boundary,quadTree))
+      val tankCanMove:Boolean = directionOpt.exists(d => t.canMove(d.toFloat,boundary,quadTree))
       TankClientImpl.drawTank(ctx,t.asInstanceOf[TankClientImpl],curFrame,maxClientFrame,offset,directionOpt,tankCanMove,canvasUnit)
     }
     TankClientImpl.drawTankInfo(ctx,myName,tankMap(myTankId).asInstanceOf[TankClientImpl],canvasBoundary,canvasUnit)
   }
 
-  def tankIsLived(tankId:Long):Boolean = tankMap.contains(tankId)
+  def tankIsLived(tankId:Int):Boolean = tankMap.contains(tankId)
 
   def drawProps(ctx:dom.CanvasRenderingContext2D,offset:Point) = {
     propMap.values.foreach{

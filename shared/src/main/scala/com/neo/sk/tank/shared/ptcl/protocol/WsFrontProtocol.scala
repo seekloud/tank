@@ -13,7 +13,7 @@ object WsFrontProtocol {
 
   final case class PressKeyUp(keyCodeUp:Int) extends TankAction with WsMsgFront
 
-  final case class MouseMove(d:Double) extends TankAction with WsMsgFront
+  final case class MouseMove(d:Float) extends TankAction with WsMsgFront
 
   final case class MouseClick(time:Long) extends TankAction with WsMsgFront
 

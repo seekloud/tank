@@ -7,7 +7,7 @@ import com.neo.sk.tank.shared.ptcl.model
   */
 trait AirDropBox extends Obstacle{
 
-  override val oId: Long
+  override val oId: Int
 
   protected var curBlood :Int //物体血量
 
@@ -21,8 +21,8 @@ trait AirDropBox extends Obstacle{
 
   val maxBlood = model.ObstacleParameters.AirDropBoxParameters.blood
 
-  override protected val height: Double = model.ObstacleParameters.border
-  override protected val width: Double = model.ObstacleParameters.border
+  override protected val height: Float = model.ObstacleParameters.border
+  override protected val width: Float = model.ObstacleParameters.border
 
 
 

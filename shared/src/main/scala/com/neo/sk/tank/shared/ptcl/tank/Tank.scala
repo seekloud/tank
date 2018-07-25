@@ -6,7 +6,7 @@ import com.neo.sk.tank.shared.ptcl.model.{Point, Rectangle}
   * Created by hongruying on 2018/7/8
   * 游戏中的坦克
   */
-case class TankState(userId:Long,tankId:Long,direction:Double,gunDirection:Double,blood:Int,bloodLevel:Int,speedLevel:Int,curBulletNum:Int,position:Point,bulletPowerLevel:Int,tankColorType:Int,
+case class TankState(userId:Long,tankId:Int,direction:Float,gunDirection:Float,blood:Int,bloodLevel:Byte,speedLevel:Byte,curBulletNum:Int,position:Point,bulletPowerLevel:Byte,tankColorType:Byte,
                      name:String,killTankNum:Int,damageTank:Int,invincible:Boolean)
 
 trait Tank extends CircleObjectOfGame {
@@ -15,16 +15,16 @@ trait Tank extends CircleObjectOfGame {
 
   protected val userId:Long
 
-  val tankId:Long
+  val tankId:Int
   val name:String
   var killTankNum:Int
   var damageTank:Int
 
   protected var blood:Int //当前血量
 
-  protected var bloodLevel:Int //血量等级
+  protected var bloodLevel:Byte //血量等级
 
-  protected var speedLevel:Int //移动速度等级
+  protected var speedLevel:Byte //移动速度等级
 
 
 
@@ -33,13 +33,13 @@ trait Tank extends CircleObjectOfGame {
 
   protected var curBulletNum:Int //当前子弹数量
 
-  protected var direction:Double //移动方向
+  protected var direction:Float //移动方向
 
-  protected var gunDirection:Double //
+  protected var gunDirection:Float //
 
-  protected var bulletPowerLevel:Int //子弹等级
+  protected var bulletPowerLevel:Byte //子弹等级
 
-  protected val tankColorType:Int
+  protected val tankColorType:Byte
 
   protected var invincible:Boolean
 
@@ -47,17 +47,17 @@ trait Tank extends CircleObjectOfGame {
 
   protected val bulletMaxCapacity:Int = model.TankParameters.tankBulletMaxCapacity //子弹最大容量
 
-  override val r: Double = model.TankParameters.TankSize.r
+  override val r: Float = model.TankParameters.TankSize.r
 
   def isLived() : Boolean = blood > 0
 
-  def setTankGunDirection(d:Double) = {
+  def setTankGunDirection(d:Float) = {
     gunDirection = d
   }
 
 
 
-  def launchBullet():Option[(Double,Point,Int)] = {
+  def launchBullet():Option[(Float,Point,Int)] = {
     if(curBulletNum > 0){
       curBulletNum = curBulletNum - 1
       if(!isFillingBullet){
@@ -123,7 +123,7 @@ trait Tank extends CircleObjectOfGame {
   }
 
   // 根据方向和地图边界以及地图所有的障碍物和坦克（不包括子弹）进行碰撞检测和移动
-  def move(direction:Double,boundary: Point,quadTree: QuadTree):Unit = {
+  def move(direction:Float,boundary: Point,quadTree: QuadTree):Unit = {
     this.direction = direction
     val originPosition = this.position
     this.position = this.position + model.TankParameters.SpeedType.getMoveByFrame(speedLevel).rotate(direction)
@@ -138,7 +138,7 @@ trait Tank extends CircleObjectOfGame {
     }
   }
 
-  def canMove(direction:Double,boundary:Point,quadTree:QuadTree):Boolean = {
+  def canMove(direction:Float,boundary:Point,quadTree:QuadTree):Boolean = {
     val originPosition = this.position
     this.position = this.position + model.TankParameters.SpeedType.getMoveByFrame(speedLevel).rotate(direction)
     val movedRec = Rectangle(this.position-Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r),this.position+Point(model.TankParameters.TankSize.r,model.TankParameters.TankSize.r))
@@ -167,11 +167,11 @@ trait Tank extends CircleObjectOfGame {
       case 1 =>
         if(bloodLevel < 3){
           val diff = model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel) - blood
-          bloodLevel += 1
+          bloodLevel = (bloodLevel + 1).toByte
           blood = model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel) - diff
         }
-      case 2 => if(speedLevel < 3) speedLevel += 1
-      case 3 => if(bulletPowerLevel < 3) bulletPowerLevel += 1
+      case 2 => if(speedLevel < 3) speedLevel = (speedLevel + 1).toByte
+      case 3 => if(bulletPowerLevel < 3) bulletPowerLevel = (bulletPowerLevel + 1).toByte
       case 4 =>
         blood += model.TankParameters.addBlood
         if(blood > model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)){
