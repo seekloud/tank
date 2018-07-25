@@ -8,6 +8,12 @@ import com.neo.sk.tank.shared.ptcl.protocol.WsFrontProtocol.TankAction
 import com.neo.sk.tank.shared.ptcl.tank._
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
+import mhtml._
+
+import scala.xml.Elem
+import org.scalajs.dom.html.Image
+import org.scalajs.dom
+import org.scalajs.dom.raw.HTMLElement
 
 import scala.collection.mutable
 /**
@@ -273,16 +279,15 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   def drawProps(ctx:dom.CanvasRenderingContext2D,offset:Point) = {
     propMap.values.foreach{
       p=>
-        val color = p.getPropState.t match {
-          case 1 => Color.Red
-          case 2 => Color.Yellow
-          case 3 => Color.Green
-          case 4 => Color.Blue
+        val img = dom.document.createElement("img")
+        val image = p.getPropState.t match {
+          case 1 => img.setAttribute("src","/tank/static/img/xueliang.png")
+          case 2 =>img.setAttribute("src","/tank/static/img/sudu.png")
+          case 3 => img.setAttribute("src","/tank/static/img/qiang.png")
+          case 4 => img.setAttribute("src","/tank/static/img/yiliao.png")
         }
-        ctx.fillStyle = color.toString()
-        ctx.strokeStyle = color.toString()
-        ctx.beginPath()
-        ctx.arc((p.getPropState.p.x + offset.x) * canvasUnit,(p.getPropState.p.y + offset.y) * canvasUnit,model.PropParameters.r * canvasUnit,0,360)
+
+        ctx.drawImage(img.asInstanceOf[HTMLElement], (p.getPropState.p.x + offset.x - model.PropParameters.half ) * canvasUnit, (p.getPropState.p.y + offset.y- model.PropParameters.half ) * canvasUnit, model.PropParameters.l * canvasUnit,model.PropParameters.l * canvasUnit)
         ctx.fill()
         ctx.stroke()
     }

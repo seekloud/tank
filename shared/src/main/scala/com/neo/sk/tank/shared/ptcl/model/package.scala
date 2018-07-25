@@ -555,6 +555,8 @@ package object model {
   }
 
   object PropParameters{
+    val l = 3
+    val half = 1.5
     val r = 1.5
   }
 
