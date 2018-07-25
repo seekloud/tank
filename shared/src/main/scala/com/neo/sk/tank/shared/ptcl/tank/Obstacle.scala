@@ -10,19 +10,19 @@ import com.neo.sk.tank.shared.ptcl.model.Point
   * --todo钢铁（）
   *
   */
-case class ObstacleState(oId:Long,t:Int,b:Option[Int],p:Point)
+case class ObstacleState(oId:Int,t:Byte,b:Option[Int],p:Point)
 
 trait Obstacle extends RectangleObjectOfGame{
 
-  val oId:Long
+  val oId:Int
 
-  val obstacleType:Int
+  val obstacleType:Byte
 
   override var position: model.Point
 
   override def getObjectRect(): model.Rectangle
 
-  def getObstacleType:Int = obstacleType
+  def getObstacleType:Byte = obstacleType
 
   def attacked(bullet: Bullet,destroyCallBack:Obstacle => Unit)
 

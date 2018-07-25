@@ -1,7 +1,7 @@
 package com.neo.sk.tank.shared.ptcl.tank
 
 import java.awt.event.KeyEvent
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
 
 import com.neo.sk.tank.shared.ptcl.model._
 import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
@@ -18,7 +18,7 @@ case class GridStateWithoutBullet(
                                  tanks:List[TankState],
                                  props:List[PropState],
                                  obstacle:List[ObstacleState],
-                                 tankMoveAction:List[(Long,Int)]
+                                 tankMoveAction:List[(Int,List[Int])]
                                  )
 
 case class GridState(
@@ -27,7 +27,7 @@ case class GridState(
                                    bullet:List[BulletState],
                                    props:List[PropState],
                                    obstacle:List[ObstacleState],
-                                   tankMoveAction:List[(Long,Int)]
+                                   tankMoveAction:List[(Int,List[Int])]
                                  )
 
 trait Grid {
@@ -41,41 +41,41 @@ trait Grid {
 
   var currentRank = List.empty[Score]
 
-  var historyRankMap =Map.empty[Long,Score]
+  var historyRankMap =Map.empty[Int,Score]
   var historyRank = historyRankMap.values.toList.sortBy(_.d).reverse
   var historyRankThreshold =if (historyRank.isEmpty)-1 else historyRank.map(_.d).min
   val historyRankLength =5
 
-  val bulletIdGenerator = new AtomicLong(100L)
-  val tankIdGenerator = new AtomicLong(100L)
-  val obstacleIdGenerator = new AtomicLong(100L)
-  val propIdGenerator = new AtomicLong(100L)
+  val bulletIdGenerator = new AtomicInteger(100)
+  val tankIdGenerator = new AtomicInteger(100)
+  val obstacleIdGenerator = new AtomicInteger(100)
+  val propIdGenerator = new AtomicInteger(100)
 
   var systemFrame:Long = 0L //系统帧数
 
-  val tankMap = mutable.HashMap[Long,Tank]() //tankId -> Tank
-  val bulletMap = mutable.HashMap[Long,Bullet]() //bulletId -> Bullet
-  val obstacleMap = mutable.HashMap[Long,Obstacle]() //obstacleId -> Obstacle
-  val propMap = mutable.HashMap[Long,Prop]() //propId -> prop 道具信息
+  val tankMap = mutable.HashMap[Int,Tank]() //tankId -> Tank
+  val bulletMap = mutable.HashMap[Int,Bullet]() //bulletId -> Bullet
+  val obstacleMap = mutable.HashMap[Int,Obstacle]() //obstacleId -> Obstacle
+  val propMap = mutable.HashMap[Int,Prop]() //propId -> prop 道具信息
 
   protected var waitGenBullet:List[(Long,Bullet)] = Nil
 
 
-  val tankMoveAction = mutable.HashMap[Long,mutable.HashSet[Int]]() //tankId -> pressed direction key code
+  val tankMoveAction = mutable.HashMap[Int,mutable.HashSet[Int]]() //tankId -> pressed direction key code
 
-  val tankActionQueueMap = mutable.HashMap[Long,mutable.Queue[(Long,TankAction)]]() //frame -> (tankId,TankAction)
+  val tankActionQueueMap = mutable.HashMap[Long,mutable.Queue[(Int,TankAction)]]() //frame -> (tankId,TankAction)
 
   protected val quadTree : QuadTree = new QuadTree(Rectangle(Point(0,0),boundary)) //四叉树的引用
 
 
 
 
-  def addAction(id:Long,tankAction:TankAction) = {
+  def addAction(id:Int,tankAction:TankAction) = {
     addActionWithFrame(id,tankAction,systemFrame)
   }
 
-  def addActionWithFrame(id: Long, tankAction: TankAction, frame: Long) = {
-    val queue = tankActionQueueMap.getOrElse(frame,mutable.Queue[(Long,TankAction)]())
+  def addActionWithFrame(id: Int, tankAction: TankAction, frame: Long) = {
+    val queue = tankActionQueueMap.getOrElse(frame,mutable.Queue[(Int,TankAction)]())
     queue.enqueue((id,tankAction))
     tankActionQueueMap.put(frame,queue)
   }
@@ -133,8 +133,8 @@ trait Grid {
   def updateTank():Unit = {
 
 
-    val tankList = tankMap.values.toList
-    val obstacleList = obstacleMap.values.toList
+//    val tankList = tankMap.values.toList
+//    val obstacleList = obstacleMap.values.toList
     //坦克移动
     tankMoveAction.foreach{
       case (tankId,actionSet) =>
@@ -143,7 +143,7 @@ trait Grid {
             if(tankMap.contains(tankId)){
               getDirection(actionSet) match {
                 case Some(d) =>
-                  tank.move(d,boundary, quadTree)
+                  tank.move(d.toFloat,boundary, quadTree)
                 case None =>
               }
             }
@@ -165,8 +165,8 @@ trait Grid {
 
   //todo 更新子弹的位置 碰撞检测 如果碰撞到障碍物和坦克，扣血操作等。 并且将waitBullet添加到bulletMap
   def updateBullet():Unit = {
-    val tankList = tankMap.values.toList
-    val obstacleList = obstacleMap.values.toList
+//    val tankList = tankMap.values.toList
+//    val obstacleList = obstacleMap.values.toList
 
     bulletMap.foreach{
       case (bId,bullet) =>
@@ -210,7 +210,7 @@ trait Grid {
 
   // 将本桢接受的所有操作，进行处理，更新坦克的移动操作和坦克炮的方向和开炮操作
   def handleCurFrameTankAction():Unit = {
-    val curActionQueue = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]())
+    val curActionQueue = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Int,TankAction)]())
     while (curActionQueue.nonEmpty){
       val (tankId,action) = curActionQueue.dequeue()
       val tankMoveSet = tankMoveAction.getOrElse(tankId,mutable.HashSet[Int]())
@@ -268,9 +268,9 @@ trait Grid {
 
 
 
-  protected def tankExecuteLaunchBulletAction(tankId:Long,tank:Tank) : Unit
+  protected def tankExecuteLaunchBulletAction(tankId:Int,tank:Tank) : Unit
 
-  def leftGame(tankId:Long):Unit = {
+  def leftGame(tankId:Int):Unit = {
     tankMoveAction.remove(tankId)
     tankMap.get(tankId).foreach(t => quadTree.remove(t))
     tankMap.remove(tankId)

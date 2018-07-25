@@ -12,7 +12,7 @@ import org.scalajs.dom.ext.Color
   * Created by hongruying on 2018/7/10
   */
 class AirDropBoxClientImpl(
-                            override val oId: Long,
+                            override val oId: Int,
                             override protected var curBlood:Int,
                             override var position: model.Point
                           ) extends AirDropBox{

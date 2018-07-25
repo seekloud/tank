@@ -11,8 +11,8 @@ import org.scalajs.dom.ext.Color
   * Created by hongruying on 2018/7/10
   */
 class BulletClientImpl(
-                        override val bId: Long,
-                        override val tankId: Long,
+                        override val bId: Int,
+                        override val tankId: Int,
                         override protected val startPosition: model.Point,
                         override protected val createTime: Long,
                         override val damage: Int,
