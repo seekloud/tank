@@ -35,7 +35,7 @@ class GameHolder(canvasName:String) {
 
   private[this] val SmallMap = Point(ptcl.model.LittleMap.w,ptcl.model.LittleMap.h)
 
-
+//  var lastHeader = Point(bounds.x / 2, bounds.y / 2)
   private[this] val canvasUnit = 10
   private[this] val canvasBoundary = ptcl.model.Point(dom.window.innerWidth.toFloat,dom.window.innerHeight.toFloat)
 
@@ -477,27 +477,52 @@ class GameHolder(canvasName:String) {
   }
   object color{
     val mapColor = "rgb(41,238,238)"
+    val myself = "#000080"
+    val otherTankColor = "#CD5C5C"
   }
 
 //  private val myHeaderImg = dom.document.createElement("img").asInstanceOf[Image]
 
-  def drawSmallMap(myHeader:Point,otherTank:List[TankState]):Unit = {
-    val offX = myHeader.x / bounds.x * SmallMap.x
-    val offY = myHeader.y / bounds.y * SmallMap.y
+  def drawSmallMap(myHeader:Option[Point],otherTank:List[TankState]):Unit = {
+//    val offX = myHeader.x / bounds.x * SmallMap.x
+//    val offY = myHeader.y / bounds.y * SmallMap.y
     ctx.fillStyle = color.mapColor
-    ctx.fillRect(dom.window.innerWidth * canvasUnit - ptcl.model.LittleMap.w * canvasUnit,dom.window.innerHeight * canvasUnit - ptcl.model.LittleMap.h * canvasUnit,ptcl.model.LittleMap.w * canvasUnit,ptcl.model.LittleMap.h * canvasUnit)
-//    ctx.drawImage(my)
+    ctx.fillRect(dom.window.innerWidth - ptcl.model.LittleMap.w ,dom.window.innerHeight  - ptcl.model.LittleMap.h ,ptcl.model.LittleMap.w ,ptcl.model.LittleMap.h )
+
+    ctx.beginPath()
+    ctx.fillStyle = color.myself
+    myHeader.foreach{ point=>
+      val offX = point.x / bounds.x * SmallMap.x
+      val offY = point.y / bounds.y * SmallMap.y
+      ctx.arc(dom.window.innerWidth - ptcl.model.LittleMap.w + offX,dom.window.innerHeight  - ptcl.model.LittleMap.h + offY,2,0,2*Math.PI)
+
+    }
+    ctx.fill()
+    ctx.closePath()
+
+    ctx.beginPath()
+    ctx.fillStyle =color.otherTankColor
     otherTank.foreach{ i =>
       val x = i.position.x / bounds.x * SmallMap.x
       val y = i.position.y / bounds.x * SmallMap.y
 
-      ctx.fillStyle = i.tankColorType
-      ctx.fillRect(dom.window.innerWidth * canvasUnit - ptcl.model.LittleMap.w * canvasUnit + x *canvasUnit / 2,dom.window.innerHeight * canvasUnit - ptcl.model.LittleMap.h * canvasUnit + y * canvasUnit / 2,canvasUnit / 2, canvasUnit / 2)
+//      ctx.fillStyle = i.tankColorType
+      ctx.arc(dom.window.innerWidth - ptcl.model.LittleMap.w + x,dom.window.innerHeight  - ptcl.model.LittleMap.h + y,2,0,2*Math.PI)
 
     }
+    ctx.fill()
+    ctx.closePath()
 
 
   }
+  val tankList =grid.tankMap.values.map(_.getTankState())
+  val otherTank = tankList.filterNot(_.tankId == myTankId)
+
+  val lastHeader = tankList.find(_.tankId == myTankId).map(_.position)
+  drawSmallMap(lastHeader,otherTank.toList)
+//  val tank =
+//  val otherTank = tank.fil
+//  drawSmallMap(lastHeader,otherTank)
 
 
 
