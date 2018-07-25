@@ -7,12 +7,12 @@ import com.neo.sk.tank.shared.ptcl.tank.{Brick, Bullet, ObjectOfGame, Obstacle}
   * Created by hongruying on 2018/7/10
   */
 class BrickServerImpl(
-                 override val oId: Long,
+                 override val oId: Int,
                  override protected var curBlood: Int,
                  override var position: model.Point
                ) extends Brick{
 
-  def this(oId:Long,position:model.Point)= {
+  def this(oId:Int,position:model.Point)= {
     this(
       oId,
       model.ObstacleParameters.AirDropBoxParameters.blood,

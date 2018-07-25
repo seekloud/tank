@@ -19,16 +19,16 @@ import scala.util.Random
   */
 class TankClientImpl(
                       override protected val userId:Long,
-                      override val tankId: Long,
+                      override val tankId: Int,
                       override protected var blood: Int,
-                      override protected var bloodLevel: Int,
-                      override protected var bulletPowerLevel: Int,
+                      override protected var bloodLevel: Byte,
+                      override protected var bulletPowerLevel: Byte,
                       override protected var curBulletNum: Int,
-                      override protected var direction: Double,
-                      override protected var gunDirection: Double,
+                      override protected var direction: Float,
+                      override protected var gunDirection: Float,
                       override var position: model.Point,
-                      override protected var speedLevel: Int,
-                      override protected val tankColorType: Int,
+                      override protected var speedLevel: Byte,
+                      override protected val tankColorType: Byte,
                       override val name: String,
                       override var killTankNum: Int,
                       override var damageTank: Int,
@@ -52,7 +52,7 @@ class TankClientImpl(
   def getPositionCurFrame(curFrame:Int,maxClientFrame:Int,directionOpt:Option[Double],canMove:Boolean):Point = {
    if(directionOpt.nonEmpty && canMove){
       val distance = model.TankParameters.SpeedType.getMoveByFrame(speedLevel) / maxClientFrame * curFrame //每帧移动的距离
-      this.position + distance.rotate(directionOpt.get)
+      this.position + distance.rotate(directionOpt.get.toFloat)
     }else position
   }
 
@@ -68,11 +68,11 @@ class TankClientImpl(
   }
 
   //三个点
-  def getSliderPosition(offset:Int,bloodPercent:Double):List[Point] = {
+  def getSliderPosition(offset:Int,bloodPercent:Float):List[Point] = {
     List(
-       Point(- 0.8 * TankParameters.TankSize.r,- (offset + TankParameters.TankSize.r)),
-       Point(- (1 - bloodPercent * 2) * 0.8 * TankParameters.TankSize.r,- (offset + TankParameters.TankSize.r)),
-       Point(0.8 * TankParameters.TankSize.r,- offset - TankParameters.TankSize.r)
+       Point(- 0.8f * TankParameters.TankSize.r,- (offset + TankParameters.TankSize.r)),
+       Point(- (1 - bloodPercent * 2) * 0.8f * TankParameters.TankSize.r,- (offset + TankParameters.TankSize.r)),
+       Point(0.8f * TankParameters.TankSize.r,- offset - TankParameters.TankSize.r)
     )
   }
 
@@ -93,7 +93,7 @@ object TankClientImpl{
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt,canMove)
 //    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
     val gunPositionList = tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
-    val bloodSliderList = tank.getSliderPosition(3,1.0 * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
+    val bloodSliderList = tank.getSliderPosition(3,1.0f * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
     ctx.beginPath()
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
     gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
@@ -145,27 +145,27 @@ object TankClientImpl{
   }
 
   def drawTankInfo(ctx:dom.CanvasRenderingContext2D,myName:String,tank: TankClientImpl,canvasBoundary:model.Point,canvasUnit:Int = 10) = {
-    val basePoint = Point(13 * canvasUnit,canvasBoundary.y * canvasUnit / 1.2)
+    val basePoint = Point(13 * canvasUnit,canvasBoundary.y * canvasUnit / 1.2f)
     val length = 20 * canvasUnit
     val bloodList = List(
       basePoint,
-      basePoint + Point(length * 1.0 * tank.bloodLevel / TankParameters.TankBloodLevel.third,0),
-      basePoint + Point(length * 1.0,0)
+      basePoint + Point(length * 1.0f * tank.bloodLevel / TankParameters.TankBloodLevel.third,0),
+      basePoint + Point(length * 1.0f,0)
     )
     val speedList = List(
-      basePoint + Point(0,2.5 * canvasUnit),
-      basePoint + Point(length * 1.0 * tank.speedLevel / TankParameters.SpeedType.high,2.5 * canvasUnit),
-      basePoint + Point(length * 1.0,2.5 * canvasUnit)
+      basePoint + Point(0,2.5f * canvasUnit),
+      basePoint + Point(length * 1.0f * tank.speedLevel / TankParameters.SpeedType.high,2.5f * canvasUnit),
+      basePoint + Point(length * 1.0f,2.5f * canvasUnit)
     )
     val bulletPowerList = List(
-      basePoint + Point(0,5.5 * canvasUnit),
-      basePoint + Point(length * 1.0 * tank.bulletPowerLevel / TankParameters.TankBloodLevel.third,5.5 * canvasUnit),
-      basePoint + Point(length * 1.0,5.5 * canvasUnit)
+      basePoint + Point(0,5.5f * canvasUnit),
+      basePoint + Point(length * 1.0f * tank.bulletPowerLevel / TankParameters.TankBloodLevel.third,5.5f * canvasUnit),
+      basePoint + Point(length * 1.0f,5.5f * canvasUnit)
     )
     drawLine(ctx,bloodList)
     drawLine(ctx,speedList)
     drawLine(ctx,bulletPowerList)
-    val breakPointList:List[Point] = BreakPointPosition(basePoint,canvasUnit,length,1.0 / 45)
+    val breakPointList:List[Point] = breakPointPosition(basePoint,canvasUnit,length,1.0f / 45)
     for(i <- Range(0,breakPointList.length - 1,2)){
       ctx.beginPath()
       ctx.strokeStyle = "#8B8682"
@@ -202,20 +202,20 @@ object TankClientImpl{
     }
   }
 
-  def BreakPointPosition(basePoint:Point,canvasUnit:Int,length:Int,ratio:Double) = {
+  def breakPointPosition(basePoint:Point,canvasUnit:Int,length:Int,ratio:Float) = {
     List(
-      basePoint + Point(length * 1.0 / 3 - length * ratio,0),
-      basePoint + Point(length * 1.0 / 3 + length * ratio,0),
-      basePoint + Point(length * 2.0 / 3 - length * ratio,0),
-      basePoint + Point(length * 2.0 / 3 + length * ratio,0),
-      basePoint + Point(length * 1.0 / 3 - length * ratio,2.5  * canvasUnit),
-      basePoint + Point(length * 1.0 / 3 + length * ratio,2.5  * canvasUnit),
-      basePoint + Point(length * 2.0 / 3 - length * ratio,2.5 * canvasUnit),
-      basePoint + Point(length * 2.0 / 3 + length * ratio,2.5  * canvasUnit),
-      basePoint + Point(length * 1.0 / 3 - length * ratio,5.5 * canvasUnit),
-      basePoint + Point(length * 1.0 / 3 + length * ratio,5.5 * canvasUnit),
-      basePoint + Point(length * 2.0 / 3 - length * ratio,5.5 * canvasUnit),
-      basePoint + Point(length * 2.0 / 3 + length * ratio,5.5 * canvasUnit)
+      basePoint + Point(length * 1.0f / 3 - length * ratio,0),
+      basePoint + Point(length * 1.0f / 3 + length * ratio,0),
+      basePoint + Point(length * 2.0f / 3 - length * ratio,0),
+      basePoint + Point(length * 2.0f / 3 + length * ratio,0),
+      basePoint + Point(length * 1.0f / 3 - length * ratio,2.5f  * canvasUnit),
+      basePoint + Point(length * 1.0f / 3 + length * ratio,2.5f  * canvasUnit),
+      basePoint + Point(length * 2.0f / 3 - length * ratio,2.5f * canvasUnit),
+      basePoint + Point(length * 2.0f / 3 + length * ratio,2.5f  * canvasUnit),
+      basePoint + Point(length * 1.0f / 3 - length * ratio,5.5f * canvasUnit),
+      basePoint + Point(length * 1.0f / 3 + length * ratio,5.5f * canvasUnit),
+      basePoint + Point(length * 2.0f / 3 - length * ratio,5.5f * canvasUnit),
+      basePoint + Point(length * 2.0f / 3 + length * ratio,5.5f * canvasUnit)
     )
   }
 

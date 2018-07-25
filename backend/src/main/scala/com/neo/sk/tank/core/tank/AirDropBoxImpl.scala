@@ -7,12 +7,12 @@ import com.neo.sk.tank.shared.ptcl.tank.{AirDropBox, Bullet, ObjectOfGame, Obsta
   * Created by hongruying on 2018/7/10
   */
 class AirDropBoxImpl(
-                      override val oId: Long,
+                      override val oId: Int,
                       override protected var curBlood:Int,
                       override var position: model.Point
                     ) extends AirDropBox{
 
-  def this(oId:Long,position:model.Point)= {
+  def this(oId:Int,position:model.Point)= {
     this(
       oId,
       model.ObstacleParameters.AirDropBoxParameters.blood,
