@@ -16,16 +16,16 @@ import concurrent.duration._
 class TankServerImpl (
                        val roomActor:ActorRef[RoomActor.Command],
                        override protected val userId:Long,
-                       override val tankId: Long,
+                       override val tankId: Int,
                        override protected var blood: Int,
-                       override protected var bloodLevel: Int,
-                       override protected var bulletPowerLevel: Int,
+                       override protected var bloodLevel: Byte,
+                       override protected var bulletPowerLevel: Byte,
                        override protected var curBulletNum: Int,
-                       override protected var direction: Double,
-                       override protected var gunDirection: Double,
+                       override protected var direction: Float,
+                       override protected var gunDirection: Float,
                        override var position: model.Point,
-                       override protected var speedLevel: Int,
-                       override protected val tankColorType: Int,
+                       override protected var speedLevel: Byte,
+                       override protected val tankColorType: Byte,
                        override val name: String,
                        override var killTankNum: Int,
                        override var damageTank: Int,
@@ -37,7 +37,7 @@ class TankServerImpl (
   def this(
             roomActor:ActorRef[RoomActor.Command],
             userId:Long,
-            tankId: Long,
+            tankId: Int,
             name:String,
             position:Point
           ) = {

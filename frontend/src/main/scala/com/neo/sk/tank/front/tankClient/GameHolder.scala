@@ -36,12 +36,12 @@ class GameHolder(canvasName:String) {
 
 
   private[this] val canvasUnit = 10
-  private[this] val canvasBoundary = ptcl.model.Point(dom.window.innerWidth,dom.window.innerHeight)
+  private[this] val canvasBoundary = ptcl.model.Point(dom.window.innerWidth.toFloat,dom.window.innerHeight.toFloat)
 
   private[this] val canvasBounds = canvasBoundary / canvasUnit
 
   private[this] var myId = -1L
-  private[this] var myTankId = -1L
+  private[this] var myTankId:Int = -1
   private[this] var myName = ""
 
   private[this] val grid = new GridClient(bounds,canvasUnit,canvasBounds)
@@ -299,8 +299,8 @@ class GameHolder(canvasName:String) {
   def addActionListenEvent():Unit = {
     canvas.focus()
     canvas.onmousemove = { (e:dom.MouseEvent) =>
-      val point = Point(e.clientX,e.clientY)
-      val theta = point.getTheta(canvasBoundary / 2)
+      val point = Point(e.clientX.toFloat,e.clientY.toFloat)
+      val theta = point.getTheta(canvasBoundary / 2).toFloat
 
       sendMsg2Server(WsFrontProtocol.MouseMove(theta))//发送鼠标位置
       e.preventDefault()
