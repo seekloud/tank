@@ -37,12 +37,12 @@ class GameHolder(canvasName:String) {
 
 
   private[this] val canvasUnit = 10
-  private[this] val canvasBoundary = ptcl.model.Point(dom.window.innerWidth,dom.window.innerHeight)
+  private[this] val canvasBoundary = ptcl.model.Point(dom.window.innerWidth.toFloat,dom.window.innerHeight.toFloat)
 
   private[this] val canvasBounds = canvasBoundary / canvasUnit
 
   private[this] var myId = -1L
-  private[this] var myTankId = -1L
+  private[this] var myTankId:Int = -1
   private[this] var myName = ""
 
   private[this] val grid = new GridClient(bounds,canvasUnit,canvasBounds)
@@ -300,8 +300,8 @@ class GameHolder(canvasName:String) {
   def addActionListenEvent():Unit = {
     canvas.focus()
     canvas.onmousemove = { (e:dom.MouseEvent) =>
-      val point = Point(e.clientX,e.clientY)
-      val theta = point.getTheta(canvasBoundary / 2)
+      val point = Point(e.clientX.toFloat,e.clientY.toFloat)
+      val theta = point.getTheta(canvasBoundary / 2).toFloat
 
       sendMsg2Server(WsFrontProtocol.MouseMove(theta))//发送鼠标位置
       e.preventDefault()
@@ -377,16 +377,28 @@ class GameHolder(canvasName:String) {
 //  var tickCount = 0L
 //  var testStartTime = System.currentTimeMillis()
 //  var testEndTime = System.currentTimeMillis()
+//  var startTime = System.currentTimeMillis()
 
   def gameLoop():Unit = {
-//    ln(s"----${System.currentTimeMillis()}")
+
+//    val t = System.currentTimeMillis()
+//    if(math.abs(t - startTime) < 15 || math.abs(t - startTime) > 45)
+//    println(s"use Time = ${t - startTime}")
+//    startTime = t
+//    var flag =  true
+//    while (flag){
+//      if(System.currentTimeMillis() - t > 15){
+//        flag = false
+//      }
+//    }
 //    tickCount += 1
-//    val startTime = System.currentTimeMillis()
+//
 //    if(tickCount % 100 == 0){
 //      testEndTime = System.currentTimeMillis()
 //      println(s"user Time = ${testEndTime - testStartTime}")
 //      testStartTime = testEndTime
 //    }
+
     gameState match {
       case Constants.GameState.loadingPlay =>
         println(s"等待同步数据")
@@ -403,7 +415,6 @@ class GameHolder(canvasName:String) {
             }
           case false =>
             if(clientFrame == maxClientFrameDrawForSystemFrame - 1){
-              val x = System.currentTimeMillis()
               grid.update()
 //              if(grid.systemFrame % 10 == 0)
 //                println(s"${grid.systemFrame} user ${System.currentTimeMillis() - x}")

@@ -10,13 +10,13 @@ import com.neo.sk.tank.shared.ptcl.model.Point
   * 3.炮弹威力增加
   * 4.医疗包
   */
-case class PropState(pId:Long,t:Int,p:Point)
+case class PropState(pId:Int,t:Byte,p:Point)
 
 trait Prop extends CircleObjectOfGame{
 
-  val pId:Long
+  val pId:Int
 
-  val propType:Int
+  val propType:Byte
 
   //todo
   override def getObjectRect(): model.Rectangle = {
@@ -31,7 +31,7 @@ trait Prop extends CircleObjectOfGame{
 
   def getPropState:PropState = PropState(pId,propType,position)
 
-  override val r: Double = model.PropParameters.r
+  override val r: Float = model.PropParameters.r
 
 }
 
@@ -49,26 +49,26 @@ object Prop{
 
 
 case class AddBloodLevelProp(
-                              override val pId: Long,
-                              override val propType: Int = 1,
+                              override val pId: Int,
+                              override val propType: Byte = 1,
                               override var position: model.Point
                             ) extends Prop
 
 case class AddSpeedLevelProp(
-                              override val pId: Long,
-                              override val propType: Int = 2,
+                              override val pId: Int,
+                              override val propType: Byte = 2,
                               override var position: model.Point
                             ) extends Prop
 
 case class AddBulletLevelProp(
-                              override val pId: Long,
-                              override val propType: Int = 3,
+                              override val pId: Int,
+                              override val propType: Byte = 3,
                               override var position: model.Point
                             ) extends Prop
 
 case class AddBloodProp(
-                              override val pId: Long,
-                              override val propType: Int = 4,
+                              override val pId: Int,
+                              override val propType: Byte = 4,
                               override var position: model.Point
                             ) extends Prop
 

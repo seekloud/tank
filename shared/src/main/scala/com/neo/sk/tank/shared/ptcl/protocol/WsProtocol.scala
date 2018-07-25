@@ -15,19 +15,19 @@ object WsProtocol {
   sealed trait WsMsgServer extends WsServerSourceProtocol.WsMsgSource
 
 
-  case class YourInfo(uId:Long,tankId:Long) extends WsMsgServer
+  case class YourInfo(uId:Long,tankId:Int) extends WsMsgServer
 
   case class UserEnterRoom(userId:Long,name:String,tank:TankState) extends WsMsgServer
 
-  case class UserLeftRoom(tankId:Long,name:String) extends WsMsgServer
+  case class UserLeftRoom(tankId:Int,name:String) extends WsMsgServer
 
-  case class YouAreKilled(tankId:Long,userId:Long) extends WsMsgServer
+  case class YouAreKilled(tankId:Int,userId:Long) extends WsMsgServer
 
-  case class TankActionFrameMouse(tankId:Long,frame:Long,actM:WsFrontProtocol.MouseMove) extends WsMsgServer
+  case class TankActionFrameMouse(tankId:Int,frame:Long,actM:WsFrontProtocol.MouseMove) extends WsMsgServer
 
-  case class TankActionFrameKeyDown(tankId:Long,frame:Long,actKd:WsFrontProtocol.PressKeyDown) extends WsMsgServer
+  case class TankActionFrameKeyDown(tankId:Int,frame:Long,actKd:WsFrontProtocol.PressKeyDown) extends WsMsgServer
 
-  case class TankActionFrameKeyUp(tankId:Long,frame:Long,actKu:WsFrontProtocol.PressKeyUp) extends WsMsgServer
+  case class TankActionFrameKeyUp(tankId:Int,frame:Long,actKu:WsFrontProtocol.PressKeyUp) extends WsMsgServer
 
 
 
@@ -37,19 +37,19 @@ object WsProtocol {
 
   case class GridSyncAllState(gState:GridState) extends WsMsgServer
 
-  case class TankAttacked(frame:Long,bId:Long,tId:Long,d:Int) extends WsMsgServer
+  case class TankAttacked(frame:Long,bId:Int,tId:Int,d:Int) extends WsMsgServer
 
-  case class ObstacleAttacked(frame:Long,bId:Long,oId:Long,d:Int) extends WsMsgServer
+  case class ObstacleAttacked(frame:Long,bId:Int,oId:Int,d:Int) extends WsMsgServer
 
-  case class TankEatProp(frame:Long,pId:Long,tId:Long,pType:Int) extends WsMsgServer
+  case class TankEatProp(frame:Long,pId:Int,tId:Int,pType:Byte) extends WsMsgServer
 
-  case class AddProp(frame:Long,pId:Long,propState: PropState) extends WsMsgServer
+  case class AddProp(frame:Long,pId:Int,propState: PropState) extends WsMsgServer
 
-  case class AddObstacle(frame:Long, oId :Long,obstacleState: ObstacleState) extends WsMsgServer
+  case class AddObstacle(frame:Long, oId :Int,obstacleState: ObstacleState) extends WsMsgServer
 
   case class TankLaunchBullet(f:Long,bullet:BulletState) extends WsMsgServer
 
-  case class TankInvincible(f:Long,tId:Long) extends WsMsgServer
+  case class TankInvincible(f:Long,tId:Int) extends WsMsgServer
 
 
 //  case class DirectionAction
