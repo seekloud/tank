@@ -373,6 +373,7 @@ class GameHolder(canvasName:String) {
   //游戏启动
   def start(name:String):Unit = {
     myName = name
+    canvas.focus()
     if(firstCome){
       firstCome = false
       addActionListenEvent()
