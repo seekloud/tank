@@ -465,6 +465,8 @@ package object model {
       }
 
       def getMoveByFrame(t:Int):Point = tankSpeedByType(t) * Frame.millsAServerFrame / 1000
+
+      def getMoveByMs(t:Int):Point = tankSpeedByType(t) / 1000
     }
 
     final val baseSpeed = 5 //每秒移动距离
@@ -522,6 +524,15 @@ package object model {
           case 2 => 30
           case 3 => 40
 
+        }
+      }
+
+      def getBulletLevelByDamage(d:Int) ={
+        d match {
+          case 20 => 1
+          case 30 => 2
+          case 40 => 3
+          case _ => 1
         }
       }
     }

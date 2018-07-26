@@ -32,6 +32,11 @@ class BulletClientImpl(
     this.position + momentum * curFrame / 1000 * model.Frame.millsAServerFrame / model.Frame.clientFrameAServerFrame
   }
 
+  def getPositionByOffsetTime(offsetTime:Long):Point = {
+    //计算当前子弹动画渲染的位置
+    this.position + momentum / 1000 * offsetTime
+  }
+
 
 
 
@@ -41,9 +46,9 @@ class BulletClientImpl(
 }
 
 object BulletClientImpl{
-  def drawBullet(ctx:dom.CanvasRenderingContext2D,canvasUnit:Int,bullet:BulletClientImpl,bulletPowerLevel:Int,curFrame:Int,offset:Point) = {
+  def drawBullet(ctx:dom.CanvasRenderingContext2D,canvasUnit:Int,bullet:BulletClientImpl,bulletDamage:Int,curFrame:Int,offset:Point) = {
     val position = bullet.getPositionCurFrame(curFrame)
-    val color = bulletPowerLevel match {
+    val color = model.TankParameters.TankBulletBulletPowerLevel.getBulletLevelByDamage(bulletDamage) match {
       case 1 => "#CD6600"
       case 2 => "#FF4500"
       case 3 => "#8B2323"
@@ -56,6 +61,24 @@ object BulletClientImpl{
 
 
 //    ctx.canvas (bullet.getObjectRect(position - Point(model.BulletSize.r,model.BulletSize.r),position + Point(model.BulletSize.r,model.BulletSize.r)))
+
+  }
+
+  def drawBulletByOffsetTime(ctx:dom.CanvasRenderingContext2D,canvasUnit:Int,bullet:BulletClientImpl,bulletDamage:Int,offsetTime:Long,offset:Point) = {
+    val position = bullet.getPositionByOffsetTime(offsetTime)
+    val color = model.TankParameters.TankBulletBulletPowerLevel.getBulletLevelByDamage(bulletDamage) match {
+      case 1 => "#CD6600"
+      case 2 => "#FF4500"
+      case 3 => "#8B2323"
+    }
+    ctx.fillStyle = color.toString()
+    ctx.beginPath()
+    ctx.arc((position.x  + offset.x) * canvasUnit,(position.y  + offset.y)*canvasUnit,model.BulletSize.r*canvasUnit,0, 360)
+    ctx.fill()
+    ctx.closePath()
+
+
+    //    ctx.canvas (bullet.getObjectRect(position - Point(model.BulletSize.r,model.BulletSize.r),position + Point(model.BulletSize.r,model.BulletSize.r)))
 
   }
 }
