@@ -484,7 +484,7 @@ class GameHolder(canvasName:String) {
     println()
   }
   object color{
-    val mapColor = "rgb(41,238,238)"
+    val mapColor = "rgb(41,238,238,0.4)"
     val myself = "#000080"
     val otherTankColor = "#CD5C5C"
   }
@@ -502,7 +502,7 @@ class GameHolder(canvasName:String) {
     myHeader.foreach{ point=>
       val offX = point.x / bounds.x * SmallMap.x
       val offY = point.y / bounds.y * SmallMap.y
-      ctx.arc((canvasBounds.x - ptcl.model.LittleMap.w + offX) * canvasUnit, (canvasBounds.y  - ptcl.model.LittleMap.h + offY) * canvasUnit, 2 * canvasUnit,0,2*Math.PI)
+      ctx.arc((canvasBounds.x - ptcl.model.LittleMap.w + offX) * canvasUnit, (canvasBounds.y  - ptcl.model.LittleMap.h + offY) * canvasUnit, 0.5 * canvasUnit,0,2*Math.PI)
 
     }
     ctx.fill()
@@ -512,10 +512,10 @@ class GameHolder(canvasName:String) {
     ctx.fillStyle =color.otherTankColor
     otherTank.foreach{ i =>
       val x = i.position.x / bounds.x * SmallMap.x
-      val y = i.position.y / bounds.x * SmallMap.y
+      val y = i.position.y / bounds.y * SmallMap.y
 
 //      ctx.fillStyle = i.tankColorType
-      ctx.arc(dom.window.innerWidth - ptcl.model.LittleMap.w + x,dom.window.innerHeight  - ptcl.model.LittleMap.h + y,2,0,2*Math.PI)
+      ctx.arc((canvasBounds.x - ptcl.model.LittleMap.w + x)*canvasUnit,(canvasBounds.y  - ptcl.model.LittleMap.h + y)*canvasUnit ,0.5*canvasUnit,0,2*Math.PI)
 
     }
     ctx.fill()
