@@ -393,8 +393,8 @@ package object model {
   }
 
   object LittleMap {
-    val w = 50
-    val h = 25
+    val w = 25
+    val h = 20
   }
 
   object CanvasBoundary{
