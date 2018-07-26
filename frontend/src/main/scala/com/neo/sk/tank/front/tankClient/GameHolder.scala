@@ -70,6 +70,8 @@ class GameHolder(canvasName:String) {
   private val maxClientFrameDrawForSystemFrame:Int = 4 //比系统桢多渲染3桢
   private var clientFrame:Int = 0
 
+  private var killerName:String = ""
+
   val watchKeys = Set(
     KeyCode.Left,
     KeyCode.Up,
@@ -148,8 +150,9 @@ class GameHolder(canvasName:String) {
                   grid.leftGame(tankId)
 
 
-                case WsProtocol.YouAreKilled(tankId,userId) =>
+                case WsProtocol.YouAreKilled(tankId,name) =>
                   println(s"you are killed")
+                  killerName = name
                   setGameState(Constants.GameState.stop)
 
                 case WsProtocol.TankActionFrameMouse(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
@@ -462,11 +465,11 @@ class GameHolder(canvasName:String) {
 
 
     grid.draw(ctx,myName,myTankId,curFrame,maxClientFrame,canvasBounds)
-    val tankList =grid.tankMap.values.map(_.getTankState())
-    val otherTank = tankList.filterNot(_.tankId == myTankId)
-
-    val lastHeader = tankList.find(_.tankId == myTankId).map(_.position)
-    drawSmallMap(lastHeader,otherTank.toList)
+//    val tankList =grid.tankMap.values.map(_.getTankState())
+//    val otherTank = tankList.filterNot(_.tankId == myTankId)
+//
+//    val lastHeader = tankList.find(_.tankId == myTankId).map(_.position)
+//    drawSmallMap(lastHeader,otherTank.toList)
 
   }
 
@@ -477,7 +480,7 @@ class GameHolder(canvasName:String) {
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
     ctx.font = "36px Helvetica"
-    ctx.fillText("您已经死亡", 150, 180)
+    ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
     println()
   }
   object color{

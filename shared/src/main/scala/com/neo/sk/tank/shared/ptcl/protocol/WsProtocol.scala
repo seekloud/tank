@@ -21,7 +21,7 @@ object WsProtocol {
 
   case class UserLeftRoom(tankId:Int,name:String) extends WsMsgServer
 
-  case class YouAreKilled(tankId:Int,userId:Long) extends WsMsgServer
+  case class YouAreKilled(tankId:Int,name:String) extends WsMsgServer
 
   case class TankActionFrameMouse(tankId:Int,frame:Long,actM:WsFrontProtocol.MouseMove) extends WsMsgServer
 
