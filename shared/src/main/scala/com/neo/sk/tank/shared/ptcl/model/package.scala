@@ -386,8 +386,8 @@ package object model {
 
 
   object Boundary{
-    val w = 120
-    val h = 60
+    val w = 360
+    val h = 180
 
     def getBoundary:Point = Point(w,h)
   }
@@ -459,8 +459,8 @@ package object model {
       def tankSpeedByType(t:Int):Point = { //每桢移动多少
         t match {
           case SpeedType.low => Point(20,0)
-          case SpeedType.intermediate => Point(30,0)
-          case SpeedType.high => Point(35,0)
+          case SpeedType.intermediate => Point(25,0)
+          case SpeedType.high => Point(30,0)
         }
       }
 
@@ -502,7 +502,7 @@ package object model {
       val h = 5
     }
 
-    final val tankBulletMaxCapacity = 10
+    final val tankBulletMaxCapacity = 4
 
     final val tankFillBulletSpeed = 1 // 1发/1s
 
@@ -531,7 +531,7 @@ package object model {
 
     final val maxFlyDistance = 70
 
-    final val bulletMomentum = Point(20,0)
+    final val bulletMomentum = Point(33,0)
   }
 
   object ObstacleParameters{
@@ -550,7 +550,7 @@ package object model {
 
     object BrickDropBoxParameters{
       val blood = 100
-      val num = 5
+      val num = 30
     }
   }
 

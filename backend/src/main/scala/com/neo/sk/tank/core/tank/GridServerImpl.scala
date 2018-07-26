@@ -48,7 +48,7 @@ class GridServerImpl(
     tank.launchBullet() match {
       case Some((bulletDirection,position,damage)) =>
         val m = ptcl.model.BulletParameters.bulletMomentum.rotate(bulletDirection)
-        val bullet = new BulletServerImpl(bulletIdGenerator.getAndIncrement(),tankId,position,System.currentTimeMillis(),damage,m,position)
+        val bullet = new BulletServerImpl(bulletIdGenerator.getAndIncrement(),tankId,position,System.currentTimeMillis(),damage,m,position,tank.name)
         waitGenBullet = (systemFrame,bullet) :: waitGenBullet
         dispatch(WsProtocol.TankLaunchBullet(systemFrame,bullet.getBulletState()))
         //dispatch() 分发数据子弹位置 以及子弹位置的帧数
@@ -240,7 +240,7 @@ class GridServerImpl(
       case Some(tank) => tank.killTankNum += 1
       case None =>
     }
-    dispatchTo(tank.getTankState().userId,WsProtocol.YouAreKilled(bullet.tankId,0L))
+    dispatchTo(tank.getTankState().userId,WsProtocol.YouAreKilled(bullet.tankId,bullet.tankName))
   }
 
 //  private[this] def updateRanksByKill(tankId:Long,attackTankId:Long)= {

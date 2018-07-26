@@ -13,7 +13,8 @@ class BulletServerImpl (
                          override protected val createTime: Long,
                          override val damage: Int,
                          override protected val momentum: model.Point,
-                         override var position: model.Point
+                         override var position: model.Point,
+                         override val tankName: String
                        ) extends Bullet{
 
 }

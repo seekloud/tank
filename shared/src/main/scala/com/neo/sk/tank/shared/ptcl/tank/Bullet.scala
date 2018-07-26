@@ -6,7 +6,7 @@ import com.neo.sk.tank.shared.ptcl.model.Point
   * Created by hongruying on 2018/7/8
   * 子弹
   */
-case class BulletState(bId:Int,tankId:Int,position:Point,damage:Int,momentum:Point,startPosition:Point,createTime:Long)
+case class BulletState(bId:Int,tankId:Int,position:Point,damage:Int,momentum:Point,startPosition:Point,createTime:Long, name:String)
 
 trait Bullet extends CircleObjectOfGame{
 
@@ -24,6 +24,8 @@ trait Bullet extends CircleObjectOfGame{
 
   val tankId:Int
 
+  val tankName:String
+
   private val maxFlyDistance = model.BulletParameters.maxFlyDistance
 
   override val r: Float = model.BulletSize.r
@@ -36,7 +38,7 @@ trait Bullet extends CircleObjectOfGame{
 
 
   def getBulletState(): BulletState = {
-    BulletState(bId,tankId,position,damage,momentum,startPosition,createTime)
+    BulletState(bId,tankId,position,damage,momentum,startPosition,createTime,tankName)
   }
 
 
