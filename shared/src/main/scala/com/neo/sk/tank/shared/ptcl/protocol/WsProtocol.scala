@@ -29,6 +29,10 @@ object WsProtocol {
 
   case class TankActionFrameKeyUp(tankId:Int,frame:Long,actKu:WsFrontProtocol.PressKeyUp) extends WsMsgServer
 
+  case class TankActionFrameOffset(tankId:Int,frame:Long,actKu:WsFrontProtocol.GunDirectionOffset) extends WsMsgServer
+
+
+
 
 
   case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends WsMsgServer

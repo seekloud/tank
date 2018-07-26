@@ -55,6 +55,10 @@ trait Tank extends CircleObjectOfGame {
     gunDirection = d
   }
 
+  def setTankGunDirectionByOffset(o:Float) = {
+    gunDirection += o
+  }
+
 
 
   def launchBullet():Option[(Float,Point,Int)] = {
