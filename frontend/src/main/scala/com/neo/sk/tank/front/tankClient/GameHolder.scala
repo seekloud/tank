@@ -465,11 +465,11 @@ class GameHolder(canvasName:String) {
 
 
     grid.draw(ctx,myName,myTankId,curFrame,maxClientFrame,canvasBounds)
-//    val tankList =grid.tankMap.values.map(_.getTankState())
-//    val otherTank = tankList.filterNot(_.tankId == myTankId)
-//
-//    val lastHeader = tankList.find(_.tankId == myTankId).map(_.position)
-//    drawSmallMap(lastHeader,otherTank.toList)
+    val tankList =grid.tankMap.values.map(_.getTankState())
+    val otherTank = tankList.filterNot(_.tankId == myTankId)
+
+    val lastHeader = tankList.find(_.tankId == myTankId).map(_.position)
+    drawSmallMap(lastHeader,otherTank.toList)
 
   }
 
