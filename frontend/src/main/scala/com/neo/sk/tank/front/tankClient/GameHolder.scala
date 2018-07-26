@@ -67,7 +67,7 @@ class GameHolder(canvasName:String) {
   private var gridAllState:Option[GridState] = None
   private var gridStateWithoutBullet:Option[GridStateWithoutBullet] = None
 
-  private val maxClientFrameDrawForSystemFrame:Int = 4 //比系统桢多渲染3桢
+  private val maxClientFrameDrawForSystemFrame:Int = 1 //比系统桢多渲染3桢
   private var clientFrame:Int = 0
 
   private var killerName:String = ""
@@ -104,6 +104,18 @@ class GameHolder(canvasName:String) {
   def getStartGameModal():Elem = {
     startGameModal.render
   }
+
+  private var nextFrame = 0
+  private var logicFrameTime = System.currentTimeMillis()
+  def gameRender():Double => Unit = {d =>
+    val curTime = System.currentTimeMillis()
+
+    println(s"test d=${d} Time=${System.currentTimeMillis()}")
+    nextFrame = dom.window.requestAnimationFrame(gameRender())
+  }
+  nextFrame = dom.window.requestAnimationFrame(gameRender())
+
+
 
 
 

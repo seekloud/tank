@@ -407,7 +407,7 @@ package object model {
   object Frame{
     val millsAServerFrame = 120
 
-    val clientFrameAServerFrame = 4
+    val clientFrameAServerFrame = 1
 
 
   }
