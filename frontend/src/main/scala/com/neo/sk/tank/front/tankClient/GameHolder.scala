@@ -109,11 +109,16 @@ class GameHolder(canvasName:String) {
   private var logicFrameTime = System.currentTimeMillis()
   def gameRender():Double => Unit = {d =>
     val curTime = System.currentTimeMillis()
+    val offsetTime = curTime - logicFrameTime
+    drawGameByTime(offsetTime)
 
-    println(s"test d=${d} Time=${System.currentTimeMillis()}")
+//    println(s"test d=${d} Time=${System.currentTimeMillis()}")
     nextFrame = dom.window.requestAnimationFrame(gameRender())
+
   }
-  nextFrame = dom.window.requestAnimationFrame(gameRender())
+
+
+
 
 
 
@@ -194,6 +199,7 @@ class GameHolder(canvasName:String) {
                   println(s"已同步游戏中所有数据，进行渲染，${gridState}")
                   justSynced = true
                   gridAllState = Some(gridState)
+
                   setGameState(Constants.GameState.play)
 
                 case t:WsProtocol.TankAttacked =>
@@ -385,16 +391,19 @@ class GameHolder(canvasName:String) {
   //游戏启动
   def start(name:String):Unit = {
     myName = name
+    canvas.focus()
     if(firstCome){
       firstCome = false
       addActionListenEvent()
       setGameState(Constants.GameState.loadingPlay)
       websocketClient.setup(name)
       gameLoop()
+
       timer = Shortcut.schedule(gameLoop,ptcl.model.Frame.millsAServerFrame / ptcl.model.Frame.clientFrameAServerFrame)
     } else if(websocketClient.getWsState){
       websocketClient.sendMsg(WsFrontProtocol.RestartGame(name))
       setGameState(Constants.GameState.loadingPlay)
+
       timer = Shortcut.schedule(gameLoop,ptcl.model.Frame.millsAServerFrame / ptcl.model.Frame.clientFrameAServerFrame)
     }else{
       JsFunc.alert("网络连接失败，请重新刷新")
@@ -436,7 +445,10 @@ class GameHolder(canvasName:String) {
             if(clientFrame == maxClientFrameDrawForSystemFrame - 1){
               gridStateWithoutBullet.foreach(t =>grid.gridSyncStateWithoutBullet(t))
               gridStateWithoutBullet = None
-              gridAllState.foreach(t => grid.gridSyncState(t))
+              gridAllState.foreach{t =>
+                grid.gridSyncState(t)
+                nextFrame = dom.window.requestAnimationFrame(gameRender())
+              }
               gridAllState = None
               justSynced = false
             }
@@ -450,21 +462,12 @@ class GameHolder(canvasName:String) {
         }
         clientFrame += 1
         clientFrame = clientFrame % maxClientFrameDrawForSystemFrame
-        val x = System.currentTimeMillis()
-        drawGame(clientFrame,maxClientFrameDrawForSystemFrame)
-//        if(tickCount % 100 == 0){
-//          val end = System.currentTimeMillis()
-//          println(s"cur Frame=${grid.systemFrame} use time=${end-startTime}")
-//        }
-//        if(grid.systemFrame % 10 == 0)
-//          println(s"${grid.systemFrame} 动画 ${System.currentTimeMillis() - x}")
-
-
-
-
+        logicFrameTime = System.currentTimeMillis()
+//        drawGame(clientFrame,maxClientFrameDrawForSystemFrame)
 
 
       case Constants.GameState.stop =>
+        dom.window.cancelAnimationFrame(nextFrame)
         drawGameStop()
         Shortcut.cancelSchedule(timer)
 
@@ -497,6 +500,20 @@ class GameHolder(canvasName:String) {
 
   }
 
+  def drawGameByTime(offsetTime:Long): Unit ={
+    //
+    // rintln("111111111111111111111")
+
+
+    grid.drawByOffsetTime(ctx,myName,myTankId,offsetTime,canvasBounds)
+    val tankList =grid.tankMap.values.map(_.getTankState())
+    val otherTank = tankList.filterNot(_.tankId == myTankId)
+
+    val lastHeader = tankList.find(_.tankId == myTankId).map(_.position)
+    drawSmallMap(lastHeader,otherTank.toList)
+
+  }
+
   def drawGameStop():Unit = {
     ctx.fillStyle = Color.Black.toString()
     ctx.fillRect(0, 0, canvasBounds.x * canvasUnit, canvasBounds.y * canvasUnit)
@@ -508,7 +525,7 @@ class GameHolder(canvasName:String) {
     println()
   }
   object color{
-    val mapColor = "rgb(41,238,238,0.4)"
+    val mapColor = "rgb(41,238,238,0.3)"
     val myself = "#000080"
     val otherTankColor = "#CD5C5C"
   }
@@ -521,29 +538,31 @@ class GameHolder(canvasName:String) {
     ctx.fillStyle = color.mapColor
     ctx.fillRect((canvasBounds.x - ptcl.model.LittleMap.w) * canvasUnit,(canvasBounds.y  - ptcl.model.LittleMap.h) * canvasUnit ,ptcl.model.LittleMap.w * canvasUnit ,ptcl.model.LittleMap.h * canvasUnit )
 
-    ctx.beginPath()
-    ctx.fillStyle = color.myself
+
     myHeader.foreach{ point=>
+      ctx.beginPath()
+      ctx.fillStyle = color.myself
       val offX = point.x / bounds.x * SmallMap.x
       val offY = point.y / bounds.y * SmallMap.y
       ctx.arc((canvasBounds.x - ptcl.model.LittleMap.w + offX) * canvasUnit, (canvasBounds.y  - ptcl.model.LittleMap.h + offY) * canvasUnit, 0.5 * canvasUnit,0,2*Math.PI)
-
+      ctx.fill()
+      ctx.closePath()
     }
-    ctx.fill()
-    ctx.closePath()
 
-    ctx.beginPath()
-    ctx.fillStyle =color.otherTankColor
+
+
     otherTank.foreach{ i =>
+      ctx.beginPath()
+      ctx.fillStyle =color.otherTankColor
       val x = i.position.x / bounds.x * SmallMap.x
       val y = i.position.y / bounds.y * SmallMap.y
 
 //      ctx.fillStyle = i.tankColorType
       ctx.arc((canvasBounds.x - ptcl.model.LittleMap.w + x)*canvasUnit,(canvasBounds.y  - ptcl.model.LittleMap.h + y)*canvasUnit ,0.5*canvasUnit,0,2*Math.PI)
-
+      ctx.fill()
+      ctx.closePath()
     }
-    ctx.fill()
-    ctx.closePath()
+
 
 
   }

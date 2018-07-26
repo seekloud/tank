@@ -77,8 +77,8 @@ object UserActor {
         failureMatcher = {
           case WsServerSourceProtocol.FailMsgServer(e)  ⇒ e
         },
-        bufferSize = 8,
-        overflowStrategy = OverflowStrategy.fail
+        bufferSize = 64,
+        overflowStrategy = OverflowStrategy.dropHead
       ).mapMaterializedValue(outActor => actor ! UserFrontActor(outActor))
     Flow.fromSinkAndSource(in, out)
   }
@@ -144,12 +144,12 @@ object UserActor {
         case WebSocketMsg(reqOpt) =>
           reqOpt match {
             case Some(t:WsFrontProtocol.RestartGame) =>
-              roomActor ! RoomActor.JoinRoom(uId,name,ctx.self)
+              roomActor ! RoomActor.JoinRoom(uId,t.name,ctx.self)
+              idle(uId,t.name,frontActor)
             case _ =>
+              Behaviors.same
           }
 
-        //todo 如果是重玩游戏，往roomActor发消息获取坦克数据和当前游戏桢数据
-          Behaviors.same
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)

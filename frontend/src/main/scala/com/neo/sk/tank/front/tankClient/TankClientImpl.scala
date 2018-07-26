@@ -56,6 +56,13 @@ class TankClientImpl(
     }else position
   }
 
+  def getPositionByOffsetTime(offSetTime:Long,directionOpt:Option[Double],canMove:Boolean):Point = {
+    if(directionOpt.nonEmpty && canMove){
+      val distance = model.TankParameters.SpeedType.getMoveByMs(speedLevel) * offSetTime //移动的距离
+      this.position + distance.rotate(directionOpt.get.toFloat)
+    }else position
+  }
+
   //4个点
   def getGunPosition():List[Point] = {
     List(
@@ -105,6 +112,60 @@ object TankClientImpl{
     ctx.closePath()
     if(tank.invincible == true) {
 
+      ctx.beginPath()
+      ctx.fillStyle = "rgba(128, 100, 162, 0.2)"
+      ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.invincibleSize.r * canvasUnit, 0, 360)
+      ctx.fill()
+      ctx.closePath()
+    }
+    ctx.beginPath()
+    ctx.arc((position.x + offset.x) * canvasUnit,(position.y + offset.y)*canvasUnit,model.TankParameters.TankSize.r * canvasUnit ,0, 360)
+    ctx.fillStyle = tank.getColor()
+    ctx.strokeStyle = "#383838"
+    ctx.fill()
+    ctx.stroke()
+    ctx.closePath()
+
+    for(i <- 0 to bloodSliderList.length - 2){
+      ctx.beginPath()
+      ctx.lineWidth = 5
+      if(i == 1){
+        ctx.strokeStyle = "#8B8682"
+      }else{
+        ctx.strokeStyle = "#DC143C"
+      }
+      ctx.moveTo(bloodSliderList(i).x,bloodSliderList(i).y)
+      ctx.lineTo(bloodSliderList(i + 1).x,bloodSliderList(i + 1).y)
+      ctx.stroke()
+      ctx.closePath()
+    }
+    ctx.beginPath()
+    val namePosition = (position + Point(0,5) + offset) * canvasUnit
+    ctx.fillStyle = "#006699"
+    ctx.textAlign = "center"
+    ctx.font = "normal normal 20px 楷体"
+    ctx.lineWidth = 2
+    ctx.fillText(s"${tank.name}",namePosition.x,namePosition.y,20 * canvasUnit)
+    ctx.closePath()
+
+
+  }
+
+  def drawTankByOffsetTime(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,offsetTime:Long,offset:Point,directionOpt:Option[Double],canMove:Boolean,canvasUnit:Int = 10): Unit ={
+    val position = tank.getPositionByOffsetTime(offsetTime,directionOpt,canMove)
+    //    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
+    val gunPositionList = tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
+    val bloodSliderList = tank.getSliderPosition(3,1.0f * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
+    ctx.beginPath()
+    ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
+    gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
+    ctx.fillStyle = model.TankParameters.TankColor.gun
+    ctx.strokeStyle = "#383838"
+    ctx.fill()
+    ctx.lineWidth = 3
+    ctx.stroke()
+    ctx.closePath()
+    if(tank.invincible) {
       ctx.beginPath()
       ctx.fillStyle = "rgba(128, 100, 162, 0.2)"
       ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.invincibleSize.r * canvasUnit, 0, 360)
