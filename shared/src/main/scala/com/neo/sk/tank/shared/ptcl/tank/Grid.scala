@@ -227,6 +227,9 @@ trait Grid {
             case WsFrontProtocol.MouseClick(_) =>
               tankExecuteLaunchBulletAction(tankId,tank)
 
+            case WsFrontProtocol.GunDirectionOffset(offset) => tank.setTankGunDirectionByOffset(offset)
+
+
             case _ => debug(s"tankId=${tankId} action=${action} is no valid")
           }
         case None => debug(s"tankId=${tankId} action=${action} is no valid")

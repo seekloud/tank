@@ -102,6 +102,7 @@ object RoomActor {
             case r:WsFrontProtocol.MouseClick =>
             case r:WsFrontProtocol.PressKeyDown => dispatch(subscribersMap)(WsProtocol.TankActionFrameKeyDown(tankId,grid.systemFrame,r))
             case r:WsFrontProtocol.PressKeyUp => dispatch(subscribersMap)(WsProtocol.TankActionFrameKeyUp(tankId,grid.systemFrame,r))
+            case r:WsFrontProtocol.GunDirectionOffset => dispatch(subscribersMap)(WsProtocol.TankActionFrameOffset(tankId,grid.systemFrame,r))
             case _ =>
           }
 

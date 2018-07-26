@@ -86,6 +86,11 @@ class GameHolder(canvasName:String) {
     KeyCode.D
   )
 
+  val watchDirectionKeys = Set(
+    KeyCode.I,
+    KeyCode.K
+  )
+
   private var spaceKeyUpState = true
 
   private def getWatchBakKeys(k:Int):Int = k match {
@@ -159,6 +164,8 @@ class GameHolder(canvasName:String) {
 
                 case WsProtocol.TankActionFrameKeyDown(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
                 case WsProtocol.TankActionFrameKeyUp(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+
+                case WsProtocol.TankActionFrameOffset(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
 
 
                 case WsProtocol.Ranks(currentRank,historyRank) =>
@@ -332,6 +339,11 @@ class GameHolder(canvasName:String) {
         } else if(e.keyCode == KeyCode.Space && spaceKeyUpState){
           spaceKeyUpState = false
           sendMsg2Server(WsFrontProtocol.MouseClick(System.currentTimeMillis()))//发送炮弹数据
+          e.preventDefault()
+        } else if(watchDirectionKeys.contains(e.keyCode)) {
+          println(s"key down: [${e.keyCode}]")
+          val o = if(e.keyCode == KeyCode.I) -0.1f else 0.1f
+          sendMsg2Server(WsFrontProtocol.GunDirectionOffset(o))
           e.preventDefault()
         }
       }
