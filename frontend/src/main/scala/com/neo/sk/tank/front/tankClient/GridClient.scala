@@ -255,8 +255,8 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
 //    println(s"curFrame=${curFrame},offset=${offset}")
     drawBackground(ctx,offset,canvasBoundary)
     bulletMap.values.foreach{ b =>
-      val bulletPowerLevel = TankClientImpl.getBulletPowerLevel(tankMap(b.tankId).asInstanceOf[TankClientImpl])
-      BulletClientImpl.drawBullet(ctx,canvasUnit,b.asInstanceOf[BulletClientImpl],bulletPowerLevel,curFrame,offset)
+      val bulletDamage = b.damage
+      BulletClientImpl.drawBullet(ctx,canvasUnit,b.asInstanceOf[BulletClientImpl],bulletDamage,curFrame,offset)
     }
     tankMap.values.foreach{ t =>
       var moveSet:Set[Int] = tankMoveAction.getOrElse(t.tankId,mutable.HashSet[Int]()).toSet
@@ -271,7 +271,51 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       val tankCanMove:Boolean = directionOpt.exists(d => t.canMove(d.toFloat,boundary,quadTree))
       TankClientImpl.drawTank(ctx,t.asInstanceOf[TankClientImpl],curFrame,maxClientFrame,offset,directionOpt,tankCanMove,canvasUnit)
     }
-    TankClientImpl.drawTankInfo(ctx,myName,tankMap(myTankId).asInstanceOf[TankClientImpl],canvasBoundary,canvasUnit)
+    tankMap.get(myTankId).foreach{ t =>
+      TankClientImpl.drawTankInfo(ctx,myName,t.asInstanceOf[TankClientImpl],canvasBoundary,canvasUnit)
+    }
+  }
+
+  def drawByOffsetTime(ctx:dom.CanvasRenderingContext2D,myName:String,myTankId:Int,offsetTime:Long,canvasBoundary:Point) = {
+    var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
+    val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
+    action.map(_._2).foreach{
+      case WsFrontProtocol.PressKeyDown(k) => moveSet = moveSet + k
+      case WsFrontProtocol.PressKeyUp(k) => moveSet = moveSet - k
+      case WsFrontProtocol.MouseMove(k) =>
+      case _ =>
+    }
+    val directionOpt = getDirection(moveSet)
+    val tankCanMove:Boolean = directionOpt.exists{t =>
+      tankMap.get(myTankId) match {
+        case Some(tank) => tank.canMove(t.toFloat,boundary,quadTree)
+        case None => false
+      }
+    }
+    val offset = tankMap.get(myTankId).map((canvasBoundary / 2) - _.asInstanceOf[TankClientImpl].getPositionByOffsetTime(offsetTime,directionOpt,tankCanMove)).getOrElse(Point(0,0))
+    //    println(s"curFrame=${curFrame},offset=${offset}")
+    drawBackground(ctx,offset,canvasBoundary)
+    bulletMap.values.foreach{ b =>
+      val bulletDamage = b.damage
+      BulletClientImpl.drawBulletByOffsetTime(ctx,canvasUnit,b.asInstanceOf[BulletClientImpl],bulletDamage,offsetTime,offset)
+    }
+    tankMap.values.foreach{ t =>
+      var moveSet:Set[Int] = tankMoveAction.getOrElse(t.tankId,mutable.HashSet[Int]()).toSet
+      val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == t.tankId).toList
+      action.map(_._2).foreach{
+        case WsFrontProtocol.PressKeyDown(k) => moveSet = moveSet + k
+        case WsFrontProtocol.PressKeyUp(k) => moveSet = moveSet - k
+        case WsFrontProtocol.MouseMove(k) =>
+        case _ =>
+      }
+      val directionOpt = getDirection(moveSet)
+      val tankCanMove:Boolean = directionOpt.exists(d => t.canMove(d.toFloat,boundary,quadTree))
+      TankClientImpl.drawTankByOffsetTime(ctx,t.asInstanceOf[TankClientImpl],offsetTime,offset,directionOpt,tankCanMove,canvasUnit)
+    }
+
+    tankMap.get(myTankId).foreach{ t =>
+      TankClientImpl.drawTankInfo(ctx,myName,t.asInstanceOf[TankClientImpl],canvasBoundary,canvasUnit)
+    }
   }
 
   def tankIsLived(tankId:Int):Boolean = tankMap.contains(tankId)

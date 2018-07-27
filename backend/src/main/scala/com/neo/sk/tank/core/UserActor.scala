@@ -77,7 +77,7 @@ object UserActor {
         failureMatcher = {
           case WsServerSourceProtocol.FailMsgServer(e)  ⇒ e
         },
-        bufferSize = 100,
+        bufferSize = 64,
         overflowStrategy = OverflowStrategy.dropHead
       ).mapMaterializedValue(outActor => actor ! UserFrontActor(outActor))
     Flow.fromSinkAndSource(in, out)
@@ -149,8 +149,6 @@ object UserActor {
             case _ =>
               Behaviors.same
           }
-
-        //todo 如果是重玩游戏，往roomActor发消息获取坦克数据和当前游戏桢数据
 
 
         case UserLeft(actor) =>
