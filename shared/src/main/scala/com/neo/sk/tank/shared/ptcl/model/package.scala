@@ -549,11 +549,23 @@ package object model {
     object ObstacleType{
       val airDropBox:Byte = 1
       val brick:Byte = 2
+      val steel:Byte = 3
+      val river:Byte = 4
     }
 
     object AirDropBoxParameters{
       val blood = 100
       val num = 5
+    }
+
+    object RiverParameters{
+      val width = 9
+      val height = 64
+      val num = 5
+    }
+    object SteelParameters{
+      val border = 10
+      val num = 20
     }
 
     val border:Float = 5f

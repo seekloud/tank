@@ -53,9 +53,14 @@ object BulletClientImpl{
       case 2 => "#FF4500"
       case 3 => "#8B2323"
     }
+    val radiusMulti = model.TankParameters.TankBulletBulletPowerLevel.getBulletLevelByDamage(bulletDamage) match {
+      case 1 => 1
+      case 2 => 1.5
+      case 3 => 2
+    }
     ctx.fillStyle = color.toString()
     ctx.beginPath()
-    ctx.arc((position.x  + offset.x) * canvasUnit,(position.y  + offset.y)*canvasUnit,model.BulletSize.r*canvasUnit,0, 360)
+    ctx.arc((position.x  + offset.x) * canvasUnit,(position.y  + offset.y)*canvasUnit,radiusMulti * model.BulletSize.r*canvasUnit,0, 360)
     ctx.fill()
     ctx.closePath()
 
@@ -71,9 +76,14 @@ object BulletClientImpl{
       case 2 => "#FF4500"
       case 3 => "#8B2323"
     }
+    val radiusMulti = model.TankParameters.TankBulletBulletPowerLevel.getBulletLevelByDamage(bulletDamage) match {
+      case 1 => 1
+      case 2 => 1.5
+      case 3 => 2
+    }
     ctx.fillStyle = color.toString()
     ctx.beginPath()
-    ctx.arc((position.x  + offset.x) * canvasUnit,(position.y  + offset.y)*canvasUnit,model.BulletSize.r*canvasUnit,0, 360)
+    ctx.arc((position.x  + offset.x) * canvasUnit,(position.y  + offset.y)*canvasUnit,radiusMulti * model.BulletSize.r*canvasUnit,0, 360)
     ctx.fill()
     ctx.closePath()
 
