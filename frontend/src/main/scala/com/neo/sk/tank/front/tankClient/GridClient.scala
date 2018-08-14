@@ -78,6 +78,14 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
           val obstacle = new BrickClientImpl(o)
           quadTree.insert(obstacle)
           obstacleMap.put(o.oId,obstacle)
+        case ptcl.model.ObstacleParameters.ObstacleType.steel =>
+          val obstacle = new SteelClientImpl(o,model.ObstacleParameters.SteelParameters.border,model.ObstacleParameters.SteelParameters.border)
+          quadTree.insert(obstacle)
+          obstacleMap.put(o.oId,obstacle)
+        case ptcl.model.ObstacleParameters.ObstacleType.river =>
+          val obstacle = new SteelClientImpl(o,model.ObstacleParameters.RiverParameters.width,model.ObstacleParameters.RiverParameters.height)
+          quadTree.insert(obstacle)
+          obstacleMap.put(o.oId,obstacle)
         case _ =>
       }
     }
@@ -115,6 +123,14 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
           obstacleMap.put(o.oId,obstacle)
         case ptcl.model.ObstacleParameters.ObstacleType.brick =>
           val obstacle = new BrickClientImpl(o)
+          quadTree.insert(obstacle)
+          obstacleMap.put(o.oId,obstacle)
+        case ptcl.model.ObstacleParameters.ObstacleType.steel =>
+          val obstacle = new SteelClientImpl(o,model.ObstacleParameters.SteelParameters.border,model.ObstacleParameters.SteelParameters.border)
+          quadTree.insert(obstacle)
+          obstacleMap.put(o.oId,obstacle)
+        case ptcl.model.ObstacleParameters.ObstacleType.river =>
+          val obstacle = new SteelClientImpl(o,model.ObstacleParameters.RiverParameters.width,model.ObstacleParameters.RiverParameters.height)
           quadTree.insert(obstacle)
           obstacleMap.put(o.oId,obstacle)
         case _ =>
@@ -228,8 +244,12 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   def updateAddObstacle(t:WsProtocol.AddObstacle) = {
     val obstacle = if(t.obstacleState.t == model.ObstacleParameters.ObstacleType.airDropBox){
       new AirDropBoxClientImpl(t.obstacleState)
-    }else{
+    }else if(t.obstacleState.t == model.ObstacleParameters.ObstacleType.brick){
       new BrickClientImpl(t.obstacleState)
+    }else if(t.obstacleState.t == model.ObstacleParameters.ObstacleType.steel){
+      new SteelClientImpl(t.obstacleState,model.ObstacleParameters.SteelParameters.border,model.ObstacleParameters.SteelParameters.border)
+    }else{
+      new SteelClientImpl(t.obstacleState,model.ObstacleParameters.RiverParameters.width,model.ObstacleParameters.RiverParameters.height)
     }
     obstacleMap.put(obstacle.oId,obstacle)
     quadTree.insert(obstacle)
@@ -350,8 +370,12 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       o =>
         if (o.obstacleType == model.ObstacleParameters.ObstacleType.airDropBox) {
           AirDropBoxClientImpl.drawAirDrop(ctx, offset, canvasUnit, o)
-        } else {
+        } else if(o.obstacleType == model.ObstacleParameters.ObstacleType.brick){
           BrickClientImpl.drawBrick(ctx,offset,canvasUnit,o)
+        }else if(o.obstacleType == model.ObstacleParameters.ObstacleType.steel){
+          SteelClientImpl.drawSteel(ctx,offset,canvasUnit,o)
+        }else{
+          SteelClientImpl.drawSteel(ctx,offset,canvasUnit,o)
         }
     }
     drawProps(ctx,offset)
