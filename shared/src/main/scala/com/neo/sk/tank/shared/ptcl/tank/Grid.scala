@@ -76,8 +76,9 @@ trait Grid {
 
   def addActionWithFrame(id: Int, tankAction: TankAction, frame: Long) = {
     val queue = tankActionQueueMap.getOrElse(frame,mutable.Queue[(Int,TankAction)]())
-    queue.enqueue((id,tankAction))
-    tankActionQueueMap.put(frame,queue)
+    val actionQueue = queue.filterNot(t => t._1 == id && tankAction.serialNum == t._2.serialNum)
+    actionQueue.enqueue((id,tankAction))
+    tankActionQueueMap.put(frame,actionQueue)
   }
 
 
@@ -217,17 +218,17 @@ trait Grid {
       tankMap.get(tankId) match {
         case Some(tank) =>
           action match {
-            case WsFrontProtocol.MouseMove(d) => tank.setTankGunDirection(d)
-            case WsFrontProtocol.PressKeyDown(k) =>
+            case WsFrontProtocol.MouseMove(d,serialNum) => tank.setTankGunDirection(d)
+            case WsFrontProtocol.PressKeyDown(k,serialNum) =>
               tankMoveSet.add(k)
               tankMoveAction.put(tankId,tankMoveSet)
-            case WsFrontProtocol.PressKeyUp(k) =>
+            case WsFrontProtocol.PressKeyUp(k,serialNum) =>
               tankMoveSet.remove(k)
               tankMoveAction.put(tankId,tankMoveSet)
-            case WsFrontProtocol.MouseClick(_) =>
+            case WsFrontProtocol.MouseClick(_,serialNum) =>
               tankExecuteLaunchBulletAction(tankId,tank)
 
-            case WsFrontProtocol.GunDirectionOffset(offset) => tank.setTankGunDirectionByOffset(offset)
+            case WsFrontProtocol.GunDirectionOffset(offset,serialNum) => tank.setTankGunDirectionByOffset(offset)
 
 
             case _ => debug(s"tankId=${tankId} action=${action} is no valid")
@@ -278,6 +279,17 @@ trait Grid {
     tankMap.get(tankId).foreach(t => quadTree.remove(t))
     tankMap.remove(tankId)
 
+  }
+
+  def getGridState():GridState = {
+    GridState(
+      systemFrame,
+      tankMap.values.map(_.getTankState()).toList,
+      bulletMap.values.map(_.getBulletState()).toList,
+      propMap.values.map(_.getPropState).toList,
+      obstacleMap.values.map(_.getObstacleState()).toList,
+      tankMoveAction = tankMoveAction.toList.map(t => (t._1,t._2.toList))
+    )
   }
 
 

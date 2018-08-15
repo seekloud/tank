@@ -1,5 +1,7 @@
 package com.neo.sk.tank.front.tankClient
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import com.neo.sk.tank.shared.ptcl
 import com.neo.sk.tank.shared.ptcl.model
 import com.neo.sk.tank.shared.ptcl.model.{CanvasBoundary, Point}
@@ -39,7 +41,6 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
 
 
 
-
   def playerJoin(tank:TankState) = {
     val tankImpl = new TankClientImpl(tank)
     tankMap.put(tank.tankId,tankImpl)
@@ -49,6 +50,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   def gridSyncStateWithoutBullet(d:GridStateWithoutBullet) = {
 //    super.update()
     updateBullet()
+    updateGenBullet()
 
     if(d.f - 1 != systemFrame){
       println("-------------------")
@@ -239,9 +241,9 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
     val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
     action.map(_._2).foreach{
-      case WsFrontProtocol.PressKeyDown(k) => moveSet = moveSet + k
-      case WsFrontProtocol.PressKeyUp(k) => moveSet = moveSet - k
-      case WsFrontProtocol.MouseMove(k) =>
+      case WsFrontProtocol.PressKeyDown(k,_) => moveSet = moveSet + k
+      case WsFrontProtocol.PressKeyUp(k,_) => moveSet = moveSet - k
+      case WsFrontProtocol.MouseMove(k,_) =>
       case _ =>
     }
     val directionOpt = getDirection(moveSet)
@@ -262,9 +264,9 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       var moveSet:Set[Int] = tankMoveAction.getOrElse(t.tankId,mutable.HashSet[Int]()).toSet
       val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == t.tankId).toList
       action.map(_._2).foreach{
-        case WsFrontProtocol.PressKeyDown(k) => moveSet = moveSet + k
-        case WsFrontProtocol.PressKeyUp(k) => moveSet = moveSet - k
-        case WsFrontProtocol.MouseMove(k) =>
+        case WsFrontProtocol.PressKeyDown(k,_) => moveSet = moveSet + k
+        case WsFrontProtocol.PressKeyUp(k,_) => moveSet = moveSet - k
+        case WsFrontProtocol.MouseMove(k,_) =>
         case _ =>
       }
       val directionOpt = getDirection(moveSet)
@@ -280,9 +282,9 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
     val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
     action.map(_._2).foreach{
-      case WsFrontProtocol.PressKeyDown(k) => moveSet = moveSet + k
-      case WsFrontProtocol.PressKeyUp(k) => moveSet = moveSet - k
-      case WsFrontProtocol.MouseMove(k) =>
+      case WsFrontProtocol.PressKeyDown(k,_) => moveSet = moveSet + k
+      case WsFrontProtocol.PressKeyUp(k,_) => moveSet = moveSet - k
+      case WsFrontProtocol.MouseMove(k,_) =>
       case _ =>
     }
     val directionOpt = getDirection(moveSet)
@@ -303,9 +305,9 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       var moveSet:Set[Int] = tankMoveAction.getOrElse(t.tankId,mutable.HashSet[Int]()).toSet
       val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == t.tankId).toList
       action.map(_._2).foreach{
-        case WsFrontProtocol.PressKeyDown(k) => moveSet = moveSet + k
-        case WsFrontProtocol.PressKeyUp(k) => moveSet = moveSet - k
-        case WsFrontProtocol.MouseMove(k) =>
+        case WsFrontProtocol.PressKeyDown(k,_) => moveSet = moveSet + k
+        case WsFrontProtocol.PressKeyUp(k,_) => moveSet = moveSet - k
+        case WsFrontProtocol.MouseMove(k,_) =>
         case _ =>
       }
       val directionOpt = getDirection(moveSet)
@@ -449,6 +451,13 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     }
     recvAddObstacleList = recvAddObstacleList.filter(_.frame > systemFrame)
     super.update()
+  }
+
+  def rollback2State(d:GridState) = {
+    tankActionQueueMap.filter(_._1 < systemFrame).map{t =>
+      tankActionQueueMap.remove(t._1)
+    }
+    gridSyncState(d)
   }
 
 

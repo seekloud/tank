@@ -1,11 +1,14 @@
 package com.neo.sk.tank.front.tankClient
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import com.neo.sk.tank.front.common.Constants
 import com.neo.sk.tank.front.components.StartGameModal
 import com.neo.sk.tank.front.utils.byteObject.MiddleBufferInJs
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.ptcl
 import com.neo.sk.tank.shared.ptcl.model.{Boundary, ObstacleParameters, Point}
+import com.neo.sk.tank.shared.ptcl.protocol.WsFrontProtocol.TankAction
 import com.neo.sk.tank.shared.ptcl.protocol._
 import com.neo.sk.tank.shared.ptcl.tank.{GridState, GridStateWithoutBullet, Prop, TankState}
 import mhtml.Var
@@ -107,6 +110,106 @@ class GameHolder(canvasName:String) {
 
   private var nextFrame = 0
   private var logicFrameTime = System.currentTimeMillis()
+
+  private[this] final val maxRollBackFrames = 5
+  private[this] val actionSerialNumGenerator = new AtomicInteger(0)
+  private[this] val uncheckActionWithFrame = new mutable.HashMap[Int,(Long,Int,TankAction)]()
+  private[this] val gameEventMap = new mutable.HashMap[Long,List[WsProtocol.WsMsgServer]]()
+  private[this] val gameSnapshotMap = new mutable.HashMap[Long,GridState]()
+
+
+
+
+  def addGameEvent(f:Long,event:WsProtocol.WsMsgServer) = {
+    val originEvent = gameEventMap.getOrElse(f,List[WsProtocol.WsMsgServer]())
+    gameEventMap.put(f,event :: originEvent)
+  }
+
+  def getActionSerialNum:Int = actionSerialNumGenerator.getAndIncrement()
+
+  def addUncheckActionWithFrame(id: Int, tankAction: TankAction, frame: Long) = {
+    uncheckActionWithFrame.put(tankAction.serialNum,(frame,id,tankAction))
+    grid.addActionWithFrame(id,tankAction,frame)
+  }
+
+  def addActionWithFrameFromServer(id: Int, tankAction: TankAction, frame: Long) = {
+    if(myTankId == id){
+      uncheckActionWithFrame.get(tankAction.serialNum) match {
+        case Some((f,tankId,a)) =>
+          if(f == frame){ //与预执行的操作数据一致
+            uncheckActionWithFrame.remove(tankAction.serialNum)
+          }else{ //与预执下的操作数据不一致，进行回滚
+            uncheckActionWithFrame.remove(tankAction.serialNum)
+            if(frame < grid.systemFrame){
+              rollback(frame)
+            }else{
+              grid.addActionWithFrame(id,tankAction,frame)
+            }
+          }
+        case None => grid.addActionWithFrame(id,tankAction,frame)
+      }
+    }else{
+      if(frame < grid.systemFrame && grid.systemFrame - maxRollBackFrames >= frame){
+        //回滚
+        rollback(frame)
+      }else{
+        grid.addActionWithFrame(id,tankAction,frame)
+      }
+    }
+  }
+
+
+  //从第frame开始回滚到现在
+  def rollback(frame:Long) = {
+    println("!!!!!!!!!!!!!!!!!!!!")
+    println("rollback")
+    println("!!!!!!!!!!!!!!!!!!!!")
+
+    def handleEvent(data:WsProtocol.WsMsgServer) = {
+      data match {
+        case WsProtocol.UserEnterRoom(userId,name,tank) =>
+          grid.playerJoin(tank)
+        case WsProtocol.UserLeftRoom(tankId,name) =>
+          grid.leftGame(tankId)
+        case WsProtocol.TankActionFrameMouse(tankId,f,action) =>
+          grid.addActionWithFrame(tankId,action,f)
+        case WsProtocol.TankActionFrameKeyDown(tankId,f,action) =>
+          grid.addActionWithFrame(tankId,action,f)
+        case WsProtocol.TankActionFrameKeyUp(tankId,f,action) =>
+          grid.addActionWithFrame(tankId,action,f)
+        case WsProtocol.TankActionFrameOffset(tankId,f,action) =>
+          grid.addActionWithFrame(tankId,action,f)
+        case t:WsProtocol.TankAttacked =>
+          grid.recvTankAttacked(t)
+        case t:WsProtocol.ObstacleAttacked =>
+          grid.recvObstacleAttacked(t)
+        case t:WsProtocol.AddObstacle =>
+          grid.recvAddObstacle(t)
+        case t:WsProtocol.TankEatProp =>
+          grid.recvTankEatProp(t)
+        case t:WsProtocol.AddProp =>
+          grid.recvAddProp(t)
+        case WsProtocol.TankLaunchBullet(frame,bullet) =>
+          grid.addBullet(frame,new BulletClientImpl(bullet))
+        case  _ =>
+      }
+    }
+
+
+    gameSnapshotMap.get(frame) match {
+      case Some(state) =>
+        val curFrame = grid.systemFrame
+        grid.rollback2State(state)
+        uncheckActionWithFrame.filter(_._2._1 > frame).foreach(t => grid.addActionWithFrame(t._2._2,t._2._3,t._2._1))
+        (frame until curFrame).foreach{ f =>
+          gameEventMap.getOrElse(f,List()).foreach(handleEvent)
+        }
+        grid.update()
+      case None =>
+    }
+  }
+
+
   def gameRender():Double => Unit = {d =>
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
@@ -163,12 +266,14 @@ class GameHolder(canvasName:String) {
 
                 case WsProtocol.UserEnterRoom(userId,name,tank) =>
                   if(myId != userId){
+                    addGameEvent(grid.systemFrame,data)
                     grid.playerJoin(tank)
                   }
 
 
                 case WsProtocol.UserLeftRoom(tankId,name) =>
                   println(s"玩家=${name} left tankId=${tankId}")
+                  addGameEvent(grid.systemFrame,data)
                   grid.leftGame(tankId)
 
 
@@ -177,12 +282,21 @@ class GameHolder(canvasName:String) {
                   killerName = name
                   setGameState(Constants.GameState.stop)
 
-                case WsProtocol.TankActionFrameMouse(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+                case WsProtocol.TankActionFrameMouse(tankId,frame,action) =>
+                  addGameEvent(frame,data)
+                  addActionWithFrameFromServer(tankId,action,frame)
 
-                case WsProtocol.TankActionFrameKeyDown(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
-                case WsProtocol.TankActionFrameKeyUp(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+                case WsProtocol.TankActionFrameKeyDown(tankId,frame,action) =>
+                  addGameEvent(frame,data)
+                  addActionWithFrameFromServer(tankId,action,frame)
 
-                case WsProtocol.TankActionFrameOffset(tankId,frame,action) => grid.addActionWithFrame(tankId,action,frame)
+                case WsProtocol.TankActionFrameKeyUp(tankId,frame,action) =>
+                  addGameEvent(frame,data)
+                  addActionWithFrameFromServer(tankId,action,frame)
+
+                case WsProtocol.TankActionFrameOffset(tankId,frame,action) =>
+                  addGameEvent(frame,data)
+                  addActionWithFrameFromServer(tankId,action,frame)
 
 
                 case WsProtocol.Ranks(currentRank,historyRank) =>
@@ -205,26 +319,32 @@ class GameHolder(canvasName:String) {
                 case t:WsProtocol.TankAttacked =>
                   //        grid.attackTankCallBack(bId,null)
                   //移除子弹并且进行血量计算
+                  addGameEvent(math.max(grid.systemFrame,t.frame),data)
                   grid.recvTankAttacked(t)
 
 
                 case t:WsProtocol.ObstacleAttacked =>
                   //移除子弹并且进行血量计算
+                  addGameEvent(math.max(grid.systemFrame,t.frame),data)
                   grid.recvObstacleAttacked(t)
 
                 case t:WsProtocol.AddObstacle =>
+                  addGameEvent(math.max(grid.systemFrame,t.frame),data)
                   grid.recvAddObstacle(t)
 
 
 
                 case t:WsProtocol.TankEatProp =>
+                  addGameEvent(math.max(grid.systemFrame,t.frame),data)
                   grid.recvTankEatProp(t)
 
                 case t:WsProtocol.AddProp =>
+                  addGameEvent(math.max(grid.systemFrame,t.frame),data)
                   grid.recvAddProp(t)
 
                 case WsProtocol.TankLaunchBullet(frame,bullet) =>
                   //        println(s"recv msg:${e.data.toString}")
+                  addGameEvent(math.max(grid.systemFrame,frame),data)
                   grid.addBullet(frame,new BulletClientImpl(bullet))
                 //
                 case  _ => println(s"接收到无效消息ss")
@@ -330,12 +450,15 @@ class GameHolder(canvasName:String) {
     canvas.onmousemove = { (e:dom.MouseEvent) =>
       val point = Point(e.clientX.toFloat,e.clientY.toFloat)
       val theta = point.getTheta(canvasBoundary / 2).toFloat
-
-      sendMsg2Server(WsFrontProtocol.MouseMove(theta))//发送鼠标位置
+      val action = WsFrontProtocol.MouseMove(theta,getActionSerialNum)
+      addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+      sendMsg2Server(action)//发送鼠标位置
       e.preventDefault()
     }
     canvas.onclick = {(e:MouseEvent) =>
-      sendMsg2Server(WsFrontProtocol.MouseClick(System.currentTimeMillis()))//发送炮弹数据
+      val action = WsFrontProtocol.MouseClick(System.currentTimeMillis(),getActionSerialNum)
+      addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+      sendMsg2Server(action)//发送炮弹数据
       e.preventDefault()
     }
 
@@ -344,24 +467,32 @@ class GameHolder(canvasName:String) {
         if (watchKeys.contains(e.keyCode) && !keySet.contains(e.keyCode)) {
           keySet.add(e.keyCode)
           println(s"key down: [${e.keyCode}]")
-          sendMsg2Server(WsFrontProtocol.PressKeyDown(e.keyCode))//发送操作指令
+          val action = WsFrontProtocol.PressKeyDown(e.keyCode,getActionSerialNum)
+          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+          sendMsg2Server(action)//发送操作指令
           e.preventDefault()
         } else if(watchBakKeys.contains(e.keyCode)){
           val directionKey = getWatchBakKeys(e.keyCode)
           if(!keySet.contains(directionKey)){
             keySet.add(directionKey)
             println(s"key down: [${e.keyCode}]")
-            sendMsg2Server(WsFrontProtocol.PressKeyDown(directionKey))//发送操作指令
+            val action = WsFrontProtocol.PressKeyDown(directionKey,getActionSerialNum)
+            addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+            sendMsg2Server(action)//发送操作指令
           }
           e.preventDefault()
         } else if(e.keyCode == KeyCode.Space && spaceKeyUpState){
           spaceKeyUpState = false
-          sendMsg2Server(WsFrontProtocol.MouseClick(System.currentTimeMillis()))//发送炮弹数据
+          val action = WsFrontProtocol.MouseClick(System.currentTimeMillis(),getActionSerialNum)
+          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+          sendMsg2Server(action)//发送炮弹数据
           e.preventDefault()
         } else if(watchDirectionKeys.contains(e.keyCode)) {
           println(s"key down: [${e.keyCode}]")
           val o = if(e.keyCode == KeyCode.I) -0.1f else 0.1f
-          sendMsg2Server(WsFrontProtocol.GunDirectionOffset(o))
+          val action = WsFrontProtocol.GunDirectionOffset(o,getActionSerialNum)
+          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+          sendMsg2Server(action)
           e.preventDefault()
         }
       }
@@ -372,13 +503,17 @@ class GameHolder(canvasName:String) {
         if (watchKeys.contains(e.keyCode)) {
           keySet.remove(e.keyCode)
           println(s"key up: [${e.keyCode}]")
-          sendMsg2Server(WsFrontProtocol.PressKeyUp(e.keyCode))//发送操作指令
+          val action = WsFrontProtocol.PressKeyUp(e.keyCode,getActionSerialNum)
+          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+          sendMsg2Server(action)//发送操作指令
           e.preventDefault()
         } else if(watchBakKeys.contains(e.keyCode)){
           val directionKey = getWatchBakKeys(e.keyCode)
           keySet.remove(directionKey)
           println(s"key up: [${e.keyCode}]")
-          sendMsg2Server(WsFrontProtocol.PressKeyUp(directionKey))//发送操作指令
+          val action = WsFrontProtocol.PressKeyUp(directionKey,getActionSerialNum)
+          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+          sendMsg2Server(action)//发送操作指令
           e.preventDefault()
         } else if(e.keyCode == KeyCode.Space){
           spaceKeyUpState = true
@@ -416,25 +551,6 @@ class GameHolder(canvasName:String) {
 //  var startTime = System.currentTimeMillis()
 
   def gameLoop():Unit = {
-
-//    val t = System.currentTimeMillis()
-//    if(math.abs(t - startTime) < 15 || math.abs(t - startTime) > 45)
-//    println(s"use Time = ${t - startTime}")
-//    startTime = t
-//    var flag =  true
-//    while (flag){
-//      if(System.currentTimeMillis() - t > 15){
-//        flag = false
-//      }
-//    }
-//    tickCount += 1
-//
-//    if(tickCount % 100 == 0){
-//      testEndTime = System.currentTimeMillis()
-//      println(s"user Time = ${testEndTime - testStartTime}")
-//      testStartTime = testEndTime
-//    }
-
     gameState match {
       case Constants.GameState.loadingPlay =>
         println(s"等待同步数据")
@@ -443,11 +559,17 @@ class GameHolder(canvasName:String) {
         justSynced match {
           case true =>
             if(clientFrame == maxClientFrameDrawForSystemFrame - 1){
-              gridStateWithoutBullet.foreach(t =>grid.gridSyncStateWithoutBullet(t))
+              gridStateWithoutBullet.foreach{t =>
+                grid.gridSyncStateWithoutBullet(t)
+                gameSnapshotMap.clear()
+                gameSnapshotMap.put(grid.systemFrame,grid.getGridState())
+              }
               gridStateWithoutBullet = None
               gridAllState.foreach{t =>
                 grid.gridSyncState(t)
                 nextFrame = dom.window.requestAnimationFrame(gameRender())
+                gameSnapshotMap.clear()
+                gameSnapshotMap.put(grid.systemFrame,grid.getGridState())
               }
               gridAllState = None
               justSynced = false
@@ -455,6 +577,7 @@ class GameHolder(canvasName:String) {
           case false =>
             if(clientFrame == maxClientFrameDrawForSystemFrame - 1){
               grid.update()
+              gameSnapshotMap.put(grid.systemFrame,grid.getGridState())
 //              if(grid.systemFrame % 10 == 0)
 //                println(s"${grid.systemFrame} user ${System.currentTimeMillis() - x}")
             }
