@@ -1,10 +1,11 @@
 package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.shared.ptcl.model
-import com.neo.sk.tank.shared.ptcl.model.{Point, TankParameters, CanvasBoundary}
+import com.neo.sk.tank.shared.ptcl.model.{CanvasBoundary, Point, TankParameters}
 import com.neo.sk.tank.shared.ptcl.tank.{Tank, TankState}
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
+import org.scalajs.dom.raw.HTMLElement
 
 import scala.util.Random
 
@@ -201,6 +202,18 @@ object TankClientImpl{
     ctx.lineWidth = 2
     ctx.fillText(s"${tank.name}",namePosition.x,namePosition.y,20 * canvasUnit)
     ctx.closePath()
+
+//    ctx.beginPath()
+    val smallBulletPosition = (position + Point(0,-10) + offset) * canvasUnit
+    val img = dom.document.createElement("img")
+    img.setAttribute("src","/tank/static/img/子弹初始.png")
+    ctx.drawImage(img.asInstanceOf[HTMLElement],(smallBulletPosition.x - model.smallBullet.width / 2 + offset.x) * canvasUnit,
+      (smallBulletPosition.y - model.smallBullet.height / 2 + offset.y) * canvasUnit,
+      model.smallBullet.width * canvasUnit,model.smallBullet.height * canvasUnit)
+    ctx.fill()
+    ctx.stroke()
+//    ctx.closePath()
+
 
 
   }
