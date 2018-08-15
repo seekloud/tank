@@ -20,6 +20,7 @@ import com.neo.sk.tank.core.RoomActor
 import com.neo.sk.tank.shared.ptcl.model
 import com.neo.sk.tank.shared.ptcl.tank.Tank
 import com.neo.sk.tank.Boot.{executor, scheduler}
+import com.neo.sk.tank.common.Constants
 import com.neo.sk.tank.shared.ptcl
 import com.neo.sk.tank.shared.ptcl.model.ObstacleParameters.{RiverParameters, SteelParameters}
 import com.neo.sk.tank.shared.ptcl.model.Point
@@ -154,11 +155,6 @@ class GridServerImpl(
       ,random.nextInt(boundary.y.toInt - model.ObstacleParameters.border.toInt) + model.ObstacleParameters.halfBorder)
   }
 
-  private def genRiverPositionRandom() = {
-    Point(random.nextInt(boundary.x.toInt - model.ObstacleParameters.RiverParameters.width) + model.ObstacleParameters.RiverParameters.width / 2,
-      random.nextInt(boundary.y.toInt - 2 * model.ObstacleParameters.RiverParameters.height) + model.ObstacleParameters.RiverParameters.height)
-  }
-
 
   def joinGame(uid:Long,name:String,userActor:ActorRef[UserActor.Command]):Unit = {
     justJoinUser = (uid,name,userActor) :: justJoinUser
@@ -220,34 +216,45 @@ class GridServerImpl(
     n
   }
 
-  private def genASteel() = {
+  private def genASteel(position:Point,obstacleType:Byte) = {
     val bId = obstacleIdGenerator.getAndIncrement()
-    val position = genObstaclePositionRandom()
-    var n = new SteelServerImpl(bId,model.ObstacleParameters.ObstacleType.steel,position,SteelParameters.border,SteelParameters.border)
-    var objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Prop] || t.isInstanceOf[Obstacle])
-    while(n.isIntersectsObject(objects)){
-      val position = genTankPositionRandom()
-      n = new SteelServerImpl(bId,model.ObstacleParameters.ObstacleType.steel,position,SteelParameters.border,SteelParameters.border)
-      objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Prop] || t.isInstanceOf[Obstacle])
-    }
-
-    n
+    new SteelServerImpl(bId,obstacleType,position)
   }
 
-  private def genARiver() = {
-    val bId = obstacleIdGenerator.getAndIncrement()
-    val position = genRiverPositionRandom()
-    var n = new SteelServerImpl(bId,model.ObstacleParameters.ObstacleType.river,position,RiverParameters.width,RiverParameters.height)
-    var objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Prop] || t.isInstanceOf[Obstacle])
-    while(n.isIntersectsObject(objects)){
-      val position = genTankPositionRandom()
-      n = new SteelServerImpl(bId,model.ObstacleParameters.ObstacleType.river,position,RiverParameters.width,RiverParameters.height)
-      objects = quadTree.retrieveFilter(n).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Prop] || t.isInstanceOf[Obstacle])
+
+  private def genPositionList(ls:List[(Point,Boolean,Int,Boolean,Int)],border:Int) = {
+    var positionList:List[Point] = Nil
+    ls.foreach{rec =>
+      positionList = rec._1 :: positionList
+      for(i <- 0 to rec._3 - 1){
+        if(rec._2)
+          positionList = (rec._1 + Point(i * border,0)) :: positionList
+        else
+          positionList = (rec._1 - Point(i * border,0)) :: positionList
+      }
+      for(i <- 0 to rec._5 - 1){
+        if(rec._4)
+          positionList = (rec._1 + Point(0, i * border)) :: positionList
+        else
+          positionList = (rec._1 - Point(0, i * border)) :: positionList
+      }
     }
-    n
+    positionList
   }
 
   def obstaclesInit() = {
+    val steelPositionList = genPositionList(Constants.steelPosition,model.ObstacleParameters.SteelParameters.border)
+    val riverPositionList = genPositionList(Constants.riverPosition,model.ObstacleParameters.SteelParameters.border)
+    steelPositionList.foreach{steelPos =>
+      val steel = genASteel(steelPos,model.ObstacleParameters.ObstacleType.steel)
+      quadTree.insert(steel)
+      obstacleMap.put(steel.oId,steel)
+    }
+    riverPositionList.foreach{riverPos =>
+      val river = genASteel(riverPos,model.ObstacleParameters.ObstacleType.river)
+      quadTree.insert(river)
+      obstacleMap.put(river.oId,river)
+    }
     for (i <- 0 until model.ObstacleParameters.AirDropBoxParameters.num) {
       val box = genADrop()
       quadTree.insert(box)
@@ -258,16 +265,6 @@ class GridServerImpl(
       val box = genABrick()
       quadTree.insert(box)
       obstacleMap.put(box.oId, box)
-    }
-    for (i <- 0 until model.ObstacleParameters.SteelParameters.num){
-      val box = genASteel()
-      quadTree.insert(box)
-      obstacleMap.put(box.oId,box)
-    }
-    for(i <- 0 until model.ObstacleParameters.RiverParameters.num){
-      val box = genARiver()
-      quadTree.insert(box)
-      obstacleMap.put(box.oId,box)
     }
   }
 

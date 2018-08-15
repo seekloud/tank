@@ -10,8 +10,8 @@ trait Steel extends Obstacle {
 
   override def getObstacleState(): ObstacleState = ObstacleState(oId, obstacleType, None, position)
 
-  override protected val height: Float
-  override protected val width: Float
+  override protected val height: Float = model.ObstacleParameters.SteelParameters.border
+  override protected val width: Float = model.ObstacleParameters.SteelParameters.border
 
   override def attackDamage(d: Int): Unit
 

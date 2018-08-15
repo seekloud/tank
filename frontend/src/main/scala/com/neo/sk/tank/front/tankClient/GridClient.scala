@@ -79,11 +79,11 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
           quadTree.insert(obstacle)
           obstacleMap.put(o.oId,obstacle)
         case ptcl.model.ObstacleParameters.ObstacleType.steel =>
-          val obstacle = new SteelClientImpl(o,model.ObstacleParameters.SteelParameters.border,model.ObstacleParameters.SteelParameters.border)
+          val obstacle = new SteelClientImpl(o)
           quadTree.insert(obstacle)
           obstacleMap.put(o.oId,obstacle)
         case ptcl.model.ObstacleParameters.ObstacleType.river =>
-          val obstacle = new SteelClientImpl(o,model.ObstacleParameters.RiverParameters.width,model.ObstacleParameters.RiverParameters.height)
+          val obstacle = new SteelClientImpl(o)
           quadTree.insert(obstacle)
           obstacleMap.put(o.oId,obstacle)
         case _ =>
@@ -126,11 +126,11 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
           quadTree.insert(obstacle)
           obstacleMap.put(o.oId,obstacle)
         case ptcl.model.ObstacleParameters.ObstacleType.steel =>
-          val obstacle = new SteelClientImpl(o,model.ObstacleParameters.SteelParameters.border,model.ObstacleParameters.SteelParameters.border)
+          val obstacle = new SteelClientImpl(o)
           quadTree.insert(obstacle)
           obstacleMap.put(o.oId,obstacle)
         case ptcl.model.ObstacleParameters.ObstacleType.river =>
-          val obstacle = new SteelClientImpl(o,model.ObstacleParameters.RiverParameters.width,model.ObstacleParameters.RiverParameters.height)
+          val obstacle = new SteelClientImpl(o)
           quadTree.insert(obstacle)
           obstacleMap.put(o.oId,obstacle)
         case _ =>
@@ -186,11 +186,17 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   }
 
   def updateObstacleAttacked(bId:Int,oId:Int,d:Int) = {
-    bulletMap.get(bId).foreach(b => quadTree.remove(b))
-    bulletMap.remove(bId)
 
     obstacleMap.get(oId) match {
       case Some(t) =>
+        t.obstacleType match{
+          case model.ObstacleParameters.ObstacleType.river =>
+            println("===============没有移除")
+          case _ =>
+            println("-----------------------------------------")
+            bulletMap.get(bId).foreach(b => quadTree.remove(b))
+            bulletMap.remove(bId)
+        }
         t.attackDamage(d)
 
         if(!t.isLived()){
@@ -198,6 +204,8 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
           obstacleMap.remove(oId)
         }
       case None =>
+//        bulletMap.get(bId).foreach(b => quadTree.remove(b))
+//        bulletMap.remove(bId)
     }
   }
 
@@ -247,9 +255,9 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     }else if(t.obstacleState.t == model.ObstacleParameters.ObstacleType.brick){
       new BrickClientImpl(t.obstacleState)
     }else if(t.obstacleState.t == model.ObstacleParameters.ObstacleType.steel){
-      new SteelClientImpl(t.obstacleState,model.ObstacleParameters.SteelParameters.border,model.ObstacleParameters.SteelParameters.border)
+      new SteelClientImpl(t.obstacleState)
     }else{
-      new SteelClientImpl(t.obstacleState,model.ObstacleParameters.RiverParameters.width,model.ObstacleParameters.RiverParameters.height)
+      new SteelClientImpl(t.obstacleState)
     }
     obstacleMap.put(obstacle.oId,obstacle)
     quadTree.insert(obstacle)
