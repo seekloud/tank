@@ -174,16 +174,7 @@ class GridServerImpl(
     )
   }
 
-  def getGridState():GridState = {
-    GridState(
-      systemFrame,
-      tankMap.values.map(_.getTankState()).toList,
-      bulletMap.values.map(_.getBulletState()).toList,
-      propMap.values.map(_.getPropState).toList,
-      obstacleMap.values.map(_.getObstacleState()).toList,
-      tankMoveAction = tankMoveAction.toList.map(t => (t._1,t._2.toList))
-    )
-  }
+
 
   private def genADrop() = {
     val bId = obstacleIdGenerator.getAndIncrement()
