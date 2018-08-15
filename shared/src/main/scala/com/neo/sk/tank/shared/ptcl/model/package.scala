@@ -564,7 +564,7 @@ package object model {
       val num = 5
     }
     object SteelParameters{
-      val border = 10
+      val border = 6
       val num = 20
     }
 
