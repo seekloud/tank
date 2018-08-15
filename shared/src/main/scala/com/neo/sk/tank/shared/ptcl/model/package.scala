@@ -583,6 +583,14 @@ package object model {
     val half:Float = 1.5f
   }
 
+  object smallBullet{
+    val num = 4
+    val height = 30
+    val width = 10
+
+
+  }
+
 
 
 
