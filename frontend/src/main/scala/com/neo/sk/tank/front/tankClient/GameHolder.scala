@@ -143,6 +143,7 @@ class GameHolder(canvasName:String) {
             if(frame < grid.systemFrame){
               rollback(frame)
             }else{
+              grid.removeActionWithFrame(tankId,a,f)
               grid.addActionWithFrame(id,tankAction,frame)
             }
           }
@@ -161,9 +162,6 @@ class GameHolder(canvasName:String) {
 
   //从第frame开始回滚到现在
   def rollback(frame:Long) = {
-    println("!!!!!!!!!!!!!!!!!!!!")
-    println("rollback")
-    println("!!!!!!!!!!!!!!!!!!!!")
 
     def handleEvent(data:WsProtocol.WsMsgServer) = {
       data match {
@@ -563,6 +561,7 @@ class GameHolder(canvasName:String) {
                 grid.gridSyncStateWithoutBullet(t)
                 gameSnapshotMap.clear()
                 gameSnapshotMap.put(grid.systemFrame,grid.getGridState())
+                gameEventMap.filter(_._1 < grid.systemFrame).keySet.foreach(gameEventMap.remove)
               }
               gridStateWithoutBullet = None
               gridAllState.foreach{t =>
@@ -570,6 +569,7 @@ class GameHolder(canvasName:String) {
                 nextFrame = dom.window.requestAnimationFrame(gameRender())
                 gameSnapshotMap.clear()
                 gameSnapshotMap.put(grid.systemFrame,grid.getGridState())
+                gameEventMap.filter(_._1 < grid.systemFrame).keySet.foreach(gameEventMap.remove)
               }
               gridAllState = None
               justSynced = false
@@ -578,6 +578,8 @@ class GameHolder(canvasName:String) {
             if(clientFrame == maxClientFrameDrawForSystemFrame - 1){
               grid.update()
               gameSnapshotMap.put(grid.systemFrame,grid.getGridState())
+              gameSnapshotMap.remove(grid.systemFrame - maxRollBackFrames)
+              gameEventMap.filter(_._1 < grid.systemFrame - maxRollBackFrames).keySet.foreach(gameEventMap.remove)
 //              if(grid.systemFrame % 10 == 0)
 //                println(s"${grid.systemFrame} user ${System.currentTimeMillis() - x}")
             }

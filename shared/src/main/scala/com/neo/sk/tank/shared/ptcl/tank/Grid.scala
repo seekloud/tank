@@ -76,8 +76,13 @@ trait Grid {
 
   def addActionWithFrame(id: Int, tankAction: TankAction, frame: Long) = {
     val queue = tankActionQueueMap.getOrElse(frame,mutable.Queue[(Int,TankAction)]())
+    queue.enqueue((id,tankAction))
+    tankActionQueueMap.put(frame,queue)
+  }
+
+  def removeActionWithFrame(id: Int, tankAction: TankAction, frame: Long) = {
+    val queue = tankActionQueueMap.getOrElse(frame,mutable.Queue[(Int,TankAction)]())
     val actionQueue = queue.filterNot(t => t._1 == id && tankAction.serialNum == t._2.serialNum)
-    actionQueue.enqueue((id,tankAction))
     tankActionQueueMap.put(frame,actionQueue)
   }
 
