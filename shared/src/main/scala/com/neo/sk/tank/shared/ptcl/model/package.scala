@@ -583,10 +583,17 @@ package object model {
     val half:Float = 1.5f
   }
 
+  object bulletType{
+
+    val storage:Byte = 1
+    val vanish:Byte = 2
+  }
+
   object smallBullet{
     val num = 4
-    val height = 30
-    val width = 10
+    val height = 5
+    val width = 1
+
 
 
   }
