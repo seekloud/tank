@@ -44,18 +44,23 @@ object BrickClientImpl{
     val curBlood = brick.getObstacleState().b.getOrElse(ptcl.model.ObstacleParameters.AirDropBoxParameters.blood)
 //    ctx.fillStyle = Color.Black.toString()
 //    ctx.fillText(curBlood.toString,(position.x + offset.x - model.ObstacleParameters.halfBorder) * canvasUnit,(position.y + offset.y - model.ObstacleParameters.halfBorder) * canvasUnit,14)
+    ctx.beginPath()
     ctx.fillStyle = "#8B6969"
     ctx.fillRect((position.x - model.ObstacleParameters.halfBorder + offset.x) * canvasUnit
       ,(position.y + model.ObstacleParameters.halfBorder + offset.y - (model.ObstacleParameters.border * curBlood).toFloat/ model.ObstacleParameters.BrickDropBoxParameters.blood) * canvasUnit,
       model.ObstacleParameters.border * canvasUnit,((model.ObstacleParameters.border * curBlood).toFloat/ model.ObstacleParameters.BrickDropBoxParameters.blood) * canvasUnit)
+    ctx.closePath()
+//    ctx.clearRect((position.x - model.ObstacleParameters.halfBorder + offset.x) * canvasUnit,(position.y - model.ObstacleParameters.halfBorder + offset.y) * canvasUnit,
+//      model.ObstacleParameters.border * canvasUnit,(1 -1.0 * curBlood /  model.ObstacleParameters.BrickDropBoxParameters.blood)*canvasUnit)
+    ctx.beginPath()
     ctx.strokeStyle = "#8B6969"
     ctx.lineWidth = 2
-    ctx.beginPath()
     ctx.rect((position.x - model.ObstacleParameters.halfBorder + offset.x) * canvasUnit ,
       (position.y - model.ObstacleParameters.halfBorder + offset.y) * canvasUnit,
       model.ObstacleParameters.border * canvasUnit , model.ObstacleParameters.border * canvasUnit)
     ctx.stroke()
     ctx.lineWidth =1
+    ctx.closePath()
   }
 
 
