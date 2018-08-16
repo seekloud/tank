@@ -33,6 +33,7 @@ object SteelClientImpl {
   def drawSteel(ctx:dom.CanvasRenderingContext2D,offset:Point,canvasUnit:Int,steel:Obstacle) = {
     val position = steel.getObstacleState().p
     val img = dom.document.createElement("img")
+    ctx.beginPath()
     val image = steel.obstacleType match{
       case model.ObstacleParameters.ObstacleType.steel => img.setAttribute("src","/tank/static/img/钢铁.png")
       case model.ObstacleParameters.ObstacleType.river => img.setAttribute("src","/tank/static/img/river.png")
@@ -42,6 +43,7 @@ object SteelClientImpl {
       model.ObstacleParameters.SteelParameters.border * canvasUnit,model.ObstacleParameters.SteelParameters.border * canvasUnit)
     ctx.fill()
     ctx.stroke()
+    ctx.closePath()
   }
 
 }

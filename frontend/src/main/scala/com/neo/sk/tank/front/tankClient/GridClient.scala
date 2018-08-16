@@ -191,9 +191,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       case Some(t) =>
         t.obstacleType match{
           case model.ObstacleParameters.ObstacleType.river =>
-            println("===============没有移除")
           case _ =>
-            println("-----------------------------------------")
             bulletMap.get(bId).foreach(b => quadTree.remove(b))
             bulletMap.remove(bId)
         }
