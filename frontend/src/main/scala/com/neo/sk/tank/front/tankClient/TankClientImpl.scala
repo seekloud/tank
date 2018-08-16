@@ -204,14 +204,14 @@ object TankClientImpl{
     ctx.closePath()
 
 //    ctx.beginPath()
-    val smallBulletPosition = (position + Point(0,-10) + offset) * canvasUnit
-    val img = dom.document.createElement("img")
-    img.setAttribute("src","/tank/static/img/子弹初始.png")
-    ctx.drawImage(img.asInstanceOf[HTMLElement],(smallBulletPosition.x - model.smallBullet.width / 2 + offset.x) * canvasUnit,
-      (smallBulletPosition.y - model.smallBullet.height / 2 + offset.y) * canvasUnit,
-      model.smallBullet.width * canvasUnit,model.smallBullet.height * canvasUnit)
-    ctx.fill()
-    ctx.stroke()
+//    val smallBulletPosition = (position + Point(0,-10) + offset)
+//    val img = dom.document.createElement("img")
+//    img.setAttribute("src","/tank/static/img/xueliang.png")
+//    ctx.drawImage(img.asInstanceOf[HTMLElement],(smallBulletPosition.x - model.smallBullet.width / 2) * canvasUnit,
+//      (smallBulletPosition.y - model.smallBullet.height / 2 ) * canvasUnit,
+//      model.smallBullet.width * canvasUnit,model.smallBullet.height * canvasUnit)
+//    ctx.fill()
+//    ctx.stroke()
 //    ctx.closePath()
 
 
