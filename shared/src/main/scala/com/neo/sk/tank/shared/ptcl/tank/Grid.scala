@@ -95,6 +95,7 @@ trait Grid {
 
 
 
+
   def getDirection(actionSet:mutable.HashSet[Int]):Option[Double] = {
     if(actionSet.contains(KeyEvent.VK_LEFT) && actionSet.contains(KeyEvent.VK_UP)){
       Some(DirectionType.upLeft)

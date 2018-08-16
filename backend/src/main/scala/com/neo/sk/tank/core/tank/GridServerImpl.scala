@@ -10,20 +10,34 @@ import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
 import com.neo.sk.tank.shared.ptcl.tank._
 import org.slf4j.Logger
 import com.neo.sk.tank.Boot.{executor, scheduler}
+
 import concurrent.duration._
 import com.neo.sk.tank.core.RoomActor
+
 import scala.util.Random
 import akka.actor.typed.ActorRef
 import com.neo.sk.tank.core.RoomActor
 import com.neo.sk.tank.shared.ptcl.model
 import com.neo.sk.tank.shared.ptcl.tank.Tank
 import com.neo.sk.tank.Boot.{executor, scheduler}
+import com.neo.sk.tank.models.TankGame.{GameEvent, GameSnapshot}
 import com.neo.sk.tank.shared.ptcl
 import com.neo.sk.tank.shared.ptcl.model.Point
 
 /**
   * Created by hongruying on 2018/7/10
   */
+trait GridRecorder{
+  private var tankGameEvents : List[GameEvent] = List[GameEvent]()
+
+  private var tankGameSnapshotMap : Map[Long,GameSnapshot] = Map()
+
+  def addEvent(e:GameEvent) = tankGameEvents = e :: tankGameEvents
+
+  def generateSnapShot()
+}
+
+
 class GridServerImpl(
                       ctx:ActorContext[RoomActor.Command],
                       log:Logger,
