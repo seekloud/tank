@@ -80,6 +80,14 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
           val obstacle = new BrickClientImpl(o)
           quadTree.insert(obstacle)
           obstacleMap.put(o.oId,obstacle)
+        case ptcl.model.ObstacleParameters.ObstacleType.steel =>
+          val obstacle = new SteelClientImpl(o)
+          quadTree.insert(obstacle)
+          obstacleMap.put(o.oId,obstacle)
+        case ptcl.model.ObstacleParameters.ObstacleType.river =>
+          val obstacle = new SteelClientImpl(o)
+          quadTree.insert(obstacle)
+          obstacleMap.put(o.oId,obstacle)
         case _ =>
       }
     }
@@ -117,6 +125,14 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
           obstacleMap.put(o.oId,obstacle)
         case ptcl.model.ObstacleParameters.ObstacleType.brick =>
           val obstacle = new BrickClientImpl(o)
+          quadTree.insert(obstacle)
+          obstacleMap.put(o.oId,obstacle)
+        case ptcl.model.ObstacleParameters.ObstacleType.steel =>
+          val obstacle = new SteelClientImpl(o)
+          quadTree.insert(obstacle)
+          obstacleMap.put(o.oId,obstacle)
+        case ptcl.model.ObstacleParameters.ObstacleType.river =>
+          val obstacle = new SteelClientImpl(o)
           quadTree.insert(obstacle)
           obstacleMap.put(o.oId,obstacle)
         case _ =>
@@ -172,11 +188,15 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   }
 
   def updateObstacleAttacked(bId:Int,oId:Int,d:Int) = {
-    bulletMap.get(bId).foreach(b => quadTree.remove(b))
-    bulletMap.remove(bId)
 
     obstacleMap.get(oId) match {
       case Some(t) =>
+        t.obstacleType match{
+          case model.ObstacleParameters.ObstacleType.river =>
+          case _ =>
+            bulletMap.get(bId).foreach(b => quadTree.remove(b))
+            bulletMap.remove(bId)
+        }
         t.attackDamage(d)
 
         if(!t.isLived()){
@@ -184,6 +204,8 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
           obstacleMap.remove(oId)
         }
       case None =>
+//        bulletMap.get(bId).foreach(b => quadTree.remove(b))
+//        bulletMap.remove(bId)
     }
   }
 
@@ -230,8 +252,12 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   def updateAddObstacle(t:WsProtocol.AddObstacle) = {
     val obstacle = if(t.obstacleState.t == model.ObstacleParameters.ObstacleType.airDropBox){
       new AirDropBoxClientImpl(t.obstacleState)
-    }else{
+    }else if(t.obstacleState.t == model.ObstacleParameters.ObstacleType.brick){
       new BrickClientImpl(t.obstacleState)
+    }else if(t.obstacleState.t == model.ObstacleParameters.ObstacleType.steel){
+      new SteelClientImpl(t.obstacleState)
+    }else{
+      new SteelClientImpl(t.obstacleState)
     }
     obstacleMap.put(obstacle.oId,obstacle)
     quadTree.insert(obstacle)
@@ -352,8 +378,12 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       o =>
         if (o.obstacleType == model.ObstacleParameters.ObstacleType.airDropBox) {
           AirDropBoxClientImpl.drawAirDrop(ctx, offset, canvasUnit, o)
-        } else {
+        } else if(o.obstacleType == model.ObstacleParameters.ObstacleType.brick){
           BrickClientImpl.drawBrick(ctx,offset,canvasUnit,o)
+        }else if(o.obstacleType == model.ObstacleParameters.ObstacleType.steel){
+          SteelClientImpl.drawSteel(ctx,offset,canvasUnit,o)
+        }else{
+          SteelClientImpl.drawSteel(ctx,offset,canvasUnit,o)
         }
     }
     drawProps(ctx,offset)

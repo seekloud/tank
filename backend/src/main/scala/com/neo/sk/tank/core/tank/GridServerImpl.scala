@@ -21,7 +21,9 @@ import com.neo.sk.tank.shared.ptcl.model
 import com.neo.sk.tank.shared.ptcl.tank.Tank
 import com.neo.sk.tank.Boot.{executor, scheduler}
 import com.neo.sk.tank.models.TankGame.{GameEvent, GameSnapshot}
+import com.neo.sk.tank.common.Constants
 import com.neo.sk.tank.shared.ptcl
+import com.neo.sk.tank.shared.ptcl.model.ObstacleParameters.{RiverParameters, SteelParameters}
 import com.neo.sk.tank.shared.ptcl.model.Point
 
 /**
@@ -217,7 +219,45 @@ class GridServerImpl(
     n
   }
 
+  private def genASteel(position:Point,obstacleType:Byte) = {
+    val bId = obstacleIdGenerator.getAndIncrement()
+    new SteelServerImpl(bId,obstacleType,position)
+  }
+
+
+  private def genPositionList(ls:List[(Point,Boolean,Int,Boolean,Int)],border:Int) = {
+    var positionList:List[Point] = Nil
+    ls.foreach{rec =>
+      positionList = rec._1 :: positionList
+      for(i <- 0 to rec._3 - 1){
+        if(rec._2)
+          positionList = (rec._1 + Point(i * border,0)) :: positionList
+        else
+          positionList = (rec._1 - Point(i * border,0)) :: positionList
+      }
+      for(i <- 0 to rec._5 - 1){
+        if(rec._4)
+          positionList = (rec._1 + Point(0, i * border)) :: positionList
+        else
+          positionList = (rec._1 - Point(0, i * border)) :: positionList
+      }
+    }
+    positionList
+  }
+
   def obstaclesInit() = {
+    val steelPositionList = genPositionList(Constants.steelPosition,model.ObstacleParameters.SteelParameters.border)
+    val riverPositionList = genPositionList(Constants.riverPosition,model.ObstacleParameters.SteelParameters.border)
+    steelPositionList.foreach{steelPos =>
+      val steel = genASteel(steelPos,model.ObstacleParameters.ObstacleType.steel)
+      quadTree.insert(steel)
+      obstacleMap.put(steel.oId,steel)
+    }
+    riverPositionList.foreach{riverPos =>
+      val river = genASteel(riverPos,model.ObstacleParameters.ObstacleType.river)
+      quadTree.insert(river)
+      obstacleMap.put(river.oId,river)
+    }
     for (i <- 0 until model.ObstacleParameters.AirDropBoxParameters.num) {
       val box = genADrop()
       quadTree.insert(box)

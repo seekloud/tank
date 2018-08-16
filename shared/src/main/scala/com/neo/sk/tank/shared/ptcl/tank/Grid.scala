@@ -259,8 +259,12 @@ trait Grid {
 
   //子弹攻击到障碍物的回调函数
   protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
-    bulletMap.remove(bullet.bId)
-    quadTree.remove(bullet)
+    o.obstacleType match{
+      case ObstacleParameters.ObstacleType.river =>
+      case _ =>
+        bulletMap.remove(bullet.bId)
+        quadTree.remove(bullet)
+    }
   }
 
 
