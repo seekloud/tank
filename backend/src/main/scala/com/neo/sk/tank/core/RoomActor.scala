@@ -5,6 +5,7 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerSch
 import akka.http.scaladsl.model.ws.Message
 import akka.stream.scaladsl.Flow
 import com.neo.sk.tank.core.tank.GridServerImpl
+import com.neo.sk.tank.shared.ptcl.protocol.TankGame
 import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
 import org.slf4j.LoggerFactory
 
@@ -35,6 +36,8 @@ object RoomActor {
   case class WebSocketMsg(uid:Long,tankId:Int,req:WsFrontProtocol.TankAction) extends Command
 
   case class LeftRoom(uid:Long,tankId:Int,name:String) extends Command
+
+  final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
 
 
   case object GameLoop extends Command
@@ -72,6 +75,7 @@ object RoomActor {
           implicit timer =>
             val subscribersMap = mutable.HashMap[Long,ActorRef[UserActor.Command]]()
             val grid = new GridServerImpl(ctx,log,dispatch(subscribersMap),dispatchTo(subscribersMap),ptcl.model.Boundary.getBoundary)
+            getGameRecorder(ctx,grid)
             grid.obstaclesInit()
             timer.startPeriodicTimer(GameLoopKey,GameLoop,ptcl.model.Frame.millsAServerFrame.millis)
             idle(Nil,subscribersMap,grid,0L)
@@ -103,7 +107,7 @@ object RoomActor {
             case r:WsFrontProtocol.PressKeyDown => dispatch(subscribersMap)(WsProtocol.TankActionFrameKeyDown(tankId,grid.systemFrame,r))
             case r:WsFrontProtocol.PressKeyUp => dispatch(subscribersMap)(WsProtocol.TankActionFrameKeyUp(tankId,grid.systemFrame,r))
             case r:WsFrontProtocol.GunDirectionOffset => dispatch(subscribersMap)(WsProtocol.TankActionFrameOffset(tankId,grid.systemFrame,r))
-            case _ =>
+            case _ => val x = TankGame
           }
 
 
@@ -120,6 +124,7 @@ object RoomActor {
           val startTime = System.currentTimeMillis()
 
           grid.update()
+          getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(grid.getLastEventAndSnapShot())
 
           if (tickCount % 20 == 5) {
             val gridData = grid.getGridStateWithoutBullet()
@@ -145,6 +150,13 @@ object RoomActor {
           grid.tankFillABullet(tId)
           Behaviors.same
 
+
+        case ChildDead(name, childRef) =>
+          log.debug(s"${ctx.self.path} recv a msg:${msg}")
+          ctx.unwatch(childRef)
+          Behaviors.same
+
+
         case TankInvincible(tId) =>
           grid.tankInvincible(tId)
           dispatch(subscribersMap)(WsProtocol.TankInvincible(grid.systemFrame,tId))
@@ -166,6 +178,20 @@ object RoomActor {
 
   def dispatchTo(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(id:Long,msg:WsProtocol.WsMsgServer) = {
     subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(msg))
+  }
+
+
+  private def getGameRecorder(ctx: ActorContext[Command],grid:GridServerImpl):ActorRef[GameRecorder.Command] = {
+    val childName = s"gameRecorder"
+    ctx.child(childName).getOrElse{
+      val curTime = System.currentTimeMillis()
+      val fileName = s"tankGame_${curTime}"
+      val gameInformation = TankGame.GameInformation(curTime)
+      val initStateOpt = grid.getCurGameSnapShot()
+      val actor = ctx.spawn(GameRecorder.create(fileName,gameInformation,initStateOpt),childName)
+      ctx.watchWith(actor,ChildDead(childName,actor))
+      actor
+    }.upcast[GameRecorder.Command]
   }
 
 

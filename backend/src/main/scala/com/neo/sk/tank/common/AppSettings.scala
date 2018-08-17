@@ -41,8 +41,6 @@ object AppSettings {
 //  val componentAppId = wxConfig.getString("componentAppid")
 //  val clientAppId = wxConfig.getString("clientAppId")
 
-  val appBindSecureKey = appConfig.getString("appBindSecureKey")
-  val appBindSecureKeyTimeOut = appConfig.getLong("appBindSecureKey") * 60 * 1000
 
 
 
@@ -125,6 +123,8 @@ object AppSettings {
 //  val upperRainbowProtocol = upperRainbowConfig.getString("protocol")
   val upperRainbowHost = upperRainbowConfig.getString("host")
   val upperRainbowPort = upperRainbowConfig.getInt("port")
+
+  val gameDataDirectoryPath = appConfig.getString("gameDataDirectoryPath")
 
   object UpperRainbowConfig{
     val isWorkConfig = upperRainbowConfig.getBoolean("isWork")

@@ -20,8 +20,9 @@ import com.neo.sk.tank.core.RoomActor
 import com.neo.sk.tank.shared.ptcl.model
 import com.neo.sk.tank.shared.ptcl.tank.Tank
 import com.neo.sk.tank.Boot.{executor, scheduler}
-import com.neo.sk.tank.models.TankGame.{GameEvent, GameSnapshot}
+import com.neo.sk.tank.shared.ptcl.protocol.TankGame.{GameEvent, GameSnapshot}
 import com.neo.sk.tank.common.Constants
+import com.neo.sk.tank.shared.ptcl.protocol.TankGame
 import com.neo.sk.tank.shared.ptcl
 import com.neo.sk.tank.shared.ptcl.model.ObstacleParameters.{RiverParameters, SteelParameters}
 import com.neo.sk.tank.shared.ptcl.model.Point
@@ -29,14 +30,30 @@ import com.neo.sk.tank.shared.ptcl.model.Point
 /**
   * Created by hongruying on 2018/7/10
   */
-trait GridRecorder{
+trait GridRecorder{ this:GridServerImpl =>
   private var tankGameEvents : List[GameEvent] = List[GameEvent]()
 
-  private var tankGameSnapshotMap : Map[Long,GameSnapshot] = Map()
+  private var tankGameSnapshotMap : Map[Long,GameSnapshot] = Map[Long,GameSnapshot]((this.systemFrame,TankGame.TankGameSnapshot(this.getGridState())))
 
-  def addEvent(e:GameEvent) = tankGameEvents = e :: tankGameEvents
+  protected def addGameEvent(e:GameEvent):Unit = tankGameEvents = e :: tankGameEvents
 
-  def generateSnapShot()
+  protected def generateGameSnapShot(frame:Long,snapshot:GameSnapshot):Unit = tankGameSnapshotMap += (frame -> snapshot)
+
+  /**
+    * @param frame 当前帧数
+    * @return 返回上一帧的输入和开始状态
+    * */
+  def getLastEventAndSnapShot():(List[GameEvent],Option[GameSnapshot]) = {
+    val events = tankGameEvents
+    val snapshotOpt = tankGameSnapshotMap.get(this.systemFrame - 1)
+    tankGameEvents = Nil
+    tankGameSnapshotMap -= this.systemFrame - 1
+    (events,snapshotOpt)
+  }
+
+  def getCurGameSnapShot() = {
+    tankGameSnapshotMap.get(this.systemFrame)
+  }
 }
 
 
@@ -45,7 +62,7 @@ class GridServerImpl(
                       log:Logger,
                       dispatch:WsProtocol.WsMsgServer => Unit,
                       dispatchTo:(Long,WsProtocol.WsMsgServer) => Unit,
-                      override val boundary: model.Point) extends Grid{
+                      override val boundary: model.Point) extends Grid with GridRecorder {
 
   override def info(msg: String): Unit = {
     log.info(s"[${ctx.self.path} grid] $msg")
@@ -98,6 +115,9 @@ class GridServerImpl(
         propMap.put(pId,prop)
         quadTree.insert(prop)
         dispatch(WsProtocol.AddProp(systemFrame,pId,propMap.get(pId).get.getPropState))
+
+        addGameEvent(TankGame.GenerateProp(systemFrame,pId,prop.getPropState))
+
         genADrop()
       }else{
         genABrick()
@@ -105,6 +125,8 @@ class GridServerImpl(
       quadTree.insert(box)
       obstacleMap.put(box.oId,box)
       dispatch(WsProtocol.AddObstacle(systemFrame,box.oId,box.getObstacleState()))
+
+      addGameEvent(TankGame.GenerateObstacle(systemFrame,box.oId,box.getObstacleState()))
     }
 
   }
@@ -119,6 +141,9 @@ class GridServerImpl(
       u._3 ! UserActor.JoinRoomSuccess(tank)
       tankMap.put(tank.tankId,tank)
       quadTree.insert(tank)
+
+      addGameEvent(TankGame.UserJoinRoom(u._1,u._2,tank.getTankState(),systemFrame - 1))
+
       scheduler.scheduleOnce(ptcl.model.TankParameters.tankInvincibleTime.second){
         ctx.self!RoomActor.TankInvincible(tank.tankId)
 
@@ -144,6 +169,7 @@ class GridServerImpl(
 
 
   def tankFillABullet(tankId:Int):Unit = {
+    addGameEvent(TankGame.TankFillBullet(tankId,systemFrame))
     tankMap.get(tankId) match {
       case Some(tank) => tank.fillABullet()
       case None =>
@@ -151,6 +177,7 @@ class GridServerImpl(
   }
 
   def tankInvincible(tankId:Int):Unit ={
+    addGameEvent(TankGame.TankInvincible(tankId,systemFrame))
     tankMap.get(tankId)match{
       case Some(tank) =>tank.isInvincibleTime()
       case None =>
@@ -252,22 +279,30 @@ class GridServerImpl(
       val steel = genASteel(steelPos,model.ObstacleParameters.ObstacleType.steel)
       quadTree.insert(steel)
       obstacleMap.put(steel.oId,steel)
+
+      addGameEvent(TankGame.GenerateObstacle(systemFrame,steel.oId,steel.getObstacleState()))
     }
     riverPositionList.foreach{riverPos =>
       val river = genASteel(riverPos,model.ObstacleParameters.ObstacleType.river)
       quadTree.insert(river)
       obstacleMap.put(river.oId,river)
+
+      addGameEvent(TankGame.GenerateObstacle(systemFrame,river.oId,river.getObstacleState()))
     }
     for (i <- 0 until model.ObstacleParameters.AirDropBoxParameters.num) {
       val box = genADrop()
       quadTree.insert(box)
       obstacleMap.put(box.oId, box)
+
+      addGameEvent(TankGame.GenerateObstacle(systemFrame,box.oId,box.getObstacleState()))
     }
 
     for (i <- 0 until model.ObstacleParameters.BrickDropBoxParameters.num) {
       val box = genABrick()
       quadTree.insert(box)
       obstacleMap.put(box.oId, box)
+
+      addGameEvent(TankGame.GenerateObstacle(systemFrame,box.oId,box.getObstacleState()))
     }
   }
 
@@ -278,6 +313,7 @@ class GridServerImpl(
     propMap.put(pId,prop)
     quadTree.insert(prop)
     dispatch(WsProtocol.AddProp(systemFrame,pId,propMap.get(pId).get.getPropState))
+    addGameEvent(TankGame.GenerateProp(systemFrame,pId,prop.getPropState))
     quadTree.remove(tank)
     tankMap.remove(tank.tankId)
     tankMoveAction.remove(tank.tankId)
@@ -337,6 +373,7 @@ class GridServerImpl(
     super.update()
     genTank()
     updateRanksByDamage()
+    generateGameSnapShot(systemFrame,TankGame.TankGameSnapshot(getGridState()))
   }
 
 
