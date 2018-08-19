@@ -7,7 +7,7 @@ import com.neo.sk.tank.shared.ptcl.model.{Point, Rectangle}
   * 游戏中的坦克
   */
 case class TankState(userId:Long,tankId:Int,direction:Float,gunDirection:Float,blood:Int,bloodLevel:Byte,speedLevel:Byte,curBulletNum:Int,position:Point,bulletPowerLevel:Byte,tankColorType:Byte,
-                     name:String,killTankNum:Int,damageTank:Int,invincible:Boolean)
+                     name:String,killTankNum:Int,damageTank:Int,invincible:Boolean,bulletStrengthen:Int)
 
 trait Tank extends CircleObjectOfGame {
 
@@ -38,6 +38,8 @@ trait Tank extends CircleObjectOfGame {
   protected var gunDirection:Float //
 
   protected var bulletPowerLevel:Byte //子弹等级
+
+  protected var bulletStrengthen:Int //子弹增强的时间
 
   protected val tankColorType:Byte
 
@@ -90,7 +92,7 @@ trait Tank extends CircleObjectOfGame {
 
   // 获取坦克状态
   def getTankState():TankState = {
-    TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position,bulletPowerLevel,tankColorType,name,killTankNum,damageTank,invincible)
+    TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position,bulletPowerLevel,tankColorType,name,killTankNum,damageTank,invincible,bulletStrengthen)
   }
 
   //  开始填充炮弹
@@ -181,6 +183,7 @@ trait Tank extends CircleObjectOfGame {
         if(blood > model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)){
           blood = model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)
         }
+      case 5 => bulletStrengthen = 30
     }
 
   }

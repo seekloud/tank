@@ -578,9 +578,9 @@ package object model {
   }
 
   object PropParameters{
-    val r:Float = 1.5f
-    val l = 3
-    val half:Float = 1.5f
+    val r = 2
+    val l = 4
+    val half = 2
   }
 
   object bulletType{
