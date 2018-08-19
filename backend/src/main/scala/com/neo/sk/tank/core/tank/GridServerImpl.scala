@@ -55,6 +55,19 @@ class GridServerImpl(
         val bullet = new BulletServerImpl(bulletIdGenerator.getAndIncrement(),tankId,position,System.currentTimeMillis(),damage,m,position,tank.name)
         waitGenBullet = (systemFrame,bullet) :: waitGenBullet
         dispatch(WsProtocol.TankLaunchBullet(systemFrame,bullet.getBulletState()))
+        if(tank.getTankState().bulletStrengthen > 0){
+          val m2 = ptcl.model.BulletParameters.bulletMomentum.rotate(bulletDirection + (Math.PI/8).toFloat)
+          val p2 = tank.getOtherLaunchBulletPosition((Math.PI/8).toFloat)
+          val bullet2 = new BulletServerImpl(bulletIdGenerator.getAndIncrement(),tankId,position,System.currentTimeMillis(),damage,m2,p2,tank.name)
+          waitGenBullet = (systemFrame,bullet2) :: waitGenBullet
+          dispatch(WsProtocol.TankLaunchBullet(systemFrame,bullet2.getBulletState()))
+          val m3 = ptcl.model.BulletParameters.bulletMomentum.rotate(bulletDirection - (Math.PI/8).toFloat)
+          val p3 = tank.getOtherLaunchBulletPosition(-(Math.PI/8).toFloat)
+          val bullet3 = new BulletServerImpl(bulletIdGenerator.getAndIncrement(),tankId,position,System.currentTimeMillis(),damage,m3,p3,tank.name)
+          waitGenBullet = (systemFrame,bullet3) :: waitGenBullet
+          dispatch(WsProtocol.TankLaunchBullet(systemFrame,bullet3.getBulletState()))
+        }
+        dispatch(WsProtocol.TankLaunchBullet(systemFrame,bullet.getBulletState()))
         //dispatch() 分发数据子弹位置 以及子弹位置的帧数
       case None => debug(s"tankId=${tankId} has no bullet now")
     }
@@ -169,6 +182,11 @@ class GridServerImpl(
 
 
   def getGridStateWithoutBullet():GridStateWithoutBullet = {
+    tankMap.values.foreach{
+      t=> if(t.getTankState().bulletStrengthen > 0){
+        t.bulletStrengthenTimeMinus()
+      }
+    }
     GridStateWithoutBullet(
       systemFrame,
       tankMap.values.map(_.getTankState()).toList,
@@ -271,10 +289,14 @@ class GridServerImpl(
 
   private def dropTankCallBack(bullet:Bullet,tank:Tank):Unit = {
     val pId = propIdGenerator.getAndIncrement()
-    val prop = Prop.apply(PropState(pId,(random.nextInt(Int.MaxValue) % 4 + 1).toByte,tank.position))
+    val totalScore = tank.getTankState().bulletPowerLevel.toInt + tank.getTankState().bloodLevel.toInt + tank.getTankState().speedLevel.toInt - 2
+    val tmp = random.nextInt(Int.MaxValue) % (1 * 4 + totalScore) + 1
+//    val propType = if(tmp <= 1) 1 else if(tmp <= 2) 2 else if(tmp <= 3) 3 else if(tmp <= 4) 4 else 5
+    val propType = 5
+    val prop = Prop.apply(PropState(pId,propType.toByte,tank.position))
     propMap.put(pId,prop)
     quadTree.insert(prop)
-    dispatch(WsProtocol.AddProp(systemFrame,pId,propMap.get(pId).get.getPropState))
+    dispatch(WsProtocol.AddProp(systemFrame,pId,propMap(pId).getPropState))
     quadTree.remove(tank)
     tankMap.remove(tank.tankId)
     tankMoveAction.remove(tank.tankId)

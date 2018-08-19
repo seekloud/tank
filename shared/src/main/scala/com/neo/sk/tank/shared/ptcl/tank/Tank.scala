@@ -105,6 +105,13 @@ trait Tank extends CircleObjectOfGame {
     position + Point(model.TankParameters.TankSize.gunLen,0).rotate(gunDirection)
   }
 
+  private def getOtherGunDirection(angle:Float) = {
+    gunDirection + angle
+  }
+
+  def getOtherLaunchBulletPosition(angle:Float) = {
+    position + Point(model.TankParameters.TankSize.gunLen,0).rotate(getOtherGunDirection(angle))
+  }
 
 //  //
 //  override def getObjectRect(): Rectangle = {
@@ -168,6 +175,10 @@ trait Tank extends CircleObjectOfGame {
     blood -= d
   }
 
+  def bulletStrengthenTimeMinus() = {
+    bulletStrengthen -= 1
+  }
+
   def eatProp(p:Prop):Unit = {
     p.getPropState.t match {
       case 1 =>
@@ -183,7 +194,7 @@ trait Tank extends CircleObjectOfGame {
         if(blood > model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)){
           blood = model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)
         }
-      case 5 => bulletStrengthen = 30
+      case 5 => bulletStrengthen = model.TankParameters.bulletStrengthenTime
     }
 
   }
