@@ -42,7 +42,7 @@ object Prop{
       case 2 => AddSpeedLevelProp(p.pId,position = p.p)
       case 3 => AddBulletLevelProp(p.pId,position = p.p)
       case 4 => AddBloodProp(p.pId,position = p.p)
-
+      case 5 => AddBulletStrengthenProp(p.pId,position = p.p)
     }
   }
 }
@@ -71,6 +71,12 @@ case class AddBloodProp(
                               override val propType: Byte = 4,
                               override var position: model.Point
                             ) extends Prop
+
+case class AddBulletStrengthenProp(
+                              override val pId: Int,
+                              override val propType: Byte = 5,
+                              override var position: model.Point
+                            ) extends  Prop
 
 
 
