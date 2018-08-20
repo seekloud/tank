@@ -77,7 +77,7 @@ object RoomActor {
           implicit timer =>
             val subscribersMap = mutable.HashMap[Long,ActorRef[UserActor.Command]]()
             val grid = new GridServerImpl(ctx,log,dispatch(subscribersMap),dispatchTo(subscribersMap),ptcl.model.Boundary.getBoundary)
-//            getGameRecorder(ctx,grid)
+            getGameRecorder(ctx,grid)
             grid.obstaclesInit()
             timer.startPeriodicTimer(GameLoopKey,GameLoop,ptcl.model.Frame.millsAServerFrame.millis)
             idle(Nil,subscribersMap,grid,0L)
@@ -126,7 +126,7 @@ object RoomActor {
           val startTime = System.currentTimeMillis()
 
           grid.update()
-//          getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(grid.getLastEventAndSnapShot())
+          getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(grid.getLastEventAndSnapShot())
 
           if (tickCount % 20 == 5) {
             val gridData = grid.getGridStateWithoutBullet()
