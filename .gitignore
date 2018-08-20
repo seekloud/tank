@@ -50,6 +50,7 @@ logs/
 .DS_Store
 backend/.DS_Store
 backend/logs/
+backend/gameDataDirectoryPath/
 backend/src/.DS_Store
 backend/src/main/.DS_Store
 backend/src/main/resources/.DS_Store
