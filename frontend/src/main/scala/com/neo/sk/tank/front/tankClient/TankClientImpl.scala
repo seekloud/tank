@@ -109,9 +109,12 @@ object TankClientImpl{
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt,canMove)
     val gunH = tank.bulletPowerLevel match{
         case TankParameters.TankBulletBulletPowerLevel.first => 1f * TankParameters.TankSize.gunH
-        case TankParameters.TankBulletBulletPowerLevel.second => 1.4f * TankParameters.TankSize.gunH
-        case TankParameters.TankBulletBulletPowerLevel.third => 1.8f * TankParameters.TankSize.gunH
+        case TankParameters.TankBulletBulletPowerLevel.second => 1.2f * TankParameters.TankSize.gunH
+        case TankParameters.TankBulletBulletPowerLevel.third => 1.4f * TankParameters.TankSize.gunH
     }
+    tank.bulletPowerLevel
+    tank.bloodLevel
+    tank.blood
 //    val gunPositionList = tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
 //    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
     val gunPositionList = if(tank.getTankState().bulletStrengthen <=0 ) {
@@ -193,8 +196,8 @@ object TankClientImpl{
     //    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
     val gunH = tank.bulletPowerLevel match{
       case TankParameters.TankBulletBulletPowerLevel.first => 1f* TankParameters.TankSize.gunH
-      case TankParameters.TankBulletBulletPowerLevel.second => 1.4f* TankParameters.TankSize.gunH
-      case TankParameters.TankBulletBulletPowerLevel.third => 1.8f* TankParameters.TankSize.gunH
+      case TankParameters.TankBulletBulletPowerLevel.second => 1.2f* TankParameters.TankSize.gunH
+      case TankParameters.TankBulletBulletPowerLevel.third => 1.4f* TankParameters.TankSize.gunH
     }
 //    val gunPositionList = tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
 //    val bloodSliderPosition = tank.generateSliderPosition(3).map(_ + position).map(t => (t + offset) * canvasUnit)
