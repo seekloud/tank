@@ -58,8 +58,8 @@ object BulletClientImpl{
     }
     val radiusMulti = model.TankParameters.TankBulletBulletPowerLevel.getBulletLevelByDamage(bulletDamage) match {
       case 1 => 1
-      case 2 => 1.5
-      case 3 => 2
+      case 2 => 1.4
+      case 3 => 1.8
     }
     ctx.fillStyle = color.toString()
     ctx.beginPath()
