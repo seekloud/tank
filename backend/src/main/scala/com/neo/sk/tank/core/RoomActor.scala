@@ -138,6 +138,8 @@ object RoomActor {
           if(tickCount % 100 == 2){
             log.debug(s"${ctx.self.path} curFrame=${grid.systemFrame} use time=${endTime-startTime}")
           }
+
+
           idle(Nil,subscribersMap,grid,tickCount+1)
 
         case TankFillABullet(tId) =>
