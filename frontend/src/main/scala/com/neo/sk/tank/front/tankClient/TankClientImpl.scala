@@ -2,7 +2,7 @@ package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.shared.ptcl.model
 import com.neo.sk.tank.shared.ptcl.model.{CanvasBoundary, Point, TankParameters}
-import com.neo.sk.tank.shared.ptcl.tank.{Tank, TankState}
+import com.neo.sk.tank.shared.ptcl.tank.{Bullet, Tank, TankState}
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
 import org.scalajs.dom.raw.HTMLElement
@@ -33,11 +33,12 @@ class TankClientImpl(
                       override val name: String,
                       override var killTankNum: Int,
                       override var damageTank: Int,
-                      override var invincible:Boolean
+                      override var invincible:Boolean,
+                      override protected var bulletStrengthen: Int
                     ) extends Tank{
 
   def this(tankState:TankState) = {
-    this(tankState.userId,tankState.tankId,tankState.blood,tankState.bloodLevel,tankState.bulletPowerLevel,tankState.curBulletNum,tankState.direction,tankState.gunDirection,tankState.position,tankState.speedLevel,tankState.tankColorType,tankState.name,tankState.killTankNum,tankState.damageTank,tankState.invincible)
+    this(tankState.userId,tankState.tankId,tankState.blood,tankState.bloodLevel,tankState.bulletPowerLevel,tankState.curBulletNum,tankState.direction,tankState.gunDirection,tankState.position,tankState.speedLevel,tankState.tankColorType,tankState.name,tankState.killTankNum,tankState.damageTank,tankState.invincible,tankState.bulletStrengthen)
   }
 
   override protected def startFillBullet(): Unit = {}
@@ -71,7 +72,15 @@ class TankClientImpl(
       Point(0, model.TankParameters.TankSize.gunH / 2).rotate(this.gunDirection),
       Point(model.TankParameters.TankSize.gunLen,model.TankParameters.TankSize.gunH / 2).rotate(this.gunDirection),
       Point(model.TankParameters.TankSize.gunLen,- model.TankParameters.TankSize.gunH / 2).rotate(this.gunDirection)
+    )
+  }
 
+  def getGunPosition4San():List[Point] = {
+    List(
+      Point(0,- model.TankParameters.TankSize.gunH / 2).rotate(this.gunDirection),
+      Point(0, model.TankParameters.TankSize.gunH / 2).rotate(this.gunDirection),
+      Point(model.TankParameters.TankSize.gunLen,model.TankParameters.TankSize.gunH ).rotate(this.gunDirection),
+      Point(model.TankParameters.TankSize.gunLen,- model.TankParameters.TankSize.gunH ).rotate(this.gunDirection)
     )
   }
 
@@ -100,7 +109,11 @@ object TankClientImpl{
   def drawTank(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,offset:Point,directionOpt:Option[Double],canMove:Boolean,canvasUnit:Int = 10): Unit ={
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt,canMove)
 //    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
-    val gunPositionList = tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
+    val gunPositionList = if(tank.getTankState().bulletStrengthen <=0) {
+      tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
+    }else{
+      tank.getGunPosition4San().map(_ + position).map(t => (t + offset) * canvasUnit)
+    }
     val bloodSliderList = tank.getSliderPosition(3,1.0f * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
     ctx.beginPath()
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
@@ -155,7 +168,11 @@ object TankClientImpl{
   def drawTankByOffsetTime(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,offsetTime:Long,offset:Point,directionOpt:Option[Double],canMove:Boolean,canvasUnit:Int = 10): Unit ={
     val position = tank.getPositionByOffsetTime(offsetTime,directionOpt,canMove)
     //    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
-    val gunPositionList = tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
+    val gunPositionList = if(tank.getTankState().bulletStrengthen <=0) {
+      tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
+    }else{
+      tank.getGunPosition4San().map(_ + position).map(t => (t + offset) * canvasUnit)
+    }
     val bloodSliderList = tank.getSliderPosition(3,1.0f * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
     ctx.beginPath()
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
@@ -203,16 +220,44 @@ object TankClientImpl{
     ctx.fillText(s"${tank.name}",namePosition.x,namePosition.y,20 * canvasUnit)
     ctx.closePath()
 
-//    ctx.beginPath()
-//    val smallBulletPosition = (position + Point(0,-10) + offset)
-//    val img = dom.document.createElement("img")
-//    img.setAttribute("src","/tank/static/img/xueliang.png")
-//    ctx.drawImage(img.asInstanceOf[HTMLElement],(smallBulletPosition.x - model.smallBullet.width / 2) * canvasUnit,
-//      (smallBulletPosition.y - model.smallBullet.height / 2 ) * canvasUnit,
-//      model.smallBullet.width * canvasUnit,model.smallBullet.height * canvasUnit)
-//    ctx.fill()
-//    ctx.stroke()
-//    ctx.closePath()
+
+    var left = TankParameters.tankBulletMaxCapacity * model.smallBullet.width / 2 * -1
+
+    (1 to tank.curBulletNum).foreach{ indedx =>
+
+      ctx.beginPath()
+      val smallBulletPosition = (position + Point(left, -9) + offset)
+      val img = dom.document.createElement("img")
+      val image =  img.setAttribute("src", "/tank/static/img/子弹初始重构.png")
+//        case model.bulletType.vanish => img.setAttribute("src","/tank/static/img/子弹消失.png")
+
+      ctx.drawImage(img.asInstanceOf[HTMLElement], (smallBulletPosition.x - model.smallBullet.width / 2) * canvasUnit,
+        (smallBulletPosition.y - model.smallBullet.height / 2) * canvasUnit,
+        model.smallBullet.width * canvasUnit, model.smallBullet.height * canvasUnit)
+      ctx.fill()
+      ctx.stroke()
+      ctx.closePath()
+      left =left +  model.smallBullet.width
+
+    }
+    (tank.curBulletNum + 1 to TankParameters.tankBulletMaxCapacity).foreach{ indedx =>
+
+      ctx.beginPath()
+      val smallBulletPosition = (position + Point(left, -9) + offset)
+      val img = dom.document.createElement("img")
+      val image =  img.setAttribute("src", "/tank/static/img/子弹消失重构.png")
+      //        case model.bulletType.vanish => img.setAttribute("src","/tank/static/img/子弹消失.png")
+
+      ctx.drawImage(img.asInstanceOf[HTMLElement], (smallBulletPosition.x - model.smallBullet.width / 2) * canvasUnit,
+        (smallBulletPosition.y - model.smallBullet.height / 2) * canvasUnit,
+        model.smallBullet.width * canvasUnit, model.smallBullet.height * canvasUnit)
+      ctx.fill()
+      ctx.stroke()
+      ctx.closePath()
+      left =left +  model.smallBullet.width
+
+    }
+
 
 
 

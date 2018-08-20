@@ -31,6 +31,8 @@ trait Bullet extends CircleObjectOfGame{
   override val r: Float = model.BulletSize.r
 
 
+
+
 //  // 获取子弹外形
 //  override def getObjectRect(): model.Rectangle = {
 //    model.Rectangle(this.position - Point(model.BulletSize.r,model.BulletSize.r),this.position + Point(model.BulletSize.r,model.BulletSize.r))

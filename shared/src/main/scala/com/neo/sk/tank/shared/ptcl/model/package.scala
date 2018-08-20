@@ -45,6 +45,8 @@ package object model {
     def getTheta(center:Point):Double = {
       math.atan2(y - center.y,x - center.x)
     }
+
+
   }
 
   trait Shape{
@@ -449,6 +451,7 @@ package object model {
 
 
     val addBlood = 40
+    val bulletStrengthenTime = 20
 
     object SpeedType {
       val low:Byte = 1
@@ -578,15 +581,22 @@ package object model {
   }
 
   object PropParameters{
-    val r:Float = 1.5f
-    val l = 3
-    val half:Float = 1.5f
+    val r = 2.5f
+    val l = 5
+    val half = 2.5f
+  }
+
+  object bulletType{
+
+    val storage:Byte = 1
+    val vanish:Byte = 2
   }
 
   object smallBullet{
     val num = 4
-    val height = 30
-    val width = 10
+    val height = 5
+    val width = 1
+
 
 
   }
