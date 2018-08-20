@@ -29,7 +29,8 @@ class TankServerImpl (
                        override val name: String,
                        override var killTankNum: Int,
                        override var damageTank: Int,
-                       override protected var invincible:Boolean
+                       override protected var invincible:Boolean,
+                       override protected var bulletStrengthen: Int
                      ) extends Tank{
 
 
@@ -55,7 +56,7 @@ class TankServerImpl (
       ptcl.model.TankParameters.SpeedType.low,
       model.TankParameters.TankColor.getRandomColorType(),
       name,0,0,
-      true
+      true,0
     )
   }
 

@@ -218,7 +218,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   def updateTankEatProp(tId:Int,pId:Int,pType:Byte) = {
     tankMap.get(tId) match {
       case Some(t) =>
-        t.eatProp(propMap.get(pId).get)
+        t.eatProp(propMap(pId))
       case None =>
     }
     propMap.get(pId).foreach(p => quadTree.remove(p))
@@ -352,9 +352,10 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
         val img = dom.document.createElement("img")
         val image = p.getPropState.t match {
           case 1 => img.setAttribute("src","/tank/static/img/xueliang.png")
-          case 2 =>img.setAttribute("src","/tank/static/img/sudu.png")
+          case 2 => img.setAttribute("src","/tank/static/img/sudu.png")
           case 3 => img.setAttribute("src","/tank/static/img/qiang.png")
           case 4 => img.setAttribute("src","/tank/static/img/yiliao.png")
+          case 5 => img.setAttribute("src","/tank/static/img/sandan.png")
         }
 
         ctx.drawImage(img.asInstanceOf[HTMLElement], (p.getPropState.p.x + offset.x - model.PropParameters.half ) * canvasUnit, (p.getPropState.p.y + offset.y- model.PropParameters.half ) * canvasUnit, model.PropParameters.l * canvasUnit,model.PropParameters.l * canvasUnit)
