@@ -581,9 +581,9 @@ package object model {
   }
 
   object PropParameters{
-    val r = 2
-    val l = 4
-    val half = 2
+    val r = 2.5f
+    val l = 5
+    val half = 2.5f
   }
 
   object bulletType{

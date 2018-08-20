@@ -291,8 +291,8 @@ class GridServerImpl(
     val pId = propIdGenerator.getAndIncrement()
     val totalScore = tank.getTankState().bulletPowerLevel.toInt + tank.getTankState().bloodLevel.toInt + tank.getTankState().speedLevel.toInt - 2
     val tmp = random.nextInt(Int.MaxValue) % (1 * 4 + totalScore) + 1
-//    val propType = if(tmp <= 1) 1 else if(tmp <= 2) 2 else if(tmp <= 3) 3 else if(tmp <= 4) 4 else 5
-    val propType = 5
+    val propType = if(tmp <= 1) 1 else if(tmp <= 2) 2 else if(tmp <= 3) 3 else if(tmp <= 4) 4 else 5
+//    val propType = 5
     val prop = Prop.apply(PropState(pId,propType.toByte,tank.position))
     propMap.put(pId,prop)
     quadTree.insert(prop)
