@@ -43,7 +43,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
 
   private var recvTankInvincibleList:List[WsProtocol.TankInvincible] = Nil
   private var recvTankFillBulletList:List[WsProtocol.TankFillBullet] = Nil
-
+  private var recvTankBulletStreList:List[WsProtocol.TankBulletStrengthenOver] = Nil
 
 
   def playerJoin(tank:TankState) = {
@@ -268,6 +268,20 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       recvTankInvincibleList = t :: recvTankInvincibleList
     }
   }
+  def updateTankBulletStrengthen(t:WsProtocol.TankBulletStrengthenOver) = {
+    tankMap.get(t.tId)match{
+      case Some(tank) =>tank.bulletStrengthenTimeMinus()
+      case None =>
+    }
+  }
+  def recvTankBulletStrengthen(t:WsProtocol.TankBulletStrengthenOver) = {
+    if(t.f < systemFrame){
+      updateTankBulletStrengthen(t)
+    }else{
+      recvTankBulletStreList = t :: recvTankBulletStreList
+    }
+  }
+
 
   def updateTankFillBullet(t:WsProtocol.TankFillBullet) = {
     tankMap.get(t.tId)match{
@@ -525,7 +539,10 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       updateTankInvincible(t)
     }
     recvTankInvincibleList = recvTankInvincibleList.filter(_.f > systemFrame)
-
+    recvTankBulletStreList.filter(_.f == systemFrame).foreach{t =>
+      updateTankBulletStrengthen(t)
+    }
+    recvTankBulletStreList = recvTankBulletStreList.filter(_.f > systemFrame)
     super.update()
   }
 

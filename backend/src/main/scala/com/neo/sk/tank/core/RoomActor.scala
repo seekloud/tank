@@ -42,6 +42,8 @@ object RoomActor {
 
   case object GameLoop extends Command
 
+  case class BulletStrengthenOver(tId:Int) extends Command
+
   case class TankFillABullet(tId:Int) extends Command
 
   case class TankInvincible(tId:Int)extends  Command
@@ -75,7 +77,7 @@ object RoomActor {
           implicit timer =>
             val subscribersMap = mutable.HashMap[Long,ActorRef[UserActor.Command]]()
             val grid = new GridServerImpl(ctx,log,dispatch(subscribersMap),dispatchTo(subscribersMap),ptcl.model.Boundary.getBoundary)
-            getGameRecorder(ctx,grid)
+//            getGameRecorder(ctx,grid)
             grid.obstaclesInit()
             timer.startPeriodicTimer(GameLoopKey,GameLoop,ptcl.model.Frame.millsAServerFrame.millis)
             idle(Nil,subscribersMap,grid,0L)
@@ -124,7 +126,7 @@ object RoomActor {
           val startTime = System.currentTimeMillis()
 
           grid.update()
-          getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(grid.getLastEventAndSnapShot())
+//          getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(grid.getLastEventAndSnapShot())
 
           if (tickCount % 20 == 5) {
             val gridData = grid.getGridStateWithoutBullet()
@@ -164,6 +166,12 @@ object RoomActor {
           grid.tankInvincible(tId)
           dispatch(subscribersMap)(WsProtocol.TankInvincible(grid.systemFrame,tId))
           Behaviors.same
+
+        case BulletStrengthenOver(tId) =>
+          grid.tankBulletStrengthen(tId)
+          dispatch(subscribersMap)(WsProtocol.TankBulletStrengthenOver(grid.systemFrame,tId))
+          Behaviors.same
+
 
         case _ =>
           log.warn(s"${ctx.self.path} recv a unknow msg=${msg}")

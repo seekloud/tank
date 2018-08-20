@@ -451,7 +451,7 @@ package object model {
 
 
     val addBlood = 40
-    val bulletStrengthenTime = 20
+    val bulletStrengthenTime = 60
 
     object SpeedType {
       val low:Byte = 1

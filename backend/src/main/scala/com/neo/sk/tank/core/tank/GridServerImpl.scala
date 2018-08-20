@@ -39,10 +39,7 @@ trait GridRecorder{ this:GridServerImpl =>
 
   protected def generateGameSnapShot(frame:Long,snapshot:GameSnapshot):Unit = tankGameSnapshotMap += (frame -> snapshot)
 
-  /**
-    * @param frame 当前帧数
-    * @return 返回上一帧的输入和开始状态
-    * */
+
   def getLastEventAndSnapShot():(List[GameEvent],Option[GameSnapshot]) = {
     val events = tankGameEvents
     val snapshotOpt = tankGameSnapshotMap.get(this.systemFrame - 1)
@@ -84,7 +81,7 @@ class GridServerImpl(
         val bullet = new BulletServerImpl(bulletIdGenerator.getAndIncrement(),tankId,position,System.currentTimeMillis(),damage,m,position,tank.name)
         waitGenBullet = (systemFrame,bullet) :: waitGenBullet
         dispatch(WsProtocol.TankLaunchBullet(systemFrame,bullet.getBulletState()))
-        if(tank.getTankState().bulletStrengthen > 0){
+        if(tank.getTankState().bulletStrengthen > 0 ){
           val m2 = ptcl.model.BulletParameters.bulletMomentum.rotate(bulletDirection + (Math.PI/8).toFloat)
           val p2 = tank.getOtherLaunchBulletPosition((Math.PI/8).toFloat)
           val bullet2 = new BulletServerImpl(bulletIdGenerator.getAndIncrement(),tankId,position,System.currentTimeMillis(),damage,m2,p2,tank.name)
@@ -111,6 +108,7 @@ class GridServerImpl(
     }
     dispatch(WsProtocol.TankAttacked(systemFrame,bullet.bId,o.tankId,bullet.damage))
   }
+
 
   //子弹攻击到障碍物的回调函数
   override protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
@@ -143,6 +141,7 @@ class GridServerImpl(
     }
 
   }
+
 
   //生成坦克的
   private def genTank():Unit = {
@@ -197,6 +196,15 @@ class GridServerImpl(
     }
   }
 
+  def tankBulletStrengthen(tId:Int) = {
+    addGameEvent(TankGame.BulletStrengthen(tId,systemFrame))
+    tankMap.get(tId) match{
+      case Some(tank) =>
+        tank.bulletStrengthenTimeMinus()
+      case None =>
+    }
+  }
+
   private def genTankPositionRandom():Point = {
     Point(random.nextInt(boundary.x.toInt - (2 * model.TankParameters.TankSize.r)) + model.TankParameters.TankSize.r,
       random.nextInt(boundary.y.toInt - (2 * model.TankParameters.TankSize.r)) + model.TankParameters.TankSize.r)
@@ -221,11 +229,7 @@ class GridServerImpl(
 
 
   def getGridStateWithoutBullet():GridStateWithoutBullet = {
-    tankMap.values.foreach{
-      t=> if(t.getTankState().bulletStrengthen > 0){
-        t.bulletStrengthenTimeMinus()
-      }
-    }
+
     GridStateWithoutBullet(
       systemFrame,
       tankMap.values.map(_.getTankState()).toList,

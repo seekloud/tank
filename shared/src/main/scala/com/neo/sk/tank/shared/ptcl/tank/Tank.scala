@@ -39,7 +39,7 @@ trait Tank extends CircleObjectOfGame {
 
   protected var bulletPowerLevel:Byte //子弹等级
 
-  protected var bulletStrengthen:Int //子弹增强的时间
+  protected var bulletStrengthen:Int //子弹增强
 
   protected val tankColorType:Byte
 
@@ -176,7 +176,7 @@ trait Tank extends CircleObjectOfGame {
   }
 
   def bulletStrengthenTimeMinus() = {
-    bulletStrengthen -= 1
+    bulletStrengthen = 0
   }
 
   def eatProp(p:Prop):Unit = {
@@ -194,7 +194,9 @@ trait Tank extends CircleObjectOfGame {
         if(blood > model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)){
           blood = model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)
         }
-      case 5 => bulletStrengthen = model.TankParameters.bulletStrengthenTime
+      case 5 =>
+        bulletStrengthen = model.TankParameters.bulletStrengthenTime
+
     }
 
   }

@@ -27,7 +27,7 @@ object TankGame {
   final case class TankInvincible(tankId:Int,override val frame:Long) extends GameEvent with EnvironmentEvent
   final case class GenerateProp(override val frame:Long,pId:Int,propState: PropState) extends GameEvent with EnvironmentEvent
   final case class GenerateObstacle(override val frame:Long, oId :Int,obstacleState: ObstacleState) extends GameEvent with EnvironmentEvent
-
+  final case class BulletStrengthen(tankId:Int,override val frame:Long) extends GameEvent with EnvironmentEvent
 
   sealed trait GameSnapshot
 
