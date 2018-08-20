@@ -150,6 +150,7 @@ object RoomActor {
         case TankFillABullet(tId) =>
 //          log.debug(s"${ctx.self.path} recv a msg=${msg}")
           grid.tankFillABullet(tId)
+          dispatch(subscribersMap)(WsProtocol.TankFillBullet(grid.systemFrame,tId))
           Behaviors.same
 
 
