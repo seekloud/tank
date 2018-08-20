@@ -111,22 +111,16 @@ object TankClientImpl{
     * */
   def drawTank(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,offset:Point,directionOpt:Option[Double],canMove:Boolean,canvasUnit:Int = 10): Unit ={
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt,canMove)
-//    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
     val gunH = tank.bulletPowerLevel match{
         case TankParameters.TankBulletBulletPowerLevel.first => 1f * TankParameters.TankSize.gunH
         case TankParameters.TankBulletBulletPowerLevel.second => 1.4f * TankParameters.TankSize.gunH
         case TankParameters.TankBulletBulletPowerLevel.third => 1.8f * TankParameters.TankSize.gunH
     }
-
     val gunPositionList = tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
-    val bloodSliderPosition = tank.generateSliderPosition(3).map(_ + position).map(t => (t + offset) * canvasUnit)
     val bloodSliderList = tank.getSliderPosition(3,1.0f * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
     ctx.beginPath()
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
     gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
-//    ctx.fillStyle = model.TankParameters.TankColor.gun
-//    ctx.fillStyle = "#CD6600"
-//    println("=============="+tank.bulletPowerLevel)
     ctx.fillStyle = tank.bulletPowerLevel match{
       case TankParameters.TankBulletBulletPowerLevel.first =>
         "#CD6600"
@@ -140,20 +134,34 @@ object TankClientImpl{
     ctx.lineWidth = 4
     ctx.stroke()
     ctx.closePath()
+    val angel = tank.bloodLevel match {
+      case TankParameters.TankBloodLevel.first => 2 * math.Pi / 3 * 1
+      case TankParameters.TankBloodLevel.second => 2 * math.Pi / 3 * 2
+      case TankParameters.TankBloodLevel.third => 2 * math.Pi / 3 * 3
+    }
     if(tank.invincible == true) {
 
       ctx.beginPath()
       ctx.fillStyle = "rgba(128, 100, 162, 0.2)"
-      ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.invincibleSize.r * canvasUnit, 0, 360)
+      ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.invincibleSize.r * canvasUnit, 0, 2 * math.Pi)
       ctx.fill()
       ctx.closePath()
     }
     ctx.beginPath()
-    ctx.arc((position.x + offset.x) * canvasUnit,(position.y + offset.y)*canvasUnit,model.TankParameters.TankSize.r * canvasUnit ,0, 360)
+    ctx.lineWidth = 4
+    ctx.strokeStyle = "black"
+    ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, 0, angel)
     ctx.fillStyle = tank.getColor()
-    ctx.strokeStyle = "#383838"
     ctx.fill()
     ctx.stroke()
+    ctx.closePath()
+    ctx.beginPath()
+    ctx.lineWidth = 4
+    ctx.strokeStyle = "#8B008B"
+    ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, angel, 2 * math.Pi)
+    ctx.stroke()
+    ctx.fillStyle = tank.getColor()
+    ctx.fill()
     ctx.closePath()
 
     for(i <- 0 to bloodSliderList.length - 2){
@@ -169,20 +177,7 @@ object TankClientImpl{
       ctx.stroke()
       ctx.closePath()
     }
-//    for(position <- bloodSliderPosition;j <- 1 to bloodSliderPosition.length){
-//      ctx.beginPath()
-//      val img = dom.document.createElement("img")
-//      val image = j match{
-//        case t if t <= 2 * tank.bloodLevel =>
-//          img.setAttribute("src","/tank/static/img/红血条.png")
-//        case _ => img.setAttribute("src","/tank/static/img/灰血条.png")
-//      }
-//      val border = 1f * TankParameters.TankSize.r / 3
-//      ctx.drawImage(img.asInstanceOf[HTMLElement],(position.x-border/2)*canvasUnit,(position.y - border)*canvasUnit,border * canvasUnit,border * canvasUnit)
-//      ctx.fill()
-//      ctx.stroke()
-//      ctx.closePath()
-//    }
+
     ctx.beginPath()
     val namePosition = (position + Point(0,5) + offset) * canvasUnit
     ctx.fillStyle = "#006699"
@@ -225,42 +220,32 @@ object TankClientImpl{
     ctx.closePath()
     //----------------------------绘制坦克---------------------#
     val angel = tank.bloodLevel match {
-      case TankParameters.TankBloodLevel.first => 2 * math.Pi / 3 * 1f
-      case TankParameters.TankBloodLevel.second => 2 * math.Pi / 3 * 2f
-      case TankParameters.TankBloodLevel.third => 2 * math.Pi / 3 * 3f
+      case TankParameters.TankBloodLevel.first => 2 * math.Pi / 3 * 1
+      case TankParameters.TankBloodLevel.second => 2 * math.Pi / 3 * 2
+      case TankParameters.TankBloodLevel.third => 2 * math.Pi / 3 * 3
     }
     if(tank.invincible) {
       ctx.beginPath()
       ctx.fillStyle = "rgba(128, 100, 162, 0.2)"
+      ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.invincibleSize.r * canvasUnit, 0, 360)
       ctx.fill()
-      ctx.lineWidth = 4
-      ctx.strokeStyle = "#006400"
-      ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.invincibleSize.r * canvasUnit, 0, angel)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.lineWidth = 4
-      ctx.fillStyle = "rgba(128, 100, 162, 0.2)"
-      ctx.fill()
-      ctx.strokeStyle = "#5F9EA0"
-      ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.invincibleSize.r * canvasUnit, angel, 360)
-      ctx.stroke()
       ctx.closePath()
     }
     ctx.beginPath()
-    ctx.arc((position.x + offset.x) * canvasUnit,(position.y + offset.y)*canvasUnit,model.TankParameters.TankSize.r * canvasUnit ,0, 360)
-    ctx.fillStyle = tank.getColor()
-    ctx.fill()
     ctx.lineWidth = 4
-    ctx.strokeStyle = "#006400"
+    ctx.strokeStyle = "black"
     ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, 0, angel)
-    ctx.stroke()
-    ctx.beginPath()
     ctx.fillStyle = tank.getColor()
     ctx.fill()
-    ctx.lineWidth = 4
-    ctx.strokeStyle = "#5F9EA0"
-    ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, angel, 360)
     ctx.stroke()
+    ctx.closePath()
+    ctx.beginPath()
+    ctx.lineWidth = 4
+    ctx.strokeStyle = "#8B008B"
+    ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, angel, 2 * math.Pi)
+    ctx.stroke()
+    ctx.fillStyle = tank.getColor()
+    ctx.fill()
     ctx.closePath()
 
     for(i <- 0 to bloodSliderList.length - 2){
@@ -276,20 +261,7 @@ object TankClientImpl{
       ctx.stroke()
       ctx.closePath()
     }
-//    for(position <- bloodSliderPosition;j <- 1 to bloodSliderPosition.length){
-//      ctx.beginPath()
-//      val img = dom.document.createElement("img")
-//      val image = j match{
-//        case t if t <= 2 * tank.bloodLevel =>
-//          img.setAttribute("src","/tank/static/img/红血条.png")
-//        case _ => img.setAttribute("src","/tank/static/img/灰血条.png")
-//      }
-//      val border = 1f * TankParameters.TankSize.r / 3
-//      ctx.drawImage(img.asInstanceOf[HTMLElement],(position.x-border/2)*canvasUnit,(position.y - border)*canvasUnit,border * canvasUnit,border * canvasUnit)
-//      ctx.fill()
-//      ctx.stroke()
-//      ctx.closePath()
-//    }
+
     ctx.beginPath()
     val namePosition = (position + Point(0,5) + offset) * canvasUnit
     ctx.fillStyle = "#006699"
