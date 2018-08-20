@@ -72,7 +72,8 @@ class TankClientImpl(
       Point(0, gunH / 2).rotate(this.gunDirection),
       Point(model.TankParameters.TankSize.gunLen,gunH / 2).rotate(this.gunDirection),
       Point(model.TankParameters.TankSize.gunLen,- gunH / 2).rotate(this.gunDirection)
-
+    )
+  }
   def getGunPosition4San():List[Point] = {
     List(
       Point(0,- model.TankParameters.TankSize.gunH / 2).rotate(this.gunDirection),
@@ -111,10 +112,10 @@ object TankClientImpl{
         case TankParameters.TankBulletBulletPowerLevel.second => 1.4f * TankParameters.TankSize.gunH
         case TankParameters.TankBulletBulletPowerLevel.third => 1.8f * TankParameters.TankSize.gunH
     }
-    val gunPositionList = tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
+//    val gunPositionList = tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
 //    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
     val gunPositionList = if(tank.getTankState().bulletStrengthen <=0) {
-      tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
+      tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
     }else{
       tank.getGunPosition4San().map(_ + position).map(t => (t + offset) * canvasUnit)
     }
@@ -123,12 +124,9 @@ object TankClientImpl{
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
     gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
     ctx.fillStyle = tank.bulletPowerLevel match{
-      case TankParameters.TankBulletBulletPowerLevel.first =>
-        "#CD6600"
-      case TankParameters.TankBulletBulletPowerLevel.second =>
-        "#FF4500"
-      case TankParameters.TankBulletBulletPowerLevel.third =>
-        "#8B2323"
+      case TankParameters.TankBulletBulletPowerLevel.first => "#CD6600"
+      case TankParameters.TankBulletBulletPowerLevel.second => "#FF4500"
+      case TankParameters.TankBulletBulletPowerLevel.third => "#8B2323"
     }
     ctx.strokeStyle = "#383838"
     ctx.fill()
@@ -198,10 +196,10 @@ object TankClientImpl{
       case TankParameters.TankBulletBulletPowerLevel.second => 1.4f* TankParameters.TankSize.gunH
       case TankParameters.TankBulletBulletPowerLevel.third => 1.8f* TankParameters.TankSize.gunH
     }
-    val gunPositionList = tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
-    val bloodSliderPosition = tank.generateSliderPosition(3).map(_ + position).map(t => (t + offset) * canvasUnit)
+//    val gunPositionList = tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
+//    val bloodSliderPosition = tank.generateSliderPosition(3).map(_ + position).map(t => (t + offset) * canvasUnit)
     val gunPositionList = if(tank.getTankState().bulletStrengthen <=0) {
-      tank.getGunPosition().map(_ + position).map(t => (t + offset) * canvasUnit)
+      tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
     }else{
       tank.getGunPosition4San().map(_ + position).map(t => (t + offset) * canvasUnit)
     }
@@ -211,12 +209,9 @@ object TankClientImpl{
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
     gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
     ctx.fillStyle = tank.bulletPowerLevel match{
-      case TankParameters.TankBulletBulletPowerLevel.first =>
-        "#CD6600"
-      case TankParameters.TankBulletBulletPowerLevel.second =>
-        "#FF4500"
-      case TankParameters.TankBulletBulletPowerLevel.third =>
-        "#8B2323"
+      case TankParameters.TankBulletBulletPowerLevel.first => "#CD6600"
+      case TankParameters.TankBulletBulletPowerLevel.second => "#FF4500"
+      case TankParameters.TankBulletBulletPowerLevel.third => "#8B2323"
     }
     ctx.strokeStyle = "#383838"
     ctx.fill()
@@ -232,7 +227,7 @@ object TankClientImpl{
     if(tank.invincible) {
       ctx.beginPath()
       ctx.fillStyle = "rgba(128, 100, 162, 0.2)"
-      ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.invincibleSize.r * canvasUnit, 0, 360)
+      ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.invincibleSize.r * canvasUnit, 0, 2 * math.Pi)
       ctx.fill()
       ctx.closePath()
     }
