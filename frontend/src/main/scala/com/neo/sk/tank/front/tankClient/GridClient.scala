@@ -28,7 +28,9 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
 
   override def info(msg: String): Unit = println(msg)
 
-  override def tankExecuteLaunchBulletAction(tankId: Int, tank: Tank): Unit = {}
+  override def tankExecuteLaunchBulletAction(tankId: Int, tank: Tank): Unit = {
+    tank.launchBullet()
+  }
 
 
   override protected def tankEatProp(tank:Tank)(prop: Prop):Unit = {}
@@ -38,6 +40,9 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   private var recvTankEatPropList:List[WsProtocol.TankEatProp] = Nil
   private var recvAddPropList:List[WsProtocol.AddProp] = Nil
   private var recvAddObstacleList:List[WsProtocol.AddObstacle] = Nil
+
+  private var recvTankInvincibleList:List[WsProtocol.TankInvincible] = Nil
+  private var recvTankFillBulletList:List[WsProtocol.TankFillBullet] = Nil
 
 
 
@@ -246,6 +251,36 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       updateAddObstacle(t)
     }else{
       recvAddObstacleList = t :: recvAddObstacleList
+    }
+  }
+
+  def updateTankInvincible(t:WsProtocol.TankInvincible) = {
+    tankMap.get(t.tId)match{
+      case Some(tank) =>tank.isInvincibleTime()
+      case None =>
+    }
+  }
+
+  def recvTankInvincible(t:WsProtocol.TankInvincible) = {
+    if(t.f < systemFrame){
+      updateTankInvincible(t)
+    }else{
+      recvTankInvincibleList = t :: recvTankInvincibleList
+    }
+  }
+
+  def updateTankFillBullet(t:WsProtocol.TankFillBullet) = {
+    tankMap.get(t.tId)match{
+      case Some(tank) =>tank.fillABullet()
+      case None =>
+    }
+  }
+
+  def recvTankFillBullet(t:WsProtocol.TankFillBullet) = {
+    if(t.f < systemFrame){
+      updateTankFillBullet(t)
+    }else{
+      recvTankFillBulletList = t :: recvTankFillBulletList
     }
   }
 
@@ -481,6 +516,16 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       updateAddObstacle(t)
     }
     recvAddObstacleList = recvAddObstacleList.filter(_.frame > systemFrame)
+
+    recvTankFillBulletList.filter(_.f == systemFrame).foreach{t =>
+      updateTankFillBullet(t)
+    }
+    recvTankFillBulletList = recvTankFillBulletList.filter(_.f > systemFrame)
+    recvTankInvincibleList.filter(_.f == systemFrame).foreach{t =>
+      updateTankInvincible(t)
+    }
+    recvTankInvincibleList = recvTankInvincibleList.filter(_.f > systemFrame)
+
     super.update()
   }
 

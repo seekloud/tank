@@ -189,6 +189,10 @@ class GameHolder(canvasName:String) {
           grid.recvAddProp(t)
         case WsProtocol.TankLaunchBullet(frame,bullet) =>
           grid.addBullet(frame,new BulletClientImpl(bullet))
+        case t:WsProtocol.TankInvincible =>
+          grid.recvTankInvincible(t)
+        case t:WsProtocol.TankFillBullet =>
+          grid.recvTankFillBullet(t)
         case  _ =>
       }
     }
@@ -344,6 +348,14 @@ class GameHolder(canvasName:String) {
                   //        println(s"recv msg:${e.data.toString}")
                   addGameEvent(math.max(grid.systemFrame,frame),data)
                   grid.addBullet(frame,new BulletClientImpl(bullet))
+
+                case t:WsProtocol.TankInvincible =>
+                  addGameEvent(math.max(grid.systemFrame,t.f),data)
+                  grid.recvTankInvincible(t)
+
+                case t:WsProtocol.TankFillBullet =>
+                  addGameEvent(math.max(grid.systemFrame,t.f),data)
+                  grid.recvTankFillBullet(t)
                 //
                 case  _ => println(s"接收到无效消息ss")
               }
