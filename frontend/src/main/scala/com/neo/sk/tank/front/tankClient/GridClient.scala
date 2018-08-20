@@ -218,7 +218,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   def updateTankEatProp(tId:Int,pId:Int,pType:Byte) = {
     tankMap.get(tId) match {
       case Some(t) =>
-        t.eatProp(propMap.get(pId).get)
+        t.eatProp(propMap(pId))
       case None =>
     }
     propMap.get(pId).foreach(p => quadTree.remove(p))
