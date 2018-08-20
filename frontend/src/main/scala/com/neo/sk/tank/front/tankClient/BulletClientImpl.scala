@@ -27,6 +27,12 @@ class BulletClientImpl(
     this(b.bId,b.tankId,b.startPosition,b.createTime,b.damage,b.momentum,b.position,b.name)
   }
 
+  override val r: Float = model.TankParameters.TankBulletBulletPowerLevel.getBulletLevelByDamage(this.damage) match{
+    case 1 => 1* model.BulletSize.r
+    case 2 => 1.2f* model.BulletSize.r
+    case 3 => 1.4f* model.BulletSize.r
+  }
+
 
 
   //todo
@@ -56,14 +62,14 @@ object BulletClientImpl{
       case 2 => "#FF4500"
       case 3 => "#8B2323"
     }
-    val radiusMulti = model.TankParameters.TankBulletBulletPowerLevel.getBulletLevelByDamage(bulletDamage) match {
-      case 1 => 1
-      case 2 => 1.4
-      case 3 => 1.8
-    }
+//    val radiusMulti = model.TankParameters.TankBulletBulletPowerLevel.getBulletLevelByDamage(bulletDamage) match {
+//      case 1 => 1
+//      case 2 => 1.2
+//      case 3 => 1.4
+//    }
     ctx.fillStyle = color.toString()
     ctx.beginPath()
-    ctx.arc((position.x  + offset.x) * canvasUnit,(position.y  + offset.y)*canvasUnit,radiusMulti * model.BulletSize.r*canvasUnit,0, 360)
+    ctx.arc((position.x  + offset.x) * canvasUnit,(position.y  + offset.y)*canvasUnit,bullet.r *canvasUnit,0, 360)
     ctx.fill()
     ctx.closePath()
 
@@ -79,14 +85,14 @@ object BulletClientImpl{
       case 2 => "#FF4500"
       case 3 => "#8B2323"
     }
-    val radiusMulti = model.TankParameters.TankBulletBulletPowerLevel.getBulletLevelByDamage(bulletDamage) match {
-      case 1 => 1
-      case 2 => 1.5
-      case 3 => 2
-    }
+//    val radiusMulti = model.TankParameters.TankBulletBulletPowerLevel.getBulletLevelByDamage(bulletDamage) match {
+//      case 1 => 1
+//      case 2 => 1.2
+//      case 3 => 1.4
+//    }
     ctx.fillStyle = color.toString()
     ctx.beginPath()
-    ctx.arc((position.x  + offset.x) * canvasUnit,(position.y  + offset.y)*canvasUnit,radiusMulti * model.BulletSize.r*canvasUnit,0, 360)
+    ctx.arc((position.x  + offset.x) * canvasUnit,(position.y  + offset.y)*canvasUnit,bullet.r * canvasUnit,0, 360)
     ctx.fill()
     ctx.closePath()
 
