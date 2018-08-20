@@ -3,7 +3,7 @@ package com.neo.sk.tank.core.tank
 import akka.actor.typed.ActorRef
 import com.neo.sk.tank.core.RoomActor
 import com.neo.sk.tank.shared.ptcl.model
-import com.neo.sk.tank.shared.ptcl.tank.Tank
+import com.neo.sk.tank.shared.ptcl.tank.{Prop, Tank}
 import com.neo.sk.tank.Boot.{executor, scheduler}
 import com.neo.sk.tank.shared.ptcl
 import com.neo.sk.tank.shared.ptcl.model.Point
@@ -63,6 +63,31 @@ class TankServerImpl (
   override protected def startFillBullet(): Unit = {
     scheduler.scheduleOnce(ptcl.model.TankParameters.tankFillBulletSpeed.second){
       roomActor ! RoomActor.TankFillABullet(tankId)
+    }
+  }
+
+  override def eatProp(p:Prop):Unit = {
+    p.getPropState.t match {
+      case 1 =>
+        if (bloodLevel < 3) {
+          val diff = model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel) - blood
+          bloodLevel = (bloodLevel + 1).toByte
+          blood = model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel) - diff
+        }
+      case 2 => if (speedLevel < 3) speedLevel = (speedLevel + 1).toByte
+      case 3 => if (bulletPowerLevel < 3) bulletPowerLevel = (bulletPowerLevel + 1).toByte
+      case 4 =>
+        blood += model.TankParameters.addBlood
+        if (blood > model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)) {
+          blood = model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)
+        }
+      case 5 =>
+        bulletStrengthen = model.TankParameters.bulletStrengthenTime
+        scheduler.scheduleOnce(model.TankParameters.bulletStrengthenTime.seconds){
+          roomActor ! RoomActor.BulletStrengthenOver(tankId)
+        }
+
+
     }
   }
 

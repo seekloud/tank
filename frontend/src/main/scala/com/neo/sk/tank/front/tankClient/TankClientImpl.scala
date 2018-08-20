@@ -114,7 +114,7 @@ object TankClientImpl{
     }
 //    val gunPositionList = tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
 //    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
-    val gunPositionList = if(tank.getTankState().bulletStrengthen <=0) {
+    val gunPositionList = if(tank.getTankState().bulletStrengthen <=0 ) {
       tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
     }else{
       tank.getGunPosition4San().map(_ + position).map(t => (t + offset) * canvasUnit)
@@ -198,7 +198,7 @@ object TankClientImpl{
     }
 //    val gunPositionList = tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
 //    val bloodSliderPosition = tank.generateSliderPosition(3).map(_ + position).map(t => (t + offset) * canvasUnit)
-    val gunPositionList = if(tank.getTankState().bulletStrengthen <=0) {
+    val gunPositionList = if(tank.getTankState().bulletStrengthen<=0 ) {
       tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
     }else{
       tank.getGunPosition4San().map(_ + position).map(t => (t + offset) * canvasUnit)

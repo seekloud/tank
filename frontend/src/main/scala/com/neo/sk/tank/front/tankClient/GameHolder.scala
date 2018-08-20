@@ -193,6 +193,8 @@ class GameHolder(canvasName:String) {
           grid.recvTankInvincible(t)
         case t:WsProtocol.TankFillBullet =>
           grid.recvTankFillBullet(t)
+        case t:WsProtocol.TankBulletStrengthenOver =>
+          grid.recvTankBulletStrengthen(t)
         case  _ =>
       }
     }
@@ -352,6 +354,10 @@ class GameHolder(canvasName:String) {
                 case t:WsProtocol.TankInvincible =>
                   addGameEvent(math.max(grid.systemFrame,t.f),data)
                   grid.recvTankInvincible(t)
+
+                case t:WsProtocol.TankBulletStrengthenOver =>
+                  addGameEvent(math.max(grid.systemFrame,t.f),data)
+                  grid.recvTankBulletStrengthen(t)
 
                 case t:WsProtocol.TankFillBullet =>
                   addGameEvent(math.max(grid.systemFrame,t.f),data)
