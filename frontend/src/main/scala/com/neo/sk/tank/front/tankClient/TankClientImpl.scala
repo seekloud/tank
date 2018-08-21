@@ -214,7 +214,6 @@ object TankClientImpl{
     ctx.strokeStyle = "#636363"
     ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, 0, 360)
     ctx.fillStyle = tank.getColor()
-    ctx.strokeStyle = "#383838"
     ctx.fill()
     ctx.stroke()
     ctx.closePath()
