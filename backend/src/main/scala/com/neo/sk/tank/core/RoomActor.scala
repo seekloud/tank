@@ -130,7 +130,7 @@ object RoomActor {
 
         case GameLoop =>
           val startTime = System.currentTimeMillis()
-//          log.debug(s"${ctx.self.path} test dispatch time=${startTime - testTime}")
+          log.debug(s"${ctx.self.path} test dispatch time=${startTime - testTime}")
           testTime =startTime
 
           grid.update()
