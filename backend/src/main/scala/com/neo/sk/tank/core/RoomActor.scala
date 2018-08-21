@@ -49,6 +49,8 @@ object RoomActor {
 
   case class TankInvincible(tId:Int)extends  Command
 
+  private var testTime = System.currentTimeMillis()
+
 
 
   final case class SwitchBehavior(
@@ -128,6 +130,8 @@ object RoomActor {
 
         case GameLoop =>
           val startTime = System.currentTimeMillis()
+          log.debug(s"${ctx.self.path} test dispatch time=${startTime - testTime}")
+          testTime =startTime
 
           grid.update()
           if(AppSettings.gameRecordIsWork){
