@@ -125,6 +125,8 @@ object AppSettings {
   val upperRainbowPort = upperRainbowConfig.getInt("port")
 
   val gameDataDirectoryPath = appConfig.getString("gameDataDirectoryPath")
+  val gameRecordIsWork = appConfig.getBoolean("gameRecordIsWork")
+
 
   object UpperRainbowConfig{
     val isWorkConfig = upperRainbowConfig.getBoolean("isWork")

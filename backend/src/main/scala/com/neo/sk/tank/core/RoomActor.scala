@@ -4,6 +4,7 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.http.scaladsl.model.ws.Message
 import akka.stream.scaladsl.Flow
+import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.core.tank.GridServerImpl
 import com.neo.sk.tank.shared.ptcl.protocol.TankGame
 import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
@@ -42,9 +43,13 @@ object RoomActor {
 
   case object GameLoop extends Command
 
+  case class BulletStrengthenOver(tId:Int) extends Command
+
   case class TankFillABullet(tId:Int) extends Command
 
   case class TankInvincible(tId:Int)extends  Command
+
+  private var testTime = System.currentTimeMillis()
 
 
 
@@ -75,7 +80,10 @@ object RoomActor {
           implicit timer =>
             val subscribersMap = mutable.HashMap[Long,ActorRef[UserActor.Command]]()
             val grid = new GridServerImpl(ctx,log,dispatch(subscribersMap),dispatchTo(subscribersMap),ptcl.model.Boundary.getBoundary)
-            getGameRecorder(ctx,grid)
+            if(AppSettings.gameRecordIsWork){
+              getGameRecorder(ctx,grid)
+            }
+
             grid.obstaclesInit()
             timer.startPeriodicTimer(GameLoopKey,GameLoop,ptcl.model.Frame.millsAServerFrame.millis)
             idle(Nil,subscribersMap,grid,0L)
@@ -122,9 +130,14 @@ object RoomActor {
 
         case GameLoop =>
           val startTime = System.currentTimeMillis()
+          log.debug(s"${ctx.self.path} test dispatch time=${startTime - testTime}")
+          testTime =startTime
 
           grid.update()
-          getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(grid.getLastEventAndSnapShot())
+          if(AppSettings.gameRecordIsWork){
+            getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(grid.getLastEventAndSnapShot())
+          }
+
 
           if (tickCount % 20 == 5) {
             val gridData = grid.getGridStateWithoutBullet()
@@ -164,6 +177,12 @@ object RoomActor {
           grid.tankInvincible(tId)
           dispatch(subscribersMap)(WsProtocol.TankInvincible(grid.systemFrame,tId))
           Behaviors.same
+
+        case BulletStrengthenOver(tId) =>
+          grid.tankBulletStrengthen(tId)
+          dispatch(subscribersMap)(WsProtocol.TankBulletStrengthenOver(grid.systemFrame,tId))
+          Behaviors.same
+
 
         case _ =>
           log.warn(s"${ctx.self.path} recv a unknow msg=${msg}")

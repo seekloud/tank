@@ -124,9 +124,9 @@ object TankClientImpl{
   def drawTank(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,offset:Point,directionOpt:Option[Double],canMove:Boolean,canvasUnit:Int = 10): Unit ={
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt,canMove)
     val gunH = tank.bulletPowerLevel match{
-      case TankParameters.TankBulletBulletPowerLevel.first => 1f* TankParameters.TankSize.gunH
-      case TankParameters.TankBulletBulletPowerLevel.second => 1.2f* TankParameters.TankSize.gunH
-      case TankParameters.TankBulletBulletPowerLevel.third => 1.4f* TankParameters.TankSize.gunH
+        case TankParameters.TankBulletBulletPowerLevel.first => 1f * TankParameters.TankSize.gunH
+        case TankParameters.TankBulletBulletPowerLevel.second => 1.2f * TankParameters.TankSize.gunH
+        case TankParameters.TankBulletBulletPowerLevel.third => 1.4f * TankParameters.TankSize.gunH
     }
 
     val gunPositionList = if(tank.getTankState().bulletStrengthen <=0) {
@@ -214,6 +214,7 @@ object TankClientImpl{
     ctx.strokeStyle = "#636363"
     ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, 0, 360)
     ctx.fillStyle = tank.getColor()
+    ctx.strokeStyle = "#383838"
     ctx.fill()
     ctx.stroke()
     ctx.closePath()
