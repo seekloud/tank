@@ -19,6 +19,7 @@ import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.tank.core.{RoomActor, UserManager}
+import scala.concurrent.duration._
 
 
 
@@ -48,6 +49,13 @@ object Boot extends HttpService {
   val roomActor:ActorRef[RoomActor.Command] = system.spawn(RoomActor.create(),"roomActor")
 
   val userManager:ActorRef[UserManager.Command] = system.spawn(UserManager.create(),"userManager")
+
+  var testTime = System.currentTimeMillis()
+  scheduler.schedule(0.millis,120.millis){
+    val startTime = System.currentTimeMillis()
+    println(s"test time delay =${startTime - testTime}")
+    testTime = startTime
+  }
 
 
 

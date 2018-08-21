@@ -193,6 +193,8 @@ class GameHolder(canvasName:String) {
           grid.recvTankInvincible(t)
         case t:WsProtocol.TankFillBullet =>
           grid.recvTankFillBullet(t)
+        case t:WsProtocol.TankBulletStrengthenOver =>
+          grid.recvTankBulletStrengthen(t)
         case  _ =>
       }
     }
@@ -306,8 +308,21 @@ class GameHolder(canvasName:String) {
                   grid.historyRank = historyRank
 
                 case WsProtocol.GridSyncState(d) =>
-                  justSynced = true
-                  gridStateWithoutBullet = Some(d)
+                  if(d.f < grid.systemFrame){
+                    println(s"丢弃同步帧数据，grid frame=${grid.systemFrame}, sync state frame=${d.f}")
+                  }else if(d.f == grid.systemFrame){
+                    println(s"立即同步帧数据，grid frame=${grid.systemFrame}, sync state frame=${d.f}")
+                    grid.gridSyncStateWithoutBullet(d)
+                    gameSnapshotMap.clear()
+                    gameSnapshotMap.put(grid.systemFrame,grid.getGridState())
+                    gameEventMap.filter(_._1 < grid.systemFrame).keySet.foreach(gameEventMap.remove)
+                    gridStateWithoutBullet = None
+                  }else{
+                    justSynced = true
+                    gridStateWithoutBullet = Some(d)
+                  }
+
+
 
 
 
@@ -352,6 +367,10 @@ class GameHolder(canvasName:String) {
                 case t:WsProtocol.TankInvincible =>
                   addGameEvent(math.max(grid.systemFrame,t.f),data)
                   grid.recvTankInvincible(t)
+
+                case t:WsProtocol.TankBulletStrengthenOver =>
+                  addGameEvent(math.max(grid.systemFrame,t.f),data)
+                  grid.recvTankBulletStrengthen(t)
 
                 case t:WsProtocol.TankFillBullet =>
                   addGameEvent(math.max(grid.systemFrame,t.f),data)
@@ -569,22 +588,42 @@ class GameHolder(canvasName:String) {
         justSynced match {
           case true =>
             if(clientFrame == maxClientFrameDrawForSystemFrame - 1){
-              gridStateWithoutBullet.foreach{t =>
-                grid.gridSyncStateWithoutBullet(t)
-                gameSnapshotMap.clear()
+              if(gridAllState.nonEmpty){
+                gridAllState.foreach{t =>
+                  grid.gridSyncState(t)
+                  nextFrame = dom.window.requestAnimationFrame(gameRender())
+                  gameSnapshotMap.clear()
+                  gameSnapshotMap.put(grid.systemFrame,grid.getGridState())
+                  gameEventMap.filter(_._1 < grid.systemFrame).keySet.foreach(gameEventMap.remove)
+                }
+                gridAllState = None
+                justSynced = false
+              }else if(gridStateWithoutBullet.nonEmpty && grid.systemFrame == gridStateWithoutBullet.get.f - 1){
+                gridStateWithoutBullet.foreach{t =>
+                  grid.gridSyncStateWithoutBullet(t)
+                  gameSnapshotMap.clear()
+                  gameSnapshotMap.put(grid.systemFrame,grid.getGridState())
+                  gameEventMap.filter(_._1 < grid.systemFrame).keySet.foreach(gameEventMap.remove)
+                }
+                gridStateWithoutBullet = None
+                justSynced = false
+              }else if(gridStateWithoutBullet.nonEmpty && grid.systemFrame == gridStateWithoutBullet.get.f - 2){
+                grid.update()
                 gameSnapshotMap.put(grid.systemFrame,grid.getGridState())
-                gameEventMap.filter(_._1 < grid.systemFrame).keySet.foreach(gameEventMap.remove)
+                gameSnapshotMap.remove(grid.systemFrame - maxRollBackFrames)
+                gameEventMap.filter(_._1 < grid.systemFrame - maxRollBackFrames).keySet.foreach(gameEventMap.remove)
+              }else{
+                gridStateWithoutBullet.foreach{t =>
+                  grid.gridSyncStateWithoutBullet(t)
+                  gameSnapshotMap.clear()
+                  gameSnapshotMap.put(grid.systemFrame,grid.getGridState())
+                  gameEventMap.filter(_._1 < grid.systemFrame).keySet.foreach(gameEventMap.remove)
+                }
+                gridStateWithoutBullet = None
+                justSynced = false
               }
-              gridStateWithoutBullet = None
-              gridAllState.foreach{t =>
-                grid.gridSyncState(t)
-                nextFrame = dom.window.requestAnimationFrame(gameRender())
-                gameSnapshotMap.clear()
-                gameSnapshotMap.put(grid.systemFrame,grid.getGridState())
-                gameEventMap.filter(_._1 < grid.systemFrame).keySet.foreach(gameEventMap.remove)
-              }
-              gridAllState = None
-              justSynced = false
+
+
             }
           case false =>
             if(clientFrame == maxClientFrameDrawForSystemFrame - 1){
