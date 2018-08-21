@@ -92,6 +92,22 @@ class TankClientImpl(
     )
   }
 
+  def getSliderPositionByBloodLevel(num:Int,sliderLength:Float,width:Float,greyLength:Float) = {
+    val startPoint = Point(sliderLength / 2,-(3+TankParameters.TankSize.r))
+    var positionList:List[Point] = startPoint :: Nil
+    for(i <- 2 to 2 * num){
+      if(i % 2 == 0){
+        val position = startPoint - Point(i / 2 * width + (i/2 - 1)*greyLength / (num - 1),0)
+        positionList = position :: positionList
+      }
+      else{
+        val position = startPoint - Point(i / 2 * (width + greyLength / (num - 1)),0)
+        positionList = position :: positionList
+      }
+    }
+    positionList
+  }
+
 
 
 }
@@ -108,41 +124,29 @@ object TankClientImpl{
   def drawTank(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,offset:Point,directionOpt:Option[Double],canMove:Boolean,canvasUnit:Int = 10): Unit ={
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt,canMove)
     val gunH = tank.bulletPowerLevel match{
-        case TankParameters.TankBulletBulletPowerLevel.first => 1f * TankParameters.TankSize.gunH
-        case TankParameters.TankBulletBulletPowerLevel.second => 1.2f * TankParameters.TankSize.gunH
-        case TankParameters.TankBulletBulletPowerLevel.third => 1.4f * TankParameters.TankSize.gunH
+      case TankParameters.TankBulletBulletPowerLevel.first => 1f* TankParameters.TankSize.gunH
+      case TankParameters.TankBulletBulletPowerLevel.second => 1.2f* TankParameters.TankSize.gunH
+      case TankParameters.TankBulletBulletPowerLevel.third => 1.4f* TankParameters.TankSize.gunH
     }
-    tank.bulletPowerLevel
-    tank.bloodLevel
-    tank.blood
-//    val gunPositionList = tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
-//    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
+
     val gunPositionList = if(tank.getTankState().bulletStrengthen <=0) {
       tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
     }else{
       tank.getGunPosition4San().map(_ + position).map(t => (t + offset) * canvasUnit)
     }
-    val bloodSliderList = tank.getSliderPosition(3,1.0f * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
+    //    val bloodSliderList = tank.getSliderPosition(3,1.0f * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
+    //------------------------绘制炮筒--------------------------#
     ctx.beginPath()
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
     gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
-    ctx.fillStyle = tank.bulletPowerLevel match{
-      case TankParameters.TankBulletBulletPowerLevel.first => "#CD6600"
-      case TankParameters.TankBulletBulletPowerLevel.second => "#FF4500"
-      case TankParameters.TankBulletBulletPowerLevel.third => "#8B2323"
-    }
-    ctx.strokeStyle = "#383838"
+    ctx.fillStyle = model.TankParameters.TankColor.gun
+    ctx.strokeStyle = "#636363"
     ctx.fill()
     ctx.lineWidth = 4
     ctx.stroke()
     ctx.closePath()
-    val angel = tank.bloodLevel match {
-      case TankParameters.TankBloodLevel.first => 2 * math.Pi / 3 * 1
-      case TankParameters.TankBloodLevel.second => 2 * math.Pi / 3 * 2
-      case TankParameters.TankBloodLevel.third => 2 * math.Pi / 3 * 3
-    }
-    if(tank.invincible == true) {
-
+    //----------------------------绘制坦克---------------------#
+    if(tank.invincible) {
       ctx.beginPath()
       ctx.fillStyle = "rgba(128, 100, 162, 0.2)"
       ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.invincibleSize.r * canvasUnit, 0, 2 * math.Pi)
@@ -151,34 +155,15 @@ object TankClientImpl{
     }
     ctx.beginPath()
     ctx.lineWidth = 4
-    ctx.strokeStyle = "black"
-    ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, 0, angel)
+    ctx.strokeStyle = "#636363"
+    ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, 0, 360)
     ctx.fillStyle = tank.getColor()
     ctx.fill()
     ctx.stroke()
-    ctx.closePath()
-    ctx.beginPath()
-    ctx.lineWidth = 4
-    ctx.strokeStyle = "#8B008B"
-    ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, angel, 2 * math.Pi)
-    ctx.stroke()
-    ctx.fillStyle = tank.getColor()
-    ctx.fill()
     ctx.closePath()
 
-    for(i <- 0 to bloodSliderList.length - 2){
-      ctx.beginPath()
-      ctx.lineWidth = 5
-      if(i == 1){
-        ctx.strokeStyle = "#8B8682"
-      }else{
-        ctx.strokeStyle = "#DC143C"
-      }
-      ctx.moveTo(bloodSliderList(i).x,bloodSliderList(i).y)
-      ctx.lineTo(bloodSliderList(i + 1).x,bloodSliderList(i + 1).y)
-      ctx.stroke()
-      ctx.closePath()
-    }
+    drawBloodSlider(ctx,tank,offset,canvasUnit,position)
+
     ctx.beginPath()
     val namePosition = (position + Point(0,5) + offset) * canvasUnit
     ctx.fillStyle = "#006699"
@@ -199,34 +184,24 @@ object TankClientImpl{
       case TankParameters.TankBulletBulletPowerLevel.second => 1.2f* TankParameters.TankSize.gunH
       case TankParameters.TankBulletBulletPowerLevel.third => 1.4f* TankParameters.TankSize.gunH
     }
-//    val gunPositionList = tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
-//    val bloodSliderPosition = tank.generateSliderPosition(3).map(_ + position).map(t => (t + offset) * canvasUnit)
+
     val gunPositionList = if(tank.getTankState().bulletStrengthen <=0) {
       tank.getGunPosition(gunH:Float).map(_ + position).map(t => (t + offset) * canvasUnit)
     }else{
       tank.getGunPosition4San().map(_ + position).map(t => (t + offset) * canvasUnit)
     }
-    val bloodSliderList = tank.getSliderPosition(3,1.0f * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
+//    val bloodSliderList = tank.getSliderPosition(3,1.0f * tank.blood / TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel)).map(_ + position).map(t => (t + offset) * canvasUnit)
     //------------------------绘制炮筒--------------------------#
     ctx.beginPath()
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
     gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
-    ctx.fillStyle = tank.bulletPowerLevel match{
-      case TankParameters.TankBulletBulletPowerLevel.first => "#CD6600"
-      case TankParameters.TankBulletBulletPowerLevel.second => "#FF4500"
-      case TankParameters.TankBulletBulletPowerLevel.third => "#8B2323"
-    }
-    ctx.strokeStyle = "#383838"
+    ctx.fillStyle = model.TankParameters.TankColor.gun
+    ctx.strokeStyle = "#636363"
     ctx.fill()
     ctx.lineWidth = 4
     ctx.stroke()
     ctx.closePath()
     //----------------------------绘制坦克---------------------#
-    val angel = tank.bloodLevel match {
-      case TankParameters.TankBloodLevel.first => 2 * math.Pi / 3 * 1
-      case TankParameters.TankBloodLevel.second => 2 * math.Pi / 3 * 2
-      case TankParameters.TankBloodLevel.third => 2 * math.Pi / 3 * 3
-    }
     if(tank.invincible) {
       ctx.beginPath()
       ctx.fillStyle = "rgba(128, 100, 162, 0.2)"
@@ -236,35 +211,15 @@ object TankClientImpl{
     }
     ctx.beginPath()
     ctx.lineWidth = 4
-    ctx.strokeStyle = "black"
-    ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, 0, angel)
-    ctx.fillStyle = tank.getColor()
-    ctx.strokeStyle = "#383838"
-    ctx.fill()
-    ctx.stroke()
-    ctx.closePath()
-    ctx.beginPath()
-    ctx.lineWidth = 4
-    ctx.strokeStyle = "#8B008B"
-    ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, angel, 2 * math.Pi)
-    ctx.stroke()
+    ctx.strokeStyle = "#636363"
+    ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, 0, 360)
     ctx.fillStyle = tank.getColor()
     ctx.fill()
+    ctx.stroke()
     ctx.closePath()
 
-    for(i <- 0 to bloodSliderList.length - 2){
-      ctx.beginPath()
-      ctx.lineWidth = 5
-      if(i == 1){
-        ctx.strokeStyle = "#8B8682"
-      }else{
-        ctx.strokeStyle = "#DC143C"
-      }
-      ctx.moveTo(bloodSliderList(i).x,bloodSliderList(i).y)
-      ctx.lineTo(bloodSliderList(i + 1).x,bloodSliderList(i + 1).y)
-      ctx.stroke()
-      ctx.closePath()
-    }
+    drawBloodSlider(ctx,tank,offset,canvasUnit,position)
+
     ctx.beginPath()
     val namePosition = (position + Point(0,5) + offset) * canvasUnit
     ctx.fillStyle = "#006699"
@@ -315,6 +270,35 @@ object TankClientImpl{
 
 
 
+  }
+
+  def drawBloodSlider(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,offset:Point,canvasUnit:Int = 10,position:Point) = {
+    val num = model.TankParameters.TankBloodLevel.getTankBlood(tank.bloodLevel) / 20
+    val sliderLength = 2f * TankParameters.TankSize.r
+    val greyLength = 0.3f * sliderLength
+    val width = (sliderLength - greyLength) / num
+    val sliderPositions = tank.getSliderPositionByBloodLevel(num,sliderLength,width,greyLength).map(_ + position).map(t => (t + offset) * canvasUnit)
+    ctx.beginPath()
+    ctx.lineWidth = 5
+    ctx.strokeStyle = "grey"
+    ctx.moveTo(sliderPositions.last.x,sliderPositions.last.y)
+    ctx.lineTo(sliderPositions.head.x,sliderPositions.head.y)
+    ctx.stroke()
+    ctx.closePath()
+    for(i <- Range(1 ,sliderPositions.length,2)){
+      ctx.beginPath()
+      ctx.lineWidth = 5
+      if((i+1) / 2 <= 1f * tank.blood/20){
+        ctx.strokeStyle = "red"
+      }
+      else{
+        ctx.strokeStyle = "black"
+      }
+      ctx.moveTo(sliderPositions(i-1).x,sliderPositions(i-1).y)
+      ctx.lineTo(sliderPositions(i).x,sliderPositions(i).y)
+      ctx.stroke()
+      ctx.closePath()
+    }
   }
 
   def drawTankInfo(ctx:dom.CanvasRenderingContext2D,myName:String,tank: TankClientImpl,canvasBoundary:model.Point,canvasUnit:Int = 10) = {
