@@ -4,6 +4,7 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.http.scaladsl.model.ws.Message
 import akka.stream.scaladsl.Flow
+import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.core.tank.GridServerImpl
 import com.neo.sk.tank.shared.ptcl.protocol.TankGame
 import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
@@ -77,7 +78,10 @@ object RoomActor {
           implicit timer =>
             val subscribersMap = mutable.HashMap[Long,ActorRef[UserActor.Command]]()
             val grid = new GridServerImpl(ctx,log,dispatch(subscribersMap),dispatchTo(subscribersMap),ptcl.model.Boundary.getBoundary)
-            getGameRecorder(ctx,grid)
+            if(AppSettings.gameRecordIsWork){
+              getGameRecorder(ctx,grid)
+            }
+
             grid.obstaclesInit()
             timer.startPeriodicTimer(GameLoopKey,GameLoop,ptcl.model.Frame.millsAServerFrame.millis)
             idle(Nil,subscribersMap,grid,0L)
@@ -126,7 +130,10 @@ object RoomActor {
           val startTime = System.currentTimeMillis()
 
           grid.update()
-          getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(grid.getLastEventAndSnapShot())
+          if(AppSettings.gameRecordIsWork){
+            getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(grid.getLastEventAndSnapShot())
+          }
+
 
           if (tickCount % 20 == 5) {
             val gridData = grid.getGridStateWithoutBullet()

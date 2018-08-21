@@ -1,5 +1,7 @@
 package com.neo.sk.tank.core
 
+import java.io.File
+
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.{ActorContext, StashBuffer, TimerScheduler}
@@ -8,10 +10,13 @@ import com.neo.sk.tank.shared.ptcl.protocol.TankGame
 import com.neo.sk.tank.shared.ptcl.protocol.TankGame.GameInformation
 import org.seekloud.essf.io.FrameOutputStream
 import org.slf4j.LoggerFactory
+
 import scala.language.implicitConversions
 import com.neo.sk.utils.byteObject.MiddleBufferInJvm
 import com.neo.sk.utils.byteObject.ByteObject._
+
 import scala.concurrent.duration._
+
 
 
 /**
@@ -129,6 +134,10 @@ object GameRecorder {
 
   private def initFileRecorder(fileName:String,index:Int,gameInformation: GameInformation,initStateOpt:Option[TankGame.GameSnapshot] = None)
                               (implicit middleBuffer: MiddleBufferInJvm):FrameOutputStream = {
+    val dir = new File(AppSettings.gameDataDirectoryPath)
+    if(!dir.exists()){
+      dir.mkdir()
+    }
     val file = AppSettings.gameDataDirectoryPath + fileName + s"_$index"
     val name = "tank"
     val version = "0.1"
