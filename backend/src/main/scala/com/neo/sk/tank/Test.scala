@@ -1,5 +1,10 @@
 package com.neo.sk.tank
 
+import akka.actor.ActorSystem
+import akka.dispatch.MessageDispatcher
+import akka.event.{Logging, LoggingAdapter}
+import akka.stream.ActorMaterializer
+import akka.util.Timeout
 import com.neo.sk.tank.shared.ptcl.tank.QuadTree
 import com.neo.sk.tank.shared.ptcl.model
 import com.neo.sk.tank.core.tank.{BrickServerImpl, TankServerImpl}
@@ -35,7 +40,33 @@ object Test {
 //  quadTree.insert(brick1)
 //  quadTree.insert(brick2)
 
+  import com.neo.sk.tank.common.AppSettings._
+  import concurrent.duration._
+
+  implicit val system = ActorSystem("tankDemoSystem", config)
+  // the executor should not be the default dispatcher.
+  implicit val executor: MessageDispatcher =
+    system.dispatchers.lookup("akka.actor.my-blocking-dispatcher")
+
+  implicit val materializer = ActorMaterializer()
+
+  implicit val scheduler = system.scheduler
+
+  implicit val timeout:Timeout = Timeout(20 seconds) // for actor asks
+
+  val log: LoggingAdapter = Logging(system, getClass)
+
+
+  var testTime = System.currentTimeMillis()
+  scheduler.schedule(0.millis,120.millis){
+    val startTime = System.currentTimeMillis()
+    println(s"test time delay =${startTime - testTime}")
+    testTime = startTime
+  }
+
   def main(args: Array[String]): Unit = {
+
+    Thread.sleep(100000)
 //    val x = quadTree.retrieveFilter(brick2).filter(_.isInstanceOf[Obstacle])
 //    println(x.filter(_.isInstanceOf[Obstacle]).map(_.asInstanceOf[BrickServerImpl].getObstacleState()))
 //    println(brick2.isIntersectsObject(x))
