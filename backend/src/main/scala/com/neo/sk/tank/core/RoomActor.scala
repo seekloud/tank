@@ -134,8 +134,9 @@ object RoomActor {
           testTime =startTime
 
           grid.update()
+          val record = grid.getLastEventAndSnapShot()
           if(AppSettings.gameRecordIsWork){
-            getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(grid.getLastEventAndSnapShot())
+            getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(record)
           }
 
 
