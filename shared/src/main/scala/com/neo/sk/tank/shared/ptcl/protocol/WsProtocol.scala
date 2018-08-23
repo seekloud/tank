@@ -47,7 +47,7 @@ object WsProtocol {
 
   case class TankEatProp(frame:Long,pId:Int,tId:Int,pType:Byte) extends WsMsgServer
 
-  case class AddProp(frame:Long,pId:Int,propState: PropState) extends WsMsgServer
+  case class AddProp(frame:Long,gT:Byte,propState: PropState) extends WsMsgServer
 
   case class AddObstacle(frame:Long, oId :Int,obstacleState: ObstacleState) extends WsMsgServer
 

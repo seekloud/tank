@@ -180,7 +180,6 @@ class GameHolder(canvasName:String) {
         case t:WsProtocol.TankAttacked =>
           grid.recvTankAttacked(t)
         case t:WsProtocol.ObstacleAttacked =>
-          println("]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]")
           grid.recvObstacleAttacked(t)
         case t:WsProtocol.AddObstacle =>
           grid.recvAddObstacle(t)

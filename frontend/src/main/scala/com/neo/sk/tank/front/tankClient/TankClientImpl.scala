@@ -183,7 +183,7 @@ object TankClientImpl{
 
   }
 
-  def drawTankByOffsetTime(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,offsetTime:Long,offset:Point,directionOpt:Option[Double],canMove:Boolean,canvasUnit:Int = 10): Unit ={
+  def drawTankByOffsetTime(justAttackedMap:mutable.HashMap[Int,Int],ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,offsetTime:Long,offset:Point,directionOpt:Option[Double],canMove:Boolean,canvasUnit:Int = 10): Unit ={
     val position = tank.getPositionByOffsetTime(offsetTime,directionOpt,canMove)
     //    println(s"curFrame=${curFrame} tankId=${tank.tankId},position = ${position}")
     val gunH = tank.bulletPowerLevel match{
@@ -202,8 +202,8 @@ object TankClientImpl{
     ctx.beginPath()
     ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
     gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
-    ctx.fillStyle = model.TankParameters.TankColor.gun
-    ctx.strokeStyle = "#636363"
+    ctx.fillStyle = if(!justAttackedMap.keySet.contains(tank.tankId)) model.TankParameters.TankColor.gun else model.TankParameters.TankColor.gunAttackedJust
+    ctx.strokeStyle =if(!justAttackedMap.keySet.contains(tank.tankId)) "#636363" else "rgba(99,99,99,0.2)"
     ctx.fill()
     ctx.lineWidth = 4
     ctx.stroke()
@@ -220,7 +220,10 @@ object TankClientImpl{
     ctx.lineWidth = 4
     ctx.strokeStyle = "#636363"
     ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, 0, 360)
-    ctx.fillStyle = tank.getColor()
+    ctx.fillStyle = if(!justAttackedMap.keySet.contains(tank.tankId)) tank.getColor() else{
+      if(justAttackedMap(tank.tankId) < 9) justAttackedMap(tank.tankId) += 1 else justAttackedMap.remove(tank.tankId)
+      tank.getColorAttacked()
+    }
     ctx.fill()
     ctx.stroke()
     ctx.closePath()

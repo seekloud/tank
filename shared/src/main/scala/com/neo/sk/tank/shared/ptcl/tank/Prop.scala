@@ -18,6 +18,7 @@ trait Prop extends CircleObjectOfGame{
 
   val propType:Byte
 
+
   //todo
   override def getObjectRect(): model.Rectangle = {
     model.Rectangle(Point(position.x - model.PropParameters.r, position.y - model.PropParameters.r),
@@ -38,11 +39,11 @@ trait Prop extends CircleObjectOfGame{
 object Prop{
   def apply(p:PropState): Prop = {
     p.t match {
-      case 1 => AddBloodLevelProp(p.pId,position = p.p)
-      case 2 => AddSpeedLevelProp(p.pId,position = p.p)
-      case 3 => AddBulletLevelProp(p.pId,position = p.p)
-      case 4 => AddBloodProp(p.pId,position = p.p)
-      case 5 => AddBulletStrengthenProp(p.pId,position = p.p)
+      case 1 => AddBloodLevelProp(p.pId,1,p.p)
+      case 2 => AddSpeedLevelProp(p.pId,2, p.p )
+      case 3 => AddBulletLevelProp(p.pId,3,p.p )
+      case 4 => AddBloodProp(p.pId,4, p.p )
+      case 5 => AddBulletStrengthenProp(p.pId,5, p.p )
     }
   }
 }

@@ -44,8 +44,9 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   private var recvTankInvincibleList:List[WsProtocol.TankInvincible] = Nil
   private var recvTankFillBulletList:List[WsProtocol.TankFillBullet] = Nil
   private var recvTankBulletStreList:List[WsProtocol.TankBulletStrengthenOver] = Nil
-  val justAttackedSet = mutable.HashMap[Long,Int]()
-  val justAttackedTankMap = mutable.HashMap[Int,Int]()
+  private val justAttackedSet = mutable.HashMap[Long,Int]()
+  private val justAttackedTankMap = mutable.HashMap[Int,Int]()
+  private val propByTankJustMap = mutable.HashMap[Int,Int]()
 
 
   def playerJoin(tank:TankState) = {
@@ -206,7 +207,6 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
             bulletMap.get(bId).foreach(b => quadTree.remove(b))
             bulletMap.remove(bId)
         }
-        println("lllllllllllllllllllllllllllllllll")
         t.attackDamage(d)
 
         if(!t.isLived()){
@@ -252,6 +252,9 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   def updateAddProp(t:WsProtocol.AddProp) = {
     val prop = Prop(t.propState)
     propMap.put(prop.pId,prop)
+    if(t.gT == 1){
+      propByTankJustMap.put(t.propState.pId,12)
+    }
     quadTree.insert(prop)
   }
 
@@ -396,7 +399,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       }
       val directionOpt = getDirection(moveSet)
       val tankCanMove:Boolean = directionOpt.exists(d => t.canMove(d.toFloat,boundary,quadTree))
-      TankClientImpl.drawTankByOffsetTime(ctx,t.asInstanceOf[TankClientImpl],offsetTime,offset,directionOpt,tankCanMove,canvasUnit)
+      TankClientImpl.drawTankByOffsetTime(justAttackedTankMap,ctx,t.asInstanceOf[TankClientImpl],offsetTime,offset,directionOpt,tankCanMove,canvasUnit)
     }
 
     tankMap.get(myTankId).foreach{ t =>
@@ -407,20 +410,49 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   def tankIsLived(tankId:Int):Boolean = tankMap.contains(tankId)
 
   def drawProps(ctx:dom.CanvasRenderingContext2D,offset:Point) = {
-    propMap.values.foreach{
-      p=>
+    propMap.values.foreach {
+      p =>
         val img = dom.document.createElement("img")
-        val image = p.getPropState.t match {
-          case 1 => img.setAttribute("src","/tank/static/img/xueliang.png")
-          case 2 => img.setAttribute("src","/tank/static/img/sudu.png")
-          case 3 => img.setAttribute("src","/tank/static/img/qiang.png")
-          case 4 => img.setAttribute("src","/tank/static/img/yiliao.png")
-          case 5 => img.setAttribute("src","/tank/static/img/sandan.png")
+        p.getPropState.t  match {
+          case 1 => img.setAttribute("src", "/tank/static/img/xueliang.png")
+          case 2 => img.setAttribute("src", "/tank/static/img/sudu.png")
+          case 3 => img.setAttribute("src", "/tank/static/img/qiang.png")
+          case 4 => img.setAttribute("src", "/tank/static/img/yiliao.png")
+          case 5 => img.setAttribute("src", "/tank/static/img/sandan.png")
         }
-
-        ctx.drawImage(img.asInstanceOf[HTMLElement], (p.getPropState.p.x + offset.x - model.PropParameters.half ) * canvasUnit, (p.getPropState.p.y + offset.y- model.PropParameters.half ) * canvasUnit, model.PropParameters.l * canvasUnit,model.PropParameters.l * canvasUnit)
+        ctx.drawImage(img.asInstanceOf[HTMLElement], (p.getPropState.p.x + offset.x - model.PropParameters.half) * canvasUnit, (p.getPropState.p.y + offset.y - model.PropParameters.half) * canvasUnit, model.PropParameters.l * canvasUnit, model.PropParameters.l * canvasUnit)
         ctx.fill()
         ctx.stroke()
+        if(propByTankJustMap.keySet.contains(p.pId)) {
+          img.setAttribute("src", "/tank/static/img/boom.png")
+          if (propByTankJustMap(p.pId) > 8) {
+            ctx.drawImage(img.asInstanceOf[HTMLElement], (p.getPropState.p.x + offset.x - model.PropParameters.half) * canvasUnit, (p.getPropState.p.y + offset.y - model.PropParameters.half) * canvasUnit, model.PropParameters.l * canvasUnit, model.PropParameters.l * canvasUnit)
+            ctx.fill()
+            ctx.stroke()
+          } else if (propByTankJustMap(p.pId) > 4) {
+            ctx.drawImage(img.asInstanceOf[HTMLElement], (p.getPropState.p.x + offset.x - model.PropParameters.half * 2.5) * canvasUnit, (p.getPropState.p.y + offset.y - model.PropParameters.half * 2.5) * canvasUnit, model.PropParameters.l * 2.5 * canvasUnit, model.PropParameters.l * 2.5 * canvasUnit)
+            ctx.fill()
+            ctx.stroke()
+          } else if (propByTankJustMap(p.pId) > 0) {
+            ctx.drawImage(img.asInstanceOf[HTMLElement], (p.getPropState.p.x + offset.x - model.PropParameters.half * 2.5) * canvasUnit, (p.getPropState.p.y + offset.y - model.PropParameters.half * 2.5) * canvasUnit, model.PropParameters.l * 2.5 * canvasUnit, model.PropParameters.l * 2.5 * canvasUnit)
+            ctx.fill()
+            ctx.stroke()
+            val imgData = ctx.getImageData((p.getPropState.p.x + offset.x - model.PropParameters.half * 2.5) * canvasUnit, (p.getPropState.p.y + offset.y - model.PropParameters.half * 2.5) * canvasUnit, model.PropParameters.l * 2.5 * canvasUnit, model.PropParameters.l * 2.5 * canvasUnit)
+            var i = 0
+            val len = imgData.data.length
+            while ( {
+              i < len
+            }) { // 改变每个像素的透明度
+              imgData.data(i + 3) = math.ceil(imgData.data(i + 3) * 0.5).toInt
+              i += 4
+            }
+            // 将获取的图片数据放回去。
+            ctx.putImageData(imgData, (p.getPropState.p.x + offset.x - model.PropParameters.half * 2.5) * canvasUnit, (p.getPropState.p.y + offset.y - model.PropParameters.half * 2.5) * canvasUnit)
+          }
+          if(propByTankJustMap(p.pId) <= 0){
+            propByTankJustMap.remove(p.pId)
+          }else propByTankJustMap(p.pId) -= 1
+        }
     }
   }
 

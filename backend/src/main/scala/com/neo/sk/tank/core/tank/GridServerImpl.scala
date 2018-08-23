@@ -125,8 +125,7 @@ class GridServerImpl(
         val prop = Prop.apply(PropState(pId,(random.nextInt(Int.MaxValue)%4+1).toByte,o.position))
         propMap.put(pId,prop)
         quadTree.insert(prop)
-        dispatch(WsProtocol.AddProp(systemFrame,pId,propMap.get(pId).get.getPropState))
-
+        dispatch(WsProtocol.AddProp(systemFrame,2,propMap(pId).getPropState))
         addGameEvent(TankGame.GenerateProp(systemFrame,pId,prop.getPropState))
 
         genADrop()
@@ -338,7 +337,7 @@ class GridServerImpl(
     val prop = Prop.apply(PropState(pId,propType.toByte,tank.position))
     propMap.put(pId,prop)
     quadTree.insert(prop)
-    dispatch(WsProtocol.AddProp(systemFrame,pId,propMap.get(pId).get.getPropState))
+    dispatch(WsProtocol.AddProp(systemFrame,1,propMap(pId).getPropState))
     addGameEvent(TankGame.GenerateProp(systemFrame,pId,prop.getPropState))
     quadTree.remove(tank)
     tankMap.remove(tank.tankId)
