@@ -474,14 +474,14 @@ class GameHolder(canvasName:String) {
     canvas.onmousemove = { (e:dom.MouseEvent) =>
       val point = Point(e.clientX.toFloat,e.clientY.toFloat)
       val theta = point.getTheta(canvasBoundary / 2).toFloat
-      val action = WsFrontProtocol.MouseMove(theta,getActionSerialNum)
-      addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+      val action = WsFrontProtocol.MouseMove(theta,getActionSerialNum,grid.systemFrame + 2)
+      addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 2)
       sendMsg2Server(action)//发送鼠标位置
       e.preventDefault()
     }
     canvas.onclick = {(e:MouseEvent) =>
-      val action = WsFrontProtocol.MouseClick(System.currentTimeMillis(),getActionSerialNum)
-      addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+      val action = WsFrontProtocol.MouseClick(System.currentTimeMillis(),getActionSerialNum,grid.systemFrame + 2)
+      addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 2)
       sendMsg2Server(action)//发送炮弹数据
       e.preventDefault()
     }
@@ -491,8 +491,8 @@ class GameHolder(canvasName:String) {
         if (watchKeys.contains(e.keyCode) && !keySet.contains(e.keyCode)) {
           keySet.add(e.keyCode)
           println(s"key down: [${e.keyCode}]")
-          val action = WsFrontProtocol.PressKeyDown(e.keyCode,getActionSerialNum)
-          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+          val action = WsFrontProtocol.PressKeyDown(e.keyCode,getActionSerialNum,grid.systemFrame + 2)
+          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 2)
           sendMsg2Server(action)//发送操作指令
           e.preventDefault()
         } else if(watchBakKeys.contains(e.keyCode)){
@@ -500,22 +500,22 @@ class GameHolder(canvasName:String) {
           if(!keySet.contains(directionKey)){
             keySet.add(directionKey)
             println(s"key down: [${e.keyCode}]")
-            val action = WsFrontProtocol.PressKeyDown(directionKey,getActionSerialNum)
-            addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+            val action = WsFrontProtocol.PressKeyDown(directionKey,getActionSerialNum,grid.systemFrame + 2)
+            addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 2)
             sendMsg2Server(action)//发送操作指令
           }
           e.preventDefault()
         } else if(e.keyCode == KeyCode.Space && spaceKeyUpState){
           spaceKeyUpState = false
-          val action = WsFrontProtocol.MouseClick(System.currentTimeMillis(),getActionSerialNum)
-          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+          val action = WsFrontProtocol.MouseClick(System.currentTimeMillis(),getActionSerialNum,grid.systemFrame + 2)
+          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 2)
           sendMsg2Server(action)//发送炮弹数据
           e.preventDefault()
         } else if(watchDirectionKeys.contains(e.keyCode)) {
           println(s"key down: [${e.keyCode}]")
           val o = if(e.keyCode == KeyCode.I) -0.1f else 0.1f
-          val action = WsFrontProtocol.GunDirectionOffset(o,getActionSerialNum)
-          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+          val action = WsFrontProtocol.GunDirectionOffset(o,getActionSerialNum,grid.systemFrame + 2)
+          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 2)
           sendMsg2Server(action)
           e.preventDefault()
         }
@@ -527,16 +527,16 @@ class GameHolder(canvasName:String) {
         if (watchKeys.contains(e.keyCode)) {
           keySet.remove(e.keyCode)
           println(s"key up: [${e.keyCode}]")
-          val action = WsFrontProtocol.PressKeyUp(e.keyCode,getActionSerialNum)
-          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+          val action = WsFrontProtocol.PressKeyUp(e.keyCode,getActionSerialNum,grid.systemFrame + 2)
+          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 2)
           sendMsg2Server(action)//发送操作指令
           e.preventDefault()
         } else if(watchBakKeys.contains(e.keyCode)){
           val directionKey = getWatchBakKeys(e.keyCode)
           keySet.remove(directionKey)
           println(s"key up: [${e.keyCode}]")
-          val action = WsFrontProtocol.PressKeyUp(directionKey,getActionSerialNum)
-          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 1)
+          val action = WsFrontProtocol.PressKeyUp(directionKey,getActionSerialNum,grid.systemFrame + 2)
+          addUncheckActionWithFrame(myTankId,action,grid.systemFrame + 2)
           sendMsg2Server(action)//发送操作指令
           e.preventDefault()
         } else if(e.keyCode == KeyCode.Space){
