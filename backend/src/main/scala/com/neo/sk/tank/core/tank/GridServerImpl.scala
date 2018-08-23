@@ -400,7 +400,6 @@ class GridServerImpl(
     genTank()
     updateRanksByDamage()
     generateGameSnapShot(systemFrame,TankGame.TankGameSnapshot(getGridState()))
-    getLastEventAndSnapShot()
   }
 
 
