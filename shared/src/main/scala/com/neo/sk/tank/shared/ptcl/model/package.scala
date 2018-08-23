@@ -436,11 +436,13 @@ package object model {
     }
 
     object TankColor{
-      val blue = "#1E90FF"
-      val green = "#4EEE94"
-      val red = "#EE4000"
+      val blue = "rgba(30,144,255,1)"
+      val green = "rgba( 119,136,153,1)"
+      val red = "rgba(205,175,149,1)"
 
       val tankColorList = List(blue,green,red)
+
+      val tankAttackedColorList = List("rgba(30,144,255,0.5)", "rgba( 119,136,153,0.5)","rgba(205,175,149,0.5)")
 
       val gun = "#7A7A7A"
 

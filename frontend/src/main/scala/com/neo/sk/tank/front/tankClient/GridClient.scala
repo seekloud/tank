@@ -18,6 +18,7 @@ import org.scalajs.dom
 import org.scalajs.dom.raw.HTMLElement
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 /**
   * Created by hongruying on 2018/7/9
   */
@@ -40,10 +41,11 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   private var recvTankEatPropList:List[WsProtocol.TankEatProp] = Nil
   private var recvAddPropList:List[WsProtocol.AddProp] = Nil
   private var recvAddObstacleList:List[WsProtocol.AddObstacle] = Nil
-
   private var recvTankInvincibleList:List[WsProtocol.TankInvincible] = Nil
   private var recvTankFillBulletList:List[WsProtocol.TankFillBullet] = Nil
   private var recvTankBulletStreList:List[WsProtocol.TankBulletStrengthenOver] = Nil
+  val justAttackedSet = mutable.HashMap[Long,Int]()
+  val justAttackedTankMap = mutable.HashMap[Int,Int]()
 
 
   def playerJoin(tank:TankState) = {
@@ -163,15 +165,16 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
   def recvTankAttacked(t:WsProtocol.TankAttacked) = {
     if(t.frame < systemFrame){
       updateTankAttacked(t.bId,t.tId,t.d)
+
     }else{
       recvTankAttackedList = t :: recvTankAttackedList
     }
   }
 
   def updateTankAttacked(bId:Int,tId:Int,d:Int) = {
+
     bulletMap.get(bId).foreach(b => quadTree.remove(b))
     bulletMap.remove(bId)
-
     tankMap.get(tId) match {
       case Some(t) =>
         t.attackedDamage(d)
@@ -179,9 +182,10 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
           quadTree.remove(t)
           tankMap.remove(tId)
           tankMoveAction.remove(tId)
-        }
+        }else justAttackedTankMap.put(tId,0)
       case None =>
     }
+
   }
 
   def recvObstacleAttacked(t:WsProtocol.ObstacleAttacked) = {
@@ -202,12 +206,17 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
             bulletMap.get(bId).foreach(b => quadTree.remove(b))
             bulletMap.remove(bId)
         }
+        println("lllllllllllllllllllllllllllllllll")
         t.attackDamage(d)
 
         if(!t.isLived()){
           quadTree.remove(t)
           obstacleMap.remove(oId)
+        }else{
+          justAttackedSet.put(oId,0)
+          println("==================================================")
         }
+
       case None =>
 //        bulletMap.get(bId).foreach(b => quadTree.remove(b))
 //        bulletMap.remove(bId)
@@ -346,7 +355,7 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       }
       val directionOpt = getDirection(moveSet)
       val tankCanMove:Boolean = directionOpt.exists(d => t.canMove(d.toFloat,boundary,quadTree))
-      TankClientImpl.drawTank(ctx,t.asInstanceOf[TankClientImpl],curFrame,maxClientFrame,offset,directionOpt,tankCanMove,canvasUnit)
+      TankClientImpl.drawTank(justAttackedTankMap,ctx,t.asInstanceOf[TankClientImpl],curFrame,maxClientFrame,offset,directionOpt,tankCanMove,canvasUnit)
     }
     tankMap.get(myTankId).foreach{ t =>
       TankClientImpl.drawTankInfo(ctx,myName,t.asInstanceOf[TankClientImpl],canvasBoundary,canvasUnit)
@@ -427,13 +436,13 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     obstacleMap.values.foreach {
       o =>
         if (o.obstacleType == model.ObstacleParameters.ObstacleType.airDropBox) {
-          AirDropBoxClientImpl.drawAirDrop(ctx, offset, canvasUnit, o)
+          AirDropBoxClientImpl.drawAirDrop(ctx, offset, canvasUnit, o,justAttackedSet)
         } else if(o.obstacleType == model.ObstacleParameters.ObstacleType.brick){
-          BrickClientImpl.drawBrick(ctx,offset,canvasUnit,o)
+          BrickClientImpl.drawBrick(ctx,offset,canvasUnit,o,justAttackedSet)
         }else if(o.obstacleType == model.ObstacleParameters.ObstacleType.steel){
-          SteelClientImpl.drawSteel(ctx,offset,canvasUnit,o)
+          SteelClientImpl.drawSteel(ctx,offset,canvasUnit,o,justAttackedSet )
         }else{
-          SteelClientImpl.drawSteel(ctx,offset,canvasUnit,o)
+          SteelClientImpl.drawSteel(ctx,offset,canvasUnit,o,justAttackedSet)
         }
     }
     drawProps(ctx,offset)

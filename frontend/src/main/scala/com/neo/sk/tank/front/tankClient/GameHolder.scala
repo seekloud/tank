@@ -180,6 +180,7 @@ class GameHolder(canvasName:String) {
         case t:WsProtocol.TankAttacked =>
           grid.recvTankAttacked(t)
         case t:WsProtocol.ObstacleAttacked =>
+          println("]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]")
           grid.recvObstacleAttacked(t)
         case t:WsProtocol.AddObstacle =>
           grid.recvAddObstacle(t)
@@ -323,9 +324,6 @@ class GameHolder(canvasName:String) {
                   }
 
 
-
-
-
                 case WsProtocol.GridSyncAllState(gridState) =>
                   println(s"已同步游戏中所有数据，进行渲染，${gridState}")
                   justSynced = true
@@ -348,8 +346,6 @@ class GameHolder(canvasName:String) {
                 case t:WsProtocol.AddObstacle =>
                   addGameEvent(math.max(grid.systemFrame,t.frame),data)
                   grid.recvAddObstacle(t)
-
-
 
                 case t:WsProtocol.TankEatProp =>
                   addGameEvent(math.max(grid.systemFrame,t.frame),data)

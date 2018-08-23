@@ -288,8 +288,8 @@ trait Grid {
     tankMoveAction.remove(tankId)
     tankMap.get(tankId).foreach(t => quadTree.remove(t))
     tankMap.remove(tankId)
-
   }
+
 
   def getGridState():GridState = {
     GridState(
@@ -301,11 +301,5 @@ trait Grid {
       tankMoveAction = tankMoveAction.toList.map(t => (t._1,t._2.toList))
     )
   }
-
-
-
-
-
-
 
 }
