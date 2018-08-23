@@ -399,7 +399,7 @@ class GridServerImpl(
     super.update()
     genTank()
     updateRanksByDamage()
-    generateGameSnapShot(systemFrame,TankGame.TankGameSnapshot(getGridState()))
+//    generateGameSnapShot(systemFrame,TankGame.TankGameSnapshot(getGridState()))
   }
 
 
