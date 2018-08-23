@@ -7,6 +7,7 @@ import org.scalajs.dom
 import org.scalajs.dom.ext.Color
 import org.scalajs.dom.raw.HTMLElement
 
+import scala.collection.mutable
 import scala.util.Random
 
 /**
@@ -43,7 +44,10 @@ class TankClientImpl(
 
   override protected def startFillBullet(): Unit = {}
 
+
   def getColor():String = model.TankParameters.TankColor.tankColorList(tankColorType)
+
+  def getColorAttacked():String = model.TankParameters.TankColor.tankAttackedColorList(tankColorType)
 
   /**
     * tank知道当前systemFrame的初始位置（position），如果isMove，根据(curFrame/maxClientFrame)计算当前动画桢的位置
@@ -121,7 +125,7 @@ object TankClientImpl{
     * @param curFrame 动画渲染桢数 （0，1，2，3）
     * @param maxClientFrame 每个systemFrame 动画渲染的帧数
     * */
-  def drawTank(ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,offset:Point,directionOpt:Option[Double],canMove:Boolean,canvasUnit:Int = 10): Unit ={
+  def drawTank(justAttackedMap:mutable.HashMap[Int,Int],ctx:dom.CanvasRenderingContext2D,tank: TankClientImpl,curFrame:Int,maxClientFrame:Int,offset:Point,directionOpt:Option[Double],canMove:Boolean,canvasUnit:Int = 10): Unit ={
     val position = tank.getPositionCurFrame(curFrame,maxClientFrame,directionOpt,canMove)
     val gunH = tank.bulletPowerLevel match{
         case TankParameters.TankBulletBulletPowerLevel.first => 1f * TankParameters.TankSize.gunH
@@ -157,7 +161,10 @@ object TankClientImpl{
     ctx.lineWidth = 4
     ctx.strokeStyle = "#636363"
     ctx.arc((position.x + offset.x) * canvasUnit, (position.y + offset.y) * canvasUnit, model.TankParameters.TankSize.r * canvasUnit, 0, 360)
-    ctx.fillStyle = tank.getColor()
+    ctx.fillStyle = if(!justAttackedMap.keySet.contains(tank.tankId)) tank.getColor() else{
+      if(justAttackedMap(tank.tankId) < 9) justAttackedMap(tank.tankId) += 1 else justAttackedMap.remove(tank.tankId)
+      tank.getColorAttacked()
+    }
     ctx.fill()
     ctx.stroke()
     ctx.closePath()

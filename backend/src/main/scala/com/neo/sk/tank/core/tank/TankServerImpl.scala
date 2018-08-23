@@ -81,12 +81,12 @@ class TankServerImpl (
         if (blood > model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)) {
           blood = model.TankParameters.TankBloodLevel.getTankBlood(bloodLevel)
         }
+
       case 5 =>
         bulletStrengthen = model.TankParameters.bulletStrengthenTime
         scheduler.scheduleOnce(model.TankParameters.bulletStrengthenTime.seconds){
           roomActor ! RoomActor.BulletStrengthenOver(tankId)
         }
-
 
     }
   }

@@ -18,6 +18,7 @@ trait Obstacle extends RectangleObjectOfGame{
 
   val obstacleType:Byte
 
+
   override var position: model.Point
 
   override def getObjectRect(): model.Rectangle
