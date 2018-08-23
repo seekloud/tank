@@ -71,7 +71,7 @@ trait Grid {
 
 
   def addAction(id:Int,tankAction:TankAction) = {
-    addActionWithFrame(id,tankAction,systemFrame)
+    addActionWithFrame(id,tankAction,math.max(systemFrame,tankAction.frame))
   }
 
   def addActionWithFrame(id: Int, tankAction: TankAction, frame: Long) = {
@@ -224,17 +224,17 @@ trait Grid {
       tankMap.get(tankId) match {
         case Some(tank) =>
           action match {
-            case WsFrontProtocol.MouseMove(d,serialNum) => tank.setTankGunDirection(d)
-            case WsFrontProtocol.PressKeyDown(k,serialNum) =>
+            case WsFrontProtocol.MouseMove(d,serialNum,_) => tank.setTankGunDirection(d)
+            case WsFrontProtocol.PressKeyDown(k,serialNum,_) =>
               tankMoveSet.add(k)
               tankMoveAction.put(tankId,tankMoveSet)
-            case WsFrontProtocol.PressKeyUp(k,serialNum) =>
+            case WsFrontProtocol.PressKeyUp(k,serialNum,_) =>
               tankMoveSet.remove(k)
               tankMoveAction.put(tankId,tankMoveSet)
-            case WsFrontProtocol.MouseClick(_,serialNum) =>
+            case WsFrontProtocol.MouseClick(_,serialNum,_) =>
               tankExecuteLaunchBulletAction(tankId,tank)
 
-            case WsFrontProtocol.GunDirectionOffset(offset,serialNum) => tank.setTankGunDirectionByOffset(offset)
+            case WsFrontProtocol.GunDirectionOffset(offset,serialNum,_) => tank.setTankGunDirectionByOffset(offset)
 
 
             case _ => debug(s"tankId=${tankId} action=${action} is no valid")

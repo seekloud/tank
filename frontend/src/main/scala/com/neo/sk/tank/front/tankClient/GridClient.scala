@@ -316,9 +316,9 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
     val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
     action.map(_._2).foreach{
-      case WsFrontProtocol.PressKeyDown(k,_) => moveSet = moveSet + k
-      case WsFrontProtocol.PressKeyUp(k,_) => moveSet = moveSet - k
-      case WsFrontProtocol.MouseMove(k,_) =>
+      case WsFrontProtocol.PressKeyDown(k,_,_) => moveSet = moveSet + k
+      case WsFrontProtocol.PressKeyUp(k,_,_) => moveSet = moveSet - k
+      case WsFrontProtocol.MouseMove(k,_,_) =>
       case _ =>
     }
     val directionOpt = getDirection(moveSet)
@@ -339,9 +339,9 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       var moveSet:Set[Int] = tankMoveAction.getOrElse(t.tankId,mutable.HashSet[Int]()).toSet
       val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == t.tankId).toList
       action.map(_._2).foreach{
-        case WsFrontProtocol.PressKeyDown(k,_) => moveSet = moveSet + k
-        case WsFrontProtocol.PressKeyUp(k,_) => moveSet = moveSet - k
-        case WsFrontProtocol.MouseMove(k,_) =>
+        case WsFrontProtocol.PressKeyDown(k,_,_) => moveSet = moveSet + k
+        case WsFrontProtocol.PressKeyUp(k,_,_) => moveSet = moveSet - k
+        case WsFrontProtocol.MouseMove(k,_,_) =>
         case _ =>
       }
       val directionOpt = getDirection(moveSet)
@@ -357,9 +357,9 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
     var moveSet:Set[Int] = tankMoveAction.getOrElse(myTankId,mutable.HashSet[Int]()).toSet
     val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == myTankId).toList
     action.map(_._2).foreach{
-      case WsFrontProtocol.PressKeyDown(k,_) => moveSet = moveSet + k
-      case WsFrontProtocol.PressKeyUp(k,_) => moveSet = moveSet - k
-      case WsFrontProtocol.MouseMove(k,_) =>
+      case WsFrontProtocol.PressKeyDown(k,_,_) => moveSet = moveSet + k
+      case WsFrontProtocol.PressKeyUp(k,_,_) => moveSet = moveSet - k
+      case WsFrontProtocol.MouseMove(k,_,_) =>
       case _ =>
     }
     val directionOpt = getDirection(moveSet)
@@ -380,9 +380,9 @@ class GridClient(override val boundary: model.Point,canvasUnit:Int,canvasBoundar
       var moveSet:Set[Int] = tankMoveAction.getOrElse(t.tankId,mutable.HashSet[Int]()).toSet
       val action = tankActionQueueMap.getOrElse(systemFrame,mutable.Queue[(Long,TankAction)]()).filter(_._1 == t.tankId).toList
       action.map(_._2).foreach{
-        case WsFrontProtocol.PressKeyDown(k,_) => moveSet = moveSet + k
-        case WsFrontProtocol.PressKeyUp(k,_) => moveSet = moveSet - k
-        case WsFrontProtocol.MouseMove(k,_) =>
+        case WsFrontProtocol.PressKeyDown(k,_,_) => moveSet = moveSet + k
+        case WsFrontProtocol.PressKeyUp(k,_,_) => moveSet = moveSet - k
+        case WsFrontProtocol.MouseMove(k,_,_) =>
         case _ =>
       }
       val directionOpt = getDirection(moveSet)
