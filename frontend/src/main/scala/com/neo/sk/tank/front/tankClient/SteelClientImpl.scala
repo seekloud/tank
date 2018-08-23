@@ -57,14 +57,14 @@ object SteelClientImpl {
       while ( {
         i < len
       }) { // 改变每个像素的透明度
-        imgData.data(i + 3) = imgData.data(i + 3) * 130
+        imgData.data(i + 3) =  math.ceil(imgData.data(i + 3) * 0.5).toInt
         i += 4
       }
       // 将获取的图片数据放回去。
       ctx.putImageData(imgData, (position.x - model.ObstacleParameters.SteelParameters.border / 2 + offset.x) * canvasUnit,
         (position.y - model.ObstacleParameters.SteelParameters.border / 2 + offset.y) * canvasUnit)
-      if(justAttackedSet(steel.oId )< 8){
-        justAttackedSet(steel.oId) -=1
+      if(justAttackedSet(steel.oId )< 7){
+        justAttackedSet(steel.oId) +=1
       }else justAttackedSet.remove(steel.oId)
     }
   }

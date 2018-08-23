@@ -438,13 +438,14 @@ package object model {
     object TankColor{
       val blue = "rgba(30,144,255,1)"
       val green = "rgba( 119,136,153,1)"
-      val red = "rgba(205,175,149,1)"
+      val red = "rgba(255,0,0,1)"
 
       val tankColorList = List(blue,green,red)
 
-      val tankAttackedColorList = List("rgba(30,144,255,0.5)", "rgba( 119,136,153,0.5)","rgba(205,175,149,0.5)")
+      val tankAttackedColorList = List("rgba(30,144,255,0.7)", "rgba( 119,136,153,0.7)","rgba(255,0,0,0.7)")
 
       val gun = "#7A7A7A"
+      val gunAttackedJust = "rgba(122,122,122,0.3)"
 
       def getRandomColorType():Byte = random.nextInt(tankColorList.size).toByte
     }
