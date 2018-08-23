@@ -81,7 +81,7 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
     //packSettings,
     // [Optional] Creating `hello` command that calls org.mydomain.Hello#main(Array[String])
     packMain := Map("tank" -> projectMainClass),
-    packJvmOpts := Map("tank" -> Seq("-Xmx3036m", "-Xms512m")),
+    packJvmOpts := Map("tank" -> Seq("-Xmx512m", "-Xms64m")),
     packExtraClasspath := Map("tank" -> Seq("."))
   )
   .settings(

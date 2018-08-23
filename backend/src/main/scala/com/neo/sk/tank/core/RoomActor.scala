@@ -110,11 +110,11 @@ object RoomActor {
         case WebSocketMsg(uid,tankId,req) =>
           grid.addAction(tankId,req)
           req match {
-            case r:WsFrontProtocol.MouseMove => dispatch(subscribersMap)(WsProtocol.TankActionFrameMouse(tankId,grid.systemFrame,r))
+            case r:WsFrontProtocol.MouseMove => dispatch(subscribersMap)(WsProtocol.TankActionFrameMouse(tankId,math.max(grid.systemFrame,r.frame),r))
             case r:WsFrontProtocol.MouseClick =>
-            case r:WsFrontProtocol.PressKeyDown => dispatch(subscribersMap)(WsProtocol.TankActionFrameKeyDown(tankId,grid.systemFrame,r))
-            case r:WsFrontProtocol.PressKeyUp => dispatch(subscribersMap)(WsProtocol.TankActionFrameKeyUp(tankId,grid.systemFrame,r))
-            case r:WsFrontProtocol.GunDirectionOffset => dispatch(subscribersMap)(WsProtocol.TankActionFrameOffset(tankId,grid.systemFrame,r))
+            case r:WsFrontProtocol.PressKeyDown => dispatch(subscribersMap)(WsProtocol.TankActionFrameKeyDown(tankId,math.max(grid.systemFrame,r.frame),r))
+            case r:WsFrontProtocol.PressKeyUp => dispatch(subscribersMap)(WsProtocol.TankActionFrameKeyUp(tankId,math.max(grid.systemFrame,r.frame),r))
+            case r:WsFrontProtocol.GunDirectionOffset => dispatch(subscribersMap)(WsProtocol.TankActionFrameOffset(tankId,math.max(grid.systemFrame,r.frame),r))
             case _ => val x = TankGame
           }
 
@@ -134,8 +134,9 @@ object RoomActor {
           testTime =startTime
 
           grid.update()
+          val record = grid.getLastEventAndSnapShot()
           if(AppSettings.gameRecordIsWork){
-            getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(grid.getLastEventAndSnapShot())
+            getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(record)
           }
 
 
