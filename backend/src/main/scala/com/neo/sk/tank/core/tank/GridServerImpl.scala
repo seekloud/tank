@@ -379,16 +379,12 @@ class GridServerImpl(
         case _ =>
 
       }
-
-
     }
 
     if (historyChange) {
       historyRank = historyRankMap.values.toList.sorted.take(historyRankLength)
       historyRankThreshold = historyRank.lastOption.map(_.d).getOrElse(-1)
       historyRankMap = historyRank.map(s => s.id -> s).toMap
-
-
     }
   }
 
