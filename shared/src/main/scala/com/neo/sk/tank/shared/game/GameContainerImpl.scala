@@ -156,6 +156,7 @@ class GameContainerImpl(
     val startTime = System.currentTimeMillis()
     (curFrame until gameContainerState.f).foreach{_ =>
       super.update()
+      if(esRecoverSupport) addGameSnapShot(systemFrame,getGameContainerAllState())
     }
     val endTime = System.currentTimeMillis()
     if(curFrame < gameContainerState.f){
