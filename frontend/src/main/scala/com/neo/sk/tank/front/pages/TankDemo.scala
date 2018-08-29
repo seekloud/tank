@@ -3,7 +3,6 @@ package com.neo.sk.tank.front.pages
 import com.neo.sk.tank.front.common.Page
 import com.neo.sk.tank.front.tankClient.GameHolder
 import com.neo.sk.tank.front.utils.Shortcut
-import com.neo.sk.tank.shared.ptcl.model.Point
 import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color

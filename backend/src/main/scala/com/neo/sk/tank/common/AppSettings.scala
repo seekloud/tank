@@ -2,6 +2,8 @@ package com.neo.sk.tank.common
 
 import java.util.concurrent.TimeUnit
 
+import com.neo.sk.tank.core.game.TankGameConfigServerImpl
+import com.neo.sk.tank.shared.config.TankGameConfig
 import com.neo.sk.utils.SessionSupport.SessionConfig
 import com.typesafe.config.{Config, ConfigFactory}
 import org.slf4j.LoggerFactory
@@ -31,16 +33,18 @@ object AppSettings {
 
   val log = LoggerFactory.getLogger(this.getClass)
   val config = ConfigFactory.parseResources("product.conf").withFallback(ConfigFactory.load())
+  val tankGameConfig:TankGameConfig = TankGameConfigServerImpl(ConfigFactory.parseResources("tankGame.conf"))
+
+
 
   val appConfig = config.getConfig("app")
   val dependence = config.getConfig("dependence")
 
 
-//  val wxConfig = appConfig.getConfig("wx.config")
-//  val mpAppId = wxConfig.getString("mpAppId")
-//  val componentAppId = wxConfig.getString("componentAppid")
-//  val clientAppId = wxConfig.getString("clientAppId")
-
+  //  val wxConfig = appConfig.getConfig("wx.config")
+  //  val mpAppId = wxConfig.getString("mpAppId")
+  //  val componentAppId = wxConfig.getString("componentAppid")
+  //  val clientAppId = wxConfig.getString("clientAppId")
 
 
 
@@ -54,7 +58,7 @@ object AppSettings {
 
 
 
-//  val appIdConfig=appConfig.getConfig("appId.config")
+  //  val appIdConfig=appConfig.getConfig("appId.config")
 
   val httpInterface = appConfig.getString("http.interface")
   val httpPort = appConfig.getInt("http.port")
@@ -67,6 +71,9 @@ object AppSettings {
 
   val authCheck = appConfig.getBoolean("authCheck")
   val ramblerAuthCheck = appConfig.getBoolean("ramblerAuthCheck")
+
+  val gameDataDirectoryPath = appConfig.getString("gameDataDirectoryPath")
+  val gameRecordIsWork = appConfig.getBoolean("gameRecordIsWork")
 
 
 
@@ -120,13 +127,9 @@ object AppSettings {
   private val upperRainbowConfig = appConfig.getConfig("upperRainbowConf")
   val upperRainbowAppId = upperRainbowConfig.getString("appId")
   val upperRainbowSecureKey = upperRainbowConfig.getString("secureKey")
-//  val upperRainbowProtocol = upperRainbowConfig.getString("protocol")
+  //  val upperRainbowProtocol = upperRainbowConfig.getString("protocol")
   val upperRainbowHost = upperRainbowConfig.getString("host")
   val upperRainbowPort = upperRainbowConfig.getInt("port")
-
-  val gameDataDirectoryPath = appConfig.getString("gameDataDirectoryPath")
-  val gameRecordIsWork = appConfig.getBoolean("gameRecordIsWork")
-
 
   object UpperRainbowConfig{
     val isWorkConfig = upperRainbowConfig.getBoolean("isWork")

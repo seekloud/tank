@@ -1,6 +1,6 @@
 package com.neo.sk.tank.common
 
-import com.neo.sk.tank.shared.ptcl.model.Point
+import com.neo.sk.tank.shared.model.Point
 
 
 /**
