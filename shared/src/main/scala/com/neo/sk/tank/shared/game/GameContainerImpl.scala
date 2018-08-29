@@ -249,9 +249,6 @@ class GameContainerImpl(
       super.update()
       if(esRecoverSupport) addGameSnapShot(systemFrame,getGameContainerAllState())
     }
-
-    //    val endTime =System.currentTimeMillis()
-    //    println(s"update use Time = ${endTime - startTime}")
   }
 
   override protected def clearEventWhenUpdate(): Unit = {
@@ -261,5 +258,11 @@ class GameContainerImpl(
     gameEventMap -= systemFrame
     actionEventMap -= systemFrame
     systemFrame += 1
+  }
+
+
+  protected def rollbackUpdate():Unit = {
+    super.update()
+    if(esRecoverSupport) addGameSnapShot(systemFrame,getGameContainerAllState())
   }
 }

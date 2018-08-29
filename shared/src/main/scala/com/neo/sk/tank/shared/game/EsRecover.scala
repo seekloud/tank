@@ -45,7 +45,7 @@ trait EsRecover { this:GameContainerImpl =>
         removeKillInfoByRollback(frame)
         (frame until curFrame).foreach{ f =>
           this.addGameEvents(f,gameEventHistoryMap.getOrElse(f,Nil),actionEventHistoryMap.getOrElse(f,Nil))
-          this.update()
+          this.rollbackUpdate()
         }
         val endTime = System.currentTimeMillis()
         println(s"roll back to frame=${frame},nowFrame=${curFrame} use Time:${endTime - startTime}")
