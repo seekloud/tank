@@ -371,6 +371,19 @@ case class GameContainerServerImpl(
     }
   }
 
+  def getCurGameSnapshot():TankGameEvent.TankGameSnapshot = {
+    TankGameEvent.TankGameSnapshot(getGameContainerAllState())
+  }
+
+
+  def getGameEventAndSnapshot():(List[TankGameEvent.WsMsgServer],Option[TankGameEvent.GameSnapshot]) = {
+    ((gameEventMap.getOrElse(this.systemFrame, Nil) ::: actionEventMap.getOrElse(this.systemFrame, Nil))
+      .filter(_.isInstanceOf[TankGameEvent.WsMsgServer]).map(_.asInstanceOf[TankGameEvent.WsMsgServer]),
+      Some(getCurGameSnapshot())
+    )
+  }
+
+
 
 
 }

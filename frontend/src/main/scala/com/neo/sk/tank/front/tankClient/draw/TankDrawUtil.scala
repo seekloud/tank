@@ -141,11 +141,11 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   }
 
   protected def drawMyTankInfo(tank:TankImpl) = {
-    ctx.font = "bold 20px Arial"
-    ctx.textAlign = "center"
-    ctx.textBaseline = "middle"
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillText(myName, 15 * canvasUnit,(canvasBoundary.y - 16) * canvasUnit)
+//    ctx.font = "bold 20px Arial"
+//    ctx.textAlign = "center"
+//    ctx.textBaseline = "middle"
+//    ctx.fillStyle = Color.Black.toString()
+//    ctx.fillText(myName, 15 * canvasUnit,(canvasBoundary.y - 16) * canvasUnit)
     drawLevel(tank.getBloodLevel,config.getTankBloodMaxLevel(),"血量等级",Point(5,canvasBoundary.y - 12) * canvasUnit,20 * canvasUnit,"#FF3030")
     drawLevel(tank.getSpeedLevel,config.getTankSpeedMaxLevel(),"速度等级",Point(5,canvasBoundary.y - 8) * canvasUnit,20 * canvasUnit,"#66CD00")
     drawLevel(tank.getBulletLevel,config.getBulletMaxLevel(),"炮弹等级",Point(5,canvasBoundary.y - 4) * canvasUnit,20 * canvasUnit,"#1C86EE")
