@@ -5,14 +5,12 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerSch
 import akka.http.scaladsl.model.ws.Message
 import akka.stream.scaladsl.Flow
 import com.neo.sk.tank.common.AppSettings
-import com.neo.sk.tank.core.tank.GridServerImpl
-import com.neo.sk.tank.shared.ptcl.protocol.TankGame
-import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
+import com.neo.sk.tank.core.game.GameContainerServerImpl
+import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.slf4j.LoggerFactory
 
 import concurrent.duration._
 import scala.collection.mutable
-import com.neo.sk.tank.shared.ptcl
 
 /**
   * Created by hongruying on 2018/7/9
@@ -29,28 +27,20 @@ object RoomActor {
   private final case object BehaviorChangeKey
   private final case object GameLoopKey
 
-
   sealed trait Command
 
   case class JoinRoom(uid:Long,name:String,userActor:ActorRef[UserActor.Command]) extends Command
 
-  case class WebSocketMsg(uid:Long,tankId:Int,req:WsFrontProtocol.TankAction) extends Command
+  case class WebSocketMsg(uid:Long,tankId:Int,req:TankGameEvent.UserActionEvent) extends Command
 
   case class LeftRoom(uid:Long,tankId:Int,name:String) extends Command
+  case class LeftRoomByKilled(uid:Long,tankId:Int,name:String) extends Command
 
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
-
-
   case object GameLoop extends Command
-
-  case class BulletStrengthenOver(tId:Int) extends Command
-
+  case class ShotgunExpire(tId:Int) extends Command
   case class TankFillABullet(tId:Int) extends Command
-
   case class TankInvincible(tId:Int)extends  Command
-
-  private var testTime = System.currentTimeMillis()
-
 
 
   final case class SwitchBehavior(
@@ -78,15 +68,17 @@ object RoomActor {
       ctx =>
         Behaviors.withTimers[Command]{
           implicit timer =>
+            log.debug(s"111111111111111")
             val subscribersMap = mutable.HashMap[Long,ActorRef[UserActor.Command]]()
-            val grid = new GridServerImpl(ctx,log,dispatch(subscribersMap),dispatchTo(subscribersMap),ptcl.model.Boundary.getBoundary)
-            if(AppSettings.gameRecordIsWork){
-              getGameRecorder(ctx,grid)
-            }
-
-            grid.obstaclesInit()
-            timer.startPeriodicTimer(GameLoopKey,GameLoop,ptcl.model.Frame.millsAServerFrame.millis)
-            idle(Nil,subscribersMap,grid,0L)
+            val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer, log,
+              dispatch(subscribersMap),
+              dispatchTo(subscribersMap)
+            )
+//            if(AppSettings.gameRecordIsWork){
+//              getGameRecorder(ctx,grid)
+//            }
+            timer.startPeriodicTimer(GameLoopKey,GameLoop,gameContainer.config.frameDuration.millis)
+            idle(Nil,subscribersMap,gameContainer,0L)
         }
     }
   }
@@ -94,7 +86,7 @@ object RoomActor {
   def idle(
             justJoinUser:List[(Long,ActorRef[UserActor.Command])],
             subscribersMap:mutable.HashMap[Long,ActorRef[UserActor.Command]],
-            grid:GridServerImpl,
+            gameContainer:GameContainerServerImpl,
             tickCount:Long
           )(
             implicit timer:TimerScheduler[Command]
@@ -102,69 +94,55 @@ object RoomActor {
     Behaviors.receive{(ctx,msg) =>
       msg match {
         case JoinRoom(uid,name,userActor) =>
-          grid.joinGame(uid,name,userActor)
-
+          gameContainer.joinGame(uid,name,userActor)
           //这一桢结束时会告诉所有新加入用户的tank信息以及地图全量数据
-          idle((uid,userActor) :: justJoinUser, subscribersMap, grid, tickCount)
+          idle((uid,userActor) :: justJoinUser, subscribersMap, gameContainer, tickCount)
 
         case WebSocketMsg(uid,tankId,req) =>
-          grid.addAction(tankId,req)
-          req match {
-            case r:WsFrontProtocol.MouseMove => dispatch(subscribersMap)(WsProtocol.TankActionFrameMouse(tankId,math.max(grid.systemFrame,r.frame),r))
-            case r:WsFrontProtocol.MouseClick =>
-            case r:WsFrontProtocol.PressKeyDown => dispatch(subscribersMap)(WsProtocol.TankActionFrameKeyDown(tankId,math.max(grid.systemFrame,r.frame),r))
-            case r:WsFrontProtocol.PressKeyUp => dispatch(subscribersMap)(WsProtocol.TankActionFrameKeyUp(tankId,math.max(grid.systemFrame,r.frame),r))
-            case r:WsFrontProtocol.GunDirectionOffset => dispatch(subscribersMap)(WsProtocol.TankActionFrameOffset(tankId,math.max(grid.systemFrame,r.frame),r))
-            case _ => val x = TankGame
-          }
-
-
-
+          gameContainer.receiveUserAction(req)
           Behaviors.same
 
         case LeftRoom(uid,tankId,name) =>
           subscribersMap.remove(uid)
-          grid.leftGame(tankId)
-          dispatch(subscribersMap)(WsProtocol.UserLeftRoom(tankId,name))
-          idle(justJoinUser.filter(_._1 != uid),subscribersMap,grid,tickCount)
+          gameContainer.leftGame(uid,name,tankId)
+          idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
+
+        case LeftRoomByKilled(uid,tankId,name) =>
+          subscribersMap.remove(uid)
+          idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
 
         case GameLoop =>
           val startTime = System.currentTimeMillis()
-//          log.debug(s"${ctx.self.path} test dispatch time=${startTime - testTime}")
-          testTime =startTime
 
-          grid.update()
-          val record = grid.getLastEventAndSnapShot()
-          if(AppSettings.gameRecordIsWork){
-            getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(record)
-          }
+          gameContainer.update()
+          //          val record = grid.getLastEventAndSnapShot()
+          //          if(AppSettings.gameRecordIsWork){
+          //            getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(record)
+          //          }
 
 
           if (tickCount % 20 == 5) {
-            val gridData = grid.getGridStateWithoutBullet()
-            dispatch(subscribersMap)(WsProtocol.GridSyncState(gridData))
+            val state = gameContainer.getGameContainerState()
+            dispatch(subscribersMap)(TankGameEvent.SyncGameState(state))
           }
           if(tickCount % 20 == 1){
-            dispatch(subscribersMap)(WsProtocol.Ranks(grid.currentRank,grid.historyRank))
+            dispatch(subscribersMap)(TankGameEvent.Ranks(gameContainer.currentRank,gameContainer.historyRank))
           }
           //分发新加入坦克的地图全量数据
           justJoinUser.foreach(t => subscribersMap.put(t._1,t._2))
-          val gridState = grid.getGridState()
+          val gameContainerAllState = gameContainer.getGameContainerAllState()
           justJoinUser.foreach{t =>
-            dispatchTo(subscribersMap)(t._1,WsProtocol.GridSyncAllState(gridState))
+            dispatchTo(subscribersMap)(t._1,TankGameEvent.SyncGameAllState(gameContainerAllState))
           }
           val endTime = System.currentTimeMillis()
           if(tickCount % 100 == 2){
-            log.debug(s"${ctx.self.path} curFrame=${grid.systemFrame} use time=${endTime-startTime}")
+            log.debug(s"${ctx.self.path} curFrame=${gameContainer.systemFrame} use time=${endTime-startTime}")
           }
-
-
-          idle(Nil,subscribersMap,grid,tickCount+1)
+          idle(Nil,subscribersMap,gameContainer,tickCount+1)
 
         case TankFillABullet(tId) =>
-//          log.debug(s"${ctx.self.path} recv a msg=${msg}")
-          grid.tankFillABullet(tId)
-          dispatch(subscribersMap)(WsProtocol.TankFillBullet(grid.systemFrame,tId))
+          //          log.debug(s"${ctx.self.path} recv a msg=${msg}")
+          gameContainer.receiveGameEvent(TankGameEvent.TankFillBullet(tId,gameContainer.systemFrame))
           Behaviors.same
 
 
@@ -175,13 +153,11 @@ object RoomActor {
 
 
         case TankInvincible(tId) =>
-          grid.tankInvincible(tId)
-          dispatch(subscribersMap)(WsProtocol.TankInvincible(grid.systemFrame,tId))
+          gameContainer.receiveGameEvent(TankGameEvent.TankInvincible(tId,gameContainer.systemFrame))
           Behaviors.same
 
-        case BulletStrengthenOver(tId) =>
-          grid.tankBulletStrengthen(tId)
-          dispatch(subscribersMap)(WsProtocol.TankBulletStrengthenOver(grid.systemFrame,tId))
+        case ShotgunExpire(tId) =>
+          gameContainer.receiveGameEvent(TankGameEvent.TankShotgunExpire(tId,gameContainer.systemFrame))
           Behaviors.same
 
 
@@ -195,27 +171,27 @@ object RoomActor {
 
   }
 
-  def dispatch(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(msg:WsProtocol.WsMsgServer) = {
+  def dispatch(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(msg:TankGameEvent.WsMsgServer) = {
     subscribers.values.foreach( _ ! UserActor.DispatchMsg(msg))
   }
 
-  def dispatchTo(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(id:Long,msg:WsProtocol.WsMsgServer) = {
+  def dispatchTo(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(id:Long,msg:TankGameEvent.WsMsgServer) = {
     subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(msg))
   }
 
 
-  private def getGameRecorder(ctx: ActorContext[Command],grid:GridServerImpl):ActorRef[GameRecorder.Command] = {
-    val childName = s"gameRecorder"
-    ctx.child(childName).getOrElse{
-      val curTime = System.currentTimeMillis()
-      val fileName = s"tankGame_${curTime}"
-      val gameInformation = TankGame.GameInformation(curTime)
-      val initStateOpt = grid.getCurGameSnapShot()
-      val actor = ctx.spawn(GameRecorder.create(fileName,gameInformation,initStateOpt),childName)
-      ctx.watchWith(actor,ChildDead(childName,actor))
-      actor
-    }.upcast[GameRecorder.Command]
-  }
+//    private def getGameRecorder(ctx: ActorContext[Command],grid:GridServerImpl):ActorRef[GameRecorder.Command] = {
+//      val childName = s"gameRecorder"
+//      ctx.child(childName).getOrElse{
+//        val curTime = System.currentTimeMillis()
+//        val fileName = s"tankGame_${curTime}"
+//        val gameInformation = TankGame.GameInformation(curTime)
+//        val initStateOpt = grid.getCurGameSnapShot()
+//        val actor = ctx.spawn(GameRecorder.create(fileName,gameInformation,initStateOpt),childName)
+//        ctx.watchWith(actor,ChildDead(childName,actor))
+//        actor
+//      }.upcast[GameRecorder.Command]
+//    }
 
 
 

@@ -5,9 +5,8 @@ import akka.dispatch.MessageDispatcher
 import akka.event.{Logging, LoggingAdapter}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import com.neo.sk.tank.shared.ptcl.tank.QuadTree
-import com.neo.sk.tank.shared.ptcl.model
-import com.neo.sk.tank.core.tank.{BrickServerImpl, TankServerImpl}
+import com.neo.sk.tank.shared.model
+import com.neo.sk.tank.shared.util.QuadTree
 
 /**
   * Created by hongruying on 2018/7/17

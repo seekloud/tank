@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.stream.{ActorAttributes, Supervision}
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
-import com.neo.sk.tank.shared.ptcl.protocol.{WsFrontProtocol, WsProtocol}
+import com.neo.sk.tank.shared.protocol.TankGameEvent
 import io.circe.{Decoder, Encoder}
 import org.slf4j.LoggerFactory
 
@@ -19,6 +19,8 @@ object UserManager {
 
   import io.circe.generic.auto._
   import io.circe.syntax._
+  import org.seekloud.byteobject.ByteObject._
+  import org.seekloud.byteobject.MiddleBufferInJvm
 
   sealed trait Command
 
@@ -64,16 +66,15 @@ object UserManager {
 
   private def getWebSocketFlow(userActor: ActorRef[UserActor.Command]):Flow[Message,Message,Any] = {
     import scala.language.implicitConversions
-    import com.neo.sk.utils.byteObject.MiddleBufferInJvm
-    import com.neo.sk.utils.byteObject.ByteObject._
+    import org.seekloud.byteobject.ByteObject._
 
 
-    implicit def parseJsonString2WsMsgFront(s:String):Option[WsFrontProtocol.WsMsgFront] = {
+    implicit def parseJsonString2WsMsgFront(s:String):Option[TankGameEvent.WsMsgFront] = {
       import io.circe.generic.auto._
       import io.circe.parser._
 
       try {
-        val wsMsg = decode[WsFrontProtocol.WsMsgFront](s).right.get
+        val wsMsg = decode[TankGameEvent.WsMsgFront](s).right.get
         Some(wsMsg)
       }catch {
         case e:Exception =>
@@ -89,24 +90,21 @@ object UserManager {
 
         case BinaryMessage.Strict(m) =>
           val buffer = new MiddleBufferInJvm(m.asByteBuffer)
-          bytesDecode[WsFrontProtocol.WsMsgFront](buffer) match {
+          bytesDecode[TankGameEvent.WsMsgFront](buffer) match {
             case Right(req) => UserActor.WebSocketMsg(Some(req))
             case Left(e) =>
               log.error(s"decode binaryMessage failed,error:${e.message}")
               UserActor.WebSocketMsg(None)
           }
       }.via(UserActor.flow(userActor))
-        .map {
-        case t:WsProtocol.WsMsgServer =>
-//          TextMessage.apply(t.asJson.noSpaces)
+      .map {
+        case t:TankGameEvent.WsMsgServer =>
+
           val sendBuffer = new MiddleBufferInJvm(4096)
           BinaryMessage.Strict(ByteString(t.fillMiddleBuffer(sendBuffer).result()))
 
         case x =>
           TextMessage.apply("")
-
-
-
       }.withAttributes(ActorAttributes.supervisionStrategy(decider))
 
   }

@@ -6,15 +6,13 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.{ActorContext, StashBuffer, TimerScheduler}
 import com.neo.sk.tank.common.AppSettings
-import com.neo.sk.tank.shared.ptcl.protocol.TankGame
-import com.neo.sk.tank.shared.ptcl.protocol.TankGame.GameInformation
+import com.neo.sk.tank.shared.protocol.TankGameEvent
+import com.neo.sk.tank.shared.protocol.TankGameEvent.GameInformation
+import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.essf.io.FrameOutputStream
 import org.slf4j.LoggerFactory
 
 import scala.language.implicitConversions
-import com.neo.sk.utils.byteObject.MiddleBufferInJvm
-import com.neo.sk.utils.byteObject.ByteObject._
-
 import scala.concurrent.duration._
 
 
@@ -29,10 +27,11 @@ import scala.concurrent.duration._
 
 object GameRecorder {
 
+  import org.seekloud.byteobject.ByteObject._
 
   sealed trait Command
 
-  final case class GameRecord(event:(List[TankGame.GameEvent],Option[TankGame.GameSnapshot])) extends Command
+  final case class GameRecord(event:(List[TankGameEvent.WsMsgServer],Option[TankGameEvent.GameSnapshot])) extends Command
 
   private final val InitTime = Some(5.minutes)
   private final case object BehaviorChangeKey
@@ -50,7 +49,7 @@ object GameRecorder {
                                      fileName: String,
                                      fileIndex:Int,
                                      gameInformation: GameInformation,
-                                     initStateOpt: Option[TankGame.GameSnapshot],
+                                     initStateOpt: Option[TankGameEvent.GameSnapshot],
                                      recorder:FrameOutputStream,
                                      var gameRecordBuffer:List[GameRecord],
                                      var fileRecordNum:Int = 0
@@ -72,7 +71,7 @@ object GameRecorder {
   private final val log = LoggerFactory.getLogger(this.getClass)
 
 
-  def create(fileName:String, gameInformation: GameInformation, initStateOpt:Option[TankGame.GameSnapshot] = None):Behavior[Command] = {
+  def create(fileName:String, gameInformation: GameInformation, initStateOpt:Option[TankGameEvent.GameSnapshot] = None):Behavior[Command] = {
     Behaviors.setup{ ctx =>
       log.info(s"${ctx.self.path} is starting..")
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
@@ -132,7 +131,7 @@ object GameRecorder {
     }
   }
 
-  private def initFileRecorder(fileName:String,index:Int,gameInformation: GameInformation,initStateOpt:Option[TankGame.GameSnapshot] = None)
+  private def initFileRecorder(fileName:String,index:Int,gameInformation: GameInformation,initStateOpt:Option[TankGameEvent.GameSnapshot] = None)
                               (implicit middleBuffer: MiddleBufferInJvm):FrameOutputStream = {
     val dir = new File(AppSettings.gameDataDirectoryPath)
     if(!dir.exists()){
@@ -143,7 +142,7 @@ object GameRecorder {
     val version = "0.1"
     val gameInformationBytes = gameInformation.fillMiddleBuffer(middleBuffer).result()
     val initStateBytes = initStateOpt.map{
-      case t:TankGame.GameSnapshot =>
+      case t:TankGameEvent.GameSnapshot =>
         t.fillMiddleBuffer(middleBuffer).result()
     }.getOrElse(Array[Byte]())
     val recorder = new FrameOutputStream(file)
