@@ -1,6 +1,6 @@
 package com.neo.sk.tank.front.tankClient.draw
 
-import com.neo.sk.tank.front.tankClient.GameContainerClientImpl
+import com.neo.sk.tank.front.tankClient.{GameContainerClientImpl, NetworkLatency}
 import com.neo.sk.tank.shared.model.Constants.LittleMap
 
 /**
@@ -24,11 +24,14 @@ trait FpsComponents{ this:GameContainerClientImpl =>
     }
   }
 
-  protected def renderFps() = {
+  protected def renderFps(networkLatency: Long) = {
     addFps()
     if(isRenderFps){
       ctx.font = "14px Helvetica"
-      ctx.fillText(s"fps : ${lastRenderTimes}",(canvasBoundary.x - 5) * canvasUnit,(canvasBoundary.y - LittleMap.h - 2) * canvasUnit,10 * canvasUnit)
+      ctx.textAlign = "start"
+      val fpsString = s"fps : $lastRenderTimes,  ping : ${networkLatency}ms"
+      ctx.fillText(fpsString,canvasBoundary.x * canvasUnit - ctx.measureText(fpsString).width - 10,(canvasBoundary.y - LittleMap.h - 2) * canvasUnit)
+//      ctx.fillText(s"ping: ${networkLatency}ms",canvasBoundary.x * canvasUnit - ctx.measureText(),(canvasBoundary.y - LittleMap.h - 2) * canvasUnit,10 * canvasUnit)
     }
   }
 

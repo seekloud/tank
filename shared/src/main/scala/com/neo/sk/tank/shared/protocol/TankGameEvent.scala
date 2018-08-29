@@ -26,6 +26,8 @@ object TankGameEvent {
   final case class SyncGameState(state:GameContainerState) extends WsMsgServer
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
 
+  final case class PingPackage(sendTime:Long) extends WsMsgServer with WsMsgFront
+
   sealed trait GameEvent {
     val frame:Long
   }
