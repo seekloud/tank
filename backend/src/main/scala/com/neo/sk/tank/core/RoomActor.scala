@@ -74,9 +74,9 @@ object RoomActor {
               dispatch(subscribersMap),
               dispatchTo(subscribersMap)
             )
-//            if(AppSettings.gameRecordIsWork){
-//              getGameRecorder(ctx,grid)
-//            }
+            if(AppSettings.gameRecordIsWork){
+              getGameRecorder(ctx,gameContainer)
+            }
             timer.startPeriodicTimer(GameLoopKey,GameLoop,gameContainer.config.frameDuration.millis)
             idle(Nil,subscribersMap,gameContainer,0L)
         }
@@ -114,11 +114,13 @@ object RoomActor {
         case GameLoop =>
           val startTime = System.currentTimeMillis()
 
+
+          val record = gameContainer.getGameEventAndSnapshot()
+          if(AppSettings.gameRecordIsWork){
+            getGameRecorder(ctx,gameContainer) ! GameRecorder.GameRecord(record)
+          }
           gameContainer.update()
-          //          val record = grid.getLastEventAndSnapShot()
-          //          if(AppSettings.gameRecordIsWork){
-          //            getGameRecorder(ctx,grid) ! GameRecorder.GameRecord(record)
-          //          }
+
 
 
           if (tickCount % 20 == 5) {
@@ -180,18 +182,18 @@ object RoomActor {
   }
 
 
-//    private def getGameRecorder(ctx: ActorContext[Command],grid:GridServerImpl):ActorRef[GameRecorder.Command] = {
-//      val childName = s"gameRecorder"
-//      ctx.child(childName).getOrElse{
-//        val curTime = System.currentTimeMillis()
-//        val fileName = s"tankGame_${curTime}"
-//        val gameInformation = TankGame.GameInformation(curTime)
-//        val initStateOpt = grid.getCurGameSnapShot()
-//        val actor = ctx.spawn(GameRecorder.create(fileName,gameInformation,initStateOpt),childName)
-//        ctx.watchWith(actor,ChildDead(childName,actor))
-//        actor
-//      }.upcast[GameRecorder.Command]
-//    }
+    private def getGameRecorder(ctx: ActorContext[Command],gameContainer:GameContainerServerImpl):ActorRef[GameRecorder.Command] = {
+      val childName = s"gameRecorder"
+      ctx.child(childName).getOrElse{
+        val curTime = System.currentTimeMillis()
+        val fileName = s"tankGame_${curTime}"
+        val gameInformation = TankGameEvent.GameInformation(curTime)
+        val initStateOpt = Some(gameContainer.getCurGameSnapshot())
+        val actor = ctx.spawn(GameRecorder.create(fileName,gameInformation,initStateOpt),childName)
+        ctx.watchWith(actor,ChildDead(childName,actor))
+        actor
+      }.upcast[GameRecorder.Command]
+    }
 
 
 

@@ -20,7 +20,11 @@ trait BulletDrawUtil { this:GameContainerClientImpl =>
       ctx.beginPath()
       ctx.arc(p.x * canvasUnit,p.y * canvasUnit, bullet.getRadius * canvasUnit,0, 360)
       ctx.fill()
+      ctx.strokeStyle = "#474747"
+      ctx.lineWidth = bullet.getRadius * canvasUnit / 5
+      ctx.stroke()
       ctx.closePath()
+
     }
   }
 }

@@ -113,16 +113,17 @@ trait Background{ this:GameContainerClientImpl =>
   protected def drawKillInformation():Unit = {
     val killInfoList = getDisplayKillInfo()
     if(killInfoList.nonEmpty){
-      var offsetY = canvasBoundary.y / 3 * 2
+      var offsetY = canvasBoundary.y - 30
       ctx.beginPath()
-      ctx.font="12px Arial"
-      ctx.fillStyle = Color.Black.toString()
+      ctx.strokeStyle = Color.Black.toString()
+      ctx.textAlign = "start"
+      ctx.font="bold 25px 微软雅黑"
       ctx.lineWidth = 1
-      println(killInfoList)
+
       killInfoList.foreach{
         case (killerName,killedName,_) =>
-          ctx.fillText(s"$killerName 击杀了 $killedName.",15 * canvasUnit, offsetY * canvasUnit, 40 * canvasUnit)
-          offsetY -= 2
+          ctx.strokeText(s"$killerName 击杀了 $killedName",3 * canvasUnit, offsetY * canvasUnit, 40 * canvasUnit)
+          offsetY -= 3
       }
       ctx.closePath()
     }
@@ -140,7 +141,7 @@ trait Background{ this:GameContainerClientImpl =>
     ctx.stroke()
     ctx.closePath()
 
-    ctx.lineWidth = 25
+    ctx.lineWidth = 22
     ctx.strokeStyle = color
     if(level == maxLevel){
       ctx.beginPath()
@@ -171,7 +172,7 @@ trait Background{ this:GameContainerClientImpl =>
 
 
 
-    ctx.font = "bold 20px Arial"
+    ctx.font = "bold 18px Arial"
     ctx.textAlign = "center"
     ctx.textBaseline = "middle"
     ctx.fillStyle = "#FCFCFC"
