@@ -19,7 +19,7 @@ import scala.xml.Elem
 /**
   * Created by hongruying on 2018/8/26
   */
-case class GameHolder(canvasName:String) {
+case class GameHolder(canvasName:String) extends NetworkInfo {
 
   private[this] val canvas = dom.document.getElementById(canvasName).asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
@@ -98,7 +98,7 @@ case class GameHolder(canvasName:String) {
     gameState = s
   }
 
-  private def sendMsg2Server(msg:TankGameEvent.WsMsgFront):Unit ={
+  protected def sendMsg2Server(msg:TankGameEvent.WsMsgFront):Unit ={
     if(gameState == Constants.GameState.play)
       webSocketClient.sendMsg(msg)
 
@@ -195,6 +195,7 @@ case class GameHolder(canvasName:String) {
       case Constants.GameState.play =>
         gameContainerOpt.foreach(_.update())
         logicFrameTime = System.currentTimeMillis()
+        ping()
 
       case Constants.GameState.stop =>
         dom.window.cancelAnimationFrame(nextFrame)
@@ -204,7 +205,7 @@ case class GameHolder(canvasName:String) {
   }
 
   def drawGame(offsetTime:Long) = {
-    gameContainerOpt.foreach(_.drawGame(offsetTime))
+    gameContainerOpt.foreach(_.drawGame(offsetTime,getNetworkLatency))
   }
 
   private def drawGameLoading():Unit = {
@@ -284,6 +285,9 @@ case class GameHolder(canvasName:String) {
           //            Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveGameEvent(e)),100)
           case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
         }
+
+      case e:TankGameEvent.PingPackage =>
+        receivePingPackage(e)
 
 
 

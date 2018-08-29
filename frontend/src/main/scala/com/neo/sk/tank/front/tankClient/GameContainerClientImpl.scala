@@ -69,7 +69,7 @@ case class GameContainerClientImpl(
   }
 
 
-  def drawGame(time:Long):Unit = {
+  def drawGame(time:Long,networkLatency: Long):Unit = {
     val offsetTime = math.min(time,config.frameDuration)
     if(!waitSyncData){
       ctx.lineCap = "round"
@@ -86,7 +86,7 @@ case class GameContainerClientImpl(
           drawMyTankInfo(tank.asInstanceOf[TankImpl])
           drawMinimap(tank)
           drawRank()
-          renderFps()
+          renderFps(networkLatency)
           drawKillInformation()
 
 

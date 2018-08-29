@@ -179,6 +179,9 @@ object UserActor {
             case Some(t:TankGameEvent.UserActionEvent) =>
               //分发数据给roomActor
               roomActor ! RoomActor.WebSocketMsg(uId,tank.tankId,t)
+            case Some(t:TankGameEvent.PingPackage) =>
+              frontActor ! t
+
             case _ =>
 
           }
