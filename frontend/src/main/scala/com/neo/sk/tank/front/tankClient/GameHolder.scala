@@ -42,7 +42,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
   private[this] val webSocketClient = WebSocketClient(wsConnectSuccess,wsConnectError,wsMessageHandler,wsConnectClose)
 
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
-  private[this] val preExecuteFrameOffset = 1
+  private[this] val preExecuteFrameOffset = 2
 
 
   private var timer:Int = 0

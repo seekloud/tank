@@ -54,11 +54,13 @@ trait EsRecover { this:GameContainerImpl =>
   }
 
   def rollback4GameEvent(e:GameEvent) = {
+    println(s"roll back to frame=${e.frame},nowFrame=${systemFrame} because event:${e}")
     gameEventHistoryMap.put(e.frame, e :: gameEventHistoryMap.getOrElse(e.frame, Nil))
     rollback(e.frame)
   }
 
   def rollback4UserActionEvent(e:UserActionEvent) = {
+    println(s"roll back to frame=${e.frame},nowFrame=${systemFrame} because event:${e}")
     actionEventHistoryMap.put(e.frame, e :: actionEventHistoryMap.getOrElse(e.frame, Nil))
     rollback(e.frame)
   }
