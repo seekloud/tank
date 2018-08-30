@@ -201,7 +201,7 @@ class GameContainerImpl(
       tankMap.get(tankState.tankId) match {
         case Some(t) =>
           if(t.getTankState() != tankState){
-            println(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getPosition},gameContainer=${tankState.position}")
+            println(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
           }
         case None => println(s"judge failed,because tank=${tankState.tankId} not exists....")
       }
