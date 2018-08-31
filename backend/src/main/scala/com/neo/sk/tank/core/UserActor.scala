@@ -7,7 +7,8 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import org.slf4j.LoggerFactory
-import com.neo.sk.tank.Boot.roomActor
+//import com.neo.sk.tank.Boot.roomActor
+import com.neo.sk.tank.Boot.roomManager
 import com.neo.sk.tank.core.game.TankServerImpl
 import com.neo.sk.tank.shared.config.TankGameConfigImpl
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -37,8 +38,8 @@ object UserActor {
 
   case object StartGame extends Command
 
-
-  case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl) extends Command
+  case class JoinRoom(uid:Long,name:String,userActor:ActorRef[UserActor.Command]) extends Command with RoomManager.Command
+  case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,userActor: ActorRef[UserActor.Command],uId:Long,roomId:Long) extends Command with RoomManager.Command
 
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
 
@@ -131,12 +132,16 @@ object UserActor {
       msg match {
         case StartGame =>
           //todo 往roomActor发消息获取坦克数据和当前游戏桢数据
-          roomActor ! RoomActor.JoinRoom(uId,name,ctx.self)
+          /**换成给roomManager发消息,告知uId,name
+            * 还要给userActor发送回带roomId的数据
+            * */
+          roomManager ! JoinRoom(uId,name,ctx.self)
           Behaviors.same
 
-        case JoinRoomSuccess(tank,config) =>
+        case JoinRoomSuccess(tank,config,userId,uId,roomId) =>
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
+//          println("渲染数据")
           frontActor ! TankGameEvent.YourInfo(uId,tank.tankId, name, config)
           switchBehavior(ctx,"play",play(uId,name,tank,frontActor))
 
@@ -144,7 +149,7 @@ object UserActor {
         case WebSocketMsg(reqOpt) =>
           reqOpt match {
             case Some(t:TankGameEvent.RestartGame) =>
-              roomActor ! RoomActor.JoinRoom(uId,t.name,ctx.self)
+              roomManager ! JoinRoom(uId,t.name,ctx.self)
               idle(uId,t.name,frontActor)
             case _ =>
               Behaviors.same
@@ -178,7 +183,7 @@ object UserActor {
           reqOpt match {
             case Some(t:TankGameEvent.UserActionEvent) =>
               //分发数据给roomActor
-              roomActor ! RoomActor.WebSocketMsg(uId,tank.tankId,t)
+              roomManager ! RoomActor.WebSocketMsg(uId,tank.tankId,t)
             case Some(t:TankGameEvent.PingPackage) =>
               frontActor ! t
 
@@ -191,7 +196,7 @@ object UserActor {
           m match {
             case t:TankGameEvent.YouAreKilled =>
               frontActor ! m
-              roomActor ! RoomActor.LeftRoomByKilled(uId,tank.tankId,name)
+              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,name)
               switchBehavior(ctx,"idle",idle(uId,name,frontActor))
 
             case _ =>
@@ -205,7 +210,7 @@ object UserActor {
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
-          roomActor ! RoomActor.LeftRoom(uId,tank.tankId,name)
+          roomManager ! RoomManager.LeftRoom(uId,tank.tankId,name)
           Behaviors.stopped
 
 

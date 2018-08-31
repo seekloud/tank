@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 
 import concurrent.duration._
 import scala.collection.mutable
+import com.neo.sk.tank.Boot.roomManager
 
 /**
   * Created by hongruying on 2018/7/9
@@ -29,12 +30,12 @@ object RoomActor {
 
   sealed trait Command
 
-  case class JoinRoom(uid:Long,name:String,userActor:ActorRef[UserActor.Command]) extends Command
+  case class JoinRoom(uid:Long,name:String,userActor:ActorRef[UserActor.Command],roomId:Long) extends Command
 
-  case class WebSocketMsg(uid:Long,tankId:Int,req:TankGameEvent.UserActionEvent) extends Command
+  case class WebSocketMsg(uid:Long,tankId:Int,req:TankGameEvent.UserActionEvent) extends Command with RoomManager.Command
 
-  case class LeftRoom(uid:Long,tankId:Int,name:String) extends Command
-  case class LeftRoomByKilled(uid:Long,tankId:Int,name:String) extends Command
+  case class LeftRoom(uid:Long,tankId:Int,name:String) extends Command with RoomManager.Command
+  case class LeftRoomByKilled(uid:Long,tankId:Int,name:String) extends Command with RoomManager.Command
 
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
   case object GameLoop extends Command
@@ -62,7 +63,7 @@ object RoomActor {
     stashBuffer.unstashAll(ctx,behavior)
   }
 
-  def create():Behavior[Command] ={
+  def create(roomId:Long):Behavior[Command] ={
     log.debug(s"RoomManager start...")
     Behaviors.setup[Command]{
       ctx =>
@@ -93,8 +94,9 @@ object RoomActor {
           ):Behavior[Command] = {
     Behaviors.receive{(ctx,msg) =>
       msg match {
-        case JoinRoom(uid,name,userActor) =>
-          gameContainer.joinGame(uid,name,userActor)
+        case JoinRoom(uid,name,userActor,roomId) =>
+          println(s"join room in roomActor")
+          gameContainer.joinGame(uid,name,userActor,roomId)
           //这一桢结束时会告诉所有新加入用户的tank信息以及地图全量数据
           idle((uid,userActor) :: justJoinUser, subscribersMap, gameContainer, tickCount)
 
@@ -131,9 +133,11 @@ object RoomActor {
             dispatch(subscribersMap)(TankGameEvent.Ranks(gameContainer.currentRank,gameContainer.historyRank))
           }
           //分发新加入坦克的地图全量数据
+//          println(justJoinUser)
           justJoinUser.foreach(t => subscribersMap.put(t._1,t._2))
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           justJoinUser.foreach{t =>
+//            println(s"+++++++++++++++++++++$t")
             dispatchTo(subscribersMap)(t._1,TankGameEvent.SyncGameAllState(gameContainerAllState))
           }
           val endTime = System.currentTimeMillis()
@@ -174,10 +178,12 @@ object RoomActor {
   }
 
   def dispatch(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(msg:TankGameEvent.WsMsgServer) = {
+//    println(s"+++++++++++++++++$msg")
     subscribers.values.foreach( _ ! UserActor.DispatchMsg(msg))
   }
 
   def dispatchTo(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(id:Long,msg:TankGameEvent.WsMsgServer) = {
+//    println(s"$id--------------$msg")
     subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(msg))
   }
 
