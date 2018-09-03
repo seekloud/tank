@@ -18,7 +18,7 @@ trait Background{ this:GameContainerClientImpl =>
 
   private val cacheCanvasMap = mutable.HashMap.empty[String, html.Canvas]
 
-  private val rankWidth = 20
+  private val rankWidth = 22
   private val rankHeight = 24
   private val currentRankCanvas = dom.document.createElement("canvas").asInstanceOf[html.Canvas]
   private val currentRankCanvasCtx = currentRankCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
@@ -156,7 +156,7 @@ trait Background{ this:GameContainerClientImpl =>
       refresh()
       rankUpdated = false
     }
-    ctx.globalAlpha = 0.5
+    ctx.globalAlpha = 0.8
     ctx.drawImage(currentRankCanvas,0,0)
     ctx.drawImage(historyRankCanvas, (canvasBoundary.x - rankWidth) * canvasUnit,0)
     ctx.globalAlpha = 1

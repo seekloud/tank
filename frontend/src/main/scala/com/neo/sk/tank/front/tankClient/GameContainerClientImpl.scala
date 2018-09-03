@@ -36,18 +36,18 @@ case class GameContainerClientImpl(
   with BulletDrawUtil{
 
 
-  private var renderTime:Long = 0
-  private var renderTimes = 0
-
-  Shortcut.schedule( () =>{
-    if(renderTimes != 0){
-      println(s"render page use avg time:${renderTime / renderTimes}ms")
-    }else{
-      println(s"render page use avg time:0 ms")
-    }
-    renderTime = 0
-    renderTimes = 0
-  }, 5000L)
+//  private var renderTime:Long = 0
+//  private var renderTimes = 0
+//
+//  Shortcut.schedule( () =>{
+//    if(renderTimes != 0){
+//      println(s"render page use avg time:${renderTime / renderTimes}ms")
+//    }else{
+//      println(s"render page use avg time:0 ms")
+//    }
+//    renderTime = 0
+//    renderTimes = 0
+//  }, 5000L)
 
 
 
@@ -88,7 +88,7 @@ case class GameContainerClientImpl(
 
   def drawGame(time:Long,networkLatency: Long):Unit = {
     val offsetTime = math.min(time,config.frameDuration)
-    val startTime = System.currentTimeMillis()
+//    val startTime = System.currentTimeMillis()
     if(!waitSyncData){
       ctx.lineCap = "round"
       ctx.lineJoin = "round"
@@ -107,9 +107,9 @@ case class GameContainerClientImpl(
           renderFps(networkLatency)
           drawKillInformation()
 
-          val endTime = System.currentTimeMillis()
-          renderTimes += 1
-          renderTime += endTime - startTime
+//          val endTime = System.currentTimeMillis()
+//          renderTimes += 1
+//          renderTime += endTime - startTime
 
 
 
