@@ -25,64 +25,65 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
 
 
-  protected def drawTank(offset:Point, offsetTime:Long) = {
-    tankMap.values.foreach{ t =>
+  protected def drawTank(offset:Point, offsetTime:Long, view:Point) = {
+    tankMap.values.foreach { t =>
       val tank = t.asInstanceOf[TankImpl]
-      val p = tank.getPosition4Animation(boundary,quadTree,offsetTime) + offset
+      val p = tank.getPosition4Animation(boundary, quadTree, offsetTime) + offset
+      if (p.in(view, Point(t.getRadius * 4, t.getRadius * 4))) {
+        if (tankAttackedAnimationMap.contains(tank.tankId)) {
+          if (tankAttackedAnimationMap(tank.tankId) <= 0) tankAttackedAnimationMap.remove(tank.tankId)
+          else tankAttackedAnimationMap.put(tank.tankId, tankAttackedAnimationMap(tank.tankId) - 1)
+          ctx.globalAlpha = 0.5f
+        }
 
-      if(tankAttackedAnimationMap.contains(tank.tankId)){
-        if(tankAttackedAnimationMap(tank.tankId) <= 0) tankAttackedAnimationMap.remove(tank.tankId)
-        else tankAttackedAnimationMap.put(tank.tankId, tankAttackedAnimationMap(tank.tankId) - 1)
-        ctx.globalAlpha = 0.5f
-      }
-
-      //------------------------绘制炮筒--------------------------#
-      val gunPositionList = tank.getGunPositions4Animation().map(t => (t + p) * canvasUnit)
-      ctx.beginPath()
-      ctx.moveTo(gunPositionList.last.x,gunPositionList.last.y)
-      gunPositionList.foreach(t => ctx.lineTo(t.x,t.y))
-      ctx.fillStyle = "#7A7A7A"
-      ctx.strokeStyle = "#636363"
-      ctx.fill()
-      ctx.lineWidth = 4
-      ctx.stroke()
-      ctx.closePath()
-      //----------------------------绘制坦克---------------------#
-      if(tank.getInvincibleState) {
+        //------------------------绘制炮筒--------------------------#
+        val gunPositionList = tank.getGunPositions4Animation().map(t => (t + p) * canvasUnit)
         ctx.beginPath()
-        ctx.fillStyle = "rgba(128, 100, 162, 0.2)"
-        ctx.arc(p.x * canvasUnit, p.y * canvasUnit, InvincibleSize.r * canvasUnit, 0, 2 * math.Pi)
+        ctx.moveTo(gunPositionList.last.x, gunPositionList.last.y)
+        gunPositionList.foreach(t => ctx.lineTo(t.x, t.y))
+        ctx.fillStyle = "#7A7A7A"
+        ctx.strokeStyle = "#636363"
         ctx.fill()
+        ctx.lineWidth = 4
+        ctx.stroke()
         ctx.closePath()
+        //----------------------------绘制坦克---------------------#
+        if (tank.getInvincibleState) {
+          ctx.beginPath()
+          ctx.fillStyle = "rgba(128, 100, 162, 0.2)"
+          ctx.arc(p.x * canvasUnit, p.y * canvasUnit, InvincibleSize.r * canvasUnit, 0, 2 * math.Pi)
+          ctx.fill()
+          ctx.closePath()
+        }
+        ctx.beginPath()
+        ctx.lineWidth = 4
+        ctx.strokeStyle = "#636363"
+        ctx.arc(p.x * canvasUnit, p.y * canvasUnit, tank.getRadius * canvasUnit, 0, 360)
+        val tankColor = tank.getTankColor()
+        ctx.fillStyle = tankColor
+        //      ctx.fillStyle = if(!justAttackedMap.keySet.contains(tank.tankId)) tank.getColor() else{
+        //        if(justAttackedMap(tank.tankId) < 9) justAttackedMap(tank.tankId) += 1 else justAttackedMap.remove(tank.tankId)
+        //        tank.getColorAttacked()
+        //      }
+        ctx.fill()
+        ctx.stroke()
+        ctx.closePath()
+        ctx.globalAlpha = 1
+
+
+        drawBloodSlider(p, tank)
+
+        ctx.beginPath()
+        val namePosition = (p + Point(0, 5)) * canvasUnit
+        ctx.fillStyle = "#006699"
+        ctx.textAlign = "center"
+        ctx.font = "normal normal 20px 楷体"
+        ctx.lineWidth = 2
+        ctx.fillText(s"${tank.name}", namePosition.x, namePosition.y, 20 * canvasUnit)
+        ctx.closePath()
+
+        drawTankBullet(p, tank)
       }
-      ctx.beginPath()
-      ctx.lineWidth = 4
-      ctx.strokeStyle = "#636363"
-      ctx.arc(p.x * canvasUnit, p.y * canvasUnit, tank.getRadius * canvasUnit, 0, 360)
-      val tankColor = tank.getTankColor()
-      ctx.fillStyle = tankColor
-      //      ctx.fillStyle = if(!justAttackedMap.keySet.contains(tank.tankId)) tank.getColor() else{
-      //        if(justAttackedMap(tank.tankId) < 9) justAttackedMap(tank.tankId) += 1 else justAttackedMap.remove(tank.tankId)
-      //        tank.getColorAttacked()
-      //      }
-      ctx.fill()
-      ctx.stroke()
-      ctx.closePath()
-      ctx.globalAlpha = 1
-
-
-      drawBloodSlider(p,tank)
-
-      ctx.beginPath()
-      val namePosition = (p + Point(0,5)) * canvasUnit
-      ctx.fillStyle = "#006699"
-      ctx.textAlign = "center"
-      ctx.font = "normal normal 20px 楷体"
-      ctx.lineWidth = 2
-      ctx.fillText(s"${tank.name}",namePosition.x,namePosition.y,20 * canvasUnit)
-      ctx.closePath()
-
-      drawTankBullet(p,tank)
     }
   }
 
