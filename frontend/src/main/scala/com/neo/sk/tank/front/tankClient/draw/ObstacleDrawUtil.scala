@@ -57,31 +57,32 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
   }
 
 
-  protected def drawObstacles(offset:Point) = {
+  protected def drawObstacles(offset:Point,view:Point) = {
     obstacleMap.values.foreach{ obstacle =>
-      val color = (obstacle.obstacleType,obstacleAttackedAnimationMap.get(obstacle.oId).nonEmpty) match {
-        case (ObstacleType.airDropBox, true) =>
-          if(obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
-          else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
-          s"rgba(99, 255, 255, 0.5)"
-        case (ObstacleType.airDropBox, false) => s"rgba(0, 255, 255, 1)"
-        case (ObstacleType.brick, true) =>
-          if(obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
-          else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
-          s"rgba(139 ,105, 105, 0.5)"
-        case (ObstacleType.brick, false) => s"rgba(139 ,105, 105,1)"
-        case _ =>
-          println(s"the obstacle=${obstacle} has not color")
-          s"rgba(139 ,105, 105,1)"
+      if((obstacle.getPosition + offset).in(view,Point(obstacle.getWidth,obstacle.getHeight))) {
+        val color = (obstacle.obstacleType, obstacleAttackedAnimationMap.get(obstacle.oId).nonEmpty) match {
+          case (ObstacleType.airDropBox, true) =>
+            if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
+            else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
+            s"rgba(99, 255, 255, 0.5)"
+          case (ObstacleType.airDropBox, false) => s"rgba(0, 255, 255, 1)"
+          case (ObstacleType.brick, true) =>
+            if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
+            else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
+            s"rgba(139 ,105, 105, 0.5)"
+          case (ObstacleType.brick, false) => s"rgba(139 ,105, 105,1)"
+          case _ =>
+            println(s"the obstacle=${obstacle} has not color")
+            s"rgba(139 ,105, 105,1)"
+        }
+        if (obstacle.bloodPercent() > 0.9999999) {
+          val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
+          val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false), generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
+          ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
+        } else {
+          drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color)
+        }
       }
-      if (obstacle.bloodPercent() > 0.9999999){
-        val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
-        val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false),generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
-        ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
-      } else{
-        drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(),color)
-      }
-
     }
   }
 
@@ -110,41 +111,43 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
     canvasCache
   }
 
-  protected def drawEnvironment(offset:Point) = {
+  protected def drawEnvironment(offset:Point,view:Point) = {
     environmentMap.values.foreach { obstacle =>
       val img = obstacle.obstacleType match {
         case ObstacleType.steel => steelImg
         case ObstacleType.river => riverImg
       }
       val p = obstacle.getPosition - Point(obstacle.getWidth, obstacle.getHeight) / 2 + offset
-      if(obstacleImgComplete){
-        val isAttacked = obstacle.obstacleType == ObstacleType.steel && obstacleAttackedAnimationMap.contains(obstacle.oId)
-        val cacheCanvas = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, isAttacked),
-          generateEnvironmentCacheCanvas(obstacle.obstacleType,obstacle.getWidth,obstacle.getHeight, isAttacked))
-        ctx.drawImage(cacheCanvas,p.x * canvasUnit,p.y * canvasUnit)
-      }else{
-        ctx.beginPath()
-        ctx.drawImage(img.asInstanceOf[HTMLElement], p.x * canvasUnit, p.y * canvasUnit,
-          obstacle.getWidth * canvasUnit,obstacle.getHeight * canvasUnit)
-        ctx.fill()
-        ctx.stroke()
-        ctx.closePath()
-      }
-      if(obstacle.obstacleType == ObstacleType.steel && obstacleAttackedAnimationMap.contains(obstacle.oId)){
-//        val imgData = ctx.getImageData(p.x * canvasUnit, p.y * canvasUnit,
-//          obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit)
-//        var i = 0
-//        val len = imgData.data.length
-//        while ( {
-//          i < len
-//        }) { // 改变每个像素的透明度
-//          imgData.data(i + 3) =  math.ceil(imgData.data(i + 3) * 0.5).toInt
-//          i += 4
-//        }
-//        // 将获取的图片数据放回去。
-//        ctx.putImageData(imgData, p.x * canvasUnit, p.y * canvasUnit)
-        if(obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
-        else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
+      if(p.in(view,Point(obstacle.getWidth,obstacle.getHeight))) {
+        if (obstacleImgComplete) {
+          val isAttacked = obstacle.obstacleType == ObstacleType.steel && obstacleAttackedAnimationMap.contains(obstacle.oId)
+          val cacheCanvas = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, isAttacked),
+            generateEnvironmentCacheCanvas(obstacle.obstacleType, obstacle.getWidth, obstacle.getHeight, isAttacked))
+          ctx.drawImage(cacheCanvas, p.x * canvasUnit, p.y * canvasUnit)
+        } else {
+          ctx.beginPath()
+          ctx.drawImage(img.asInstanceOf[HTMLElement], p.x * canvasUnit, p.y * canvasUnit,
+            obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit)
+          ctx.fill()
+          ctx.stroke()
+          ctx.closePath()
+        }
+        if (obstacle.obstacleType == ObstacleType.steel && obstacleAttackedAnimationMap.contains(obstacle.oId)) {
+          //        val imgData = ctx.getImageData(p.x * canvasUnit, p.y * canvasUnit,
+          //          obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit)
+          //        var i = 0
+          //        val len = imgData.data.length
+          //        while ( {
+          //          i < len
+          //        }) { // 改变每个像素的透明度
+          //          imgData.data(i + 3) =  math.ceil(imgData.data(i + 3) * 0.5).toInt
+          //          i += 4
+          //        }
+          //        // 将获取的图片数据放回去。
+          //        ctx.putImageData(imgData, p.x * canvasUnit, p.y * canvasUnit)
+          if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
+          else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
+        }
       }
     }
 
