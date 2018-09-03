@@ -173,13 +173,13 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   def eatProp(p:Prop)(implicit config: TankGameConfig):Unit = {
     p.getPropState.t match {
       case 1 =>
-        if(bloodLevel < 3){
+        if(bloodLevel < config.getTankBloodMaxLevel()){
           val diff = config.getTankBloodByLevel(bloodLevel) - blood
           bloodLevel = (bloodLevel + 1).toByte
           blood = config.getTankBloodByLevel(bloodLevel) - diff
         }
-      case 2 => if(speedLevel < 3) speedLevel = (speedLevel + 1).toByte
-      case 3 => if(bulletLevel < 3) bulletLevel = (bulletLevel + 1).toByte
+      case 2 => if(speedLevel < config.getTankSpeedMaxLevel()) speedLevel = (speedLevel + 1).toByte
+      case 3 => if(bulletLevel < config.getBulletMaxLevel()) bulletLevel = (bulletLevel + 1).toByte
       case 4 => blood = math.min(blood + config.propMedicalBlood, config.getTankBloodByLevel(bloodLevel))
       case 5 => shotgunState = true
     }
