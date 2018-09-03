@@ -8,11 +8,23 @@ import com.neo.sk.tank.shared.model.Point
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
 import org.scalajs.dom.raw.HTMLElement
+import org.scalajs.dom.html
+import scala.collection.mutable
 
 /**
   * Created by hongruying on 2018/8/29
   */
 trait TankDrawUtil{ this:GameContainerClientImpl =>
+
+  private val myTankInfoCacheMap = mutable.HashMap[(Byte,Byte,Byte),html.Canvas]()
+
+  private val fillBulletImg = dom.document.createElement("img")
+  fillBulletImg.setAttribute("src", s"${Routes.base}/static/img/子弹初始重构.png")
+  private val emptyBulletImg = dom.document.createElement("img")
+  emptyBulletImg.setAttribute("src", s"${Routes.base}/static/img/子弹消失重构.png")
+
+
+
   protected def drawTank(offset:Point, offsetTime:Long) = {
     tankMap.values.foreach{ t =>
       val tank = t.asInstanceOf[TankImpl]
@@ -112,8 +124,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
       ctx.beginPath()
       val smallBulletPosition = tankPosition + Point(left, -9)
-      val img = dom.document.createElement("img")
-      img.setAttribute("src", s"${Routes.base}/static/img/子弹初始重构.png")
+      val img = fillBulletImg
       ctx.drawImage(img.asInstanceOf[HTMLElement], (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
         (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
         SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit)
@@ -125,9 +136,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     (tank.getCurBulletNum + 1 to tank.bulletMaxCapacity).foreach{ indedx =>
       ctx.beginPath()
       val smallBulletPosition = tankPosition + Point(left, -9)
-      val img = dom.document.createElement("img")
-      val image =  img.setAttribute("src", s"${Routes.base}/static/img/子弹消失重构.png")
-
+      val img = emptyBulletImg
       ctx.drawImage(img.asInstanceOf[HTMLElement], (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
         (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
         SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit)
@@ -140,17 +149,76 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
   }
 
-  protected def drawMyTankInfo(tank:TankImpl) = {
-//    ctx.font = "bold 20px Arial"
-//    ctx.textAlign = "center"
-//    ctx.textBaseline = "middle"
-//    ctx.fillStyle = Color.Black.toString()
-//    ctx.fillText(myName, 15 * canvasUnit,(canvasBoundary.y - 16) * canvasUnit)
-    drawLevel(tank.getBloodLevel,config.getTankBloodMaxLevel(),"血量等级",Point(5,canvasBoundary.y - 12) * canvasUnit,20 * canvasUnit,"#FF3030")
-    drawLevel(tank.getSpeedLevel,config.getTankSpeedMaxLevel(),"速度等级",Point(5,canvasBoundary.y - 8) * canvasUnit,20 * canvasUnit,"#66CD00")
-    drawLevel(tank.getBulletLevel,config.getBulletMaxLevel(),"炮弹等级",Point(5,canvasBoundary.y - 4) * canvasUnit,20 * canvasUnit,"#1C86EE")
 
-    ctx.closePath()
+
+
+
+
+  private def generateMyTankInfoCanvas(tank:TankImpl):html.Canvas = {
+    myTankInfoCacheMap.clear()
+    val canvasCache = dom.document.createElement("canvas").asInstanceOf[html.Canvas]
+    val ctxCache = canvasCache.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+
+    canvasCache.width = 30 * canvasUnit
+    canvasCache.height = 20 * canvasUnit
+    drawLevel(tank.getBloodLevel,config.getTankBloodMaxLevel(),"血量等级",Point(5,20 - 12) * canvasUnit,20 * canvasUnit,"#FF3030",ctxCache)
+    drawLevel(tank.getSpeedLevel,config.getTankSpeedMaxLevel(),"速度等级",Point(5,20 - 8) * canvasUnit,20 * canvasUnit,"#66CD00",ctxCache)
+    drawLevel(tank.getBulletLevel,config.getBulletMaxLevel(),"炮弹等级",Point(5,20 - 4) * canvasUnit,20 * canvasUnit,"#1C86EE",ctxCache)
+    canvasCache
+
+  }
+
+  protected def drawMyTankInfo(tank:TankImpl) = {
+    val cache = myTankInfoCacheMap.getOrElseUpdate((tank.getBloodLevel,tank.getSpeedLevel,tank.getBulletLevel),generateMyTankInfoCanvas(tank))
+    ctx.drawImage(cache,0,(canvasBoundary.y - 20) * canvasUnit)
+  }
+
+  def drawLevel(level:Byte,maxLevel:Byte,name:String,start:Point,length:Float,color:String, context:dom.CanvasRenderingContext2D = ctx) = {
+    context.strokeStyle = "#4D4D4D"
+    context.lineCap = "round"
+    context.lineWidth = 30
+    context.beginPath()
+    context.moveTo(start.x,start.y)
+    context.lineTo(start.x+length,start.y)
+    context.stroke()
+    context.closePath()
+
+    context.lineWidth = 22
+    context.strokeStyle = color
+    if(level == maxLevel){
+      context.beginPath()
+      context.moveTo(start.x + length,start.y)
+      context.lineTo(start.x+length,start.y)
+      context.stroke()
+      context.closePath()
+    }
+
+    if(level >= 1){
+      context.beginPath()
+      context.moveTo(start.x,start.y)
+      context.lineTo(start.x,start.y)
+      context.stroke()
+      context.closePath()
+
+
+      context.lineCap = "butt"
+      (0 until level).foreach{ index =>
+        context.beginPath()
+        context.moveTo(start.x + index * (length / maxLevel) + 2,start.y)
+        context.lineTo(start.x + (index + 1) * (length / maxLevel) - 2,start.y)
+        context.stroke()
+        context.closePath()
+      }
+    }
+
+
+
+
+    context.font = "bold 18px Arial"
+    context.textAlign = "center"
+    context.textBaseline = "middle"
+    context.fillStyle = "#FCFCFC"
+    context.fillText(name, start.x + length / 2, start.y)
   }
 
 }
