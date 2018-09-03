@@ -1,111 +1,209 @@
 package com.neo.sk.tank.front.tankClient.draw
 
+import com.neo.sk.tank.front.common.Routes
 import com.neo.sk.tank.front.tankClient.GameContainerClientImpl
 import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.model.Constants.LittleMap
-import com.neo.sk.tank.shared.model.Point
+import com.neo.sk.tank.shared.model.{Point, Score}
+import org.scalajs.dom
 import org.scalajs.dom.ext.Color
+import org.scalajs.dom.html
+
+import scala.collection.mutable
 
 /**
   * Created by hongruying on 2018/8/29
   */
 trait Background{ this:GameContainerClientImpl =>
 
+  private val cacheCanvasMap = mutable.HashMap.empty[String, html.Canvas]
 
-  private def clearScreen(color:String, alpha:Double):Unit = {
-    ctx.fillStyle = color
-    ctx.globalAlpha = alpha
-    ctx.fillRect(0, 0, this.canvasBoundary.x * this.canvasUnit, this.canvasBoundary.y * this.canvasUnit)
-    ctx.globalAlpha = 1
+  private val rankWidth = 20
+  private val rankHeight = 24
+  private val currentRankCanvas = dom.document.createElement("canvas").asInstanceOf[html.Canvas]
+  private val currentRankCanvasCtx = currentRankCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  currentRankCanvas.width = rankWidth * canvasUnit
+  currentRankCanvas.height = rankHeight * canvasUnit
+  private val historyRankCanvas = dom.document.createElement("canvas").asInstanceOf[html.Canvas]
+  private val historyRankCanvasCtx = historyRankCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  historyRankCanvas.width = rankWidth * canvasUnit
+  historyRankCanvas.height = rankHeight * canvasUnit
+  var rankUpdated: Boolean = true
+  private val goldImg = dom.document.createElement("img").asInstanceOf[html.Image]
+  goldImg.setAttribute("src", s"${Routes.base}/static/img/金牌.png")
+  private val silverImg = dom.document.createElement("img").asInstanceOf[html.Image]
+  silverImg.setAttribute("src", s"${Routes.base}/static/img/银牌.png")
+  private val bronzeImg = dom.document.createElement("img").asInstanceOf[html.Image]
+  bronzeImg.setAttribute("src", s"${Routes.base}/static/img/铜牌.png")
+
+  private val minimapCanvas = dom.document.createElement("canvas").asInstanceOf[html.Canvas]
+  private val minimapCanvasCtx = minimapCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  minimapCanvas.width = LittleMap.w * canvasUnit + 6
+  minimapCanvas.height = LittleMap.h * canvasUnit + 6
+  var minimapRenderFrame = 0L
+
+
+
+  private def generateBackgroundCanvas():html.Canvas = {
+    val cacheCanvas = dom.document.createElement("canvas").asInstanceOf[html.Canvas]
+    val ctxCache = cacheCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+    cacheCanvas.width = (boundary.x * canvasUnit).toInt
+    cacheCanvas.height = (boundary.y * canvasUnit).toInt
+    clearScreen("#FCFCFC",1, boundary.x, boundary.y, ctxCache)
+    ctxCache.lineWidth = 1
+    ctxCache.fillStyle = Color.Black.toString()
+    ctxCache.strokeStyle = Color.Black.toString()
+    for(i <- 0 to(boundary.x.toInt,3)){
+      drawLine(Point(i,0), Point(i, boundary.y), ctxCache)
+    }
+
+    for(i <- 0 to(boundary.y.toInt,3)){
+      drawLine(Point(0,i), Point(boundary.x, i), ctxCache)
+    }
+    cacheCanvas
   }
 
-  protected def drawLine(start:Point,end:Point):Unit = {
-    ctx.beginPath()
-    ctx.moveTo(start.x * canvasUnit, start.y * canvasUnit)
-    ctx.lineTo(end.x * canvasUnit, end.y * canvasUnit)
-    ctx.stroke()
-    ctx.closePath()
+
+  private def clearScreen(color:String, alpha:Double, width:Float = canvasBoundary.x, height:Float = canvasBoundary.y, context:dom.CanvasRenderingContext2D = ctx):Unit = {
+    context.fillStyle = color
+    context.globalAlpha = alpha
+    context.fillRect(0, 0, width * this.canvasUnit, height * this.canvasUnit)
+    context.globalAlpha = 1
+  }
+
+  protected def drawLine(start:Point,end:Point, context:dom.CanvasRenderingContext2D = ctx):Unit = {
+    context.beginPath()
+    context.moveTo(start.x * canvasUnit, start.y * canvasUnit)
+    context.lineTo(end.x * canvasUnit, end.y * canvasUnit)
+    context.stroke()
+    context.closePath()
   }
 
 
 
   protected def drawBackground(offset:Point) = {
     clearScreen("#FCFCFC",1)
-    ctx.lineWidth = 1
-    ctx.fillStyle = Color.Black.toString()
-    ctx.strokeStyle = Color.Black.toString()
-    for(i <- 0 to(boundary.x.toInt,3)){
-      drawLine(Point(i,0) + offset, Point(i, boundary.y) + offset)
-    }
-
-    for(i <- 0 to(boundary.y.toInt,3)){
-      drawLine(Point(0,i) + offset, Point(boundary.x, i) + offset)
-    }
-
+//    ctx.lineWidth = 1
+//    ctx.fillStyle = Color.Black.toString()
+//    ctx.strokeStyle = Color.Black.toString()
+//    for(i <- 0 to(boundary.x.toInt,3)){
+//      drawLine(Point(i,0) + offset, Point(i, boundary.y) + offset)
+//    }
+//
+//    for(i <- 0 to(boundary.y.toInt,3)){
+//      drawLine(Point(0,i) + offset, Point(boundary.x, i) + offset)
+//    }
+    val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background",generateBackgroundCanvas())
+    ctx.drawImage(cacheCanvas,-offset.x * canvasUnit,-offset.y * canvasUnit,
+      canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit, 0, 0,
+      canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
   }
 
   protected def drawRank():Unit = {
-    //绘制当前排行榜
-    val textLineHeight = 18
-    val leftBegin =7 * canvasUnit
-    val rightBegin = (canvasBoundary.x.toInt-8) * canvasUnit
-    //    System.out.println("11111")
-    object MyColors {
-      val background = "rgb(249,205,173,0.4)"
-      val rankList = "#9933FA"
+    def drawTextLine(str: String, x: Float, y: Float, context:dom.CanvasRenderingContext2D) = {
+      context.fillText(str, x, y)
+    }
+
+    def refreshCacheCanvas(context:dom.CanvasRenderingContext2D, header: String, rank: List[Score]): Unit ={
+      //绘制当前排行榜
+      val leftBegin = 4 * canvasUnit
+      context.font = "bold 12px Arial"
+      context.clearRect(0,0,rankWidth * canvasUnit, rankHeight * canvasUnit)
+
+      var index = 0
+      context.fillStyle = Color.Black.toString()
+      context.textAlign = "center"
+      context.textBaseline = "middle"
+      context.lineCap = "round"
+      drawTextLine(header, rankWidth / 2 * canvasUnit, 1 * canvasUnit, context)
+      currentRank.foreach{ score =>
+        index += 1
+        val drawColor = index match {
+          case 1 => "#FFD700"
+          case 2 => "#D1D1D1"
+          case 3 => "#8B5A00"
+          case _ => "#CAE1FF"
+        }
+        val imgOpt = index match {
+          case 1 => Some(goldImg)
+          case 2 => Some(silverImg)
+          case 3 => Some(bronzeImg)
+          case _ => None
+        }
+        imgOpt.foreach{ img =>
+          context.drawImage(img, leftBegin - 4 * canvasUnit, (2 * index) * canvasUnit, 2 * canvasUnit, 2 * canvasUnit)
+        }
+        context.strokeStyle = drawColor
+        context.lineWidth = 18
+        context.beginPath()
+        context.moveTo(leftBegin,(2 * index + 1) * canvasUnit)
+        context.lineTo((rankWidth - 2) * canvasUnit,(2 * index + 1) * canvasUnit)
+        context.stroke()
+        context.closePath()
+        context.textAlign = "start"
+        drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, (2 * index + 1) * canvasUnit, context)
+      }
     }
 
 
-    def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0) = {
-      ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
+    def refresh():Unit = {
+      refreshCacheCanvas(currentRankCanvasCtx, " --- Current Rank --- ", currentRank)
+      refreshCacheCanvas(historyRankCanvasCtx, " --- History Rank --- ", historyRank)
     }
-    //    println("22222")
-    ctx.font = "12px Helvetica"
-    ctx.fillStyle =MyColors.background
-    ctx.fillRect(0,0,150,200)
 
-    val currentRankBaseLine = 1
-    var index = 0
-    ctx.fillStyle = MyColors.rankList
-    drawTextLine(s" --- Current Rank --- ", leftBegin, index, currentRankBaseLine)
-    currentRank.foreach{ score =>
-      index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, index, currentRankBaseLine)
+
+    if(rankUpdated){
+      refresh()
+      rankUpdated = false
     }
-    //    println("33333")
-    ctx.fillStyle =MyColors.background
-    ctx.fillRect(canvasBoundary.x*canvasUnit-160,0,200,200)
-    val historyRankBaseLine =1
-    index = 0
-    ctx.fillStyle = MyColors.rankList
-    drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
-    historyRank.foreach { score =>
-      index += 1
-      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", rightBegin, index, historyRankBaseLine)
-    }
+    ctx.globalAlpha = 0.5
+    ctx.drawImage(currentRankCanvas,0,0)
+    ctx.drawImage(historyRankCanvas, (canvasBoundary.x - rankWidth) * canvasUnit,0)
+    ctx.globalAlpha = 1
   }
 
 
   protected def drawMinimap(tank:Tank) = {
-    def drawTankMinimap(position:Point,color:String) = {
+    def drawTankMinimap(position:Point,color:String, context: dom.CanvasRenderingContext2D) = {
       val offset = Point(position.x / boundary.x * LittleMap.w, position.y / boundary.y * LittleMap.h)
-      ctx.beginPath()
-      ctx.fillStyle = color
-      ctx.arc((canvasBoundary.x - LittleMap.w + offset.x) * canvasUnit, (canvasBoundary.y  - LittleMap.h + offset.y) * canvasUnit, 0.5 * canvasUnit,0,2*Math.PI)
-      ctx.fill()
-      ctx.closePath()
+      context.beginPath()
+      context.fillStyle = color
+      context.arc(offset.x * canvasUnit + 3, offset.y * canvasUnit + 3, 0.5 * canvasUnit,0,2*Math.PI)
+      context.fill()
+      context.closePath()
     }
 
-    val mapColor = "rgb(41,238,238,0.3)"
-    val myself = "#000080"
-    val otherTankColor = "#CD5C5C"
-    ctx.fillStyle = mapColor
-    ctx.fillRect((canvasBoundary.x - LittleMap.w) * canvasUnit,(canvasBoundary.y  - LittleMap.h) * canvasUnit ,LittleMap.w * canvasUnit ,LittleMap.h * canvasUnit )
 
-    drawTankMinimap(tank.getPosition,myself)
-    tankMap.filterNot(_._1 == tank.tankId).values.toList.foreach{ t =>
-      drawTankMinimap(t.getPosition,otherTankColor)
+    def refreshMinimap():Unit = {
+      val mapColor = "rgba(255,245,238,0.5)"
+      val myself = "#000080"
+      val otherTankColor = "#CD5C5C"
+      val bolderColor = "#8F8F8F"
+
+      minimapCanvasCtx.clearRect(0, 0, minimapCanvas.width, minimapCanvas.height)
+      minimapCanvasCtx.fillStyle = mapColor
+      minimapCanvasCtx.fillRect(3, 3, LittleMap.w * canvasUnit ,LittleMap.h * canvasUnit)
+      minimapCanvasCtx.strokeStyle = bolderColor
+      minimapCanvasCtx.lineWidth = 6
+      minimapCanvasCtx.beginPath()
+      minimapCanvasCtx.fillStyle = mapColor
+      minimapCanvasCtx.rect(3, 3 ,LittleMap.w * canvasUnit ,LittleMap.h * canvasUnit)
+      minimapCanvasCtx.fill()
+      minimapCanvasCtx.stroke()
+      minimapCanvasCtx.closePath()
+
+      drawTankMinimap(tank.getPosition,myself, minimapCanvasCtx)
+      tankMap.filterNot(_._1 == tank.tankId).values.toList.foreach{ t =>
+        drawTankMinimap(t.getPosition,otherTankColor, minimapCanvasCtx)
+      }
     }
+
+    if(minimapRenderFrame != systemFrame){
+      refreshMinimap()
+      minimapRenderFrame = systemFrame
+    }
+
+    ctx.drawImage(minimapCanvas, (canvasBoundary.x - LittleMap.w) * canvasUnit - 6, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
 
   }
 
@@ -131,51 +229,4 @@ trait Background{ this:GameContainerClientImpl =>
   }
 
 
-  def drawLevel(level:Byte,maxLevel:Byte,name:String,start:Point,length:Float,color:String) = {
-    ctx.strokeStyle = "#4D4D4D"
-    ctx.lineCap = "round"
-    ctx.lineWidth = 30
-    ctx.beginPath()
-    ctx.moveTo(start.x,start.y)
-    ctx.lineTo(start.x+length,start.y)
-    ctx.stroke()
-    ctx.closePath()
-
-    ctx.lineWidth = 22
-    ctx.strokeStyle = color
-    if(level == maxLevel){
-      ctx.beginPath()
-      ctx.moveTo(start.x + length,start.y)
-      ctx.lineTo(start.x+length,start.y)
-      ctx.stroke()
-      ctx.closePath()
-    }
-
-    if(level >= 1){
-      ctx.beginPath()
-      ctx.moveTo(start.x,start.y)
-      ctx.lineTo(start.x,start.y)
-      ctx.stroke()
-      ctx.closePath()
-
-
-      ctx.lineCap = "butt"
-      (0 until level).foreach{ index =>
-        ctx.beginPath()
-        ctx.moveTo(start.x + index * (length / maxLevel) + 2,start.y)
-        ctx.lineTo(start.x + (index + 1) * (length / maxLevel) - 2,start.y)
-        ctx.stroke()
-        ctx.closePath()
-      }
-    }
-
-
-
-
-    ctx.font = "bold 18px Arial"
-    ctx.textAlign = "center"
-    ctx.textBaseline = "middle"
-    ctx.fillStyle = "#FCFCFC"
-    ctx.fillText(name, start.x + length / 2, start.y)
-  }
 }

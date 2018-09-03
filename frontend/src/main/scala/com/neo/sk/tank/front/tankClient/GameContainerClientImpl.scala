@@ -2,6 +2,7 @@ package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.front.common.Constants.GameState
 import com.neo.sk.tank.front.tankClient.draw._
+import com.neo.sk.tank.front.utils.Shortcut
 import com.neo.sk.tank.shared.`object`.{Tank, TankImpl}
 import com.neo.sk.tank.shared.config.TankGameConfig
 import com.neo.sk.tank.shared.game.GameContainerImpl
@@ -10,6 +11,7 @@ import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.ObstacleAttacked
 import org.scalajs.dom
+import org.scalajs.dom.html.Image
 
 import scala.collection.mutable
 
@@ -32,6 +34,21 @@ case class GameContainerClientImpl(
   with TankDrawUtil
   with FpsComponents
   with BulletDrawUtil{
+
+
+  private var renderTime:Long = 0
+  private var renderTimes = 0
+
+  Shortcut.schedule( () =>{
+    if(renderTimes != 0){
+      println(s"render page use avg time:${renderTime / renderTimes}ms")
+    }else{
+      println(s"render page use avg time:0 ms")
+    }
+    renderTime = 0
+    renderTimes = 0
+  }, 5000L)
+
 
 
   protected val obstacleAttackedAnimationMap = mutable.HashMap[Int,Int]()
@@ -71,6 +88,7 @@ case class GameContainerClientImpl(
 
   def drawGame(time:Long,networkLatency: Long):Unit = {
     val offsetTime = math.min(time,config.frameDuration)
+    val startTime = System.currentTimeMillis()
     if(!waitSyncData){
       ctx.lineCap = "round"
       ctx.lineJoin = "round"
@@ -88,6 +106,10 @@ case class GameContainerClientImpl(
           drawRank()
           renderFps(networkLatency)
           drawKillInformation()
+
+          val endTime = System.currentTimeMillis()
+          renderTimes += 1
+          renderTime += endTime - startTime
 
 
 
