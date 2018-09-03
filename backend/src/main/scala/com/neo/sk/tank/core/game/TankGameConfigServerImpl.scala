@@ -94,7 +94,7 @@ final case class TankGameConfigServerImpl(
 //  private[this] val tankSpeedThird = config.getInt("tankGame.tank.tankSpeed.third")
 //    .requiring(_ > tankSpeedSecond,"minimum supported tank third speed is tankSpeedSecond+1")
   private[this] val tankBloodLevel = config.getIntList("tankGame.tank.tankBloodLevel")
-    .requiring(_.size() == 3,"tank blood size must equals 3").asScala.map(_.toInt).toList
+    .requiring(_.size() >= 3,"minimum supported tank blood size is 3").asScala.map(_.toInt).toList
   private[this] val tankRadiusData = config.getDouble("tankGame.tank.radius")
     .requiring(_ > 0,"minimum supported tank radius is 1").toFloat
   private[this] val tankGunWidthData = config.getInt("tankGame.tank.gunWidth")
