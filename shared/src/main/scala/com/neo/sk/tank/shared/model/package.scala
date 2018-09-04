@@ -40,6 +40,10 @@ package object model {
       math.atan2(y - center.y,x - center.x)
     }
 
+    def in(view:Point,extra:Point) = {
+      x >= (0 - extra.x) && y >= (0 - extra.y) && x <= (view.x + extra.x) && y <= (view.y + extra.y)
+    }
+
 
   }
 
