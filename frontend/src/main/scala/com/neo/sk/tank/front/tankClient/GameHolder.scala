@@ -261,6 +261,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
         gameContainerOpt.foreach{ t =>
           t.currentRank = e.currentRank
           t.historyRank = e.historyRank
+          t.rankUpdated = true
         }
 
       case e:TankGameEvent.SyncGameState =>
