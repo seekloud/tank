@@ -116,7 +116,7 @@ trait Background{ this:GameContainerClientImpl =>
       context.textBaseline = "middle"
       context.lineCap = "round"
       drawTextLine(header, rankWidth / 2 * canvasUnit, 1 * canvasUnit, context)
-      currentRank.foreach{ score =>
+      rank.foreach{ score =>
         index += 1
         val drawColor = index match {
           case 1 => "#FFD700"
