@@ -14,19 +14,13 @@ final case class GridLittleMap(width:Int,height:Int){
 }
 
 final case class TankMoveSpeed(
-                                first:Int,
-                                second:Int,
-                                third:Int
+                                speeds:List[Int]
                               ){
   //  val lowType:Byte = 1
   //  val intermediateType:Byte = 2
   //  val highType:Byte = 3
 
-  def getTankSpeedByType(t:Byte) = t match {
-    case 2 => Point(second,0)
-    case 3 => Point(third,0)
-    case _ => Point(first,0)
-  }
+  def getTankSpeedByType(t:Byte) = Point(speeds(t - 1),0)
 }
 
 final case class TankBloodLevel(
@@ -100,7 +94,7 @@ final case class BulletParameters(
                                    maxFlyDistance:Int,
                                    bulletSpeed:Int,
                                  ){
-  require(bulletLevelParameters.size == 3,println(s"bullet level parameter failed"))
+  require(bulletLevelParameters.size >= 3,println(s"bullet level parameter failed"))
 
   def getBulletRadius(l:Byte) = {
     bulletLevelParameters(l-1)._1
@@ -125,7 +119,7 @@ trait TankGameConfig{
   def getBulletRadius(l:Byte):Float
   def getBulletDamage(l:Byte):Int
   def getBulletLevel(damage:Int):Byte
-  def getBulletMaxLevel():Byte = 3
+  def getBulletMaxLevel():Byte
 
   def maxFlyDistance:Int
 
@@ -158,9 +152,9 @@ trait TankGameConfig{
   def fillBulletDuration:Int
   def initInvincibleDuration:Int
   def getTankSpeedByType(t:Byte):Point
-  def getTankSpeedMaxLevel():Byte = 3
+  def getTankSpeedMaxLevel():Byte
   def getTankBloodByLevel(l:Byte):Int
-  def getTankBloodMaxLevel():Byte = 3
+  def getTankBloodMaxLevel():Byte
 
   def getBulletRadiusByDamage(d:Int):Float
 
@@ -190,6 +184,8 @@ case class TankGameConfigImpl(
   }
 
   def getBulletLevel(damage:Int):Byte = bulletParameters.getBulletLevelByDamage(damage)
+
+  def getBulletMaxLevel():Byte = bulletParameters.bulletLevelParameters.size.toByte
 
   def maxFlyDistance = bulletParameters.maxFlyDistance
   def getBulletRadiusByDamage(d:Int):Float = bulletParameters.getBulletRadiusByDamage(d)
@@ -223,6 +219,10 @@ case class TankGameConfigImpl(
   def fillBulletDuration = tankParameters.fillBulletDuration
   def initInvincibleDuration = tankParameters.initInvincibleDuration
   def getTankSpeedByType(t:Byte) = tankParameters.tankSpeed.getTankSpeedByType(t)
+
+  def getTankSpeedMaxLevel():Byte = tankParameters.tankSpeed.speeds.size.toByte
+
+  def getTankBloodMaxLevel():Byte = tankParameters.tankBloodLevel.size.toByte
 
   def getTankBloodByLevel(l:Byte):Int = tankParameters.getTankBloodByLevel(l)
 

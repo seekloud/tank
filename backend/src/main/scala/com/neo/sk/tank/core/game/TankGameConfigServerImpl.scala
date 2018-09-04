@@ -27,9 +27,9 @@ final case class TankGameConfigServerImpl(
   private[this] val gameFameDuration = config.getLong("tankGame.frameDuration")
     .requiring(t => t >= 1l,"minimum game frame duration is 1 ms")
   private[this] val bulletRadius = config.getDoubleList("tankGame.bullet.bulletRadius")
-    .requiring(_.size() == 3,"bullet radius size has 3 type").asScala.toList.map(_.toFloat)
+    .requiring(_.size() >= 3,"bullet radius size has 3 type").asScala.toList.map(_.toFloat)
   private[this] val bulletDamage = config.getIntList("tankGame.bullet.bulletDamage")
-    .requiring(_.size() == 3,"bullet damage size has 3 type").asScala.toList.map(_.toInt)
+    .requiring(_.size() >= 3,"bullet damage size has 3 type").asScala.toList.map(_.toInt)
   private[this] val maxFlyDistanceData = config.getInt("tankGame.bullet.maxFlyDistance")
     .requiring(_ > 0,"minimum bullet max fly distance is 1")
   private[this] val bulletSpeedData = config.getInt("tankGame.bullet.bulletSpeed")
@@ -85,14 +85,16 @@ final case class TankGameConfigServerImpl(
   private val propParameters = PropParameters(propRadiusData,propMedicalBloodData, shotgunDurationData)
 
 
-  private[this] val tankSpeedFirst = config.getInt("tankGame.tank.tankSpeed.first")
-    .requiring(_ > 0,"minimum supported tank first speed is 1")
-  private[this] val tankSpeedSecond = config.getInt("tankGame.tank.tankSpeed.second")
-    .requiring(_ > tankSpeedFirst,"minimum supported tank second speed is tankSpeedFirst+1")
-  private[this] val tankSpeedThird = config.getInt("tankGame.tank.tankSpeed.third")
-    .requiring(_ > tankSpeedSecond,"minimum supported tank third speed is tankSpeedSecond+1")
+  private[this] val tankSpeedLevel = config.getIntList("tankGame.tank.tankSpeedLevel")
+    .requiring(_.size() >= 3,"minimum supported tank speed size is 3").asScala.map(_.toInt).toList
+//  private[this] val tankSpeedFirst = config.getInt("tankGame.tank.tankSpeed.first")
+//    .requiring(_ > 0,"minimum supported tank first speed is 1")
+//  private[this] val tankSpeedSecond = config.getInt("tankGame.tank.tankSpeed.second")
+//    .requiring(_ > tankSpeedFirst,"minimum supported tank second speed is tankSpeedFirst+1")
+//  private[this] val tankSpeedThird = config.getInt("tankGame.tank.tankSpeed.third")
+//    .requiring(_ > tankSpeedSecond,"minimum supported tank third speed is tankSpeedSecond+1")
   private[this] val tankBloodLevel = config.getIntList("tankGame.tank.tankBloodLevel")
-    .requiring(_.size() == 3,"tank blood size must equals 3").asScala.map(_.toInt).toList
+    .requiring(_.size() >= 3,"minimum supported tank blood size is 3").asScala.map(_.toInt).toList
   private[this] val tankRadiusData = config.getDouble("tankGame.tank.radius")
     .requiring(_ > 0,"minimum supported tank radius is 1").toFloat
   private[this] val tankGunWidthData = config.getInt("tankGame.tank.gunWidth")
@@ -105,7 +107,7 @@ final case class TankGameConfigServerImpl(
     .requiring(_ > 0,"minimum supported tank fill bullet duration is 1s")
   private[this] val tankInvincibleDuration = config.getInt("tankGame.tank.initInvincibleDuration")
     .requiring(_ > 0,"minimum supported tank invincible duration is 1s")
-  private val tankParameters = TankParameters(TankMoveSpeed(tankSpeedFirst, tankSpeedSecond, tankSpeedThird),tankBloodLevel,
+  private val tankParameters = TankParameters(TankMoveSpeed(tankSpeedLevel),tankBloodLevel,
     tankRadiusData,tankGunWidthData,tankGunHeightData,tankMaxBulletCapacity,tankFillBulletDuration,tankInvincibleDuration)
 
   private val tankGameConfig = TankGameConfigImpl(gridBoundary,gameFameDuration,bulletParameters,obstacleParameters,propParameters,tankParameters)
@@ -160,6 +162,12 @@ final case class TankGameConfigServerImpl(
   def getTankGameConfigImpl(): TankGameConfigImpl = tankGameConfig
 
   def getBulletLevel(damage:Int):Byte = tankGameConfig.getBulletLevel(damage)
+
+  def getTankSpeedMaxLevel():Byte = tankGameConfig.getTankSpeedMaxLevel()
+
+  def getTankBloodMaxLevel():Byte = tankGameConfig.getTankBloodMaxLevel()
+
+  def getBulletMaxLevel():Byte = tankGameConfig.getBulletMaxLevel()
 
 
 

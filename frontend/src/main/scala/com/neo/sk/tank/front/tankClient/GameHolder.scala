@@ -54,7 +54,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
 
   private var spaceKeyUpState = true
   private var lastMouseMoveTheta:Float = 0
-  private val mouseMoveThreshold = math.Pi / 18
+  private val mouseMoveThreshold = math.Pi / 180
   private val watchKeys = Set(
     KeyCode.Left,
     KeyCode.Up,
