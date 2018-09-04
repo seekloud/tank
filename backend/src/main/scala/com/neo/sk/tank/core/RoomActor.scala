@@ -95,7 +95,7 @@ object RoomActor {
     Behaviors.receive{(ctx,msg) =>
       msg match {
         case JoinRoom(uid,name,userActor,roomId) =>
-          gameContainer.joinGame(uid,name,userActor,roomId)
+          gameContainer.joinGame(uid,name,userActor,ctx.self)
           //这一桢结束时会告诉所有新加入用户的tank信息以及地图全量数据
           idle((uid,userActor) :: justJoinUser, subscribersMap, gameContainer, tickCount)
 
