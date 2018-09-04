@@ -34,7 +34,7 @@ object RoomActor {
 
   case class WebSocketMsg(uid:Long,tankId:Int,req:TankGameEvent.UserActionEvent) extends Command with RoomManager.Command
 
-  case class LeftRoom(uid:Long,tankId:Int,name:String,uidSet:mutable.HashSet[Long],roomId:Long) extends Command with RoomManager.Command
+  case class LeftRoom(uid:Long,tankId:Int,name:String,uidSet:mutable.HashSet[(Long,Boolean)],roomId:Long) extends Command with RoomManager.Command
   case class LeftRoomByKilled(uid:Long,tankId:Int,name:String) extends Command with RoomManager.Command
 
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command with RoomManager.Command
