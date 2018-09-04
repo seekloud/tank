@@ -39,7 +39,7 @@ object UserActor {
   case object StartGame extends Command
 
   case class JoinRoom(uid:Long,name:String,userActor:ActorRef[UserActor.Command]) extends Command with RoomManager.Command
-  case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,userActor: ActorRef[UserActor.Command],uId:Long,roomId:Long) extends Command with RoomManager.Command
+  case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:Long) extends Command with RoomManager.Command
 
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
 
@@ -138,7 +138,7 @@ object UserActor {
           roomManager ! JoinRoom(uId,name,ctx.self)
           Behaviors.same
 
-        case JoinRoomSuccess(tank,config,userId,uId,roomId) =>
+        case JoinRoomSuccess(tank,config,uId) =>
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
 //          println("渲染数据")

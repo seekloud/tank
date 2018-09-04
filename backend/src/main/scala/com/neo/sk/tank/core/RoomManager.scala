@@ -62,32 +62,20 @@ object RoomManager {
             val roomCanBeUse = roomInUse.filter(_._2.size < personLimit)
             if(roomCanBeUse.size > 0){
               log.debug(s"room already exists !!! user$uid :$name enter into ${roomCanBeUse.keys.min}")
+              roomInUse(roomCanBeUse.keys.min).add(uid)
               getRoomActor(ctx,roomCanBeUse.keys.min) ! RoomActor.JoinRoom(uid,name,userActor,roomCanBeUse.keys.min)
             }else{
               val roomId = roomIdGenerator.getAndIncrement()
               log.debug(s"new room !!!! user$uid :$name enter into $roomId")
+              roomInUse.put(roomId,mutable.HashSet(uid))
               getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,name,userActor,roomId)
             }
           }else{
             log.debug(s"enter repeatedly !!! user$uid :$name is already in ${roomExistUidMap.head._1}")
             getRoomActor(ctx,roomExistUidMap.head._1) ! RoomActor.JoinRoom(uid,name,userActor,roomExistUidMap.head._1)
           }
+          log.debug(s"now roomInUse:$roomInUse")
 
-          Behaviors.same
-
-        case UserActor.JoinRoomSuccess(tank,config,userActor,uId,roomId) =>
-          val roomExist = roomInUse.filter{u => u._1 == roomId}
-          if(roomExist.exists(u => u._1 == roomId)){
-            roomInUse(roomId).filter(u => u == uId).size match {
-              case 0 =>
-                roomInUse(roomId).add(uId)
-              case _ =>
-            }
-          }else{
-            roomInUse.put(roomId,mutable.HashSet(uId))
-          }
-          log.debug(s"enter into success!!!now the rooms:$roomInUse")
-          userActor ! UserActor.JoinRoomSuccess(tank,config,userActor,uId,roomId)
           Behaviors.same
 
         case WebSocketMsg(uid,tankId,req) =>
