@@ -59,7 +59,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
 
   protected def drawObstacles(offset:Point,view:Point) = {
     obstacleMap.values.foreach{ obstacle =>
-//      if((obstacle.getPosition + offset).in(view,Point(obstacle.getWidth,obstacle.getHeight))) {
+      if((obstacle.getPosition + offset).in(view,Point(obstacle.getWidth,obstacle.getHeight))) {
         val color = (obstacle.obstacleType, obstacleAttackedAnimationMap.get(obstacle.oId).nonEmpty) match {
           case (ObstacleType.airDropBox, true) =>
             if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
@@ -83,7 +83,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
           drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color)
         }
       }
-//    }
+    }
   }
 
 
@@ -118,7 +118,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
         case ObstacleType.river => riverImg
       }
       val p = obstacle.getPosition - Point(obstacle.getWidth, obstacle.getHeight) / 2 + offset
-//      if(p.in(view,Point(obstacle.getWidth,obstacle.getHeight))) {
+      if(p.in(view,Point(obstacle.getWidth,obstacle.getHeight))) {
         if (obstacleImgComplete) {
           val isAttacked = obstacle.obstacleType == ObstacleType.steel && obstacleAttackedAnimationMap.contains(obstacle.oId)
           val cacheCanvas = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, isAttacked),
@@ -148,7 +148,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
           if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
           else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
         }
-//      }
+      }
     }
 
   }
