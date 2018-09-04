@@ -34,10 +34,10 @@ object RoomActor {
 
   case class WebSocketMsg(uid:Long,tankId:Int,req:TankGameEvent.UserActionEvent) extends Command with RoomManager.Command
 
-  case class LeftRoom(uid:Long,tankId:Int,name:String) extends Command with RoomManager.Command
+  case class LeftRoom(uid:Long,tankId:Int,name:String,uidSet:mutable.HashSet[Long],roomId:Long) extends Command with RoomManager.Command
   case class LeftRoomByKilled(uid:Long,tankId:Int,name:String) extends Command with RoomManager.Command
 
-  final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
+  final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command with RoomManager.Command
   case object GameLoop extends Command
   case class ShotgunExpire(tId:Int) extends Command
   case class TankFillABullet(tId:Int) extends Command
@@ -104,10 +104,22 @@ object RoomActor {
           gameContainer.receiveUserAction(req)
           Behaviors.same
 
-        case LeftRoom(uid,tankId,name) =>
+        case LeftRoom(uid,tankId,name,uidSet,roomId) =>
           subscribersMap.remove(uid)
           gameContainer.leftGame(uid,name,tankId)
-          idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
+          roomManager ! RoomManager.LeftRoomSuccess(uidSet,name,ctx.self,roomId)
+          if(uidSet.isEmpty){
+            if(roomId > 1l) {
+              ctx.unwatch(ctx.self)
+              Behaviors.stopped
+            }else{
+              idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
+            }
+          }else{
+            idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
+          }
+
+//          idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
 
         case LeftRoomByKilled(uid,tankId,name) =>
           subscribersMap.remove(uid)
@@ -133,11 +145,11 @@ object RoomActor {
             dispatch(subscribersMap)(TankGameEvent.Ranks(gameContainer.currentRank,gameContainer.historyRank))
           }
           //分发新加入坦克的地图全量数据
-//          println(justJoinUser)
+          if(justJoinUser != Nil) println(justJoinUser)
           justJoinUser.foreach(t => subscribersMap.put(t._1,t._2))
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           justJoinUser.foreach{t =>
-//            println(s"+++++++++++++++++++++$t")
+            println(s"+++++++++++++++++++++$gameContainerAllState")
             dispatchTo(subscribersMap)(t._1,TankGameEvent.SyncGameAllState(gameContainerAllState))
           }
           val endTime = System.currentTimeMillis()
