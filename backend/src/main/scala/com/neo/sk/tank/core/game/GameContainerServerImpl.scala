@@ -14,6 +14,7 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.slf4j.Logger
 import concurrent.duration._
 import scala.util.Random
+import com.neo.sk.tank.Boot.roomManager
 
 /**
   * Created by hongruying on 2018/8/29
@@ -34,7 +35,7 @@ case class GameContainerServerImpl(
   private val obstacleIdGenerator = new AtomicInteger(100)
   private val propIdGenerator = new AtomicInteger(100)
 
-  private var justJoinUser:List[(Long,String,ActorRef[UserActor.Command])] = Nil
+  private var justJoinUser:List[(Long,String,ActorRef[UserActor.Command],Long)] = Nil
   private val random = new Random(System.currentTimeMillis())
 
   init()
@@ -210,12 +211,13 @@ case class GameContainerServerImpl(
     }
 
     justJoinUser.foreach{
-      case (userId,name,ref) =>
+      case (userId,name,ref,roomId) =>
         val tank = genATank(userId,name)
         val event = TankGameEvent.UserJoinRoom(userId,name,tank.getTankState(),systemFrame)
         dispatch(event)
         addGameEvent(event)
-        ref ! UserActor.JoinRoomSuccess(tank, config.getTankGameConfigImpl())
+//        roomManager ! UserActor.JoinRoomSuccess(tank,config.getTankGameConfigImpl(),ref,userId,roomId)
+        ref ! UserActor.JoinRoomSuccess(tank, config.getTankGameConfigImpl(),userId)
         tankMap.put(tank.tankId,tank)
         quadTree.insert(tank)
         //无敌时间消除
@@ -232,8 +234,8 @@ case class GameContainerServerImpl(
   }
 
 
-  def joinGame(userId:Long,name:String,userActor:ActorRef[UserActor.Command]):Unit = {
-    justJoinUser = (userId,name,userActor) :: justJoinUser
+  def joinGame(userId:Long,name:String,userActor:ActorRef[UserActor.Command],roomId:Long):Unit = {
+    justJoinUser = (userId,name,userActor,roomId) :: justJoinUser
   }
 
 
