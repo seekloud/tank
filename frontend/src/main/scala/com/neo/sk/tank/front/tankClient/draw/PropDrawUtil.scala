@@ -31,7 +31,7 @@ trait PropDrawUtil {
   protected def drawProps(offset: Point, view: Point) = {
     propMap.values.foreach { prop =>
       val p = prop.getPosition + offset
-      if (p.in(view, Point(prop.getRadius * 3, prop.getRadius * 3))) {
+//      if (p.in(view, Point(prop.getRadius * 3, prop.getRadius * 3))) {
         val img = prop.propType match {
           case 1 => bloodPropImg
           case 2 => speedPropImg
@@ -59,7 +59,7 @@ trait PropDrawUtil {
 
         }
 
-      }
+//      }
     }
   }
 }
