@@ -64,12 +64,11 @@ object RoomActor {
   }
 
   def create(roomId:Long):Behavior[Command] ={
-    log.debug(s"RoomManager start...")
+    log.debug(s"Room Actor-${roomId} start...")
     Behaviors.setup[Command]{
       ctx =>
         Behaviors.withTimers[Command]{
           implicit timer =>
-            log.debug(s"111111111111111")
             val subscribersMap = mutable.HashMap[Long,ActorRef[UserActor.Command]]()
             val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer, log,
               dispatch(subscribersMap),
