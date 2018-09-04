@@ -29,7 +29,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     tankMap.values.foreach { t =>
       val tank = t.asInstanceOf[TankImpl]
       val p = tank.getPosition4Animation(boundary, quadTree, offsetTime) + offset
-//      if (p.in(view, Point(t.getRadius * 4, t.getRadius * 4))) {
+      if (p.in(view, Point(t.getRadius * 4, t.getRadius * 4))) {
         if (tankAttackedAnimationMap.contains(tank.tankId)) {
           if (tankAttackedAnimationMap(tank.tankId) <= 0) tankAttackedAnimationMap.remove(tank.tankId)
           else tankAttackedAnimationMap.put(tank.tankId, tankAttackedAnimationMap(tank.tankId) - 1)
@@ -84,7 +84,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
         drawTankBullet(p, tank)
       }
-//    }
+    }
   }
 
   def drawBloodSlider(tankPosition:Point, tank:TankImpl) = {

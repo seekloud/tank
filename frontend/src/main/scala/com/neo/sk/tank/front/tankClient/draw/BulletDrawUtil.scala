@@ -43,7 +43,7 @@ trait BulletDrawUtil { this:GameContainerClientImpl =>
   protected def drawBullet(offset:Point, offsetTime:Long, view:Point) = {
     bulletMap.values.foreach{ bullet =>
       val p = bullet.getPosition4Animation(offsetTime) + offset
-//      if(p.in(view,Point(bullet.getRadius * 4 ,bullet.getRadius *4))) {
+      if(p.in(view,Point(bullet.getRadius * 4 ,bullet.getRadius *4))) {
         val cacheCanvas = canvasCacheMap.getOrElseUpdate(bullet.getBulletLevel(), generateCanvas(bullet))
         val radius = bullet.getRadius
         ctx.drawImage(cacheCanvas, (p.x - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5, (p.y - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5)
@@ -61,6 +61,6 @@ trait BulletDrawUtil { this:GameContainerClientImpl =>
         //      ctx.stroke()
         //      ctx.closePath()
       }
-//    }
+    }
   }
 }
