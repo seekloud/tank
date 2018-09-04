@@ -90,7 +90,6 @@ case class GameContainerClientImpl(
     val offsetTime = math.min(time,config.frameDuration)
     val h = dom.window.innerHeight.toFloat
     val w = dom.window.innerWidth.toFloat
-//    val startTime = System.currentTimeMillis()
     val startTime = System.currentTimeMillis()
     if(!waitSyncData){
       ctx.lineCap = "round"
