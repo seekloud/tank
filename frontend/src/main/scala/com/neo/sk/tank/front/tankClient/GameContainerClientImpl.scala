@@ -88,6 +88,9 @@ case class GameContainerClientImpl(
 
   def drawGame(time:Long,networkLatency: Long):Unit = {
     val offsetTime = math.min(time,config.frameDuration)
+    val h = dom.window.innerHeight.toFloat
+    val w = dom.window.innerWidth.toFloat
+//    val startTime = System.currentTimeMillis()
     val startTime = System.currentTimeMillis()
     if(!waitSyncData){
       ctx.lineCap = "round"
@@ -96,11 +99,11 @@ case class GameContainerClientImpl(
         case Some(tank) =>
           val offset = canvasBoundary / 2 - tank.asInstanceOf[TankImpl].getPosition4Animation(boundary, quadTree, offsetTime)
           drawBackground(offset)
-          drawObstacles(offset)
-          drawEnvironment(offset)
-          drawProps(offset)
-          drawBullet(offset,offsetTime)
-          drawTank(offset,offsetTime)
+          drawObstacles(offset,Point(w,h))
+          drawEnvironment(offset,Point(w,h))
+          drawProps(offset,Point(w,h))
+          drawBullet(offset,offsetTime, Point(w,h))
+          drawTank(offset,offsetTime,Point(w,h))
           drawMyTankInfo(tank.asInstanceOf[TankImpl])
           drawMinimap(tank)
           drawRank()
