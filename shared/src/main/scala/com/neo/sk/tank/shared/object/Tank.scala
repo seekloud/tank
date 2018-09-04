@@ -266,7 +266,7 @@ case class TankImpl(
         Point(gunWidth, -gunHeight).rotate(this.gunDirection)
       )
     }else{
-      val gunHeight = config.tankGunHeight * (1 + (this.bulletLevel - 1) * 0.2f)
+      val gunHeight = config.tankGunHeight * (1 + (this.bulletLevel - 1) * 0.1f)
       List(
         Point(0,- gunHeight / 2).rotate(this.gunDirection),
         Point(0, gunHeight / 2).rotate(this.gunDirection),

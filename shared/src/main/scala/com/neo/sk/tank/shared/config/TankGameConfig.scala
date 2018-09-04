@@ -94,7 +94,7 @@ final case class BulletParameters(
                                    maxFlyDistance:Int,
                                    bulletSpeed:Int,
                                  ){
-  require(bulletLevelParameters.size == 3,println(s"bullet level parameter failed"))
+  require(bulletLevelParameters.size >= 3,println(s"bullet level parameter failed"))
 
   def getBulletRadius(l:Byte) = {
     bulletLevelParameters(l-1)._1
