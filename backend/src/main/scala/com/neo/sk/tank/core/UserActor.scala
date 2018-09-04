@@ -39,7 +39,7 @@ object UserActor {
   case object StartGame extends Command
 
   case class JoinRoom(uid:Long,name:String,userActor:ActorRef[UserActor.Command]) extends Command with RoomManager.Command
-  case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:Long) extends Command with RoomManager.Command
+  case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:Long,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
 
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
 
@@ -138,12 +138,12 @@ object UserActor {
           roomManager ! JoinRoom(uId,name,ctx.self)
           Behaviors.same
 
-        case JoinRoomSuccess(tank,config,uId) =>
+        case JoinRoomSuccess(tank,config,uId,roomActor) =>
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
 //          println("渲染数据")
           frontActor ! TankGameEvent.YourInfo(uId,tank.tankId, name, config)
-          switchBehavior(ctx,"play",play(uId,name,tank,frontActor))
+          switchBehavior(ctx,"play",play(uId,name,tank,frontActor,roomActor))
 
 
         case WebSocketMsg(reqOpt) =>
@@ -172,7 +172,8 @@ object UserActor {
                     uId:Long,
                     name:String,
                     tank:TankServerImpl,
-                    frontActor:ActorRef[TankGameEvent.WsMsgSource])(
+                    frontActor:ActorRef[TankGameEvent.WsMsgSource],
+                    roomActor: ActorRef[RoomActor.Command])(
                     implicit stashBuffer:StashBuffer[Command],
                     timer:TimerScheduler[Command]
                   ): Behavior[Command] =
@@ -183,7 +184,7 @@ object UserActor {
           reqOpt match {
             case Some(t:TankGameEvent.UserActionEvent) =>
               //分发数据给roomActor
-              roomManager ! RoomActor.WebSocketMsg(uId,tank.tankId,t)
+              roomActor ! RoomActor.WebSocketMsg(uId,tank.tankId,t)
             case Some(t:TankGameEvent.PingPackage) =>
               frontActor ! t
 
