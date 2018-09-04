@@ -95,7 +95,6 @@ object RoomActor {
     Behaviors.receive{(ctx,msg) =>
       msg match {
         case JoinRoom(uid,name,userActor,roomId) =>
-          println(s"join room in roomActor")
           gameContainer.joinGame(uid,name,userActor,roomId)
           //这一桢结束时会告诉所有新加入用户的tank信息以及地图全量数据
           idle((uid,userActor) :: justJoinUser, subscribersMap, gameContainer, tickCount)
@@ -107,10 +106,8 @@ object RoomActor {
         case LeftRoom(uid,tankId,name,uidSet,roomId) =>
           subscribersMap.remove(uid)
           gameContainer.leftGame(uid,name,tankId)
-          roomManager ! RoomManager.LeftRoomSuccess(uidSet,name,ctx.self,roomId)
           if(uidSet.isEmpty){
             if(roomId > 1l) {
-              ctx.unwatch(ctx.self)
               Behaviors.stopped
             }else{
               idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
@@ -119,7 +116,6 @@ object RoomActor {
             idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
           }
 
-//          idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
 
         case LeftRoomByKilled(uid,tankId,name) =>
           subscribersMap.remove(uid)
@@ -145,11 +141,10 @@ object RoomActor {
             dispatch(subscribersMap)(TankGameEvent.Ranks(gameContainer.currentRank,gameContainer.historyRank))
           }
           //分发新加入坦克的地图全量数据
-          if(justJoinUser != Nil) println(justJoinUser)
           justJoinUser.foreach(t => subscribersMap.put(t._1,t._2))
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           justJoinUser.foreach{t =>
-            println(s"+++++++++++++++++++++$gameContainerAllState")
+            log.debug(s"+++++++++++++++++++++$gameContainerAllState")
             dispatchTo(subscribersMap)(t._1,TankGameEvent.SyncGameAllState(gameContainerAllState))
           }
           val endTime = System.currentTimeMillis()

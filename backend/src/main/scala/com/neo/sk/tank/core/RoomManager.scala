@@ -22,7 +22,7 @@ import scala.util.{Failure, Success}
 
 object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
-  private val personLimit = 10
+  private val personLimit = 3
   private final val leftTime = 5.minutes
   private case object LeftRoomKey
   private val roomInUse = mutable.HashMap[Long,mutable.HashSet[Long]]()//roomId->Set(uid)
@@ -33,9 +33,7 @@ object RoomManager {
   private case class TimeOut(msg:String) extends Command
   private case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
 
-//  case class LeftRoomByKilled(uid:Long,tankId:Int,name:String) extends Command
   case class LeftRoom(uid:Long,tankId:Int,name:String) extends Command
-  case class LeftRoomSuccess(uidSet:mutable.HashSet[Long], name:String, actorRef: ActorRef[RoomActor.Command],roomId:Long) extends Command
 
   def create():Behavior[Command] = {
     Behaviors.setup[Command]{
@@ -112,13 +110,6 @@ object RoomManager {
             log.debug(s"$name remember to come back!!!$roomInUse")
           }
 
-          Behaviors.same
-
-        case LeftRoomSuccess(uidSet,name,actorRef,roomId) =>
-          if(uidSet.isEmpty){
-            log.debug(s"left room success room_$roomId",actorRef)
-            if(roomId > 1l) ctx.self ! ChildDead(s"room_$roomId",actorRef)
-          }
           Behaviors.same
 
         case LeftRoomByKilled(uid,tankId,name) =>
