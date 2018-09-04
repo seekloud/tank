@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 
 import concurrent.duration._
 import scala.collection.mutable
+import com.neo.sk.tank.Boot.roomManager
 
 /**
   * Created by hongruying on 2018/7/9
@@ -29,14 +30,14 @@ object RoomActor {
 
   sealed trait Command
 
-  case class JoinRoom(uid:Long,name:String,userActor:ActorRef[UserActor.Command]) extends Command
+  case class JoinRoom(uid:Long,name:String,userActor:ActorRef[UserActor.Command],roomId:Long) extends Command
 
-  case class WebSocketMsg(uid:Long,tankId:Int,req:TankGameEvent.UserActionEvent) extends Command
+  case class WebSocketMsg(uid:Long,tankId:Int,req:TankGameEvent.UserActionEvent) extends Command with RoomManager.Command
 
-  case class LeftRoom(uid:Long,tankId:Int,name:String) extends Command
-  case class LeftRoomByKilled(uid:Long,tankId:Int,name:String) extends Command
+  case class LeftRoom(uid:Long,tankId:Int,name:String,uidSet:mutable.HashSet[Long],roomId:Long) extends Command with RoomManager.Command
+  case class LeftRoomByKilled(uid:Long,tankId:Int,name:String) extends Command with RoomManager.Command
 
-  final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
+  final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command with RoomManager.Command
   case object GameLoop extends Command
   case class ShotgunExpire(tId:Int) extends Command
   case class TankFillABullet(tId:Int) extends Command
@@ -62,7 +63,7 @@ object RoomActor {
     stashBuffer.unstashAll(ctx,behavior)
   }
 
-  def create():Behavior[Command] ={
+  def create(roomId:Long):Behavior[Command] ={
     log.debug(s"RoomManager start...")
     Behaviors.setup[Command]{
       ctx =>
@@ -93,8 +94,8 @@ object RoomActor {
           ):Behavior[Command] = {
     Behaviors.receive{(ctx,msg) =>
       msg match {
-        case JoinRoom(uid,name,userActor) =>
-          gameContainer.joinGame(uid,name,userActor)
+        case JoinRoom(uid,name,userActor,roomId) =>
+          gameContainer.joinGame(uid,name,userActor,roomId)
           //这一桢结束时会告诉所有新加入用户的tank信息以及地图全量数据
           idle((uid,userActor) :: justJoinUser, subscribersMap, gameContainer, tickCount)
 
@@ -102,10 +103,19 @@ object RoomActor {
           gameContainer.receiveUserAction(req)
           Behaviors.same
 
-        case LeftRoom(uid,tankId,name) =>
+        case LeftRoom(uid,tankId,name,uidSet,roomId) =>
           subscribersMap.remove(uid)
           gameContainer.leftGame(uid,name,tankId)
-          idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
+          if(uidSet.isEmpty){
+            if(roomId > 1l) {
+              Behaviors.stopped
+            }else{
+              idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
+            }
+          }else{
+            idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
+          }
+
 
         case LeftRoomByKilled(uid,tankId,name) =>
           subscribersMap.remove(uid)
@@ -174,10 +184,12 @@ object RoomActor {
   }
 
   def dispatch(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(msg:TankGameEvent.WsMsgServer) = {
+//    println(s"+++++++++++++++++$msg")
     subscribers.values.foreach( _ ! UserActor.DispatchMsg(msg))
   }
 
   def dispatchTo(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(id:Long,msg:TankGameEvent.WsMsgServer) = {
+//    println(s"$id--------------$msg")
     subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(msg))
   }
 
