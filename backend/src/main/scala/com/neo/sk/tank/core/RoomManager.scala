@@ -22,7 +22,7 @@ import scala.util.{Failure, Success}
 
 object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
-  private val personLimit = 3
+  private val personLimit = 15
   private final val leftTime = 5.minutes
   private case object LeftRoomKey
   private val roomInUse = mutable.HashMap[Long,mutable.HashSet[Long]]()//roomId->Set(uid)
@@ -81,7 +81,7 @@ object RoomManager {
         case WebSocketMsg(uid,tankId,req) =>
           val roomExist = roomInUse.filter(p => p._2.exists(_ == uid))
           if(roomExist.size >= 1){
-            log.debug(s"处理前端请求，roomId:${roomExist.head._1}")
+//            log.debug(s"处理前端请求，roomId:${roomExist.head._1}")
             getRoomActor(ctx,roomExist.head._1) ! WebSocketMsg(uid,tankId,req)
           }
           Behaviors.same
@@ -122,7 +122,6 @@ object RoomManager {
     val childName = s"room_$roomId"
     ctx.child(childName).getOrElse{
       val actor = ctx.spawn(RoomActor.create(roomId),childName)
-      println(childName,actor)
       ctx.watchWith(actor,ChildDead(childName,actor))
       actor
 
