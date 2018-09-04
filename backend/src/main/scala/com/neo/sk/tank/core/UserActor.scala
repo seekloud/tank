@@ -211,7 +211,7 @@ object UserActor {
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
-          roomManager ! RoomManager.LeftRoom(uId,tank.tankId,name)
+          roomManager ! RoomManager.LeftRoom(uId,tank.tankId,name,Some(uId))
           Behaviors.stopped
 
 
