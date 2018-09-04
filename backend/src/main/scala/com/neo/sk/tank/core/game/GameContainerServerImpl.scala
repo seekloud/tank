@@ -216,8 +216,8 @@ case class GameContainerServerImpl(
         val event = TankGameEvent.UserJoinRoom(userId,name,tank.getTankState(),systemFrame)
         dispatch(event)
         addGameEvent(event)
-        roomManager ! UserActor.JoinRoomSuccess(tank,config.getTankGameConfigImpl(),ref,userId,roomId)
-//        ref ! UserActor.JoinRoomSuccess(tank, config.getTankGameConfigImpl(),userId)
+//        roomManager ! UserActor.JoinRoomSuccess(tank,config.getTankGameConfigImpl(),ref,userId,roomId)
+        ref ! UserActor.JoinRoomSuccess(tank, config.getTankGameConfigImpl(),userId)
         tankMap.put(tank.tankId,tank)
         quadTree.insert(tank)
         //无敌时间消除
