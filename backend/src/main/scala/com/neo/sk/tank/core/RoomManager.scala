@@ -23,7 +23,7 @@ import scala.util.{Failure, Success}
 object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
   private val personLimit = 15
-  private final val leftTime = 5.minutes
+  private final val leftTime = 1.minutes
   private case object LeftRoomKey
   private val roomInUse = mutable.HashMap[Long,mutable.HashSet[(Long,Boolean)]]()//roomId->Set((uid,False))uid-->等待复活
 
@@ -114,9 +114,9 @@ object RoomManager {
                       if(roomInUse(roomExist.head._1).isEmpty && roomExist.head._1 > 1l){
                         roomInUse.remove(roomExist.head._1)
                       }
-                      log.debug(s"$name remember to come back!!!$roomInUse")
+                      log.debug(s"$name $uid remember to come back!!!$roomInUse")
                     }else{
-                      log.debug(s"$name has been relive")
+                      log.debug(s"$name $uid has been relive")
                     }
                   case _ =>
                 }
@@ -127,9 +127,11 @@ object RoomManager {
         case LeftRoomByKilled(uid,tankId,name) =>
           val roomExist = roomInUse.filter(p => p._2.exists(u => u._1 == uid))
           if(roomExist.size >= 1){
+            roomExist.head._2.remove((uid,false))
+            roomExist.head._2.add((uid,true))
             getRoomActor(ctx,roomExist.head._1) ! LeftRoomByKilled(uid,tankId,name)
-            log.debug(s"I am so sorry that you $uid are killed, the timer is beginning....")
-            timer.startSingleTimer(LeftRoomKey,LeftRoom(uid,tankId,name,None),leftTime)
+            log.debug(s"I am so sorry that you $name $uid are killed, the timer is beginning....")
+            timer.startSingleTimer("room_"+roomExist.head._1+"uid"+uid,LeftRoom(uid,tankId,name,None),leftTime)
           }
           Behaviors.same
 
