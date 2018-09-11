@@ -25,6 +25,9 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
   private val riverImg = dom.document.createElement("img").asInstanceOf[html.Image]
   riverImg.setAttribute("src",s"${Routes.base}/static/img/river.png")
 
+  private val airBoxImg = dom.document.createElement("img").asInstanceOf[html.Image]
+  airBoxImg.setAttribute("src",s"${Routes.base}/static/img/道具.png")
+
 
   protected def obstacleImgComplete: Boolean = steelImg.complete && riverImg.complete
 
@@ -75,13 +78,48 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
             println(s"the obstacle=${obstacle} has not color")
             s"rgba(139 ,105, 105,1)"
         }
-        if (obstacle.bloodPercent() > 0.9999999) {
-          val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
-          val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false), generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
-          ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
-        } else {
-          drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color)
+        if(obstacle.obstacleType == ObstacleType.airDropBox){
+          if (obstacle.bloodPercent() > 0.99999999){
+            val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
+            ctx.drawImage(airBoxImg.asInstanceOf[HTMLElement], p.x * canvasUnit, p.y * canvasUnit,
+              obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit)
+          }
+          else{
+            val p1 = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
+            val p2 = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)+Point(0,(1-obstacle.bloodPercent())*obstacle.getHeight)
+            ctx.globalAlpha = 0.3
+
+            val cacheCanvas = dom.document.createElement("canvas").asInstanceOf[html.Canvas]
+            val ctxCache = cacheCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+            cacheCanvas.width = (obstacle.getWidth * canvasUnit).toInt
+            cacheCanvas.height = (obstacle.getHeight * canvasUnit).toInt
+            ctxCache.drawImage(airBoxImg,0,0,obstacle.getWidth * canvasUnit,obstacle.getHeight * canvasUnit)
+
+
+
+            ctx.drawImage(cacheCanvas, 0, 0, obstacle.getWidth * canvasUnit, obstacle.getHeight *(1-obstacle.bloodPercent())* canvasUnit,
+              p1.x * canvasUnit, p1.y * canvasUnit,
+              obstacle.getWidth * canvasUnit, obstacle.getHeight *(1-obstacle.bloodPercent())* canvasUnit)
+            ctx.globalAlpha = 1
+            ctx.drawImage(cacheCanvas, 0,(1-obstacle.bloodPercent())*obstacle.getHeight * canvasUnit ,
+              obstacle.getWidth * canvasUnit, obstacle.getHeight*obstacle.bloodPercent() * canvasUnit,
+              p2.x * canvasUnit, p2.y * canvasUnit,
+              obstacle.getWidth * canvasUnit,obstacle.getHeight *obstacle.bloodPercent()* canvasUnit)
+
+
+          }
+
+        }else{
+          if (obstacle.bloodPercent() > 0.9999999) {
+            val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
+            val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false), generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
+            ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
+          } else {
+            drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color)
+          }
         }
+
+
       }
     }
   }

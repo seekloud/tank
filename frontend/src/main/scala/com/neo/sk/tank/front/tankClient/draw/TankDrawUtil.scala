@@ -97,7 +97,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     ctx.lineCap = "butt"
     ctx.lineJoin = "miter"
     ctx.lineWidth = 5
-    ctx.strokeStyle = "grey"
+    ctx.strokeStyle = "#BEBEBE"
     ctx.moveTo(sliderPositions.last.x,sliderPositions.last.y)
     ctx.lineTo(sliderPositions.head.x,sliderPositions.head.y)
     ctx.stroke()
@@ -109,7 +109,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         ctx.strokeStyle = "red"
       }
       else{
-        ctx.strokeStyle = "black"
+        ctx.strokeStyle = "#BEBEBE"
       }
       ctx.moveTo(sliderPositions(i-1).x,sliderPositions(i-1).y)
       ctx.lineTo(sliderPositions(i).x,sliderPositions(i).y)
@@ -134,19 +134,27 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
       ctx.closePath()
       left = left + SmallBullet.width
     }
-    (tank.getCurBulletNum + 1 to tank.bulletMaxCapacity).foreach{ indedx =>
-      ctx.beginPath()
-      val smallBulletPosition = tankPosition + Point(left, -9)
-      val img = emptyBulletImg
-      ctx.drawImage(img.asInstanceOf[HTMLElement], (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
-        (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
-        SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit)
-      ctx.fill()
-      ctx.stroke()
-      ctx.closePath()
-      left = left + SmallBullet.width
-
-    }
+//    (tank.getCurBulletNum + 1 to tank.bulletMaxCapacity).foreach{ indedx =>
+//      ctx.beginPath()
+//      val smallBulletPosition = tankPosition + Point(left, -9)
+//      val img = emptyBulletImg
+//      ctx.drawImage(img.asInstanceOf[HTMLElement], (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
+//        (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
+//        SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit)
+//      ctx.fill()
+//      ctx.stroke()
+//      ctx.closePath()
+//
+//
+//
+//
+//      left = left + SmallBullet.width
+//      ctx.globalAlpha = 0.2
+//
+//
+//
+//    }
+//    ctx.globalAlpha = 1
 
   }
 
