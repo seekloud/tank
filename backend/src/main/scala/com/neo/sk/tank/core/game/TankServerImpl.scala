@@ -6,6 +6,7 @@ import com.neo.sk.tank.core.RoomActor
 import com.neo.sk.tank.shared.`object`.{Prop, Tank, TankState}
 import com.neo.sk.tank.shared.config.TankGameConfig
 import com.neo.sk.tank.shared.model
+import com.neo.sk.tank.shared.model.Point
 
 import concurrent.duration._
 
@@ -26,17 +27,19 @@ case class TankServerImpl(
                            protected var bloodLevel:Byte = 1, //血量等级
                            protected var speedLevel:Byte = 1, //移动速度等级
                            protected var bulletLevel:Byte = 1, //子弹等级
-                           protected var direction:Option[Float] = None, //移动状态
+                           protected var direction:Float = 0, //移动状态
                            protected var gunDirection:Float = 0,
                            protected var shotgunState:Boolean = false,
                            protected var invincibleState:Boolean = true,
                            var killTankNum:Int = 0,
-                           var damageStatistics:Int = 0
+                           var damageStatistics:Int = 0,
+                           var speed: Point = Point(0,0),
+                           protected var isMove: Boolean = false
                          ) extends Tank{
 
   def this(roomActor:ActorRef[RoomActor.Command], timer:TimerScheduler[RoomActor.Command],config: TankGameConfig,tankState: TankState){
     this(roomActor, timer, config,tankState.userId,tankState.tankId,tankState.name,tankState.blood,tankState.tankColorType,tankState.position,tankState.curBulletNum,
-      tankState.bloodLevel,tankState.speedLevel,tankState.bulletPowerLevel,tankState.direction,tankState.gunDirection,tankState.shotgunState,tankState.invincible,tankState.killTankNum,tankState.damageTank)
+      tankState.bloodLevel,tankState.speedLevel,tankState.bulletPowerLevel,tankState.direction,tankState.gunDirection,tankState.shotgunState,tankState.invincible,tankState.killTankNum,tankState.damageTank,tankState.speed,tankState.isMove)
   }
 
 

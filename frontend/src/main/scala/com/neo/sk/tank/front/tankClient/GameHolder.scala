@@ -11,7 +11,8 @@ import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html.Canvas
-import org.scalajs.dom.raw.{Event, MouseEvent}
+import org.scalajs.dom.raw.{Event, HTMLElement, MouseEvent}
+import org.scalajs.dom
 
 import scala.collection.mutable
 import scala.xml.Elem
@@ -201,6 +202,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
         dom.window.cancelAnimationFrame(nextFrame)
         Shortcut.cancelSchedule(timer)
         drawGameStop()
+        dom.document.getElementById("TankGameNameInput").asInstanceOf[HTMLElement].focus()
     }
   }
 

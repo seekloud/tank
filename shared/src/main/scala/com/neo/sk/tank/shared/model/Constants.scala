@@ -61,4 +61,13 @@ object Constants {
     val tankDestroyAnimationFrame = 12
   }
 
+  object PropAnimation{
+    val DisAniFrame1 = 30
+    val DisplayF1 = 6
+    val DisappearF1 = 2
+    val DisAniFrame2 = 10
+    val DisplayF2 = 1
+    val DisappearF2 = 1
+  }
+
 }

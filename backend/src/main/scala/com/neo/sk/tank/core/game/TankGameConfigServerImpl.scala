@@ -4,6 +4,7 @@ import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.config._
 import com.typesafe.config.Config
 import akka.util.Helpers
+import com.neo.sk.tank.shared.model.Constants.PropAnimation
 
 import scala.concurrent.duration._
 
@@ -38,6 +39,9 @@ final case class TankGameConfigServerImpl(
 
   private[this] val obstacleWidthData = config.getDouble("tankGame.obstacle.width")
     .requiring(_ > 0,"minimum supported obstacle width is 1").toFloat
+  private[this] val collisionWOffset = config.getDouble("tankGame.obstacle.collisionWidthOffset")
+    .requiring(_ > 0,"minimum supported obstacle width is 1").toFloat
+
 
   private[this] val airDropBloodData = config.getInt("tankGame.obstacle.airDrop.blood")
     .requiring(_ > 0,"minimum supported air drop blood is 1")
@@ -69,7 +73,7 @@ final case class TankGameConfigServerImpl(
 
 
 
-  private val obstacleParameters = ObstacleParameters(obstacleWidthData,
+  private val obstacleParameters = ObstacleParameters(obstacleWidthData,collisionWOffset,
     airDropParameters = AirDropParameters(airDropBloodData,airDropNumData),
     brickParameters = BrickParameters(brickBloodData,brickNumData),
     riverParameters = RiverParameters(riverTypePostion),
@@ -82,12 +86,20 @@ final case class TankGameConfigServerImpl(
     .requiring(_ > 0,"minimum supported prop medicalBlood is 1")
   private[this] val shotgunDurationData = config.getInt("tankGame.prop.shotgunDuration")
     .requiring(_ > 0,"minimum supported prop shotgun duration 1 ms")
-  private val propParameters = PropParameters(propRadiusData,propMedicalBloodData, shotgunDurationData)
+  private[this] val disappearTime = config.getInt("tankGame.prop.disappearTime")
+    .requiring(_ > PropAnimation.DisAniFrame1 * gameFameDuration,s"minimum supported prop disappearTime PropAnimation.DisAniFrame1 * frameDuration=${PropAnimation.DisAniFrame1 * frameDuration} ms")
+
+  private val propParameters = PropParameters(propRadiusData,propMedicalBloodData, shotgunDurationData,disappearTime)
 
 
   private[this] val tankSpeedLevel = config.getIntList("tankGame.tank.tankSpeedLevel")
     .requiring(_.size() >= 3,"minimum supported tank speed size is 3").asScala.map(_.toInt).toList
-//  private[this] val tankSpeedFirst = config.getInt("tankGame.tank.tankSpeed.first")
+  private[this] val accelerationTime = config.getIntList("tankGame.tank.accelerationTime")
+    .requiring(_.size() >= 3,"minimum supported tank acceleration time size is 3").asScala.map(_.toInt).toList
+  private[this] val decelerationTime = config.getIntList("tankGame.tank.decelerationTime")
+    .requiring(_.size() >= 3,"minimum supported tank deceleration time size is 3").asScala.map(_.toInt).toList
+
+  //  private[this] val tankSpeedFirst = config.getInt("tankGame.tank.tankSpeed.first")
 //    .requiring(_ > 0,"minimum supported tank first speed is 1")
 //  private[this] val tankSpeedSecond = config.getInt("tankGame.tank.tankSpeed.second")
 //    .requiring(_ > tankSpeedFirst,"minimum supported tank second speed is tankSpeedFirst+1")
@@ -107,7 +119,7 @@ final case class TankGameConfigServerImpl(
     .requiring(_ > 0,"minimum supported tank fill bullet duration is 1s")
   private[this] val tankInvincibleDuration = config.getInt("tankGame.tank.initInvincibleDuration")
     .requiring(_ > 0,"minimum supported tank invincible duration is 1s")
-  private val tankParameters = TankParameters(TankMoveSpeed(tankSpeedLevel),tankBloodLevel,
+  private val tankParameters = TankParameters(TankMoveSpeed(tankSpeedLevel,accelerationTime,decelerationTime),tankBloodLevel,
     tankRadiusData,tankGunWidthData,tankGunHeightData,tankMaxBulletCapacity,tankFillBulletDuration,tankInvincibleDuration)
 
   private val tankGameConfig = TankGameConfigImpl(gridBoundary,gameFameDuration,bulletParameters,obstacleParameters,propParameters,tankParameters)
@@ -168,6 +180,12 @@ final case class TankGameConfigServerImpl(
   def getTankBloodMaxLevel():Byte = tankGameConfig.getTankBloodMaxLevel()
 
   def getBulletMaxLevel():Byte = tankGameConfig.getBulletMaxLevel()
+
+  def getTankAccByLevel(l: Byte): Int = tankGameConfig.getTankAccByLevel(l)
+  def getTankDecByLevel(l: Byte): Int = tankGameConfig.getTankDecByLevel(l)
+  def obstacleWO: Float = tankGameConfig.obstacleWO
+
+  def getPropDisappearFrame: Short = tankGameConfig.getPropDisappearFrame
 
 
 

@@ -2,7 +2,7 @@ package com.neo.sk.tank.front.tankClient.draw
 
 import com.neo.sk.tank.front.common.Routes
 import com.neo.sk.tank.front.tankClient.GameContainerClientImpl
-import com.neo.sk.tank.shared.model.Constants.GameAnimation
+import com.neo.sk.tank.shared.model.Constants.{GameAnimation, PropAnimation}
 import com.neo.sk.tank.shared.model.Point
 import org.scalajs.dom
 import org.scalajs.dom.raw.HTMLElement
@@ -40,8 +40,23 @@ trait PropDrawUtil {
           case 5 => shotgunPropImg
         }
 
-        ctx.drawImage(img.asInstanceOf[HTMLElement], (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
-          prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit)
+        if(prop.getDisappearTime < PropAnimation.DisAniFrame2){
+          val mod = prop.getDisappearTime % (PropAnimation.DisappearF2 + PropAnimation.DisplayF2) + 1
+          if(mod <= PropAnimation.DisplayF2){
+            ctx.drawImage(img.asInstanceOf[HTMLElement], (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
+              prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit)
+          }
+        } else if(prop.getDisappearTime < PropAnimation.DisAniFrame1){
+          val mod = prop.getDisappearTime % (PropAnimation.DisappearF1 + PropAnimation.DisplayF1) + 1
+          if(mod <= PropAnimation.DisplayF1){
+            ctx.drawImage(img.asInstanceOf[HTMLElement], (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
+              prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit)
+          }
+        }else{
+          ctx.drawImage(img.asInstanceOf[HTMLElement], (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
+            prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit)
+        }
+
         if (tankDestroyAnimationMap.contains(prop.pId)) {
           if (tankDestroyAnimationMap(prop.pId) > GameAnimation.tankDestroyAnimationFrame * 2 / 3) {
             ctx.drawImage(boomImg.asInstanceOf[HTMLElement], (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit, prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit)

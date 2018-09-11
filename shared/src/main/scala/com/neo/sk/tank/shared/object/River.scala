@@ -22,6 +22,7 @@ case class River(
   override val obstacleType = ObstacleType.river
   override protected val height: Float = config.obstacleWidth
   override protected val width: Float = config.obstacleWidth
+  override protected val collisionOffset: Float = config.obstacleWO
 
   override def getObstacleState():ObstacleState = ObstacleState(oId,obstacleType,None,position)
 

@@ -3,6 +3,8 @@ package com.neo.sk.tank.front.components
 import com.neo.sk.tank.front.common.{Component, Constants}
 import mhtml.Var
 import org.scalajs.dom
+import org.scalajs.dom.ext.KeyCode
+import org.scalajs.dom.{Event, KeyboardEvent}
 import org.scalajs.dom.raw.MouseEvent
 
 import scala.xml.Elem
@@ -25,7 +27,18 @@ class StartGameModal(gameState:Var[Int],startGame:(String) => Unit) extends Comp
     case _ => "display:block;"
   }
 
-  private val inputElem = <input id ="TankGameNameInput"></input>
+  private val inputElem = <input id ="TankGameNameInput" onkeydown ={e:KeyboardEvent => clickEnter(e)}></input>
+
+  def clickEnter(e:KeyboardEvent):Unit = {
+    if(e.keyCode == KeyCode.Enter){
+      val name = dom.document.getElementById("TankGameNameInput").asInstanceOf[dom.html.Input].value
+      if(name.nonEmpty){
+        startGame(name)
+      }
+      e.preventDefault()
+    }
+
+  }
 
 
   def clickEnter():Unit = {
@@ -37,7 +50,7 @@ class StartGameModal(gameState:Var[Int],startGame:(String) => Unit) extends Comp
 
   override def render: Elem = {
     <div style={divStyle}>
-      <div class ="input_mask">
+      <div class ="input_mask" onkeydown ={e:KeyboardEvent => clickEnter(e)}>
       </div>
       <div class ="input_div">
         <div class ="input_title">{title}</div>
