@@ -391,6 +391,15 @@ trait GameContainer extends KillInformation{
     }
   }
 
+  final protected def handlePropLifecycleNow() = {
+    propMap.values.foreach{ prop =>
+      if(!prop.updateLifecycle()){
+        quadTree.remove(prop)
+        propMap.remove(prop.pId)
+      }
+    }
+  }
+
   //更新本桢的操作
   def update():Unit = {
     handleUserLeftRoomNow()
@@ -405,6 +414,8 @@ trait GameContainer extends KillInformation{
     handleTankShotgunExpireNow()
 
     handleTankEatPropNow()
+
+    handlePropLifecycleNow()
 
     handleGenerateObstacleNow()
     handleGeneratePropNow()

@@ -13,9 +13,14 @@ trait RectangleObjectOfGame extends ObjectOfGame{
 
   protected val width : Float
   protected val height : Float
+  protected val collisionOffset: Float
 
   final def getWidth = width
   final def getHeight = height
+
+  private[this] def collisionWidth = width - collisionOffset
+  private[this] def collisionHeight = height - collisionOffset
+
 
 
   /**
@@ -47,16 +52,16 @@ trait RectangleObjectOfGame extends ObjectOfGame{
   }
 
   private def isIntersects(o: CircleObjectOfGame): Boolean = {
-    val topLeft = position - model.Point(width / 2, height / 2)
-    val downRight = position + model.Point(width / 2, height / 2)
+    val topLeft = position - model.Point(collisionWidth / 2, collisionHeight / 2)
+    val downRight = position + model.Point(collisionWidth / 2, collisionHeight / 2)
     if(o.getPosition > topLeft && o.getPosition < downRight){
       true
     }else{
       val relativeCircleCenter:Point = o.getPosition - position
-      val dx = math.min(relativeCircleCenter.x, width / 2)
-      val dx1 = math.max(dx, - width / 2)
-      val dy = math.min(relativeCircleCenter.y, height / 2)
-      val dy1 = math.max(dy, - height / 2)
+      val dx = math.min(relativeCircleCenter.x, collisionWidth / 2)
+      val dx1 = math.max(dx, - collisionHeight / 2)
+      val dy = math.min(relativeCircleCenter.y, collisionHeight / 2)
+      val dy1 = math.max(dy, - collisionHeight / 2)
       Point(dx1,dy1).distance(relativeCircleCenter) < o.radius
     }
   }

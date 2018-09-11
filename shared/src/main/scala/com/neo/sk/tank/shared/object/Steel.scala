@@ -20,6 +20,7 @@ case class Steel(
   override val obstacleType = ObstacleType.steel
   override protected val height: Float = config.obstacleWidth
   override protected val width: Float = config.obstacleWidth
+  override protected val collisionOffset: Float = config.obstacleWO
 
   override def getObstacleState():ObstacleState = ObstacleState(oId,obstacleType,None,position)
 

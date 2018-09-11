@@ -22,6 +22,8 @@ case class AirDropBox(
   override val obstacleType = ObstacleType.airDropBox
   override protected val height: Float = config.obstacleWidth
   override protected val width: Float = config.obstacleWidth
+  override protected val collisionOffset: Float = config.obstacleWO
+
 
 
   val maxBlood : Int = config.airDropBlood

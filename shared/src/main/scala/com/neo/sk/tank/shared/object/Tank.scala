@@ -13,8 +13,8 @@ import com.neo.sk.tank.shared.util.QuadTree
   * Created by hongruying on 2018/8/22
   */
 
-case class TankState(userId:Long,tankId:Int,direction:Option[Float],gunDirection:Float,blood:Int,bloodLevel:Byte,speedLevel:Byte,curBulletNum:Int,position:Point,bulletPowerLevel:Byte,tankColorType:Byte,
-                     name:String,killTankNum:Int,damageTank:Int,invincible:Boolean,shotgunState:Boolean)
+case class TankState(userId:Long,tankId:Int,direction:Float,gunDirection:Float,blood:Int,bloodLevel:Byte,speedLevel:Byte,curBulletNum:Int,position:Point,bulletPowerLevel:Byte,tankColorType:Byte,
+                     name:String,killTankNum:Int,damageTank:Int,invincible:Boolean,shotgunState:Boolean, speed: Point, isMove: Boolean)
 trait Tank extends CircleObjectOfGame with ObstacleTank{
   val userId : Long
   val tankId : Int
@@ -31,13 +31,18 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   protected var bulletLevel:Byte //子弹等级
 
   protected var curBulletNum:Int
-  protected var direction:Option[Float] //移动状态
+  protected var direction:Float //移动方向
   protected var gunDirection:Float
 
   protected var shotgunState:Boolean
   protected var invincibleState:Boolean
+  protected var isMove: Boolean
 
   private var isFillBulletState:Boolean = false
+
+  var speed: Point
+  private def accelerationTime(implicit config: TankGameConfig) = config.getTankAccByLevel(speedLevel)
+  private def decelerationTime(implicit config: TankGameConfig) = config.getTankDecByLevel(speedLevel)
 
   def getShotGunState():Boolean = shotgunState
 
@@ -80,7 +85,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
 
   // 获取坦克状态
   def getTankState():TankState = {
-    TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position,bulletLevel,tankColorType,name,killTankNum,damageStatistics,invincibleState,shotgunState)
+    TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position,bulletLevel,tankColorType,name,killTankNum,damageStatistics,invincibleState,shotgunState,speed,isMove)
   }
 
   //  开始填充炮弹
@@ -119,37 +124,158 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
     }
   }
 
-  // 根据方向和地图边界以及地图所有的障碍物和坦克（不包括子弹）进行碰撞检测和移动
-  def move(boundary: Point,quadTree: QuadTree)(implicit tankGameConfig: TankGameConfig):Unit = {
-    if(this.direction.nonEmpty){
-      val originPosition = this.position
-      this.position = this.position + tankGameConfig.getMoveDistanceByFrame(speedLevel).rotate(this.direction.get)
-      val movedRec = Rectangle(this.position-Point(radius,radius),this.position+Point(radius,radius))
-      val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+//  def getAcceleration(implicit tankGameConfig: TankGameConfig):Float = {
+//    if (isMove){
+//      tankGameConfig.getMoveDistanceByFrame(speedLevel).distance(Point(0,0)).toFloat / (accelerationTime / tankGameConfig.frameDuration)
+//    } else{
+//      - tankGameConfig.getMoveDistanceByFrame(speedLevel).distance(Point(0,0)).toFloat / (decelerationTime / tankGameConfig.frameDuration)
+//    }
+//  }
 
-      if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
-        quadTree.updateObject(this)
-      }else{
-        this.position = originPosition
-      }
-    }
+  def getAcceleration(implicit tankGameConfig: TankGameConfig):Point =
+    tankGameConfig.getMoveDistanceByFrame(speedLevel) / (accelerationTime / tankGameConfig.frameDuration)
+
+
+  def getDeceleration(v:Float)(implicit tankGameConfig: TankGameConfig):Point ={
+    val d = if(v > 0) -1 else 1
+    tankGameConfig.getMoveDistanceByFrame(speedLevel) / ( d * decelerationTime / tankGameConfig.frameDuration)
   }
 
-  def canMove(boundary:Point,quadTree:QuadTree)(implicit tankGameConfig: TankGameConfig):Boolean = {
-    if(direction.nonEmpty){
+
+
+
+  // 根据方向和地图边界以及地图所有的障碍物和坦克（不包括子弹）进行碰撞检测和移动
+  def move(boundary: Point,quadTree: QuadTree)(implicit tankGameConfig: TankGameConfig):Unit = {
+    def modifySpeed(): Unit = {
+      val targetSpeed = if(isMove){
+        tankGameConfig.getMoveDistanceByFrame(speedLevel).rotate(this.direction)
+      }else Point(0,0)
+//      println(s"target:${targetSpeed}")
+
+      targetSpeed.x * speed.x match {
+        case x:Float if math.abs(x) <= 1e-5 =>
+          if(math.abs(targetSpeed.x) <= 1e-5){
+            val vx = getDeceleration(speed.x).x + speed.x
+            if(speed.x * vx > 0) speed = speed.copy(x = vx)
+            else speed = speed.copy(x = 0)
+          }else{
+            val vx = getAcceleration.rotate(this.direction).x + speed.x
+            if(math.abs(vx) < math.abs(targetSpeed.x)) speed = speed.copy(x = vx)
+            else speed = speed.copy(x = targetSpeed.x)
+          }
+        case x:Float if x > 0 =>
+          if(math.abs(targetSpeed.x) >= math.abs(speed.x)){
+            val vx = getAcceleration.rotate(this.direction).x + speed.x
+            if(math.abs(vx) < math.abs(targetSpeed.x)) speed = speed.copy(x = vx)
+            else speed = speed.copy(x = targetSpeed.x)
+          }else{
+            val vx = getDeceleration(speed.x).x + speed.x
+            if(math.abs(vx) > math.abs(targetSpeed.x)) speed = speed.copy(x = vx)
+            else speed = speed.copy(x = targetSpeed.x)
+          }
+        case x:Float if x < 0 =>
+          val vx = getAcceleration.rotate(this.direction).x + getDeceleration(speed.x).x + speed.x
+          speed = speed.copy(x = vx)
+      }
+
+
+      targetSpeed.y * speed.y match {
+        case x:Float if math.abs(x) <= 1e-5 =>
+          if(math.abs(targetSpeed.y) <= 1e-5){
+            val vy = getDeceleration(speed.y).x + speed.y
+//            println(s"sssssssss${vy}")
+            if(speed.y * vy > 0) speed = speed.copy(y = vy)
+            else speed = speed.copy(y = 0)
+          }else{
+            val vy = getAcceleration.rotate(this.direction).y + speed.y
+            if(math.abs(vy) < math.abs(targetSpeed.y)) speed = speed.copy(y = vy)
+            else speed = speed.copy(y = targetSpeed.y)
+          }
+        case x:Float if x > 0 =>
+          if(math.abs(targetSpeed.y) >= math.abs(speed.y)){
+            val vy = getAcceleration.rotate(this.direction).y + speed.y
+//            println(s"targert${math.abs(targetSpeed.y)} , spped by=${math.abs(vy)}")
+            if(math.abs(vy) < math.abs(targetSpeed.y)) speed = speed.copy(y = vy)
+            else speed = speed.copy(y = targetSpeed.y)
+          }else{
+            val vy = getDeceleration(speed.y).x + speed.y
+            if(math.abs(vy) > math.abs(targetSpeed.y)) speed = speed.copy(y = vy)
+            else speed = speed.copy(y = targetSpeed.y)
+          }
+        case x:Float if x < 0 =>
+          val vy = getAcceleration.rotate(this.direction).y + getDeceleration(speed.y).x + speed.y
+          speed = speed.copy(y = vy)
+      }
+      //    speed += acceleration
+      //    if(speed > maxSpeed) speed = maxSpeed
+      //    if(speed < 0) speed = 0
+    }
+
+    if(isMove){
+      val moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
+      val horizontalDistance = moveDistance.copy(y = 0)
+      val verticalDistance = moveDistance.copy(x = 0)
+      List(horizontalDistance,verticalDistance).foreach{ d =>
+        if(d.x != 0 || d.y != 0){
+          val originPosition = this.position
+          this.position = this.position + d
+          val movedRec = Rectangle(this.position-Point(radius,radius),this.position+Point(radius,radius))
+          val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+          if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
+            quadTree.updateObject(this)
+          }else{
+            this.position = originPosition
+          }
+        }
+      }
+
+    }
+//    val maxSpeed = tankGameConfig.getMoveDistanceByFrame(speedLevel).distance(Point(0,0)).toFloat
+//    val acceleration = getAcceleration
+//    speed += acceleration
+//    if(speed > maxSpeed) speed = maxSpeed
+//    if(speed < 0) speed = 0
+//    modifySpeed()
+  }
+
+  def canMove(boundary:Point,quadTree:QuadTree)(implicit tankGameConfig: TankGameConfig):Option[Point] = {
+    if(isMove){
+      var moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
+      val horizontalDistance = moveDistance.copy(y = 0)
+      val verticalDistance = moveDistance.copy(x = 0)
+
       val originPosition = this.position
-      this.position = this.position + tankGameConfig.getMoveDistanceByFrame(speedLevel).rotate(this.direction.get)
-      val movedRec = Rectangle(this.position - Point(radius, radius), this.position + Point(radius, radius))
-      val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
-      val result = if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
-        true
-      }else{
-        false
+
+      List(horizontalDistance,verticalDistance).foreach{ d =>
+        if(d.x != 0 || d.y != 0){
+          val pos = this.position
+          this.position = this.position + d
+          val movedRec = Rectangle(this.position-Point(radius,radius),this.position+Point(radius,radius))
+          val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+          if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
+            quadTree.updateObject(this)
+          }else{
+            this.position = pos
+            moveDistance -= d
+          }
+        }
       }
       this.position = originPosition
-      result
+      Some(moveDistance)
+
+
+//      this.position = this.position + tankGameConfig.getMoveDistanceByFrame(speedLevel).rotate(this.direction.get)
+//      val movedRec = Rectangle(this.position - Point(radius, radius), this.position + Point(radius, radius))
+//      val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+//      val result = if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
+//        true
+//      }else{
+//        false
+//      }
+//
+//      result
     }else{
-      false
+      None
     }
   }
 
@@ -190,7 +316,12 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
     * 根据坦克的按键修改坦克的方向状态
     * */
   final def setTankDirection(actionSet:Set[Int]) = {
-    direction = getDirection(actionSet)
+    val targetDirectionOpt = getDirection(actionSet)
+    if(targetDirectionOpt.nonEmpty) {
+      isMove = true
+      this.direction = targetDirectionOpt.get
+    }
+    else isMove = false
   }
 
   private final def getDirection(actionSet:Set[Int]):Option[Float] = {
@@ -227,17 +358,20 @@ case class TankImpl(
                    protected var bloodLevel:Byte = 1, //血量等级
                    protected var speedLevel:Byte = 1, //移动速度等级
                    protected var bulletLevel:Byte = 1, //子弹等级
-                   protected var direction:Option[Float] = None, //移动状态
+                   protected var direction:Float = 0, //移动状态
                    protected var gunDirection:Float = 0,
                    protected var shotgunState:Boolean = false,
                    protected var invincibleState:Boolean = true,
                    var killTankNum:Int = 0,
-                   var damageStatistics:Int = 0
+                   var damageStatistics:Int = 0,
+                   var speed: Point,
+                   protected var isMove: Boolean
                    ) extends Tank{
 
   def this(config: TankGameConfig,tankState: TankState){
     this(config,tankState.userId,tankState.tankId,tankState.name,tankState.blood,tankState.tankColorType,tankState.position,tankState.curBulletNum,
-      tankState.bloodLevel,tankState.speedLevel,tankState.bulletPowerLevel,tankState.direction,tankState.gunDirection,tankState.shotgunState,tankState.invincible,tankState.killTankNum,tankState.damageTank)
+      tankState.bloodLevel,tankState.speedLevel,tankState.bulletPowerLevel,tankState.direction,tankState.gunDirection,tankState.shotgunState,tankState.invincible,tankState.killTankNum,tankState.damageTank,
+      tankState.speed,tankState.isMove)
   }
 
 
@@ -250,8 +384,9 @@ case class TankImpl(
 
 
   def getPosition4Animation(boundary:Point, quadTree: QuadTree ,offSetTime:Long):Point = {
-    if(this.canMove(boundary,quadTree)(config)){
-      this.position + config.getMoveDistanceByFrame(speedLevel).rotate(this.direction.get) / config.frameDuration * offSetTime //移动的距离
+    val logicMoveDistanceOpt = this.canMove(boundary,quadTree)(config)
+    if(logicMoveDistanceOpt.nonEmpty){
+      this.position + logicMoveDistanceOpt.get / config.frameDuration * offSetTime //移动的距离
     }else position
   }
 

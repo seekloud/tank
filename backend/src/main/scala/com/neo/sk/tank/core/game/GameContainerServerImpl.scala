@@ -99,7 +99,7 @@ case class GameContainerServerImpl(
       case 4 => 4
       case _ => 5
     }
-    val event = TankGameEvent.GenerateProp(systemFrame,PropState(propIdGenerator.getAndIncrement(), propType, tank.getPosition),PropGenerateType.tank)
+    val event = TankGameEvent.GenerateProp(systemFrame,PropState(propIdGenerator.getAndIncrement(), propType, tank.getPosition, config.getPropDisappearFrame),PropGenerateType.tank)
     dispatch(event)
     addGameEvent(event)
   }
@@ -184,7 +184,7 @@ case class GameContainerServerImpl(
 
 
   private def generatePropEvent(pType:Byte, position:Point, propGenerateType: Byte) = {
-    val propState = PropState(propIdGenerator.getAndIncrement(),pType,position)
+    val propState = PropState(propIdGenerator.getAndIncrement(),pType,position, config.getPropDisappearFrame)
     val event = TankGameEvent.GenerateProp(systemFrame,propState,propGenerateType)
     dispatch(event)
     addGameEvent(event)
