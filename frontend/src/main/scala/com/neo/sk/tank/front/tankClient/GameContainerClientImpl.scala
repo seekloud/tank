@@ -103,6 +103,7 @@ case class GameContainerClientImpl(
           drawProps(offset,Point(w,h))
           drawBullet(offset,offsetTime, Point(w,h))
           drawTank(offset,offsetTime,Point(w,h))
+          drawObstacleBloodSlider(offset)
           drawMyTankInfo(tank.asInstanceOf[TankImpl])
           drawMinimap(tank)
           drawRank()
