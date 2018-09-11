@@ -45,29 +45,32 @@ trait Background{ this:GameContainerClientImpl =>
 
 
   private def generateBackgroundCanvas():html.Canvas = {
+    val blackBackground = "rgba(0, 0, 0 ,0.05)"
     val cacheCanvas = dom.document.createElement("canvas").asInstanceOf[html.Canvas]
     val ctxCache = cacheCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-    cacheCanvas.width = (boundary.x * canvasUnit).toInt
-    cacheCanvas.height = (boundary.y * canvasUnit).toInt
-    clearScreen("#FCFCFC",1, boundary.x, boundary.y, ctxCache)
+    cacheCanvas.width = ((boundary.x + canvasBoundary.x) * canvasUnit).toInt
+    cacheCanvas.height = ((boundary.y + canvasBoundary.y) * canvasUnit).toInt
+    clearScreen("#BEBEBE", 1, boundary.x + canvasBoundary.x, boundary.y + canvasBoundary.y, ctxCache)
+    clearScreen("#E8E8E8",1, boundary.x, boundary.y, ctxCache, canvasBoundary / 2)
+
     ctxCache.lineWidth = 1
-    ctxCache.fillStyle = Color.Black.toString()
-    ctxCache.strokeStyle = Color.Black.toString()
-    for(i <- 0 to(boundary.x.toInt,3)){
-      drawLine(Point(i,0), Point(i, boundary.y), ctxCache)
+//    ctxCache.fillStyle = blackBackground
+    ctxCache.strokeStyle = blackBackground
+    for(i <- 0  to((boundary.x + canvasBoundary.x).toInt,2)){
+      drawLine(Point(i,0), Point(i, boundary.y + canvasBoundary.y), ctxCache)
     }
 
-    for(i <- 0 to(boundary.y.toInt,3)){
-      drawLine(Point(0,i), Point(boundary.x, i), ctxCache)
+    for(i <- 0  to((boundary.y + canvasBoundary.y).toInt,2)){
+      drawLine(Point(0 ,i), Point(boundary.x + canvasBoundary.x, i), ctxCache)
     }
     cacheCanvas
   }
 
 
-  private def clearScreen(color:String, alpha:Double, width:Float = canvasBoundary.x, height:Float = canvasBoundary.y, context:dom.CanvasRenderingContext2D = ctx):Unit = {
+  private def clearScreen(color:String, alpha:Double, width:Float = canvasBoundary.x, height:Float = canvasBoundary.y, context:dom.CanvasRenderingContext2D = ctx , start:Point = Point(0,0)):Unit = {
     context.fillStyle = color
     context.globalAlpha = alpha
-    context.fillRect(0, 0, width * this.canvasUnit, height * this.canvasUnit)
+    context.fillRect(start.x * canvasUnit, start.y * canvasUnit,  width * this.canvasUnit, height * this.canvasUnit)
     context.globalAlpha = 1
   }
 
@@ -94,8 +97,8 @@ trait Background{ this:GameContainerClientImpl =>
 //      drawLine(Point(0,i) + offset, Point(boundary.x, i) + offset)
 //    }
     val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background",generateBackgroundCanvas())
-    ctx.drawImage(cacheCanvas,-offset.x * canvasUnit,-offset.y * canvasUnit,
-      canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit, 0, 0,
+    ctx.drawImage(cacheCanvas,(-offset.x + canvasBoundary.x/2) * canvasUnit,( -offset.y+canvasBoundary.y/2 )* canvasUnit,
+      canvasBoundary.x * canvasUnit,canvasBoundary.y * canvasUnit, 0, 0,
       canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
   }
 
