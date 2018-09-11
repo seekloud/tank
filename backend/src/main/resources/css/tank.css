@@ -53,3 +53,8 @@
     margin-top: 20px;
 }
 
+#GameView {
+    cursor: url(/tank/static/img/瞄准.png),auto;
+
+}
+

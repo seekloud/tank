@@ -108,7 +108,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
   private def addUserActionListenEvent():Unit = {
     canvas.focus()
     canvas.onmousemove = { e: dom.MouseEvent =>
-      val point = Point(e.clientX.toFloat, e.clientY.toFloat)
+      val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(16,16)
       val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
       if (gameContainerOpt.nonEmpty && gameState == Constants.GameState.play) {
         if(math.abs(theta - lastMouseMoveTheta) >= mouseMoveThreshold){
