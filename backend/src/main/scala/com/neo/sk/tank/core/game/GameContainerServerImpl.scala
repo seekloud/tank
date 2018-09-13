@@ -249,6 +249,7 @@ case class GameContainerServerImpl(
       case a:TankGameEvent.UserMouseClick => a.copy(frame = f)
       case a:TankGameEvent.UserPressKeyDown => a.copy(frame = f)
       case a:TankGameEvent.UserPressKeyUp => a.copy(frame = f)
+      case a:TankGameEvent.UserKeyboardMove => a.copy(frame = f)
     }
 
     addUserAction(action)
