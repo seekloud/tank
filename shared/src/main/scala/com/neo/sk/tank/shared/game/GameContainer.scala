@@ -131,6 +131,7 @@ trait GameContainer extends KillInformation{
               tankMoveSet.remove(a.keyCodeUp)
               tankMoveAction.put(a.tankId,tankMoveSet)
               tank.setTankDirection(tankMoveSet.toSet)
+            case a:UserKeyboardMove => tank.setTankKeyBoardDirection(a.angle)
           }
         case None => info(s"tankId=${action.tankId} action=${action} is no valid,because the tank is not exist")
       }

@@ -52,6 +52,11 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
     gunDirection = d
   }
 
+  def setTankKeyBoardDirection(angle:Float) ={
+    gunDirection += angle
+
+  }
+
   def setTankGunDirectionByOffset(o:Float) = {
     gunDirection += o
   }
