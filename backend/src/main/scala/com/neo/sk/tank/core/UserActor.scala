@@ -79,7 +79,7 @@ object UserActor {
         failureMatcher = {
           case TankGameEvent.FailMsgServer(e)  ⇒ e
         },
-        bufferSize = 64,
+        bufferSize = 128,
         overflowStrategy = OverflowStrategy.dropHead
       ).mapMaterializedValue(outActor => actor ! UserFrontActor(outActor))
     Flow.fromSinkAndSource(in, out)
