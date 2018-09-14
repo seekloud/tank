@@ -100,7 +100,7 @@ object UserManager {
       .map {
         case t:TankGameEvent.WsMsgServer =>
 
-          val sendBuffer = new MiddleBufferInJvm(4096)
+          val sendBuffer = new MiddleBufferInJvm(8192)
           BinaryMessage.Strict(ByteString(t.fillMiddleBuffer(sendBuffer).result()))
 
         case x =>
