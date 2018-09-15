@@ -15,7 +15,6 @@ import concurrent.duration._
 import scala.concurrent.Future
 import concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.FiniteDuration
-import com.neo.sk.tank.shared.ptcl.protocol.WsProtocol
 import shapeless.labelled.FieldType
 import shapeless.{::, HList, LabelledGeneric, Lazy, Witness}
 

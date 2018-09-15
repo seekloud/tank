@@ -98,10 +98,8 @@ object UserManager {
           }
       }.via(UserActor.flow(userActor))
       .map {
-        case t:TankGameEvent.WsMsgServer =>
-
-          val sendBuffer = new MiddleBufferInJvm(8192)
-          BinaryMessage.Strict(ByteString(t.fillMiddleBuffer(sendBuffer).result()))
+        case t:TankGameEvent.Wrap =>
+          BinaryMessage.Strict(ByteString(t.ws))
 
         case x =>
           TextMessage.apply("")

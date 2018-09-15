@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 import concurrent.duration._
 import scala.collection.mutable
 import com.neo.sk.tank.Boot.roomManager
+import org.seekloud.byteobject.MiddleBufferInJvm
 
 /**
   * Created by hongruying on 2018/7/9
@@ -27,7 +28,7 @@ object RoomActor {
   private final val InitTime = Some(5.minutes)
   private final case object BehaviorChangeKey
   private final case object GameLoopKey
-
+  private val sendBuffer = new MiddleBufferInJvm(8192)
   sealed trait Command
 
   case class JoinRoom(uid:Long,name:String,userActor:ActorRef[UserActor.Command],roomId:Long) extends Command
@@ -181,15 +182,20 @@ object RoomActor {
     }
 
   }
+  import scala.language.implicitConversions
+  import org.seekloud.byteobject.ByteObject._
 
   def dispatch(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(msg:TankGameEvent.WsMsgServer) = {
 //    println(s"+++++++++++++++++$msg")
-    subscribers.values.foreach( _ ! UserActor.DispatchMsg(msg))
+    val isKillMsg = msg.isInstanceOf[TankGameEvent.YouAreKilled]
+    subscribers.values.foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
   }
 
   def dispatchTo(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(id:Long,msg:TankGameEvent.WsMsgServer) = {
 //    println(s"$id--------------$msg")
-    subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(msg))
+
+    val isKillMsg = msg.isInstanceOf[TankGameEvent.YouAreKilled]
+    subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
   }
 
 

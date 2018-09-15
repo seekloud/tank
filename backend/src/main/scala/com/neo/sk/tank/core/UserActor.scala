@@ -6,6 +6,7 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
+import org.seekloud.byteobject.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
 //import com.neo.sk.tank.Boot.roomActor
 import com.neo.sk.tank.Boot.roomManager
@@ -14,6 +15,8 @@ import com.neo.sk.tank.shared.config.TankGameConfigImpl
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 
 import scala.concurrent.duration._
+import scala.language.implicitConversions
+import org.seekloud.byteobject.ByteObject._
 /**
   * Created by hongruying on 2018/7/9
   *
@@ -124,6 +127,7 @@ object UserActor {
     }
 
 
+
   private def idle(uId:Long,name:String,frontActor:ActorRef[TankGameEvent.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command]
@@ -142,7 +146,8 @@ object UserActor {
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
 //          println("渲染数据")
-          frontActor ! TankGameEvent.YourInfo(uId,tank.tankId, name, config)
+          val sendBuffer = new MiddleBufferInJvm(8192)
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId,name,tank,frontActor,roomActor))
 
 
@@ -167,7 +172,6 @@ object UserActor {
       }
     }
 
-
   private def play(
                     uId:Long,
                     name:String,
@@ -186,7 +190,8 @@ object UserActor {
               //分发数据给roomActor
               roomActor ! RoomActor.WebSocketMsg(uId,tank.tankId,t)
             case Some(t:TankGameEvent.PingPackage) =>
-              frontActor ! t
+              val sendBuffer = new MiddleBufferInJvm(8192)
+              frontActor !TankGameEvent.Wrap(t.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
 
             case _ =>
 
@@ -194,17 +199,16 @@ object UserActor {
           Behaviors.same
 
         case DispatchMsg(m) =>
-          m match {
-            case t:TankGameEvent.YouAreKilled =>
-              frontActor ! m
-              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,name)
-              switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+          if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
+            frontActor ! m
+            roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,name)
+            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
 
-            case _ =>
+          }else{
               frontActor ! m
               Behaviors.same
           }
-        //          log.debug(s"${ctx.self.path} recv a msg=${m}")
+
 
 
 
