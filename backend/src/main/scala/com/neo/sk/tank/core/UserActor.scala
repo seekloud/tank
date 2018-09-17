@@ -94,6 +94,7 @@ object UserActor {
       log.debug(s"${ctx.self.path} is starting...")
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       Behaviors.withTimers[Command] { implicit timer =>
+        implicit val sendBuffer = new MiddleBufferInJvm(8192)
         switchBehavior(ctx,"init",init(uId,name),InitTime,TimeOut("init"))
       }
     }
@@ -101,6 +102,7 @@ object UserActor {
 
   private def init(uId:Long,name:String)(
     implicit stashBuffer:StashBuffer[Command],
+    sendBuffer:MiddleBufferInJvm,
     timer:TimerScheduler[Command]
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
@@ -130,7 +132,8 @@ object UserActor {
 
   private def idle(uId:Long,name:String,frontActor:ActorRef[TankGameEvent.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
-    timer:TimerScheduler[Command]
+    timer:TimerScheduler[Command],
+    sendBuffer:MiddleBufferInJvm
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
@@ -146,7 +149,6 @@ object UserActor {
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
 //          println("渲染数据")
-          val sendBuffer = new MiddleBufferInJvm(8192)
           frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId,name,tank,frontActor,roomActor))
 
@@ -179,7 +181,8 @@ object UserActor {
                     frontActor:ActorRef[TankGameEvent.WsMsgSource],
                     roomActor: ActorRef[RoomActor.Command])(
                     implicit stashBuffer:StashBuffer[Command],
-                    timer:TimerScheduler[Command]
+                    timer:TimerScheduler[Command],
+                    sendBuffer:MiddleBufferInJvm
                   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
@@ -190,7 +193,7 @@ object UserActor {
               //分发数据给roomActor
               roomActor ! RoomActor.WebSocketMsg(uId,tank.tankId,t)
             case Some(t:TankGameEvent.PingPackage) =>
-              val sendBuffer = new MiddleBufferInJvm(8192)
+
               frontActor !TankGameEvent.Wrap(t.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
 
             case _ =>
