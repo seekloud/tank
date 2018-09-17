@@ -33,7 +33,7 @@ case class WebSocketClient(
     s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name)}"
   }
 
-  private val sendBuffer:MiddleBufferInJs = new MiddleBufferInJs(2048)
+  private val sendBuffer:MiddleBufferInJs = new MiddleBufferInJs(4096)
 
   def sendMsg(msg:TankGameEvent.WsMsgFront) = {
     import org.seekloud.byteobject.ByteObject._

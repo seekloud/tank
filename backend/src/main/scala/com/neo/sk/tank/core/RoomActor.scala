@@ -71,7 +71,7 @@ object RoomActor {
         Behaviors.withTimers[Command]{
           implicit timer =>
             val subscribersMap = mutable.HashMap[Long,ActorRef[UserActor.Command]]()
-            implicit val sendBuffer = new MiddleBufferInJvm(8192)
+            implicit val sendBuffer = new MiddleBufferInJvm(81920)
             val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer, log,
               dispatch(subscribersMap),
               dispatchTo(subscribersMap)
