@@ -56,6 +56,13 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
   private var spaceKeyUpState = true
   private var lastMouseMoveTheta:Float = 0
   private val mouseMoveThreshold = math.Pi / 180
+  private val poKeyBoardMoveTheta = 2* math.Pi / 72 //炮筒顺时针转
+  private val neKeyBoardMoveTheta = -2* math.Pi / 72 //炮筒逆时针转
+  private var poKeyBoardFrame = 0L
+
+
+
+
   private val watchKeys = Set(
     KeyCode.Left,
     KeyCode.Up,
@@ -68,6 +75,12 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
     KeyCode.S,
     KeyCode.A,
     KeyCode.D
+  )
+
+  private val gunAngleAdjust = Set(
+    KeyCode.K,
+    KeyCode.L
+
   )
 
   private val myKeySet = mutable.HashSet[Int]()
@@ -140,7 +153,22 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
           e.preventDefault()
-        } else if (keyCode == KeyCode.Space && spaceKeyUpState) {
+
+        }
+        if (gunAngleAdjust.contains(keyCode) && poKeyBoardFrame != gameContainerOpt.get.systemFrame) {
+          myKeySet.remove(keyCode)
+          println(s"key down: [${e.keyCode}]")
+          poKeyBoardFrame = gameContainerOpt.get.systemFrame
+          val Theta =
+            if(keyCode == KeyCode.K) poKeyBoardMoveTheta
+            else neKeyBoardMoveTheta
+          val preExecuteAction = TankGameEvent.UserKeyboardMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset,Theta.toFloat , getActionSerialNum)
+          gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+          sendMsg2Server(preExecuteAction)
+          e.preventDefault()
+
+        }
+        else if (keyCode == KeyCode.Space && spaceKeyUpState) {
           spaceKeyUpState = false
           val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
@@ -160,7 +188,25 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
           e.preventDefault()
-        } else if (e.keyCode == KeyCode.Space) {
+
+        }
+//        if (gunAngleAdjust.contains(keyCode)) {
+//          myKeySet.remove(keyCode)
+//          println(s"key up: [${e.keyCode}]")
+//
+//          val Theta = if(keyCode == KeyCode.K){
+//             poKeyBoardMoveTheta
+//          }
+//          else {
+//            neKeyBoardMoveTheta
+//          }
+//          val preExecuteAction = TankGameEvent.UserKeyboardMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset,Theta.toFloat , getActionSerialNum)
+//          gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+//          sendMsg2Server(preExecuteAction)
+//          e.preventDefault()
+
+//        }
+        else if (e.keyCode == KeyCode.Space) {
           spaceKeyUpState = true
           e.preventDefault()
         }

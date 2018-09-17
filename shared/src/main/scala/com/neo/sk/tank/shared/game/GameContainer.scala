@@ -131,6 +131,7 @@ trait GameContainer extends KillInformation{
               tankMoveSet.remove(a.keyCodeUp)
               tankMoveAction.put(a.tankId,tankMoveSet)
               tank.setTankDirection(tankMoveSet.toSet)
+            case a:UserKeyboardMove => tank.setTankKeyBoardDirection(a.angle)
           }
         case None => info(s"tankId=${action.tankId} action=${action} is no valid,because the tank is not exist")
       }
@@ -378,6 +379,7 @@ trait GameContainer extends KillInformation{
   }
 
   protected final def addUserAction(action:UserActionEvent):Unit = {
+//    info(s"frame=${action.frame},action=${action}")
     actionEventMap.get(action.frame) match {
       case Some(actionEvents) => actionEventMap.put(action.frame,action :: actionEvents)
       case None => actionEventMap.put(action.frame,List(action))

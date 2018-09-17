@@ -98,12 +98,14 @@ object UserManager {
           }
       }.via(UserActor.flow(userActor))
       .map {
-        case t:TankGameEvent.WsMsgServer =>
+        case t:TankGameEvent.Wrap =>
 
-          val sendBuffer = new MiddleBufferInJvm(4096)
-          BinaryMessage.Strict(ByteString(t.fillMiddleBuffer(sendBuffer).result()))
+
+          BinaryMessage.Strict(ByteString(t.ws))
+
 
         case x =>
+          log.debug(s"akka stream receive unknown msg=${x}")
           TextMessage.apply("")
       }.withAttributes(ActorAttributes.supervisionStrategy(decider))
 

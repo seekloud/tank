@@ -129,39 +129,26 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     var left = tank.bulletMaxCapacity * SmallBullet.width / 2 * -1
 
     (1 to tank.getCurBulletNum).foreach{ indedx =>
-
-      ctx.beginPath()
       val smallBulletPosition = tankPosition + Point(left, -9)
       val img = fillBulletImg
       ctx.drawImage(img.asInstanceOf[HTMLElement], (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
         (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
         SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit)
-      ctx.fill()
-      ctx.stroke()
-      ctx.closePath()
+
       left = left + SmallBullet.width
     }
-//    (tank.getCurBulletNum + 1 to tank.bulletMaxCapacity).foreach{ indedx =>
-//      ctx.beginPath()
-//      val smallBulletPosition = tankPosition + Point(left, -9)
-//      val img = emptyBulletImg
-//      ctx.drawImage(img.asInstanceOf[HTMLElement], (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
-//        (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
-//        SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit)
-//      ctx.fill()
-//      ctx.stroke()
-//      ctx.closePath()
-//
-//
-//
-//
-//      left = left + SmallBullet.width
-//      ctx.globalAlpha = 0.2
-//
-//
-//
-//    }
-//    ctx.globalAlpha = 1
+    ctx.globalAlpha = 0.5
+
+    (tank.getCurBulletNum + 1 to tank.bulletMaxCapacity).foreach{ indedx =>
+      val smallBulletPosition = tankPosition + Point(left, -9)
+      val img = emptyBulletImg
+      ctx.drawImage(img.asInstanceOf[HTMLElement], (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
+        (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
+        SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit)
+      left = left + SmallBullet.width
+
+    }
+    ctx.globalAlpha = 1
 
   }
 
