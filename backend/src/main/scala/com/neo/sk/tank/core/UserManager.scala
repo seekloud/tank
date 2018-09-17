@@ -99,6 +99,8 @@ object UserManager {
       }.via(UserActor.flow(userActor))
       .map {
         case t:TankGameEvent.Wrap =>
+
+
           BinaryMessage.Strict(ByteString(t.ws))
 
         case x =>
