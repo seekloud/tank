@@ -22,7 +22,7 @@ import scala.util.{Failure, Success}
 
 object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
-  private val personLimit = 15
+  private val personLimit = 100
   private final val leftTime = 5.minutes
   private case object LeftRoomKey
   private val roomInUse = mutable.HashMap[Long,mutable.HashSet[(Long,Boolean)]]()//roomId->Set((uid,False))uid-->等待复活

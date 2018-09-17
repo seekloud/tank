@@ -177,6 +177,8 @@ case class GameContainerServerImpl(
           val event = TankGameEvent.GenerateObstacle(systemFrame,obstacle.getObstacleState())
           dispatch(event)
           addGameEvent(event)
+          obstacleMap.put(obstacle.oId, obstacle)
+          quadTree.insert(obstacle)
         }
       }
     }
@@ -221,7 +223,7 @@ case class GameContainerServerImpl(
         tankMap.put(tank.tankId,tank)
         quadTree.insert(tank)
         //无敌时间消除
-        timer.startSingleTimer(s"TankInvincible_${tank.tankId}",RoomActor.TankInvincible(tank.tankId),config.initInvincibleDuration.second)
+        timer.startSingleTimer(s"TankInvincible_${tank.tankId}",RoomActor.TankInvincible(tank.tankId),config.initInvincibleDuration.millis)
     }
     justJoinUser = Nil
   }
@@ -249,6 +251,7 @@ case class GameContainerServerImpl(
       case a:TankGameEvent.UserMouseClick => a.copy(frame = f)
       case a:TankGameEvent.UserPressKeyDown => a.copy(frame = f)
       case a:TankGameEvent.UserPressKeyUp => a.copy(frame = f)
+      case a:TankGameEvent.UserKeyboardMove => a.copy(frame = f)
     }
 
     addUserAction(action)
@@ -317,6 +320,11 @@ case class GameContainerServerImpl(
 
   override protected def clearEventWhenUpdate():Unit = {
     //记录数据
+    val gameEventSize = gameEventMap.getOrElse(systemFrame, Nil).size
+    val actionEventSize = actionEventMap.getOrElse(systemFrame, Nil).size
+    if(gameEventSize + actionEventSize > 0){
+      log.info(s"tank systemFrame=${systemFrame}, gameEvents=${gameEventSize}, actionEvents=${actionEventSize}")
+    }
     gameEventMap -= systemFrame
     actionEventMap -= systemFrame
     systemFrame += 1
@@ -384,6 +392,21 @@ case class GameContainerServerImpl(
       Some(getCurGameSnapshot())
     )
   }
+
+
+  override protected def handleGenerateObstacle(e:TankGameEvent.GenerateObstacle) :Unit = {
+    val obstacle = Obstacle(config,e.obstacleState)
+    val originObstacleOpt = if (e.obstacleState.t <= ObstacleType.brick) obstacleMap.put(obstacle.oId,obstacle)
+    else environmentMap.put(obstacle.oId,obstacle)
+    if(originObstacleOpt.isEmpty) {
+      quadTree.insert(obstacle)
+    }else{
+      quadTree.remove(originObstacleOpt.get)
+      quadTree.insert(obstacle)
+    }
+  }
+
+
 
 
 

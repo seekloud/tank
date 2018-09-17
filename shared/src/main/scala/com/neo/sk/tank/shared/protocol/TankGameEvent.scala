@@ -25,7 +25,7 @@ object TankGameEvent {
   final case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends WsMsgServer
   final case class SyncGameState(state:GameContainerState) extends WsMsgServer
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
-
+  final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false) extends WsMsgSource
   final case class PingPackage(sendTime:Long) extends WsMsgServer with WsMsgFront
 
   sealed trait GameEvent {
@@ -44,6 +44,8 @@ object TankGameEvent {
   final case class UserLeftRoom(userId:Long, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer
 
   final case class UserMouseMove(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  final case class UserKeyboardMove(tankId:Int,override val frame:Long,angle:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+
   final case class UserMouseClick(tankId:Int,override val frame:Long,time:Long,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
   final case class UserPressKeyDown(tankId:Int,override val frame:Long,keyCodeDown:Int,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
   final case class UserPressKeyUp(tankId:Int,override val frame:Long,keyCodeUp:Int,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer

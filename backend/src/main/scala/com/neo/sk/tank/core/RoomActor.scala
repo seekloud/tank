@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 import concurrent.duration._
 import scala.collection.mutable
 import com.neo.sk.tank.Boot.roomManager
+import org.seekloud.byteobject.MiddleBufferInJvm
 
 /**
   * Created by hongruying on 2018/7/9
@@ -70,6 +71,7 @@ object RoomActor {
         Behaviors.withTimers[Command]{
           implicit timer =>
             val subscribersMap = mutable.HashMap[Long,ActorRef[UserActor.Command]]()
+            implicit val sendBuffer = new MiddleBufferInJvm(81920)
             val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer, log,
               dispatch(subscribersMap),
               dispatchTo(subscribersMap)
@@ -89,7 +91,8 @@ object RoomActor {
             gameContainer:GameContainerServerImpl,
             tickCount:Long
           )(
-            implicit timer:TimerScheduler[Command]
+            implicit timer:TimerScheduler[Command],
+            sendBuffer:MiddleBufferInJvm
           ):Behavior[Command] = {
     Behaviors.receive{(ctx,msg) =>
       msg match {
@@ -181,15 +184,20 @@ object RoomActor {
     }
 
   }
+  import scala.language.implicitConversions
+  import org.seekloud.byteobject.ByteObject._
 
-  def dispatch(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(msg:TankGameEvent.WsMsgServer) = {
+  def dispatch(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])( msg:TankGameEvent.WsMsgServer)(implicit sendBuffer:MiddleBufferInJvm) = {
 //    println(s"+++++++++++++++++$msg")
-    subscribers.values.foreach( _ ! UserActor.DispatchMsg(msg))
+    val isKillMsg = msg.isInstanceOf[TankGameEvent.YouAreKilled]
+    subscribers.values.foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
   }
 
-  def dispatchTo(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])(id:Long,msg:TankGameEvent.WsMsgServer) = {
+  def dispatchTo(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]])( id:Long,msg:TankGameEvent.WsMsgServer)(implicit sendBuffer:MiddleBufferInJvm) = {
 //    println(s"$id--------------$msg")
-    subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(msg))
+
+    val isKillMsg = msg.isInstanceOf[TankGameEvent.YouAreKilled]
+    subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
   }
 
 
