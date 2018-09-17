@@ -40,6 +40,9 @@ object AppSettings {
   val appConfig = config.getConfig("app")
   val dependence = config.getConfig("dependence")
 
+  val personLimit = appConfig.getInt("tankGameRoomManager.personLimit")
+  val leftTimeLimit = appConfig.getInt("tankGameRoomManager.leftTimeLimit")
+
 
   //  val wxConfig = appConfig.getConfig("wx.config")
   //  val mpAppId = wxConfig.getString("mpAppId")
