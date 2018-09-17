@@ -107,13 +107,20 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
       ctx.lineWidth = 5
       if((i+1) / 2 <= 1f * tank.getCurBlood / 20){
         ctx.strokeStyle = "red"
+        ctx.moveTo(sliderPositions(i-1).x,sliderPositions(i-1).y)
+        ctx.lineTo(sliderPositions(i).x,sliderPositions(i).y)
+        ctx.stroke()
       }
-      else{
-        ctx.strokeStyle = "#BEBEBE"
+//      else{
+//        ctx.strokeStyle = "#BEBEBE"
+//      }
+      if(tank.getCurBlood / 20 < 1f * tank.getCurBlood / 20 && (i+1) / 2 == tank.getCurBlood / 20 + 1){
+        ctx.strokeStyle = "red"
+        ctx.moveTo(sliderPositions(i-1).x,sliderPositions(i-1).y)
+        ctx.lineTo(sliderPositions(i-1).x + 1f * (tank.getCurBlood - tank.getCurBlood / 20 * 20) / 20 * width * canvasUnit,sliderPositions(i-1).y)
+        ctx.stroke()
       }
-      ctx.moveTo(sliderPositions(i-1).x,sliderPositions(i-1).y)
-      ctx.lineTo(sliderPositions(i).x,sliderPositions(i).y)
-      ctx.stroke()
+
       ctx.closePath()
     }
   }
