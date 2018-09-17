@@ -379,6 +379,7 @@ trait GameContainer extends KillInformation{
   }
 
   protected final def addUserAction(action:UserActionEvent):Unit = {
+//    info(s"frame=${action.frame},action=${action}")
     actionEventMap.get(action.frame) match {
       case Some(actionEvents) => actionEventMap.put(action.frame,action :: actionEvents)
       case None => actionEventMap.put(action.frame,List(action))

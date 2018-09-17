@@ -52,7 +52,7 @@ case class TankServerImpl(
   override def startFillBullet(): Unit = {
     timer.startSingleTimer(s"TankFillABullet_${tankId}_${System.currentTimeMillis()}",
       RoomActor.TankFillABullet(tankId),
-      config.fillBulletDuration.second)
+      config.fillBulletDuration.millis)
   }
 
   override def eatProp(p: Prop)(implicit config: TankGameConfig): Unit = {

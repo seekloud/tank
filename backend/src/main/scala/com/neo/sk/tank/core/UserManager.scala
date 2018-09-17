@@ -103,7 +103,9 @@ object UserManager {
 
           BinaryMessage.Strict(ByteString(t.ws))
 
+
         case x =>
+          log.debug(s"akka stream receive unknown msg=${x}")
           TextMessage.apply("")
       }.withAttributes(ActorAttributes.supervisionStrategy(decider))
 

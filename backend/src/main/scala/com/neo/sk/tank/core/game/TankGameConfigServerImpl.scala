@@ -116,9 +116,9 @@ final case class TankGameConfigServerImpl(
   private[this] val tankMaxBulletCapacity = config.getInt("tankGame.tank.maxBulletCapacity")
     .requiring(_ > 0,"minimum supported tank max bullet capacity is 1")
   private[this] val tankFillBulletDuration = config.getInt("tankGame.tank.fillBulletDuration")
-    .requiring(_ > 0,"minimum supported tank fill bullet duration is 1s")
+    .requiring(_ > 0,"minimum supported tank fill bullet duration is 1ms")
   private[this] val tankInvincibleDuration = config.getInt("tankGame.tank.initInvincibleDuration")
-    .requiring(_ > 0,"minimum supported tank invincible duration is 1s")
+    .requiring(_ > 0,"minimum supported tank invincible duration is 1ms")
   private val tankParameters = TankParameters(TankMoveSpeed(tankSpeedLevel,accelerationTime,decelerationTime),tankBloodLevel,
     tankRadiusData,tankGunWidthData,tankGunHeightData,tankMaxBulletCapacity,tankFillBulletDuration,tankInvincibleDuration)
 
