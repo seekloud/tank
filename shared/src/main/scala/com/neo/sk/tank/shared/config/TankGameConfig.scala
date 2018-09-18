@@ -76,11 +76,13 @@ final case class BrickParameters(
                                 )
 
 final case class RiverParameters(
-                                  typePos:List[List[(Int, Int)]] //河流的元素位置
+                                  typePos:List[List[(Int, Int)]], //河流的元素位置
+                                  barrierPos:List[((Int,Int),(Int,Int))]
                                 )
 
 final case class SteelParameters(
-                                  typePos:List[List[(Int, Int)]] //河流的元素位置
+                                  typePos:List[List[(Int, Int)]], //河流的元素位置
+                                  barrierPos:List[((Int,Int),(Int,Int))]
                                 )
 
 final case class ObstacleParameters(
@@ -144,6 +146,9 @@ trait TankGameConfig{
 
   def riverPosType:List[List[(Int, Int)]]
   def steelPosType:List[List[(Int, Int)]]
+
+  def barrierPos4River:List[((Int, Int),(Int,Int))]
+  def barrierPos4Steel:List[((Int, Int),(Int,Int))]
 
   def propRadius:Float
   def propMedicalBlood:Int
@@ -215,6 +220,9 @@ case class TankGameConfigImpl(
 
   def riverPosType = obstacleParameters.riverParameters.typePos
   def steelPosType = obstacleParameters.steelParameters.typePos
+
+  def barrierPos4River: List[((Int, Int),(Int,Int))] = obstacleParameters.riverParameters.barrierPos
+  def barrierPos4Steel: List[((Int, Int),(Int,Int))] = obstacleParameters.steelParameters.barrierPos
 
   def propRadius = propParameters.radius
   def propMedicalBlood = propParameters.medicalBlood

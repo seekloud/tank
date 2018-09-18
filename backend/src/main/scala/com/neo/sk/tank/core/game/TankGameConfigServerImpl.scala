@@ -61,6 +61,11 @@ final case class TankGameConfigServerImpl(
           .requiring(_.nonEmpty,s"minimum supported tankGame.obstacle.river.${item}.y relative position size is 1")
       ) :: r
   }
+  private[this] val riverBarrierPosition = riverTypePostion.map{riverGroup =>
+    val topLeft = (riverGroup.map(_._1).min,riverGroup.filter(t => t._1 == riverGroup.map(_._1).min).map(_._2).min)
+    val downRight = (riverGroup.map(_._1).max,riverGroup.filter(_._1 == riverGroup.map(_._1).max).map(_._2).max)
+    (topLeft,downRight)
+  }
   private[this] val steelType = config.getStringList("tankGame.obstacle.steel.type").asScala
   private[this] val steelTypePostion = steelType.foldLeft(List[List[(Int, Int)]]()){
     case (r,item) =>
@@ -70,14 +75,19 @@ final case class TankGameConfigServerImpl(
           .requiring(_.size > 0,s"minimum supported tankGame.obstacle.steel.${item}.y relative position size is 1")
       ) :: r
   }
+  private[this] val steelBarrierPosition = steelTypePostion.map{steelGroup =>
+    val topLeft = (steelGroup.map(_._1).min,steelGroup.filter(t => t._1 == steelGroup.map(_._1).min).map(_._2).min)
+    val downRight = (steelGroup.map(_._1).max,steelGroup.filter(_._1 == steelGroup.map(_._1).max).map(_._2).max)
+    (topLeft,downRight)
+  }
 
 
 
   private val obstacleParameters = ObstacleParameters(obstacleWidthData,collisionWOffset,
     airDropParameters = AirDropParameters(airDropBloodData,airDropNumData),
     brickParameters = BrickParameters(brickBloodData,brickNumData),
-    riverParameters = RiverParameters(riverTypePostion),
-    steelParameters = SteelParameters(steelTypePostion)
+    riverParameters = RiverParameters(riverTypePostion,riverBarrierPosition),
+    steelParameters = SteelParameters(steelTypePostion,steelBarrierPosition)
   )
 
   private[this] val propRadiusData = config.getDouble("tankGame.prop.radius")
@@ -155,6 +165,8 @@ final case class TankGameConfigServerImpl(
 
   def riverPosType:List[List[(Int, Int)]] = tankGameConfig.riverPosType
   def steelPosType:List[List[(Int, Int)]] = tankGameConfig.steelPosType
+  def barrierPos4River:List[((Int, Int),(Int,Int))] = tankGameConfig.barrierPos4River
+  def barrierPos4Steel:List[((Int, Int),(Int,Int))] = tankGameConfig.barrierPos4Steel
 
   def propRadius:Float = tankGameConfig.propRadius
   def propMedicalBlood:Int = tankGameConfig.propMedicalBlood
