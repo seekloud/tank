@@ -264,15 +264,17 @@ case class GameContainerServerImpl(
     addGameEvent(event)
   }
 
-  private def generateEnvironment(pType:Byte) = {
+  private def generateEnvironment(pType:Byte,barrierPosList:List[RectangleObjectOfGame],barrier:List[((Int,Int),(Int,Int))]) = {
+    var barrierPosListCopy = barrierPosList
     def isSuitable(position:Point, environmentTypePosition : List[(Int, Int)]) = {
       !environmentTypePosition.exists{
         case (x,y) =>
           val p = position + Point(x * config.obstacleWidth, y * config.obstacleWidth)
           val obstacle = Steel(config,-1,p)
           val others = quadTree.retrieveFilter(obstacle)
-          !(p + Point(config.obstacleWidth / 2, config.obstacleWidth / 2) < boundary) || obstacle.isIntersectsObject(others)
+          !(p + Point(config.obstacleWidth / 2, config.obstacleWidth / 2) < boundary) || obstacle.isIntersectsObject(others) || obstacle.isIntersectsObject(barrierPosListCopy)
       }
+
     }
 
     val environmentTypePositions = if(pType == ObstacleType.river) config.riverPosType else config.steelPosType
@@ -280,6 +282,16 @@ case class GameContainerServerImpl(
     environmentTypePositions.foreach{ t =>
       var p = genObstaclePositionRandom()
       while(!isSuitable(p, t)) p = genObstaclePositionRandom()
+      val i = environmentTypePositions.indexOf(t)
+      val topLeft = p + Point(barrier(i)._1._1 * config.obstacleWidth,barrier(i)._1._2 * config.obstacleWidth) - Point(config.obstacleWidth / 2,config.obstacleWidth / 2)
+      val downRight = p + Point(barrier(i)._2._1 * config.obstacleWidth,barrier(i)._2._2 * config.obstacleWidth) + Point(config.obstacleWidth / 2,config.obstacleWidth / 2)
+      val rectBarrier = new RectangleObjectOfGame {
+        override protected val width: Float = downRight.x - topLeft.x
+        override protected val height: Float = downRight.y - topLeft.y
+        override protected val collisionOffset: Float = 0
+        override protected var position: Point = Point((topLeft.x + downRight.x) / 2, (topLeft.y + downRight.y) / 2)
+      }
+      barrierPosListCopy = rectBarrier :: barrierPosListCopy
       t.foreach{ case (offsetX,offsetY) =>
         val position = p + Point(offsetX * config.obstacleWidth,offsetY * config.obstacleWidth)
         val obstacleState = ObstacleState(obstacleIdGenerator.getAndIncrement(), pType, None, position)
@@ -291,6 +303,7 @@ case class GameContainerServerImpl(
       }
 
     }
+    barrierPosListCopy
   }
 
   private def initObstacle() = {
@@ -312,8 +325,10 @@ case class GameContainerServerImpl(
 
 
   private def init():Unit = {
-    generateEnvironment(ObstacleType.steel)
-    generateEnvironment(ObstacleType.river)
+    var barrierPosList:List[RectangleObjectOfGame] = Nil
+    barrierPosList = generateEnvironment(ObstacleType.steel,barrierPosList,config.barrierPos4River)
+    generateEnvironment(ObstacleType.river,barrierPosList,config.barrierPos4Steel)
+    barrierPosList = Nil
     initObstacle()
     clearEventWhenUpdate()
   }
