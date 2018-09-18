@@ -264,7 +264,7 @@ case class GameContainerServerImpl(
     addGameEvent(event)
   }
 
-  private def generateEnvironment(pType:Byte,barrierPosList:List[RectangleObjectOfGame],barrier:List[((Int,Int),(Int,Int))]) = {
+  private def generateEnvironment(pType:Byte,barrierPosList:List[RectangleObjectOfGame],barrier:List[List[(Int,Int)]]) = {
     var barrierPosListCopy = barrierPosList
     def isSuitable(position:Point, environmentTypePosition : List[(Int, Int)]) = {
       !environmentTypePosition.exists{
@@ -283,8 +283,8 @@ case class GameContainerServerImpl(
       var p = genObstaclePositionRandom()
       while(!isSuitable(p, t)) p = genObstaclePositionRandom()
       val i = environmentTypePositions.indexOf(t)
-      val topLeft = p + Point(barrier(i)._1._1 * config.obstacleWidth,barrier(i)._1._2 * config.obstacleWidth) - Point(config.obstacleWidth / 2,config.obstacleWidth / 2)
-      val downRight = p + Point(barrier(i)._2._1 * config.obstacleWidth,barrier(i)._2._2 * config.obstacleWidth) + Point(config.obstacleWidth / 2,config.obstacleWidth / 2)
+      val topLeft = p + Point(barrier(i)(0)._1 * config.obstacleWidth,barrier(i)(0)._2 * config.obstacleWidth) - Point(config.obstacleWidth / 2,config.obstacleWidth / 2)
+      val downRight = p + Point(barrier(i)(1)._1 * config.obstacleWidth,barrier(i)(1)._2 * config.obstacleWidth) + Point(config.obstacleWidth / 2,config.obstacleWidth / 2)
       val rectBarrier = new RectangleObjectOfGame {
         override protected val width: Float = downRight.x - topLeft.x
         override protected val height: Float = downRight.y - topLeft.y
