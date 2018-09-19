@@ -109,6 +109,11 @@ case class GameContainerServerImpl(
       ,random.nextInt(boundary.y.toInt - config.obstacleWidth.toInt) + config.obstacleWidth.toInt / 2)
   }
 
+  private def genEnvironmentPositionRandom():Point = {
+    Point(random.nextInt(boundary.x.toInt - 10 * config.obstacleWidth.toInt) + 5 * config.obstacleWidth.toInt,
+      random.nextInt(boundary.y.toInt - 10 * config.obstacleWidth.toInt) + 5 * config.obstacleWidth.toInt)
+  }
+
   private def generateAirDrop() = {
     val oId = obstacleIdGenerator.getAndIncrement()
     val position = genObstaclePositionRandom()
@@ -272,7 +277,7 @@ case class GameContainerServerImpl(
           val p = position + Point(x * config.obstacleWidth, y * config.obstacleWidth)
           val obstacle = Steel(config,-1,p)
           val others = quadTree.retrieveFilter(obstacle)
-          !(p + Point(config.obstacleWidth / 2, config.obstacleWidth / 2) < boundary) || obstacle.isIntersectsObject(others) || obstacle.isIntersectsObject(barrierPosListCopy)
+          !(p + Point(config.obstacleWidth / 2, config.obstacleWidth / 2) < (boundary-Point(5 * config.obstacleWidth,5 * config.obstacleWidth))) || obstacle.isIntersectsObject(others) || obstacle.isIntersectsObject(barrierPosListCopy)
       }
 
     }
@@ -280,8 +285,8 @@ case class GameContainerServerImpl(
     val environmentTypePositions = if(pType == ObstacleType.river) config.riverPosType else config.steelPosType
 
     environmentTypePositions.foreach{ t =>
-      var p = genObstaclePositionRandom()
-      while(!isSuitable(p, t)) p = genObstaclePositionRandom()
+      var p = genEnvironmentPositionRandom()
+      while(!isSuitable(p, t)) p = genEnvironmentPositionRandom()
       val i = environmentTypePositions.indexOf(t)
       val topLeft = p + Point(barrier(i)(0)._1 * config.obstacleWidth,barrier(i)(0)._2 * config.obstacleWidth) - Point(config.obstacleWidth / 2,config.obstacleWidth / 2)
       val downRight = p + Point(barrier(i)(1)._1 * config.obstacleWidth,barrier(i)(1)._2 * config.obstacleWidth) + Point(config.obstacleWidth / 2,config.obstacleWidth / 2)
