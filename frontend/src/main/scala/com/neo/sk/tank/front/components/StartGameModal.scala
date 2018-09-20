@@ -55,7 +55,7 @@ class StartGameModal(gameState:Var[Int],startGame:(String) => Unit) extends Comp
       <div class ="input_div">
         <div class ="input_title">{title}</div>
         <div class ="input_elem">{inputElem}</div>
-        <div class ="input_button"><button class ="btn btn-info" onclick ={() => clickEnter()}>进入</button></div>
+        <div class ="input_button"><button id="start_button" class ="btn btn-info" onclick ={() => clickEnter()}>进入</button></div>
       </div>
     </div>
 
