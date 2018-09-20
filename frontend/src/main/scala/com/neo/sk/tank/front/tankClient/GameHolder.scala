@@ -248,7 +248,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
         dom.window.cancelAnimationFrame(nextFrame)
         Shortcut.cancelSchedule(timer)
         drawGameStop()
-        dom.document.getElementById("TankGameNameInput").asInstanceOf[HTMLElement].focus()
+        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
     }
   }
 
