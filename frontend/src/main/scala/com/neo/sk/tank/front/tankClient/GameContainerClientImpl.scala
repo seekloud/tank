@@ -109,6 +109,7 @@ case class GameContainerClientImpl(
           drawRank()
           renderFps(networkLatency)
           drawKillInformation()
+          drawRoomNumber()
 
           val endTime = System.currentTimeMillis()
           renderTimes += 1
