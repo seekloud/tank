@@ -146,7 +146,10 @@ trait Background{ this:GameContainerClientImpl =>
         context.textAlign = "start"
         drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, (2 * index + 1) * canvasUnit, context)
       }
+//      drawTextLine(s"当前房间人数 ${index}", 28*canvasUnit, (2 * index + 1) * canvasUnit, context)
+
     }
+
 
 
     def refresh():Unit = {
@@ -228,6 +231,20 @@ trait Background{ this:GameContainerClientImpl =>
       }
       ctx.closePath()
     }
+
+  }
+
+  protected def drawRoomNumber():Unit = {
+
+    ctx.beginPath()
+    ctx.strokeStyle = Color.Black.toString()
+    ctx.textAlign = "left"
+    ctx.font=" 30px Arial"
+    ctx.lineWidth = 1
+    val offsetX = canvasBoundary.x - 20
+
+    ctx.strokeText(s"当前在线人数： ${tankMap.size}", offsetX*canvasUnit,(canvasBoundary.y - LittleMap.h -6) * canvasUnit , 20 * canvasUnit)
+
 
   }
 
