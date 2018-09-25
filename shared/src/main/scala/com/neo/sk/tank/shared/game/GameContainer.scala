@@ -343,11 +343,13 @@ trait GameContainer extends KillInformation{
 
   protected def bulletMove():Unit = {
     bulletMap.toList.sortBy(_._1).map(_._2).foreach{ bullet =>
-      bullet.move(boundary,removeBullet)
-      quadTree.retrieveFilter(bullet).filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]).filter(_.tankId != bullet.tankId)
+      val objects = quadTree.retrieveFilter(bullet)
+      objects.filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]).filter(_.tankId != bullet.tankId)
         .foreach(t => bullet.checkAttackObject(t,attackTankCallBack(bullet)))
-      quadTree.retrieveFilter(bullet).filter(t => t.isInstanceOf[ObstacleBullet] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
+      objects.filter(t => t.isInstanceOf[ObstacleBullet] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
         .foreach(t => bullet.checkAttackObject(t,attackObstacleCallBack(bullet)))
+      bullet.move(boundary,removeBullet)
+
     }
   }
 
