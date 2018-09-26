@@ -18,7 +18,7 @@ trait Background{ this:GameContainerClientImpl =>
 
   private val cacheCanvasMap = mutable.HashMap.empty[String, html.Canvas]
 
-  private val rankWidth = 30
+  private val rankWidth = 26
   private val rankHeight = 24
   private val currentRankCanvas = dom.document.createElement("canvas").asInstanceOf[html.Canvas]
   private val currentRankCanvasCtx = currentRankCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
