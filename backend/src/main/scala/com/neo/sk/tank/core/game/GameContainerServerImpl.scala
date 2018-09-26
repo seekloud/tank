@@ -76,6 +76,9 @@ case class GameContainerServerImpl(
   }
 
   override protected def tankEatPropCallback(tank:Tank)(prop: Prop):Unit = {
+    /**
+      * tank吃道具
+      * */
     val event = TankGameEvent.TankEatProp(tank.tankId,prop.pId,prop.propType,systemFrame)
     dispatch(event)
     addGameEvent(event)
@@ -292,6 +295,9 @@ case class GameContainerServerImpl(
     if(preExecuteUserAction.frame != f){
       log.debug(s"preExecuteUserAction fame=${preExecuteUserAction.frame}, systemFrame=${systemFrame}")
     }
+    /**
+      * 新增按键操作，补充血量
+      * */
     val action = preExecuteUserAction match {
       case a:TankGameEvent.UserMouseMove => a.copy(frame = f)
       case a:TankGameEvent.UserMouseClick => a.copy(frame = f)

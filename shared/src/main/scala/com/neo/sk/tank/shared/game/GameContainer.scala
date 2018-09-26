@@ -382,6 +382,9 @@ trait GameContainer extends KillInformation{
   }
 
   protected final def addUserAction(action:UserActionEvent):Unit = {
+    /**
+      * 增加用户使用血包
+      * */
 //    info(s"frame=${action.frame},action=${action}")
     actionEventMap.get(action.frame) match {
       case Some(actionEvents) => actionEventMap.put(action.frame,action :: actionEvents)

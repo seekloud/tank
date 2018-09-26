@@ -225,9 +225,6 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
       gameLoop()
 
     }else if(webSocketClient.getWsState){
-      /**
-        * 携带原来TANKID
-        * */
       gameContainerOpt match {
         case Some(gameContainer) =>
           webSocketClient.sendMsg(TankGameEvent.RestartGame(Some(gameContainer.myTankId),name))
