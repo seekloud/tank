@@ -40,9 +40,6 @@ object UserActor {
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
 
   case object StartGame extends Command
-/**
-  * 携带原来的tankId
-  * */
   case class JoinRoom(uid:Long,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command]) extends Command with RoomManager.Command
   case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:Long,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
 
@@ -143,7 +140,6 @@ object UserActor {
           //todo 往roomActor发消息获取坦克数据和当前游戏桢数据
           /**换成给roomManager发消息,告知uId,name
             * 还要给userActor发送回带roomId的数据
-            * 携带原来的tankId
             * */
           roomManager ! JoinRoom(uId,None,name,ctx.self)
           Behaviors.same

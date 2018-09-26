@@ -38,7 +38,6 @@ case class GameContainerServerImpl(
   private val propIdGenerator = new AtomicInteger(100)
 
   private var justJoinUser:List[(Long,Option[Int],String,ActorRef[UserActor.Command])] = Nil // tankIdOpt
-//  private val tankLivesMap:mutable.HashMap[Int,TankState] = mutable.HashMap[Int,TankState]() // tankId -> lives
   private val random = new Random(System.currentTimeMillis())
 
   init()
@@ -92,10 +91,6 @@ case class GameContainerServerImpl(
 
 
   override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
-    /**
-      * 更新tank存储状态
-      * 更新坦克生命值
-      * */
     dispatchTo(tank.userId,TankGameEvent.YouAreKilled(bulletTankId,bulletTankName))
     val tankState = tank.getTankState()
     val curTankState = TankState(tankState.userId,tankState.tankId,tankState.direction,tankState.gunDirection,tankState.blood,tankState.bloodLevel,tankState.speedLevel,tankState.curBulletNum,
@@ -107,8 +102,6 @@ case class GameContainerServerImpl(
       case None =>
         tankLivesMap += (tankState.tankId -> tankState)
     }
-//    tankState.lives = tankState.lives - 1
-//    tankLivesMap.update()
     val totalScore = tankState.bulletPowerLevel.toInt + tankState.bloodLevel.toInt + tankState.speedLevel.toInt - 2
     val propType:Byte = random.nextInt(4 + totalScore) + 1 match {
       case 1 => 1
@@ -239,13 +232,6 @@ case class GameContainerServerImpl(
         }
         tank
       }
-      /**
-        * tankId
-        * 坦克进入判断是否有携带tankId，如果携带坦克Id，且Map中含有对应的玩家数据，则累加
-        * 如果没有就重新分配
-        * 玩家生命值为0，则更新historyRank，并且清除当前排行榜对应数据
-        * 坦克死亡更新tankLivesMap
-        * */
       tankIdOpt match {
         case Some(id) =>
           val tankStateOld = tankLivesMap.get(id)
@@ -254,7 +240,8 @@ case class GameContainerServerImpl(
               if(tankState.lives > 0){//tank复活还有生命
                 genTankServeImpl(id,tankState.killTankNum,tankState.damageStatistics,tankState.lives)
               }else{//tank复活没有生命,更新tankLivesMap
-                genTankServeImpl(id,0,0,config.getTankLivesLimit)
+              val tankId = tankIdGenerator.getAndIncrement()
+                genTankServeImpl(tankId,0,0,config.getTankLivesLimit)
               }
             case None =>
               genTankServeImpl(id,0,0,config.getTankLivesLimit)
@@ -433,13 +420,11 @@ case class GameContainerServerImpl(
   }
 
   private[this] def updateRanks()= {
-    /**排行榜增加死亡次数
-      * */
     currentRank = tankMap.values.map(s => Score(s.tankId, s.name, s.killTankNum, s.damageStatistics,s.lives)).toList.sorted
     var historyChange = false
     currentRank.foreach { cScore =>
       historyRankMap.get(cScore.id) match {
-        case Some(oldScore) if cScore.d > oldScore.d =>
+        case Some(oldScore) if cScore.d > oldScore.d || cScore.l < oldScore.l=>
           historyRankMap += (cScore.id -> cScore)
           historyChange = true
         case None if cScore.d > historyRankThreshold =>
