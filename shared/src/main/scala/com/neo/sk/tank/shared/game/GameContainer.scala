@@ -60,6 +60,7 @@ trait GameContainer extends KillInformation{
   var historyRank = historyRankMap.values.toList.sortBy(_.d).reverse
   var historyRankThreshold =if (historyRank.isEmpty)-1 else historyRank.map(_.d).min
   val historyRankLength = 5
+  val tankLivesMap:mutable.HashMap[Int,TankState] = mutable.HashMap[Int,TankState]() // tankId -> lives
 
 
   var systemFrame:Long = 0L //系统帧数

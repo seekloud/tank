@@ -14,6 +14,8 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.slf4j.Logger
 import concurrent.duration._
 import scala.util.Random
+import collection.mutable
+import com.neo.sk.tank.shared.`object`.TankState
 import com.neo.sk.tank.Boot.roomManager
 
 /**
@@ -35,7 +37,8 @@ case class GameContainerServerImpl(
   private val obstacleIdGenerator = new AtomicInteger(100)
   private val propIdGenerator = new AtomicInteger(100)
 
-  private var justJoinUser:List[(Long,String,ActorRef[UserActor.Command])] = Nil
+  private var justJoinUser:List[(Long,Option[Int],String,ActorRef[UserActor.Command])] = Nil // tankIdOpt
+//  private val tankLivesMap:mutable.HashMap[Int,TankState] = mutable.HashMap[Int,TankState]() // tankId -> lives
   private val random = new Random(System.currentTimeMillis())
 
   init()
@@ -89,8 +92,23 @@ case class GameContainerServerImpl(
 
 
   override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
+    /**
+      * 更新tank存储状态
+      * 更新坦克生命值
+      * */
     dispatchTo(tank.userId,TankGameEvent.YouAreKilled(bulletTankId,bulletTankName))
     val tankState = tank.getTankState()
+    val curTankState = TankState(tankState.userId,tankState.tankId,tankState.direction,tankState.gunDirection,tankState.blood,tankState.bloodLevel,tankState.speedLevel,tankState.curBulletNum,
+      tankState.position,tankState.bulletPowerLevel,tankState.tankColorType,tankState.name,tankState.lives-1,tankState.killTankNum,tankState.damageTank,tankState.invincible,
+      tankState.shotgunState,tankState.speed,tankState.isMove)
+    tankLivesMap.get(tankState.tankId) match {
+      case Some(tankStateOld) =>
+        tankLivesMap.update(tankState.tankId,curTankState)
+      case None =>
+        tankLivesMap += (tankState.tankId -> tankState)
+    }
+//    tankState.lives = tankState.lives - 1
+//    tankLivesMap.update()
     val totalScore = tankState.bulletPowerLevel.toInt + tankState.bloodLevel.toInt + tankState.speedLevel.toInt - 2
     val propType:Byte = random.nextInt(4 + totalScore) + 1 match {
       case 1 => 1
@@ -199,27 +217,63 @@ case class GameContainerServerImpl(
 
   override protected def handleUserJoinRoomEventNow() = {
 
-    def genATank(userId:Long,name:String):TankServerImpl = {
+    def genATank(userId:Long,tankIdOpt:Option[Int],name:String) = {
       def genTankPositionRandom():Point = {
         Point(random.nextInt(boundary.x.toInt - (2 * config.tankRadius.toInt)) + config.tankRadius.toInt,
           random.nextInt(boundary.y.toInt - (2 * config.tankRadius.toInt)) + config.tankRadius.toInt)
       }
-
-      val tankId = tankIdGenerator.getAndIncrement()
-      val position = genTankPositionRandom()
-      var tank = TankServerImpl(roomActorRef, timer, config, userId, tankId, name, config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position, config.maxBulletCapacity)
-      var objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
-      while (tank.isIntersectsObject(objects)){
+      def genTankServeImpl(tankId:Int,killTankNum:Int,damageStatistics:Int,lives:Int) = {
         val position = genTankPositionRandom()
-        tank = TankServerImpl(roomActorRef, timer, config, userId, tankId, name, config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position, config.maxBulletCapacity)
-        objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
+        var tank = TankServerImpl(roomActorRef, timer, config, userId, tankId, name,
+          config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
+          config.maxBulletCapacity,lives = lives,
+          killTankNum = killTankNum,damageStatistics = damageStatistics)
+        var objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
+        while (tank.isIntersectsObject(objects)){
+          val position = genTankPositionRandom()
+          tank = TankServerImpl(roomActorRef, timer, config, userId, tankId, name,
+            config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
+            config.maxBulletCapacity,lives = lives,
+            killTankNum = killTankNum,damageStatistics = damageStatistics)
+          objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
+        }
+        tank
       }
-      tank
+      /**
+        * tankId
+        * 坦克进入判断是否有携带tankId，如果携带坦克Id，且Map中含有对应的玩家数据，则累加
+        * 如果没有就重新分配
+        * 玩家生命值为0，则更新historyRank，并且清除当前排行榜对应数据
+        * 坦克死亡更新tankLivesMap
+        * */
+      tankIdOpt match {
+        case Some(id) =>
+          val tankStateOld = tankLivesMap.get(id)
+          tankStateOld match{
+            case Some(tankState) =>
+              if(tankState.lives > 0){//tank复活还有生命
+                genTankServeImpl(id,tankState.killTankNum,tankState.damageStatistics,tankState.lives)
+              }else{//tank复活没有生命,更新tankLivesMap
+                genTankServeImpl(id,0,0,config.getTankLivesLimit)
+              }
+            case None =>
+              genTankServeImpl(id,0,0,config.getTankLivesLimit)
+          }
+        case None =>
+          val tankId = tankIdGenerator.getAndIncrement()
+          genTankServeImpl(tankId,0,0,config.getTankLivesLimit)
+      }
     }
 
     justJoinUser.foreach{
-      case (userId,name,ref) =>
-        val tank = genATank(userId,name)
+      case (userId,tankIdOpt,name,ref) =>
+        val tank = genATank(userId,tankIdOpt,name)
+        tankIdOpt match{
+          case Some(id) =>
+            tankLivesMap.update(id,tank.getTankState())
+          case None =>
+            tankLivesMap.put(tank.getTankState().tankId,tank.getTankState())
+        }
         val event = TankGameEvent.UserJoinRoom(userId,name,tank.getTankState(),systemFrame)
         dispatch(event)
         addGameEvent(event)
@@ -241,8 +295,8 @@ case class GameContainerServerImpl(
   }
 
 
-  def joinGame(userId:Long,name:String,userActor:ActorRef[UserActor.Command]):Unit = {
-    justJoinUser = (userId,name,userActor) :: justJoinUser
+  def joinGame(userId:Long,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command]):Unit = {
+    justJoinUser = (userId,tankIdOpt,name,userActor) :: justJoinUser
   }
 
 
@@ -379,7 +433,9 @@ case class GameContainerServerImpl(
   }
 
   private[this] def updateRanks()= {
-    currentRank = tankMap.values.map(s => Score(s.tankId, s.name, s.killTankNum, s.damageStatistics)).toList.sorted
+    /**排行榜增加死亡次数
+      * */
+    currentRank = tankMap.values.map(s => Score(s.tankId, s.name, s.killTankNum, s.damageStatistics,s.lives)).toList.sorted
     var historyChange = false
     currentRank.foreach { cScore =>
       historyRankMap.get(cScore.id) match {

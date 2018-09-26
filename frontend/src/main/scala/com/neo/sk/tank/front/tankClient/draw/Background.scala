@@ -18,7 +18,7 @@ trait Background{ this:GameContainerClientImpl =>
 
   private val cacheCanvasMap = mutable.HashMap.empty[String, html.Canvas]
 
-  private val rankWidth = 22
+  private val rankWidth = 30
   private val rankHeight = 24
   private val currentRankCanvas = dom.document.createElement("canvas").asInstanceOf[html.Canvas]
   private val currentRankCanvasCtx = currentRankCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
@@ -144,7 +144,7 @@ trait Background{ this:GameContainerClientImpl =>
         context.stroke()
         context.closePath()
         context.textAlign = "start"
-        drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, (2 * index + 1) * canvasUnit, context)
+        drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d} lives=${score.l}", leftBegin, (2 * index + 1) * canvasUnit, context)
       }
 //      drawTextLine(s"当前房间人数 ${index}", 28*canvasUnit, (2 * index + 1) * canvasUnit, context)
 

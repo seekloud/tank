@@ -8,6 +8,7 @@ import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.core.game.GameContainerServerImpl
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.slf4j.LoggerFactory
+//import com.neo.sk.tank.core.game.GameContainerServerImpl
 
 import concurrent.duration._
 import scala.collection.mutable
@@ -31,7 +32,7 @@ object RoomActor {
 
   sealed trait Command
 
-  case class JoinRoom(uid:Long,name:String,userActor:ActorRef[UserActor.Command],roomId:Long) extends Command
+  case class JoinRoom(uid:Long,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command],roomId:Long) extends Command
 
   case class WebSocketMsg(uid:Long,tankId:Int,req:TankGameEvent.UserActionEvent) extends Command with RoomManager.Command
 
@@ -86,7 +87,7 @@ object RoomActor {
   }
 
   def idle(
-            justJoinUser:List[(Long,ActorRef[UserActor.Command])],
+            justJoinUser:List[(Long,Option[Int],ActorRef[UserActor.Command])],
             subscribersMap:mutable.HashMap[Long,ActorRef[UserActor.Command]],
             gameContainer:GameContainerServerImpl,
             tickCount:Long
@@ -96,10 +97,10 @@ object RoomActor {
           ):Behavior[Command] = {
     Behaviors.receive{(ctx,msg) =>
       msg match {
-        case JoinRoom(uid,name,userActor,roomId) =>
-          gameContainer.joinGame(uid,name,userActor)
+        case JoinRoom(uid,tankIdOpt,name,userActor,roomId) =>
+          gameContainer.joinGame(uid,tankIdOpt,name,userActor)
           //这一桢结束时会告诉所有新加入用户的tank信息以及地图全量数据
-          idle((uid,userActor) :: justJoinUser, subscribersMap, gameContainer, tickCount)
+          idle((uid,tankIdOpt,userActor) :: justJoinUser, subscribersMap, gameContainer, tickCount)
 
         case WebSocketMsg(uid,tankId,req) =>
           gameContainer.receiveUserAction(req)
@@ -120,6 +121,7 @@ object RoomActor {
 
 
         case LeftRoomByKilled(uid,tankId,name) =>
+//          gameContainer.tankL
           subscribersMap.remove(uid)
           idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
 
@@ -143,7 +145,7 @@ object RoomActor {
             dispatch(subscribersMap)(TankGameEvent.Ranks(gameContainer.currentRank,gameContainer.historyRank))
           }
           //分发新加入坦克的地图全量数据
-          justJoinUser.foreach(t => subscribersMap.put(t._1,t._2))
+          justJoinUser.foreach(t => subscribersMap.put(t._1,t._3))
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           justJoinUser.foreach{t =>
             dispatchTo(subscribersMap)(t._1,TankGameEvent.SyncGameAllState(gameContainerAllState))
