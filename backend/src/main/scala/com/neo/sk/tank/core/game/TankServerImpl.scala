@@ -24,6 +24,7 @@ case class TankServerImpl(
                            tankColorType:Byte,
                            protected var position:model.Point,
                            protected var curBulletNum:Int,
+                           var lives:Int,
                            protected var bloodLevel:Byte = 1, //血量等级
                            protected var speedLevel:Byte = 1, //移动速度等级
                            protected var bulletLevel:Byte = 1, //子弹等级
@@ -38,7 +39,7 @@ case class TankServerImpl(
                          ) extends Tank{
 
   def this(roomActor:ActorRef[RoomActor.Command], timer:TimerScheduler[RoomActor.Command],config: TankGameConfig,tankState: TankState){
-    this(roomActor, timer, config,tankState.userId,tankState.tankId,tankState.name,tankState.blood,tankState.tankColorType,tankState.position,tankState.curBulletNum,
+    this(roomActor, timer, config,tankState.userId,tankState.tankId,tankState.name,tankState.blood,tankState.tankColorType,tankState.position,tankState.curBulletNum,tankState.lives,
       tankState.bloodLevel,tankState.speedLevel,tankState.bulletPowerLevel,tankState.direction,tankState.gunDirection,tankState.shotgunState,tankState.invincible,tankState.killTankNum,tankState.damageTank,tankState.speed,tankState.isMove)
   }
 

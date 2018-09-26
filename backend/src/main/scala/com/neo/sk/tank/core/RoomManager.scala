@@ -49,12 +49,12 @@ object RoomManager {
   def idle(roomIdGenerator:AtomicLong)(implicit stashBuffer: StashBuffer[Command],timer:TimerScheduler[Command]) = {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {
-        case JoinRoom(uid,name,userActor) =>
+        case JoinRoom(uid,tankIdOpt,name,userActor) =>
           /**
             * 1.新加入等待分配roomId
             *     --- 有可容纳的房间
             *     --- 没有可容纳的房间
-            * 2. 重新回到原来游戏房间,更新定时器
+            * 2. 重新回到原来游戏房间,更新定时器，重新回到房间需要携带原来的tankId
             * 3. 等收到成功加入房间的消息再更新统计数据
             * */
           val roomExistUidMap = roomInUse.filter(p => p._2.exists(u => u._1 == uid))
@@ -63,12 +63,12 @@ object RoomManager {
             if(roomCanBeUse.size > 0){
               log.debug(s"room already exists !!! user$uid :$name enter into ${roomCanBeUse.keys.min}")
               roomInUse(roomCanBeUse.keys.min).add((uid,false))
-              getRoomActor(ctx,roomCanBeUse.keys.min) ! RoomActor.JoinRoom(uid,name,userActor,roomCanBeUse.keys.min)
+              getRoomActor(ctx,roomCanBeUse.keys.min) ! RoomActor.JoinRoom(uid,tankIdOpt,name,userActor,roomCanBeUse.keys.min)
             }else{
               val roomId = roomIdGenerator.getAndIncrement()
               log.debug(s"new room !!!! user$uid :$name enter into $roomId")
               roomInUse.put(roomId,mutable.HashSet((uid,false)))
-              getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,name,userActor,roomId)
+              getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,userActor,roomId)
             }
           }else{
             //重新回到原来房间，说明是reStart game
@@ -77,7 +77,7 @@ object RoomManager {
 //            roomExistUidMap.head._2.update((uid,false),true)
             roomInUse.update(roomExistUidMap.head._1,roomExistUidMap.head._2)
             log.debug(s"enter repeatedly !!! user$uid :$name is already in ${roomExistUidMap.head._1}")
-            getRoomActor(ctx,roomExistUidMap.head._1) ! RoomActor.JoinRoom(uid,name,userActor,roomExistUidMap.head._1)
+            getRoomActor(ctx,roomExistUidMap.head._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,userActor,roomExistUidMap.head._1)
           }
           log.debug(s"now roomInUse:$roomInUse")
 

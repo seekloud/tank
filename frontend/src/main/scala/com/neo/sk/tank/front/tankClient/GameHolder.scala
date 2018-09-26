@@ -39,7 +39,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
 
   private var killerName:String = ""
 
-  private[this] var gameContainerOpt : Option[GameContainerClientImpl] = None
+  private[this] var gameContainerOpt : Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
   private[this] val webSocketClient = WebSocketClient(wsConnectSuccess,wsConnectError,wsMessageHandler,wsConnectClose)
 
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
@@ -225,7 +225,15 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
       gameLoop()
 
     }else if(webSocketClient.getWsState){
-      webSocketClient.sendMsg(TankGameEvent.RestartGame(name))
+      /**
+        * 携带原来TANKID
+        * */
+      gameContainerOpt match {
+        case Some(gameContainer) =>
+          webSocketClient.sendMsg(TankGameEvent.RestartGame(Some(gameContainer.myTankId),name))
+        case None =>
+          webSocketClient.sendMsg(TankGameEvent.RestartGame(None,name))
+      }
       setGameState(Constants.GameState.loadingPlay)
       gameLoop()
 
@@ -240,6 +248,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
         println(s"等待同步数据")
         drawGameLoading()
       case Constants.GameState.play =>
+        /***/
         gameContainerOpt.foreach(_.update())
         logicFrameTime = System.currentTimeMillis()
         ping()
@@ -298,14 +307,23 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
     data match {
       case e:TankGameEvent.YourInfo =>
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
+        /**
+          * 更新游戏数据
+          * */
         gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
 
       case e:TankGameEvent.YouAreKilled =>
+        /**
+          * 死亡重玩
+          * */
         println(s"you are killed")
         killerName = e.name
         setGameState(Constants.GameState.stop)
 
       case e:TankGameEvent.Ranks =>
+        /**
+          * 游戏排行榜
+          * */
         gameContainerOpt.foreach{ t =>
           t.currentRank = e.currentRank
           t.historyRank = e.historyRank

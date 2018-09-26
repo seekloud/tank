@@ -109,7 +109,7 @@ final case class TankGameConfigServerImpl(
 
   private val propParameters = PropParameters(propRadiusData,propMedicalBloodData, shotgunDurationData,disappearTime)
 
-
+  private[this] val tankLivesLimit = config.getInt("tankGame.tank.livesLimit")
   private[this] val tankSpeedLevel = config.getIntList("tankGame.tank.tankSpeedLevel")
     .requiring(_.size() >= 3,"minimum supported tank speed size is 3").asScala.map(_.toInt).toList
   private[this] val accelerationTime = config.getIntList("tankGame.tank.accelerationTime")
@@ -137,13 +137,15 @@ final case class TankGameConfigServerImpl(
     .requiring(_ > 0,"minimum supported tank fill bullet duration is 1ms")
   private[this] val tankInvincibleDuration = config.getInt("tankGame.tank.initInvincibleDuration")
     .requiring(_ > 0,"minimum supported tank invincible duration is 1ms")
-  private val tankParameters = TankParameters(TankMoveSpeed(tankSpeedLevel,accelerationTime,decelerationTime),tankBloodLevel,
+  private val tankParameters = TankParameters(TankMoveSpeed(tankSpeedLevel,accelerationTime,decelerationTime),tankBloodLevel,tankLivesLimit,
     tankRadiusData,tankGunWidthData,tankGunHeightData,tankMaxBulletCapacity,tankFillBulletDuration,tankInvincibleDuration)
 
   private val tankGameConfig = TankGameConfigImpl(gridBoundary,gameFameDuration,bulletParameters,obstacleParameters,propParameters,tankParameters)
 
 
   def getTankGameConfig:TankGameConfigImpl = tankGameConfig
+
+  override def getTankLivesLimit: Int = tankGameConfig.tankParameters.tankLivesLimit
 
 
 

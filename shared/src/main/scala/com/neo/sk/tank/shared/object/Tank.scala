@@ -14,11 +14,12 @@ import com.neo.sk.tank.shared.util.QuadTree
   */
 
 case class TankState(userId:Long,tankId:Int,direction:Float,gunDirection:Float,blood:Int,bloodLevel:Byte,speedLevel:Byte,curBulletNum:Int,position:Point,bulletPowerLevel:Byte,tankColorType:Byte,
-                     name:String,killTankNum:Int,damageTank:Int,invincible:Boolean,shotgunState:Boolean, speed: Point, isMove: Boolean)
+                     name:String,lives:Int,killTankNum:Int,damageTank:Int,invincible:Boolean,shotgunState:Boolean, speed: Point, isMove: Boolean)
 trait Tank extends CircleObjectOfGame with ObstacleTank{
   val userId : Long
   val tankId : Int
   val name : String
+  var lives:Int  // 记录tank当前的生命值
   var killTankNum:Int
   var damageStatistics:Int
   val tankColorType:Byte
@@ -90,7 +91,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
 
   // 获取坦克状态
   def getTankState():TankState = {
-    TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position,bulletLevel,tankColorType,name,killTankNum,damageStatistics,invincibleState,shotgunState,speed,isMove)
+    TankState(userId,tankId,direction,gunDirection,blood,bloodLevel,speedLevel,curBulletNum,position,bulletLevel,tankColorType,name,lives,killTankNum,damageStatistics,invincibleState,shotgunState,speed,isMove)
   }
 
   //  开始填充炮弹
@@ -360,6 +361,7 @@ case class TankImpl(
                    tankColorType:Byte,
                    protected var position:model.Point,
                    protected var curBulletNum:Int,
+                   var lives:Int,
                    protected var bloodLevel:Byte = 1, //血量等级
                    protected var speedLevel:Byte = 1, //移动速度等级
                    protected var bulletLevel:Byte = 1, //子弹等级
@@ -375,7 +377,7 @@ case class TankImpl(
 
   def this(config: TankGameConfig,tankState: TankState){
     this(config,tankState.userId,tankState.tankId,tankState.name,tankState.blood,tankState.tankColorType,tankState.position,tankState.curBulletNum,
-      tankState.bloodLevel,tankState.speedLevel,tankState.bulletPowerLevel,tankState.direction,tankState.gunDirection,tankState.shotgunState,tankState.invincible,tankState.killTankNum,tankState.damageTank,
+      tankState.lives,tankState.bloodLevel,tankState.speedLevel,tankState.bulletPowerLevel,tankState.direction,tankState.gunDirection,tankState.shotgunState,tankState.invincible,tankState.killTankNum,tankState.damageTank,
       tankState.speed,tankState.isMove)
   }
 
