@@ -28,6 +28,17 @@ class StartGameModal(gameState:Var[Int],startGame:(String) => Unit) extends Comp
   }
 
   private val inputElem = <input id ="TankGameNameInput" onkeydown ={e:KeyboardEvent => clickEnter(e)}></input>
+//  private val inputElem = gameState map{
+//    case Constants.GameState.firstCome => <input id ="TankGameNameInput" onkeydown ={e:KeyboardEvent => clickEnter(e)}></input>
+//    case Constants.GameState.stop if(lives-1==0) => <input id ="TankGameNameInput" onkeydown ={e:KeyboardEvent => clickEnter(e)}></input>
+//    case _ => <div></div>
+//  }
+  private val button = <button id="start_button" class ="btn btn-info" onclick ={() => clickEnter()}>进入</button>
+//  private val button = gameState map{
+//    case Constants.GameState.firstCome => <button id="start_button" class ="btn btn-info" onclick ={() => clickEnter()}>进入</button>
+//    case Constants.GameState.stop if(lives-1==0) => <button id="start_button" class ="btn btn-info" onclick ={() => clickEnter()}>进入</button>
+//    case _ => <div></div>
+//  }
 
   def clickEnter(e:KeyboardEvent):Unit = {
     if(e.keyCode == KeyCode.Enter){
@@ -55,7 +66,7 @@ class StartGameModal(gameState:Var[Int],startGame:(String) => Unit) extends Comp
       <div class ="input_div">
         <div class ="input_title">{title}</div>
         <div class ="input_elem">{inputElem}</div>
-        <div class ="input_button"><button id="start_button" class ="btn btn-info" onclick ={() => clickEnter()}>进入</button></div>
+        <div class ="input_button">{button}</div>
       </div>
     </div>
 

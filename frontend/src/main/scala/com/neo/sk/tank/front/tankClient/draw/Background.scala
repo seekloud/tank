@@ -107,7 +107,7 @@ trait Background{ this:GameContainerClientImpl =>
       context.fillText(str, x, y)
     }
 
-    def refreshCacheCanvas(context:dom.CanvasRenderingContext2D, header: String, rank: List[Score]): Unit ={
+    def refreshCacheCanvas(context:dom.CanvasRenderingContext2D, header: String, rank: List[Score],historyRank:Boolean): Unit ={
       //绘制当前排行榜
       val leftBegin = 4 * canvasUnit
       context.font = "bold 12px Arial"
@@ -144,7 +144,8 @@ trait Background{ this:GameContainerClientImpl =>
         context.stroke()
         context.closePath()
         context.textAlign = "start"
-        drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d} lives=${score.l}", leftBegin, (2 * index + 1) * canvasUnit, context)
+        if(historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, (2 * index + 1) * canvasUnit, context)
+        else drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d} lives=${score.l}", leftBegin, (2 * index + 1) * canvasUnit, context)
       }
 //      drawTextLine(s"当前房间人数 ${index}", 28*canvasUnit, (2 * index + 1) * canvasUnit, context)
 
@@ -153,8 +154,8 @@ trait Background{ this:GameContainerClientImpl =>
 
 
     def refresh():Unit = {
-      refreshCacheCanvas(currentRankCanvasCtx, " --- Current Rank --- ", currentRank)
-      refreshCacheCanvas(historyRankCanvasCtx, " --- History Rank --- ", historyRank)
+      refreshCacheCanvas(currentRankCanvasCtx, " --- Current Rank --- ", currentRank,false)
+      refreshCacheCanvas(historyRankCanvasCtx, " --- History Rank --- ", historyRank,true)
     }
 
 

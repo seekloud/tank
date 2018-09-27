@@ -61,6 +61,7 @@ trait GameContainer extends KillInformation{
   var historyRankThreshold =if (historyRank.isEmpty)-1 else historyRank.map(_.d).min
   val historyRankLength = 5
   val tankLivesMap:mutable.HashMap[Int,TankState] = mutable.HashMap[Int,TankState]() // tankId -> lives
+//  val tankEatPropMap = mutable.HashMap[Int,mutable.HashSet[Prop]]()//tankId -> Set(propId)
 
 
   var systemFrame:Long = 0L //系统帧数
@@ -117,6 +118,9 @@ trait GameContainer extends KillInformation{
   }
 
   protected final def handleUserActionEvent(actions:List[UserActionEvent]) = {
+    /**
+      * 用户行为事件
+      * */
     actions.sortBy(t => (t.tankId,t.serialNum)).foreach{ action =>
       val tankMoveSet = tankMoveAction.getOrElse(action.tankId,mutable.HashSet[Int]())
       tankMap.get(action.tankId) match {
@@ -133,6 +137,7 @@ trait GameContainer extends KillInformation{
               tankMoveAction.put(a.tankId,tankMoveSet)
               tank.setTankDirection(tankMoveSet.toSet)
             case a:UserKeyboardMove => tank.setTankKeyBoardDirection(a.angle)
+            case a:UserPressKeyMedical => tank.addBlood()
           }
         case None => info(s"tankId=${action.tankId} action=${action} is no valid,because the tank is not exist")
       }
@@ -211,9 +216,15 @@ trait GameContainer extends KillInformation{
 
   protected def handleTankEatProp(e:TankEatProp) :Unit = {
     propMap.get(e.propId).foreach{ prop =>
-      quadTree.remove(prop)
-      tankMap.get(e.tankId).foreach(_.eatProp(prop))
-      propMap.remove(e.propId)
+      if(prop.propType == 4){
+        quadTree.remove(prop)
+        propMap.remove(e.propId)
+      }
+      else{
+        quadTree.remove(prop)
+        tankMap.get(e.tankId).foreach(_.eatProp(prop))
+        propMap.remove(e.propId)
+      }
     }
   }
 
@@ -223,6 +234,9 @@ trait GameContainer extends KillInformation{
   }
 
   final protected def handleTankEatPropNow() = {
+    /**
+      * 坦克吃道具,propType==4
+      * */
     gameEventMap.get(systemFrame).foreach{ events =>
       handleTankEatProp(events.filter(_.isInstanceOf[TankEatProp]).map(_.asInstanceOf[TankEatProp]).reverse)
     }
@@ -331,6 +345,9 @@ trait GameContainer extends KillInformation{
 
 
   protected def tankMove():Unit = {
+    /**
+      * 坦克移动过程中检测是否吃道具
+      * */
     tankMap.toList.sortBy(_._1).map(_._2).foreach{ tank =>
       tank.move(boundary,quadTree)
       //tank 进行检测是否吃到道具
