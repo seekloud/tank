@@ -110,6 +110,8 @@ case class GameContainerClientImpl(
           renderFps(networkLatency)
           drawKillInformation()
           drawRoomNumber()
+          drawCurLives()
+          drawCurMedicalNum()
 
           val endTime = System.currentTimeMillis()
           renderTimes += 1

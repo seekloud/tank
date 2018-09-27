@@ -77,8 +77,15 @@ case class GameContainerServerImpl(
 
   override protected def tankEatPropCallback(tank:Tank)(prop: Prop):Unit = {
     /**
-      * tank吃道具
+      * tank吃道具,吃到血包修改立刻血量回升
       * */
+    if(prop.propType == 4){
+      tank.medicalNumOpt = tank.medicalNumOpt match {
+        case Some(num) =>Some(num+1)
+        case None => Some(1)
+      }
+    }else{
+    }
     val event = TankGameEvent.TankEatProp(tank.tankId,prop.pId,prop.propType,systemFrame)
     dispatch(event)
     addGameEvent(event)
@@ -97,7 +104,7 @@ case class GameContainerServerImpl(
     dispatchTo(tank.userId,TankGameEvent.YouAreKilled(bulletTankId,bulletTankName))
     val tankState = tank.getTankState()
     val curTankState = TankState(tankState.userId,tankState.tankId,tankState.direction,tankState.gunDirection,tankState.blood,tankState.bloodLevel,tankState.speedLevel,tankState.curBulletNum,
-      tankState.position,tankState.bulletPowerLevel,tankState.tankColorType,tankState.name,tankState.lives-1,tankState.killTankNum,tankState.damageTank,tankState.invincible,
+      tankState.position,tankState.bulletPowerLevel,tankState.tankColorType,tankState.name,tankState.lives-1,None,tankState.killTankNum,tankState.damageTank,tankState.invincible,
       tankState.shotgunState,tankState.speed,tankState.isMove)
     tankLivesMap.get(tankState.tankId) match {
       case Some(tankStateOld) =>
@@ -222,14 +229,14 @@ case class GameContainerServerImpl(
         val position = genTankPositionRandom()
         var tank = TankServerImpl(roomActorRef, timer, config, userId, tankId, name,
           config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
-          config.maxBulletCapacity,lives = lives,
+          config.maxBulletCapacity,lives = lives,None,
           killTankNum = killTankNum,damageStatistics = damageStatistics)
         var objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
         while (tank.isIntersectsObject(objects)){
           val position = genTankPositionRandom()
           tank = TankServerImpl(roomActorRef, timer, config, userId, tankId, name,
             config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
-            config.maxBulletCapacity,lives = lives,
+            config.maxBulletCapacity,lives = lives,None,
             killTankNum = killTankNum,damageStatistics = damageStatistics)
           objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
         }
@@ -243,7 +250,8 @@ case class GameContainerServerImpl(
               if(tankState.lives > 0){//tank复活还有生命
                 genTankServeImpl(id,tankState.killTankNum,tankState.damageStatistics,tankState.lives)
               }else{//tank复活没有生命,更新tankLivesMap
-              val tankId = tankIdGenerator.getAndIncrement()
+                tankLivesMap.remove(id)
+                val tankId = tankIdGenerator.getAndIncrement()
                 genTankServeImpl(tankId,0,0,config.getTankLivesLimit)
               }
             case None =>
@@ -258,12 +266,8 @@ case class GameContainerServerImpl(
     justJoinUser.foreach{
       case (userId,tankIdOpt,name,ref) =>
         val tank = genATank(userId,tankIdOpt,name)
-        tankIdOpt match{
-          case Some(id) =>
-            tankLivesMap.update(id,tank.getTankState())
-          case None =>
-            tankLivesMap.put(tank.getTankState().tankId,tank.getTankState())
-        }
+//        tankEatPropMap.update(tank.tankId,mutable.HashSet())
+        tankLivesMap.update(tank.tankId,tank.getTankState())
         val event = TankGameEvent.UserJoinRoom(userId,name,tank.getTankState(),systemFrame)
         dispatch(event)
         addGameEvent(event)
@@ -296,7 +300,8 @@ case class GameContainerServerImpl(
       log.debug(s"preExecuteUserAction fame=${preExecuteUserAction.frame}, systemFrame=${systemFrame}")
     }
     /**
-      * 新增按键操作，补充血量
+      * gameAction,userAction
+      * 新增按键操作，补充血量，
       * */
     val action = preExecuteUserAction match {
       case a:TankGameEvent.UserMouseMove => a.copy(frame = f)
@@ -304,6 +309,7 @@ case class GameContainerServerImpl(
       case a:TankGameEvent.UserPressKeyDown => a.copy(frame = f)
       case a:TankGameEvent.UserPressKeyUp => a.copy(frame = f)
       case a:TankGameEvent.UserKeyboardMove => a.copy(frame = f)
+      case a:TankGameEvent.UserPressKeyMedical => a.copy(frame = f)
     }
 
     addUserAction(action)
@@ -417,6 +423,9 @@ case class GameContainerServerImpl(
       var r = y.k - x.k
       if (r == 0) {
         r = y.d - x.d
+      }
+      if(r == 0){
+        r = y.l - x.l
       }
       if (r == 0) {
         r = (x.id - y.id).toInt

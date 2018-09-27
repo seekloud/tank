@@ -224,4 +224,39 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     context.fillText(name, start.x + length / 2, start.y)
   }
 
+  def drawCurLives() = {
+    tankMap.get(this.myTankId) match {
+      case Some(tank) =>
+        ctx.beginPath()
+        ctx.strokeStyle = Color.Black.toString()
+        ctx.textAlign = "left"
+        ctx.font=" 22px Arial"
+        ctx.lineWidth = 1
+        ctx.strokeText(s"当前生命值： ${tank.lives}", 5*canvasUnit,(canvasBoundary.y - 20) * canvasUnit , 20 * canvasUnit)
+      case None =>
+    }
+  }
+  def drawCurMedicalNum() = {
+    tankMap.get(this.myTankId) match {
+      case Some(tank) =>
+        ctx.beginPath()
+        ctx.strokeStyle = Color.Black.toString()
+        ctx.textAlign = "left"
+        ctx.font=" 22px Arial"
+        ctx.lineWidth = 1
+        val num = tank.medicalNumOpt match {
+          case Some(num) => num
+          case None => 0
+        }
+        ctx.strokeText(s"当前血包数量： ${num}", 5*canvasUnit,(canvasBoundary.y - 25)  * canvasUnit , 20 * canvasUnit)
+      case None =>
+        ctx.beginPath()
+        ctx.strokeStyle = Color.Black.toString()
+        ctx.textAlign = "left"
+        ctx.font=" 22px Arial"
+        ctx.lineWidth = 1
+        ctx.strokeText(s"当前血包数量：0……", 5*canvasUnit,(canvasBoundary.y - 25)  * canvasUnit , 20 * canvasUnit)
+    }
+  }
+
 }

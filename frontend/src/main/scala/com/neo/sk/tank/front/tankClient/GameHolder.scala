@@ -34,7 +34,6 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
 
   private val gameStateVar:Var[Int] = Var(Constants.GameState.firstCome)
   private var gameState:Int = Constants.GameState.firstCome
-
   private val startGameModal = new StartGameModal(gameStateVar,start)
 
   private var killerName:String = ""
@@ -47,6 +46,12 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
 
 
   private var timer:Int = 0
+  private var reStartTimer:Int = 0
+  /**
+    * 倒计时，config
+    * */
+  private val reStartInterval = 1000
+  private var countDownTimes = 3
   private var nextFrame = 0
   private var logicFrameTime = System.currentTimeMillis()
 
@@ -59,6 +64,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
   private val poKeyBoardMoveTheta = 2* math.Pi / 72 //炮筒顺时针转
   private val neKeyBoardMoveTheta = -2* math.Pi / 72 //炮筒逆时针转
   private var poKeyBoardFrame = 0L
+  private var eKeyBoardState4AddBlood = true
 
 
 
@@ -81,6 +87,13 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
     KeyCode.K,
     KeyCode.L
 
+  )
+
+  /**
+    * 按E键使用血包
+    * */
+  private val addBloodKeys = Set(
+    KeyCode.E
   )
 
   private val myKeySet = mutable.HashSet[Int]()
@@ -145,6 +158,9 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
 
     canvas.onkeydown = { e: dom.KeyboardEvent =>
       if (gameContainerOpt.nonEmpty && gameState == Constants.GameState.play) {
+        /**
+          * 增加按键操作
+          * */
         val keyCode = changeKeys(e.keyCode)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
           myKeySet.add(keyCode)
@@ -173,6 +189,16 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction) //发送鼠标位置
+          e.preventDefault()
+        }
+        else if(keyCode == KeyCode.E){
+          /**
+            * 吃道具
+            * */
+          eKeyBoardState4AddBlood = false
+          val preExecuteAction = TankGameEvent.UserPressKeyMedical(gameContainerOpt.get.myTankId,gameContainerOpt.get.systemFrame + preExecuteFrameOffset,serialNum = getActionSerialNum)
+          gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+          sendMsg2Server(preExecuteAction)
           e.preventDefault()
         }
       }
@@ -208,6 +234,10 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
 //        }
         else if (e.keyCode == KeyCode.Space) {
           spaceKeyUpState = true
+          e.preventDefault()
+        }
+        else if(e.keyCode == KeyCode.E){
+          eKeyBoardState4AddBlood = true
           e.preventDefault()
         }
       }
@@ -251,10 +281,34 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
         ping()
 
       case Constants.GameState.stop =>
-        dom.window.cancelAnimationFrame(nextFrame)
-        Shortcut.cancelSchedule(timer)
-        drawGameStop()
-        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+        gameContainerOpt.foreach{t =>
+          t.tankMap.get(t.myTankId) match {
+            case Some(tank) =>
+              if(tank.lives-1 > 0){
+                /**
+                  * 在生命值之内死亡重玩，倒计时进入
+                  * */
+                dom.window.cancelAnimationFrame(nextFrame)
+                Shortcut.cancelSchedule(timer)
+                drawGameRestart()
+              }else{
+                /**
+                  * 重新生成id
+                  * */
+                dom.window.cancelAnimationFrame(nextFrame)
+                Shortcut.cancelSchedule(timer)
+                Shortcut.cancelSchedule(reStartTimer)
+                drawGameStop()
+                dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+              }
+            case None =>
+              dom.window.cancelAnimationFrame(nextFrame)
+              Shortcut.cancelSchedule(timer)
+              Shortcut.cancelSchedule(reStartTimer)
+              drawGameStop()
+              dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+          }
+        }
     }
   }
 
@@ -282,6 +336,30 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
     ctx.font = "36px Helvetica"
     ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
     println()
+  }
+
+  private def drawGameRestart() = {
+    ctx.fillStyle = Color.Black.toString()
+    ctx.globalAlpha = 1
+    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    if(countDownTimes > 0){
+      ctx.fillStyle = Color.Black.toString()
+      ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+      ctx.globalAlpha = 0.4
+      ctx.fillStyle = "rgb(250, 250, 250)"
+      ctx.textAlign = "left"
+      ctx.textBaseline = "top"
+      ctx.font = "36px Helvetica"
+      ctx.fillText(s"重新进入房间，倒计时：${countDownTimes}",150,100)
+      ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
+      countDownTimes = countDownTimes - 1
+    }
+    else{
+      Shortcut.cancelSchedule(reStartTimer)
+      gameContainerOpt.foreach(t => start(t.myName))
+      countDownTimes = 10
+    }
+
   }
 
   private def wsConnectSuccess(e:Event) = {
@@ -315,6 +393,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           * */
         println(s"you are killed")
         killerName = e.name
+        reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
         setGameState(Constants.GameState.stop)
 
       case e:TankGameEvent.Ranks =>
