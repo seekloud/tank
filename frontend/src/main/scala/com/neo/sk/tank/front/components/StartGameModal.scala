@@ -27,7 +27,7 @@ class StartGameModal(gameState:Var[Int],startGame:(String) => Unit) extends Comp
   private val divStyle = gameState.map{
     case Constants.GameState.play => "display:none;"
     case Constants.GameState.loadingPlay => "display:none;"
-    case Constants.GameState.stop if(lives == 3 || lives == 2)=> "display:none"
+    case Constants.GameState.stop if(lives != 1)=> "display:none"
 
     case _ => "display:block;"
   }
