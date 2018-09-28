@@ -102,6 +102,14 @@ class GameContainerImpl(
     uncheckedActionMap.put(action.serialNum,action.frame)
   }
 
+  final def addMyAction(action:UserActionEvent):Unit = {
+    if(action.tankId == myTankId) {
+      myTankAction.get(action.frame - 2) match {
+        case Some(actionEvents) => myTankAction.put(action.frame - 2, action :: actionEvents)
+        case None => myTankAction.put(action.frame - 2, List(action))
+      }
+    }
+  }
   //  def setUserInfo(name:String,userId:Long,tankId:Int) = {
   //    myName = name
   //    myId = userId

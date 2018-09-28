@@ -63,7 +63,7 @@ trait GameContainer extends KillInformation{
   val tankLivesMap:mutable.HashMap[Int,TankState] = mutable.HashMap[Int,TankState]() // tankId -> lives
 //  val tankEatPropMap = mutable.HashMap[Int,mutable.HashSet[Prop]]()//tankId -> Set(propId)
 
-
+  var tankId = -1
   var systemFrame:Long = 0L //系统帧数
 
   val tankMap = mutable.HashMap[Int,Tank]() //tankId -> Tank
@@ -79,7 +79,7 @@ trait GameContainer extends KillInformation{
 
   protected val gameEventMap = mutable.HashMap[Long,List[GameEvent]]() //frame -> List[GameEvent] 待处理的事件 frame >= curFrame
   protected val actionEventMap = mutable.HashMap[Long,List[UserActionEvent]]() //frame -> List[UserActionEvent]
-
+  protected val myTankAction = mutable.HashMap[Long,List[UserActionEvent]]()
   final protected def handleUserJoinRoomEvent(l:List[UserJoinRoom]) :Unit = {
     l foreach handleUserJoinRoomEvent
   }
@@ -144,10 +144,57 @@ trait GameContainer extends KillInformation{
     }
   }
 
+  protected final def handleMyAction(actions:List[UserActionEvent]) = {
+
+    def isHaveReal(id: Int) = {
+      var isHave = false
+      actionEventMap.get(systemFrame).foreach {
+        list =>
+          list.foreach {
+            a =>
+              if (a.tankId == id) isHave = true
+          }
+      }
+      isHave
+    }
+
+    if (tankId != -1) {
+      val tank = tankMap(tankId)
+      if (!isHaveReal(tankId)) {
+        if (!tank.getIsMove()) {
+          tank.isFakeMove = true
+          tank.fakePosition = tank.getPosition
+          val tankMoveSet = mutable.Set[Int]()
+          actions.sortBy(t => t.serialNum).foreach {
+
+            case a: UserPressKeyDown =>
+              tankMoveSet.add(a.keyCodeDown)
+              tank.setTankDirection(tankMoveSet.toSet)
+            case a: UserPressKeyUp =>
+              tankMoveSet.remove(a.keyCodeUp)
+              tank.setTankDirection(tankMoveSet.toSet)
+            case a: UserKeyboardMove => tank.setTankKeyBoardDirection(a.angle)
+            case _ =>
+          }
+        }
+      }else{
+        tank.isFakeMove = false
+      }
+    }
+  }
+
+  final def getTankId(id:Int) = {
+    tankId = id
+  }
+
   final protected def handleUserActionEventNow() = {
     actionEventMap.get(systemFrame).foreach{ actionEvents =>
       handleUserActionEvent(actionEvents.reverse)
     }
+  }
+  final protected def handleMyActionNow() = {
+    handleMyAction(myTankAction.getOrElse(systemFrame,Nil).reverse)
+    myTankAction.remove(systemFrame - 10)
   }
 
   /**
@@ -409,6 +456,7 @@ trait GameContainer extends KillInformation{
     }
   }
 
+
   protected final def addGameEvent(event:GameEvent):Unit = {
     gameEventMap.get(event.frame) match {
       case Some(events) => gameEventMap.put(event.frame, event :: events)
@@ -430,6 +478,7 @@ trait GameContainer extends KillInformation{
     handleUserLeftRoomNow()
     objectMove()
     handleUserActionEventNow()
+    handleMyActionNow()
 
     handleTankAttackedNow()
     handleObstacleAttackedNow()

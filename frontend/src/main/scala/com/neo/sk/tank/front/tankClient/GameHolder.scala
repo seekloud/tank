@@ -162,6 +162,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
+          gameContainerOpt.get.addMyAction(preExecuteAction)
           e.preventDefault()
 
         }
@@ -175,6 +176,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           val preExecuteAction = TankGameEvent.UserKeyboardMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset,Theta.toFloat , getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
+          gameContainerOpt.get.addMyAction(preExecuteAction)
           e.preventDefault()
 
         }
@@ -183,7 +185,9 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction) //发送鼠标位置
+          gameContainerOpt.get.addMyAction(preExecuteAction)
           e.preventDefault()
+
         }
         else if(keyCode == KeyCode.E){
           /**
@@ -207,6 +211,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
+          gameContainerOpt.get.addMyAction(preExecuteAction)
           e.preventDefault()
 
         }
@@ -380,7 +385,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           * 更新游戏数据
           * */
         gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
-
+        gameContainerOpt.get.getTankId(e.tankId)
       case e:TankGameEvent.YouAreKilled =>
         /**
           * 死亡重玩
