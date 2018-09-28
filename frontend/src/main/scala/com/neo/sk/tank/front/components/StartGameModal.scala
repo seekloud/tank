@@ -14,31 +14,28 @@ import scala.xml.Elem
   */
 class StartGameModal(gameState:Var[Int],startGame:(String) => Unit) extends Component{
 
+  private var lives:Int = 3 // 默认第一次进入，生命值3
   private val title = gameState.map{
     case Constants.GameState.firstCome => "欢迎来到坦克大战io，请输入用户名进行游戏体验"
-    case Constants.GameState.stop => "重新开始"
+    case Constants.GameState.stop =>
+      if(lives == 0) lives = 2
+      else lives = lives - 1
+      "重新开始"
     case _ => ""
   }
 
   private val divStyle = gameState.map{
     case Constants.GameState.play => "display:none;"
     case Constants.GameState.loadingPlay => "display:none;"
+    case Constants.GameState.stop if(lives == 3 || lives == 2)=> "display:none"
 
     case _ => "display:block;"
   }
 
+
   private val inputElem = <input id ="TankGameNameInput" onkeydown ={e:KeyboardEvent => clickEnter(e)}></input>
-//  private val inputElem = gameState map{
-//    case Constants.GameState.firstCome => <input id ="TankGameNameInput" onkeydown ={e:KeyboardEvent => clickEnter(e)}></input>
-//    case Constants.GameState.stop if(lives-1==0) => <input id ="TankGameNameInput" onkeydown ={e:KeyboardEvent => clickEnter(e)}></input>
-//    case _ => <div></div>
-//  }
   private val button = <button id="start_button" class ="btn btn-info" onclick ={() => clickEnter()}>进入</button>
-//  private val button = gameState map{
-//    case Constants.GameState.firstCome => <button id="start_button" class ="btn btn-info" onclick ={() => clickEnter()}>进入</button>
-//    case Constants.GameState.stop if(lives-1==0) => <button id="start_button" class ="btn btn-info" onclick ={() => clickEnter()}>进入</button>
-//    case _ => <div></div>
-//  }
+
 
   def clickEnter(e:KeyboardEvent):Unit = {
     if(e.keyCode == KeyCode.Enter){

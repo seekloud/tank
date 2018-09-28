@@ -51,7 +51,8 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
     * 倒计时，config
     * */
   private val reStartInterval = 1000
-  private var countDownTimes = 3
+  private val countDown = 3
+  private var countDownTimes = countDown
   private var nextFrame = 0
   private var logicFrameTime = System.currentTimeMillis()
 
@@ -87,13 +88,6 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
     KeyCode.K,
     KeyCode.L
 
-  )
-
-  /**
-    * 按E键使用血包
-    * */
-  private val addBloodKeys = Set(
-    KeyCode.E
   )
 
   private val myKeySet = mutable.HashSet[Int]()
@@ -357,7 +351,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
     else{
       Shortcut.cancelSchedule(reStartTimer)
       gameContainerOpt.foreach(t => start(t.myName))
-      countDownTimes = 10
+      countDownTimes = countDown
     }
 
   }
