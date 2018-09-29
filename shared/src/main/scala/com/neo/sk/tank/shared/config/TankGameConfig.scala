@@ -22,7 +22,7 @@ final case class TankMoveSpeed(
   //  val intermediateType:Byte = 2
   //  val highType:Byte = 3
 
-  def getTankSpeedByType(t:Byte) = Point(speeds(t),0)
+  def getTankSpeedByType(t:Byte) = Point(speeds(t-1),0)
 }
 
 final case class TankBloodLevel(

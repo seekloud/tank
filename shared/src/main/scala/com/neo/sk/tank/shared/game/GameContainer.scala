@@ -170,14 +170,15 @@ trait GameContainer extends KillInformation{
             case a: UserPressKeyDown =>
               tankMoveSet.add(a.keyCodeDown)
               tank.setTankDirection(tankMoveSet.toSet)
-            case a: UserPressKeyUp =>
-              tankMoveSet.remove(a.keyCodeUp)
-              tank.setTankDirection(tankMoveSet.toSet)
+//            case a: UserPressKeyUp =>
+//              tankMoveSet.remove(a.keyCodeUp)
+//              tank.setTankDirection(tankMoveSet.toSet)
             case a: UserKeyboardMove => tank.setTankKeyBoardDirection(a.angle)
             case _ =>
           }
         }
       }else{
+        if(tank.isFakeMove) tank.cavasFrame = 1
         tank.isFakeMove = false
       }
     }
