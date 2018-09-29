@@ -78,6 +78,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   }
 
   private def getTankBulletDamage()(implicit config:TankGameConfig):Int = {
+    if(getShotGunState() && bulletLevel > 3) 3 else
     config.getBulletDamage(bulletLevel)
   }
 
@@ -241,7 +242,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
           }
         }
       }else{
-        val moveDistance = (tankGameConfig.getMoveDistanceByFrame(this.speedLevel) * 0.15f).rotate(direction)
+        val moveDistance = (tankGameConfig.getMoveDistanceByFrame(this.speedLevel) * 0.1f).rotate(direction)
         val horizontalDistance = moveDistance.copy(y = 0)
         val verticalDistance = moveDistance.copy(x = 0)
         List(horizontalDistance, verticalDistance).foreach { d =>
@@ -294,7 +295,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
         Some(moveDistance)
       }else{
 
-        var moveDistance =( tankGameConfig.getMoveDistanceByFrame(this.speedLevel) * 0.15f).rotate(direction)
+        var moveDistance =( tankGameConfig.getMoveDistanceByFrame(this.speedLevel) * 0.1f).rotate(direction)
         val horizontalDistance = moveDistance.copy(y = 0)
         val verticalDistance = moveDistance.copy(x = 0)
         val originPosition = this.fakePosition
