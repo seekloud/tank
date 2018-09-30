@@ -450,7 +450,7 @@ case class TankImpl(
 
 
   def getPosition4Animation(boundary:Point, quadTree: QuadTree ,offSetTime:Long):Point = {
-    val cavasFrameLeft = if(fakeFrame < 3) 3 else 4
+    val cavasFrameLeft = if(fakeFrame < 3) 4 else 5
     val logicMoveDistanceOpt = this.canMove(boundary,quadTree,cavasFrameLeft)(config)
     if(logicMoveDistanceOpt.nonEmpty){
       if(!isFakeMove && (cavasFrame <= 0 || cavasFrame >= cavasFrameLeft)) {
