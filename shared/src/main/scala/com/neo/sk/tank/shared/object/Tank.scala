@@ -454,14 +454,9 @@ case class TankImpl(
     val logicMoveDistanceOpt = this.canMove(boundary,quadTree,cavasFrameLeft)(config)
     if(logicMoveDistanceOpt.nonEmpty){
       if(!isFakeMove && (cavasFrame <= 0 || cavasFrame >= cavasFrameLeft)) {
-        println("rrrrrrrrrrrrr")
-        val a = this.position + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
-        a
+        this.position + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
       }else{
-        val b= this.fakePosition + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
-        println(b)
-        println("ffffffffffffffffffff")
-        b
+        this.fakePosition + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
       }
     }else position
   }
