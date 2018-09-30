@@ -456,7 +456,6 @@ case class TankImpl(
         println("rrrrrrrrrrrrr")
         val a = this.position + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
         println(a)//移动的距离
-        println(offSetTime + "======================================")
         a
       }else{
         println("ffffffffffffffffffff")
