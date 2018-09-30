@@ -179,8 +179,10 @@ trait GameContainer extends KillInformation{
           }
         }
       }else{
-        if(tank.isFakeMove) tank.cavasFrame = 1
-        tank.fakeFrame = systemFrame - fakeFrameStart
+        if(tank.isFakeMove) {
+          tank.cavasFrame = 1
+          tank.fakeFrame = systemFrame - fakeFrameStart
+        }
         tank.isFakeMove = false
       }
     }
