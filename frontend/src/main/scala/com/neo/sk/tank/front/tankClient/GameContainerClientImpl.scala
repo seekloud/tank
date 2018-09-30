@@ -112,7 +112,9 @@ case class GameContainerClientImpl(
           drawRoomNumber()
           drawCurLives()
           drawCurMedicalNum()
-
+          if(tank.cavasFrame >=1) {
+            tank.cavasFrame += 1
+          }
           val endTime = System.currentTimeMillis()
           renderTimes += 1
           renderTime += endTime - startTime

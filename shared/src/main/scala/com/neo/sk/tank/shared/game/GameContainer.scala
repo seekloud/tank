@@ -143,7 +143,7 @@ trait GameContainer extends KillInformation{
       }
     }
   }
-
+  var fakeFrameStart = 0l
   protected final def handleMyAction(actions:List[UserActionEvent]) = {
 
     def isHaveReal(id: Int) = {
@@ -164,6 +164,7 @@ trait GameContainer extends KillInformation{
         if (!tank.getIsMove()) {
           tank.isFakeMove = true
           tank.fakePosition = tank.getPosition
+          fakeFrameStart = systemFrame
           val tankMoveSet = mutable.Set[Int]()
           actions.sortBy(t => t.serialNum).foreach {
 
@@ -179,6 +180,7 @@ trait GameContainer extends KillInformation{
         }
       }else{
         if(tank.isFakeMove) tank.cavasFrame = 1
+        tank.fakeFrame = systemFrame - fakeFrameStart
         tank.isFakeMove = false
       }
     }
