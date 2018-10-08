@@ -77,13 +77,10 @@ case class GameContainerServerImpl(
 
   override protected def tankEatPropCallback(tank:Tank)(prop: Prop):Unit = {
     /**
-      * tank吃道具,吃到血包修改立刻血量回升
+      * tank吃道具,当前存储道具数量等于限制值，即吃即用
       * */
     if(prop.propType == 4){
-      tank.medicalNumOpt = tank.medicalNumOpt match {
-        case Some(num) =>Some(num+1)
-        case None => Some(1)
-      }
+      tank.fillAMedical(config)
     }else{
     }
     val event = TankGameEvent.TankEatProp(tank.tankId,prop.pId,prop.propType,systemFrame)

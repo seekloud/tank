@@ -23,6 +23,12 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   private val emptyBulletImg = dom.document.createElement("img")
   emptyBulletImg.setAttribute("src", s"${Routes.base}/static/img/子弹消失重构.png")
 
+  private val fillMedicalImg = dom.document.createElement("img")
+  fillMedicalImg.setAttribute("src", s"${Routes.base}/static/img/血包.png")
+  private val emptyMedicalImg = dom.document.createElement("img")
+  emptyMedicalImg.setAttribute("src", s"${Routes.base}/static/img/灰血包.png")
+
+
 
 
   protected def drawTank(offset:Point, offsetTime:Long, view:Point) = {
@@ -167,6 +173,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     drawLevel(tank.getBloodLevel,config.getTankBloodMaxLevel(),"血量等级",Point(5,20 - 12) * canvasUnit,20 * canvasUnit,"#FF3030",ctxCache)
     drawLevel(tank.getSpeedLevel,config.getTankSpeedMaxLevel(),"速度等级",Point(5,20 - 8) * canvasUnit,20 * canvasUnit,"#66CD00",ctxCache)
     drawLevel(tank.getBulletLevel,config.getBulletMaxLevel(),"炮弹等级",Point(5,20 - 4) * canvasUnit,20 * canvasUnit,"#1C86EE",ctxCache)
+    drawLevel(tank.lives.toByte,config.getTankLivesLimit.toByte,s"生命值",Point(5,20-16) * canvasUnit,20 * canvasUnit,"#FF4040",ctxCache)
     canvasCache
 
   }
@@ -224,39 +231,63 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     context.fillText(name, start.x + length / 2, start.y)
   }
 
-  def drawCurLives() = {
-    tankMap.get(this.myTankId) match {
-      case Some(tank) =>
-        ctx.beginPath()
-        ctx.strokeStyle = Color.Black.toString()
-        ctx.textAlign = "left"
-        ctx.font=" 22px Arial"
-        ctx.lineWidth = 1
-        ctx.strokeText(s"当前生命值： ${tank.lives}", 5*canvasUnit,(canvasBoundary.y - 20) * canvasUnit , 20 * canvasUnit)
-      case None =>
+//  def drawCurMedicalNum() = {
+//    tankMap.get(this.myTankId) match {
+//      case Some(tank) =>
+//        ctx.beginPath()
+//        ctx.fillStyle = Color.Black.toString()
+//        ctx.textAlign = "left"
+//        ctx.font="bold 18px 隶书"
+//        ctx.lineWidth = 1
+//        val num = tank.medicalNumOpt match {
+//          case Some(num) => num
+//          case None => 0
+//        }
+////        ctx.fill()
+//        ctx.fillText(s"可用血包数量：${num}", 7*canvasUnit,(canvasBoundary.y - 22)  * canvasUnit , 20 * canvasUnit)
+//        ctx.strokeStyle = Color.Black.toString()
+//        ctx.stroke()
+//      case None =>
+//        ctx.beginPath()
+//        ctx.strokeStyle = Color.Black.toString()
+//        ctx.textAlign = "left"
+//        ctx.font="bold 18px 隶书"
+//        ctx.lineWidth = 1
+//        ctx.strokeText(s"血包：0", 7*canvasUnit,(canvasBoundary.y - 22)  * canvasUnit , 20 * canvasUnit)
+//    }
+//  }
+
+  def drawCurMedicalNum(tank:TankImpl) = {
+    ctx.beginPath()
+    ctx.fillStyle = Color.Black.toString()
+    ctx.textAlign = "right"
+    ctx.font="bold 18px 隶书"
+    ctx.lineWidth = 1
+    ctx.fillText(s"血包", 7*canvasUnit,(canvasBoundary.y - 23.5)  * canvasUnit , 20 * canvasUnit)
+    val medicalNum = tank.medicalNumOpt match{
+      case Some(num) =>num
+      case None =>0
     }
-  }
-  def drawCurMedicalNum() = {
-    tankMap.get(this.myTankId) match {
-      case Some(tank) =>
-        ctx.beginPath()
-        ctx.strokeStyle = Color.Black.toString()
-        ctx.textAlign = "left"
-        ctx.font=" 22px Arial"
-        ctx.lineWidth = 1
-        val num = tank.medicalNumOpt match {
-          case Some(num) => num
-          case None => 0
-        }
-        ctx.strokeText(s"当前血包数量： ${num}", 5*canvasUnit,(canvasBoundary.y - 25)  * canvasUnit , 20 * canvasUnit)
-      case None =>
-        ctx.beginPath()
-        ctx.strokeStyle = Color.Black.toString()
-        ctx.textAlign = "left"
-        ctx.font=" 22px Arial"
-        ctx.lineWidth = 1
-        ctx.strokeText(s"当前血包数量：0……", 5*canvasUnit,(canvasBoundary.y - 25)  * canvasUnit , 20 * canvasUnit)
+    (1 to medicalNum).foreach{ index =>
+      val smallMedicalPosition = (Point(7,(canvasBoundary.y - 21)) + Point(index * config.propRadius * 3 / 2,0))
+      val img = fillMedicalImg
+      ctx.drawImage(img.asInstanceOf[HTMLElement], (smallMedicalPosition.x - config.propRadius) * canvasUnit,
+        (smallMedicalPosition.y - config.propRadius) * canvasUnit,
+        config.propRadius * canvasUnit, config.propRadius * canvasUnit)
     }
+    ctx.globalAlpha = 0.5
+
+    (medicalNum + 1 to config.getTankMedicalLimit).foreach{ index =>
+      val smallMedicalPosition = (Point(7,(canvasBoundary.y - 21)) + Point(index * config.propRadius * 3 / 2,0))
+      val img = emptyMedicalImg
+      ctx.drawImage(img.asInstanceOf[HTMLElement], (smallMedicalPosition.x - config.propRadius) * canvasUnit,
+        (smallMedicalPosition.y - config.propRadius) * canvasUnit,
+        config.propRadius * canvasUnit, config.propRadius * canvasUnit)
+    }
+    ctx.globalAlpha = 1
+
   }
+
+
 
 }
