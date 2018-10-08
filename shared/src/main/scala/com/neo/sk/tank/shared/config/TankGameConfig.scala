@@ -48,6 +48,7 @@ final case class TankParameters(
                                  tankSpeed:TankMoveSpeed,
                                  tankBloodLevel: List[Int],
                                  tankLivesLimit:Int,
+                                 tankMedicalLimit:Int,
                                  tankRadius:Float,
                                  tankGunWidth:Float,
                                  tankGunHeight:Float,
@@ -169,6 +170,7 @@ trait TankGameConfig{
   def getTankBloodByLevel(l:Byte):Int
   def getTankBloodMaxLevel():Byte
   def getTankLivesLimit:Int
+  def getTankMedicalLimit:Int
 
   def getBulletRadiusByDamage(d:Int):Float
 
@@ -246,6 +248,7 @@ case class TankGameConfigImpl(
   def getTankBloodByLevel(l:Byte):Int = tankParameters.getTankBloodByLevel(l)
 
   def getTankLivesLimit: Int = tankParameters.tankLivesLimit
+  def getTankMedicalLimit:Int = tankParameters.tankMedicalLimit
 
 
   def getTankAccByLevel(l: Byte): Int = tankParameters.tankSpeed.accelerationTime(l - 1)

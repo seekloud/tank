@@ -374,6 +374,16 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
     }
   }
 
+  def fillAMedical(implicit config:TankGameConfig) = {
+    medicalNumOpt match{
+      case Some(num) if(num >=0 && num < config.getTankMedicalLimit) =>
+        medicalNumOpt = Some(num + 1)
+      case Some(num) if(num == config.getTankMedicalLimit) =>
+        blood = math.min(blood + config.propMedicalBlood, config.getTankBloodByLevel(bloodLevel))
+      case None => medicalNumOpt = Some(1)
+    }
+  }
+
 
 
   /**
@@ -499,6 +509,10 @@ case class TankImpl(
   def getBloodLevel = bloodLevel
   def getBulletLevel = bulletLevel
   def getSpeedLevel = speedLevel
+  def getCurMedicalNum = medicalNumOpt match {
+    case Some(num) => num
+    case None => 0
+  }
 
 
   def getSliderPositionByBloodLevel(num:Int,sliderLength:Float,width:Float,greyLength:Float) = {
