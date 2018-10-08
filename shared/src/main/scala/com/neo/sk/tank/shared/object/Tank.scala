@@ -44,6 +44,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   private var isFillBulletState:Boolean = false
 
   var speed: Point
+  var fakeFrame = 0l
   private def accelerationTime(implicit config: TankGameConfig) = config.getTankAccByLevel(speedLevel)
   private def decelerationTime(implicit config: TankGameConfig) = config.getTankDecByLevel(speedLevel)
 
@@ -242,7 +243,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
           }
         }
       }else{
-        val moveDistance = (tankGameConfig.getMoveDistanceByFrame(this.speedLevel) * 0.1f).rotate(direction)
+        val moveDistance = (tankGameConfig.getMoveDistanceByFrame(this.speedLevel) * 0.19f).rotate(direction)
         val horizontalDistance = moveDistance.copy(y = 0)
         val verticalDistance = moveDistance.copy(x = 0)
         List(horizontalDistance, verticalDistance).foreach { d =>
@@ -268,9 +269,9 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
 //    modifySpeed()
   }
 
-  def canMove(boundary:Point,quadTree:QuadTree)(implicit tankGameConfig: TankGameConfig):Option[Point] = {
+  def canMove(boundary:Point,quadTree:QuadTree, cavasFrameLeft:Int)(implicit tankGameConfig: TankGameConfig):Option[Point] = {
     if(isMove){
-      if(!isFakeMove && (cavasFrame <= 0 || cavasFrame >= 5)) {
+      if(!isFakeMove && (cavasFrame <= 0 || cavasFrame >= cavasFrameLeft)) {
         var moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
         val horizontalDistance = moveDistance.copy(y = 0)
         val verticalDistance = moveDistance.copy(x = 0)
@@ -294,12 +295,10 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
         this.position = originPosition
         Some(moveDistance)
       }else{
-
-        var moveDistance =( tankGameConfig.getMoveDistanceByFrame(this.speedLevel) * 0.1f).rotate(direction)
+        var moveDistance =( tankGameConfig.getMoveDistanceByFrame(this.speedLevel) * 0.19f).rotate(direction)
         val horizontalDistance = moveDistance.copy(y = 0)
         val verticalDistance = moveDistance.copy(x = 0)
         val originPosition = this.fakePosition
-
         List(horizontalDistance, verticalDistance).foreach { d =>
           if (d.x != 0 || d.y != 0) {
             val pos = this.fakePosition
@@ -459,20 +458,15 @@ case class TankImpl(
   final def getInvincibleState = invincibleState
 
 
+
   def getPosition4Animation(boundary:Point, quadTree: QuadTree ,offSetTime:Long):Point = {
-    val logicMoveDistanceOpt = this.canMove(boundary,quadTree)(config)
+    val cavasFrameLeft = if(fakeFrame < 3) 4 else 5
+    val logicMoveDistanceOpt = this.canMove(boundary,quadTree,cavasFrameLeft)(config)
     if(logicMoveDistanceOpt.nonEmpty){
-      if(!isFakeMove && (cavasFrame <= 0 || cavasFrame >= 5)) {
-        println("rrrrrrrrrrrrr")
-        val a = this.position + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
-        println(a)//移动的距离
-        a
+      if(!isFakeMove && (cavasFrame <= 0 || cavasFrame >= cavasFrameLeft)) {
+        this.position + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
       }else{
-        println("ffffffffffffffffffff")
-        val b= this.fakePosition + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
-        println(b)
-        cavasFrame += 1
-        b
+        this.fakePosition + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
       }
     }else position
   }
