@@ -359,7 +359,15 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
         }
       case 2 => if(speedLevel < config.getTankSpeedMaxLevel()) speedLevel = (speedLevel + 1).toByte
       case 3 => if(bulletLevel < config.getBulletMaxLevel()) bulletLevel = (bulletLevel + 1).toByte
-      case 4 => blood = math.min(blood + config.propMedicalBlood, config.getTankBloodByLevel(bloodLevel))
+      case 4 =>
+        medicalNumOpt match{
+          case Some(num) if(num >=0 && num < config.getTankMedicalLimit) =>
+            medicalNumOpt = Some(num + 1)
+          case Some(num) if(num == config.getTankMedicalLimit) =>
+            blood = math.min(blood + config.propMedicalBlood, config.getTankBloodByLevel(bloodLevel))
+          case None => medicalNumOpt = Some(1)
+        }
+//        blood = math.min(blood + config.propMedicalBlood, config.getTankBloodByLevel(bloodLevel))
       case 5 => shotgunState = true
     }
   }
@@ -373,15 +381,15 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
     }
   }
 
-  def fillAMedical(implicit config:TankGameConfig) = {
-    medicalNumOpt match{
-      case Some(num) if(num >=0 && num < config.getTankMedicalLimit) =>
-        medicalNumOpt = Some(num + 1)
-      case Some(num) if(num == config.getTankMedicalLimit) =>
-        blood = math.min(blood + config.propMedicalBlood, config.getTankBloodByLevel(bloodLevel))
-      case None => medicalNumOpt = Some(1)
-    }
-  }
+//  def fillAMedical(implicit config:TankGameConfig) = {
+//    medicalNumOpt match{
+//      case Some(num) if(num >=0 && num < config.getTankMedicalLimit) =>
+//        medicalNumOpt = Some(num + 1)
+//      case Some(num) if(num == config.getTankMedicalLimit) =>
+//        blood = math.min(blood + config.propMedicalBlood, config.getTankBloodByLevel(bloodLevel))
+//      case None => medicalNumOpt = Some(1)
+//    }
+//  }
 
 
 
