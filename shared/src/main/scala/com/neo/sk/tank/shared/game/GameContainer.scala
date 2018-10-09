@@ -268,15 +268,17 @@ trait GameContainer extends KillInformation{
 
   protected def handleTankEatProp(e:TankEatProp) :Unit = {
     propMap.get(e.propId).foreach{ prop =>
-      if(prop.propType == 4){
-        quadTree.remove(prop)
-        propMap.remove(e.propId)
-      }
-      else{
-        quadTree.remove(prop)
-        tankMap.get(e.tankId).foreach(_.eatProp(prop))
-        propMap.remove(e.propId)
-      }
+      quadTree.remove(prop)
+      tankMap.get(e.tankId).foreach(_.eatProp(prop))
+      propMap.remove(e.propId)
+//      if(prop.propType == 4){
+//        quadTree.remove(prop)
+//        propMap.remove(e.propId)
+//      } else{
+//        quadTree.remove(prop)
+//        tankMap.get(e.tankId).foreach(_.eatProp(prop))
+//        propMap.remove(e.propId)
+//      }
     }
   }
 

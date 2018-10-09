@@ -79,10 +79,10 @@ case class GameContainerServerImpl(
     /**
       * tank吃道具,当前存储道具数量等于限制值，即吃即用
       * */
-    if(prop.propType == 4){
-      tank.fillAMedical(config)
-    }else{
-    }
+//    if(prop.propType == 4){
+//      tank.fillAMedical(config)
+//    }else{
+//    }
     val event = TankGameEvent.TankEatProp(tank.tankId,prop.pId,prop.propType,systemFrame)
     dispatch(event)
     addGameEvent(event)
