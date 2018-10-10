@@ -38,6 +38,8 @@ class GameContainerImpl(
 
   protected var waitSyncData:Boolean = true
 
+  private val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
+
 
   override def tankExecuteLaunchBulletAction(tankId: Int, tank: Tank): Unit = {
     tank.launchBullet()(config)
@@ -104,9 +106,9 @@ class GameContainerImpl(
 
   final def addMyAction(action:UserActionEvent):Unit = {
     if(action.tankId == myTankId) {
-      myTankAction.get(action.frame - 2) match {
-        case Some(actionEvents) => myTankAction.put(action.frame - 2, action :: actionEvents)
-        case None => myTankAction.put(action.frame - 2, List(action))
+      myTankAction.get(action.frame - preExecuteFrameOffset) match {
+        case Some(actionEvents) => myTankAction.put(action.frame - preExecuteFrameOffset, action :: actionEvents)
+        case None => myTankAction.put(action.frame - preExecuteFrameOffset, List(action))
       }
     }
   }

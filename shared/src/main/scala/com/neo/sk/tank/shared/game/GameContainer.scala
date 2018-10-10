@@ -144,6 +144,8 @@ trait GameContainer extends KillInformation{
     }
   }
   var fakeFrameStart = 0l
+
+
   protected final def handleMyAction(actions:List[UserActionEvent]) = {
 
     def isHaveReal(id: Int) = {
@@ -158,10 +160,10 @@ trait GameContainer extends KillInformation{
       isHave
     }
 
-    if (tankId != -1) {
+    if (tankId != -1 && tankMap.contains(tankId)) {
       val tank = tankMap(tankId)
       if (!isHaveReal(tankId)) {
-        if (!tank.getIsMove()) {
+        if (!tank.getMoveState()) {
           tank.isFakeMove = true
           tank.fakePosition = tank.getPosition
           fakeFrameStart = systemFrame
@@ -485,7 +487,9 @@ trait GameContainer extends KillInformation{
     handleUserLeftRoomNow()
     objectMove()
     handleUserActionEventNow()
-    handleMyActionNow()
+    if(com.neo.sk.tank.shared.model.Constants.fakeRender) {
+      handleMyActionNow()
+    }
 
     handleTankAttackedNow()
     handleObstacleAttackedNow()

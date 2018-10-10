@@ -70,4 +70,8 @@ object Constants {
     val DisappearF2 = 1
   }
 
+
+  val PreExecuteFrameOffset = 2 //预执行2帧
+  val fakeRender = true
+
 }

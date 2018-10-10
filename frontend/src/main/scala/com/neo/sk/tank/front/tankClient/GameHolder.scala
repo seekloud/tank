@@ -42,7 +42,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
   private[this] val webSocketClient = WebSocketClient(wsConnectSuccess,wsConnectError,wsMessageHandler,wsConnectClose)
 
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
-  private[this] val preExecuteFrameOffset = 2
+  private[this] val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
 
 
   private var timer:Int = 0
@@ -162,7 +162,9 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
-          gameContainerOpt.get.addMyAction(preExecuteAction)
+          if(com.neo.sk.tank.shared.model.Constants.fakeRender){
+            gameContainerOpt.get.addMyAction(preExecuteAction)
+          }
           e.preventDefault()
 
         }
@@ -176,7 +178,6 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           val preExecuteAction = TankGameEvent.UserKeyboardMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset,Theta.toFloat , getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
-          gameContainerOpt.get.addMyAction(preExecuteAction)
           e.preventDefault()
 
         }
@@ -185,7 +186,6 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction) //发送鼠标位置
-          gameContainerOpt.get.addMyAction(preExecuteAction)
           e.preventDefault()
 
         }
@@ -211,7 +211,9 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
-          gameContainerOpt.get.addMyAction(preExecuteAction)
+          if(com.neo.sk.tank.shared.model.Constants.fakeRender) {
+            gameContainerOpt.get.addMyAction(preExecuteAction)
+          }
           e.preventDefault()
 
         }
