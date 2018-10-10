@@ -56,7 +56,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
     gunDirection = d
   }
 
-  def getIsMove() = isMove
+  def getMoveState() = isMove
 
   def setTankKeyBoardDirection(angle:Float) ={
     gunDirection += angle
@@ -223,10 +223,48 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
       //    if(speed < 0) speed = 0
     }
 
-    if(isMove) {
-      if (!isFakeMove) {
-        val moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
+    if(com.neo.sk.tank.shared.model.Constants.fakeRender){
+      if(isMove) {
+        if (!isFakeMove) {
+          val moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
 
+          val horizontalDistance = moveDistance.copy(y = 0)
+          val verticalDistance = moveDistance.copy(x = 0)
+          List(horizontalDistance, verticalDistance).foreach { d =>
+            if (d.x != 0 || d.y != 0) {
+              val originPosition = this.position
+              this.position = this.position + d
+              val movedRec = Rectangle(this.position - Point(radius, radius), this.position + Point(radius, radius))
+              val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+              if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
+                quadTree.updateObject(this)
+              } else {
+                this.position = originPosition
+              }
+            }
+          }
+        }else{
+          val moveDistance = (tankGameConfig.getMoveDistanceByFrame(this.speedLevel) * 0.19f).rotate(direction)
+          val horizontalDistance = moveDistance.copy(y = 0)
+          val verticalDistance = moveDistance.copy(x = 0)
+          List(horizontalDistance, verticalDistance).foreach { d =>
+            if (d.x != 0 || d.y != 0) {
+              val originPosition = this.fakePosition
+              this.fakePosition = this.fakePosition + d
+              val movedRec = Rectangle(this.fakePosition - Point(radius, radius), this.fakePosition + Point(radius, radius))
+              val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+              if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
+              } else {
+                this.fakePosition = originPosition
+              }
+            }
+          }
+        }
+
+      }
+    } else {
+      if(isMove) {
+        val moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
         val horizontalDistance = moveDistance.copy(y = 0)
         val verticalDistance = moveDistance.copy(x = 0)
         List(horizontalDistance, verticalDistance).foreach { d =>
@@ -242,25 +280,10 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
             }
           }
         }
-      }else{
-        val moveDistance = (tankGameConfig.getMoveDistanceByFrame(this.speedLevel) * 0.19f).rotate(direction)
-        val horizontalDistance = moveDistance.copy(y = 0)
-        val verticalDistance = moveDistance.copy(x = 0)
-        List(horizontalDistance, verticalDistance).foreach { d =>
-          if (d.x != 0 || d.y != 0) {
-            val originPosition = this.fakePosition
-            this.fakePosition = this.fakePosition + d
-            val movedRec = Rectangle(this.fakePosition - Point(radius, radius), this.fakePosition + Point(radius, radius))
-            val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
-            if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
-            } else {
-              this.fakePosition = originPosition
-            }
-          }
-        }
       }
-
     }
+
+
 //    val maxSpeed = tankGameConfig.getMoveDistanceByFrame(speedLevel).distance(Point(0,0)).toFloat
 //    val acceleration = getAcceleration
 //    speed += acceleration
@@ -270,23 +293,84 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   }
 
   def canMove(boundary:Point,quadTree:QuadTree, cavasFrameLeft:Int)(implicit tankGameConfig: TankGameConfig):Option[Point] = {
-    if(isMove){
-      if(!isFakeMove && (cavasFrame <= 0 || cavasFrame >= cavasFrameLeft)) {
+    if(com.neo.sk.tank.shared.model.Constants.fakeRender){
+      if(isMove){
+        if(!isFakeMove && (cavasFrame <= 0 || cavasFrame >= cavasFrameLeft)) {
+          var moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
+          val horizontalDistance = moveDistance.copy(y = 0)
+          val verticalDistance = moveDistance.copy(x = 0)
+
+          val originPosition = this.position
+
+          List(horizontalDistance, verticalDistance).foreach { d =>
+            if (d.x != 0 || d.y != 0) {
+              val pos = this.position
+              this.position = this.position + d
+              val movedRec = Rectangle(this.position - Point(radius, radius), this.position + Point(radius, radius))
+              val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+              if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
+                quadTree.updateObject(this)
+              } else {
+                this.position = pos
+                moveDistance -= d
+              }
+            }
+          }
+          this.position = originPosition
+          Some(moveDistance)
+        }else{
+          var moveDistance =( tankGameConfig.getMoveDistanceByFrame(this.speedLevel) * 0.19f).rotate(direction)
+          val horizontalDistance = moveDistance.copy(y = 0)
+          val verticalDistance = moveDistance.copy(x = 0)
+          val originPosition = this.fakePosition
+          List(horizontalDistance, verticalDistance).foreach { d =>
+            if (d.x != 0 || d.y != 0) {
+              val pos = this.fakePosition
+              this.fakePosition = this.fakePosition + d
+              val movedRec = Rectangle(this.fakePosition - Point(radius, radius), this.fakePosition + Point(radius, radius))
+              val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+              if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
+              } else {
+                this.fakePosition = pos
+                moveDistance -= d
+              }
+            }
+          }
+          this.fakePosition = originPosition
+          Some(moveDistance)
+        }
+
+
+        //      this.position = this.position + tankGameConfig.getMoveDistanceByFrame(speedLevel).rotate(this.direction.get)
+        //      val movedRec = Rectangle(this.position - Point(radius, radius), this.position + Point(radius, radius))
+        //      val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+        //      val result = if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
+        //        true
+        //      }else{
+        //        false
+        //      }
+        //
+        //      result
+      }else{
+        None
+      }
+    } else {
+      if(isMove){
         var moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
         val horizontalDistance = moveDistance.copy(y = 0)
         val verticalDistance = moveDistance.copy(x = 0)
 
         val originPosition = this.position
 
-        List(horizontalDistance, verticalDistance).foreach { d =>
-          if (d.x != 0 || d.y != 0) {
+        List(horizontalDistance,verticalDistance).foreach{ d =>
+          if(d.x != 0 || d.y != 0){
             val pos = this.position
             this.position = this.position + d
-            val movedRec = Rectangle(this.position - Point(radius, radius), this.position + Point(radius, radius))
+            val movedRec = Rectangle(this.position-Point(radius,radius),this.position+Point(radius,radius))
             val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
-            if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
+            if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
               quadTree.updateObject(this)
-            } else {
+            }else{
               this.position = pos
               moveDistance -= d
             }
@@ -295,41 +379,13 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
         this.position = originPosition
         Some(moveDistance)
       }else{
-        var moveDistance =( tankGameConfig.getMoveDistanceByFrame(this.speedLevel) * 0.19f).rotate(direction)
-        val horizontalDistance = moveDistance.copy(y = 0)
-        val verticalDistance = moveDistance.copy(x = 0)
-        val originPosition = this.fakePosition
-        List(horizontalDistance, verticalDistance).foreach { d =>
-          if (d.x != 0 || d.y != 0) {
-            val pos = this.fakePosition
-            this.fakePosition = this.fakePosition + d
-            val movedRec = Rectangle(this.fakePosition - Point(radius, radius), this.fakePosition + Point(radius, radius))
-            val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
-            if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
-            } else {
-              this.fakePosition = pos
-              moveDistance -= d
-            }
-          }
-        }
-        this.fakePosition = originPosition
-        Some(moveDistance)
+        None
       }
 
 
-//      this.position = this.position + tankGameConfig.getMoveDistanceByFrame(speedLevel).rotate(this.direction.get)
-//      val movedRec = Rectangle(this.position - Point(radius, radius), this.position + Point(radius, radius))
-//      val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
-//      val result = if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
-//        true
-//      }else{
-//        false
-//      }
-//
-//      result
-    }else{
-      None
     }
+
+
   }
 
   def isIntersectsObject(o:Seq[ObjectOfGame]):Boolean = {
