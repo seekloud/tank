@@ -116,7 +116,9 @@ object GameRecorder {
               val newRecorder = initFileRecorder(fileName,fileIndex + 1, gameInformation, initStateOpt)
               work(gameRecordData.copy(fileIndex = gameRecordData.fileIndex + 1, recorder = newRecorder, gameRecordBuffer = List[GameRecord](),fileRecordNum = 0))
             }else{
-              work(gameRecordData.copy(gameRecordBuffer = List[GameRecord]()))
+//              work(gameRecordData.copy(gameRecordBuffer = List[GameRecord]()))
+              gameRecordBuffer = List[GameRecord]()
+              Behaviors.same
             }
           }else{
             Behaviors.same
