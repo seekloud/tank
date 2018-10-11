@@ -67,7 +67,7 @@ object GameRecorder {
 
 
   private final val maxRecordNum = 100
-  private final val fileMaxReocordNum = 100000000
+  private final val fileMaxRecordNum = 100000000
   private final val log = LoggerFactory.getLogger(this.getClass)
 
 
@@ -110,7 +110,7 @@ object GameRecorder {
               }
             }
             fileRecordNum += rs.size
-            if(fileRecordNum > fileMaxReocordNum){
+            if(fileRecordNum > fileMaxRecordNum){
               recorder.finish()
               log.info(s"${ctx.self.path} has save game data to file=${fileName}_$fileIndex")
               val newRecorder = initFileRecorder(fileName,fileIndex + 1, gameInformation, initStateOpt)
