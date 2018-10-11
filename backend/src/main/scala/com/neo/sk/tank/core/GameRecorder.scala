@@ -99,7 +99,7 @@ object GameRecorder {
           if(gameRecordBuffer.size > maxRecordNum){
             val rs = gameRecordBuffer.reverse
             rs.headOption.foreach{ e =>
-              e.event._1.fillMiddleBuffer(middleBuffer).result()
+//              e.event._1.fillMiddleBuffer(middleBuffer).result()
               recorder.writeFrame(e.event._1.fillMiddleBuffer(middleBuffer).result(),e.event._2.map(_.fillMiddleBuffer(middleBuffer).result()))
               rs.tail.foreach{e =>
                 if(e.event._1.nonEmpty){
@@ -116,7 +116,7 @@ object GameRecorder {
               val newRecorder = initFileRecorder(fileName,fileIndex + 1, gameInformation, initStateOpt)
               work(gameRecordData.copy(fileIndex = gameRecordData.fileIndex + 1, recorder = newRecorder, gameRecordBuffer = List[GameRecord](),fileRecordNum = 0))
             }else{
-              Behaviors.same
+              work(gameRecordData.copy(gameRecordBuffer = List[GameRecord]()))
             }
           }else{
             Behaviors.same
