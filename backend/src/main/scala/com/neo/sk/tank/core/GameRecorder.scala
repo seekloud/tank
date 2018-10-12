@@ -12,6 +12,7 @@ import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.essf.io.FrameOutputStream
 import org.slf4j.LoggerFactory
 
+import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.concurrent.duration._
 
@@ -80,12 +81,14 @@ object GameRecorder {
         val fileRecorder = initFileRecorder(fileName,0,gameInformation,initStateOpt)
         val gameRecordBuffer:List[GameRecord] = List[GameRecord]()
         val data = GameRecorderData(fileName,0,gameInformation,initStateOpt,fileRecorder,gameRecordBuffer)
-        switchBehavior(ctx,"work",work(data))
+        switchBehavior(ctx,"work",work(data,mutable.HashMap.empty[Long,String],mutable.HashMap.empty[Long,String]))
       }
     }
   }
 
-  private def work(gameRecordData: GameRecorderData
+  private def work(gameRecordData: GameRecorderData,
+                   userAllMap: mutable.HashMap[Long,String],
+                   userMap: mutable.HashMap[Long,String]
                   )(
                     implicit stashBuffer:StashBuffer[Command],
                     timer:TimerScheduler[Command],
@@ -132,6 +135,11 @@ object GameRecorder {
 
     }
   }
+
+
+  private def save(gameRecordData: GameRecorderData,
+                   userAllMap: mutable.HashMap[Long,String],
+                   userMap: mutable.HashMap[Long,String])
 
   private def initFileRecorder(fileName:String,index:Int,gameInformation: GameInformation,initStateOpt:Option[TankGameEvent.GameSnapshot] = None)
                               (implicit middleBuffer: MiddleBufferInJvm):FrameOutputStream = {
