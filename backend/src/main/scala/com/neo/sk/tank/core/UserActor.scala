@@ -115,8 +115,6 @@ object UserActor {
           ctx.unwatch(actor)
           Behaviors.stopped
 
-
-
         case TimeOut(m) =>
           log.debug(s"${ctx.self.path} is time out when busy,msg=${m}")
           Behaviors.stopped
