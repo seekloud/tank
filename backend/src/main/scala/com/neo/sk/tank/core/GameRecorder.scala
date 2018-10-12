@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 
 import scala.language.implicitConversions
 import scala.concurrent.duration._
-
+import com.neo.sk.utils.ESSFSupport._
 
 
 /**
@@ -66,8 +66,8 @@ object GameRecorder {
   }
 
 
-  private final val maxRecordNum = 100
-  private final val fileMaxRecordNum = 100000000
+  private final val maxRecordNum = 10
+  private final val fileMaxRecordNum = 100
   private final val log = LoggerFactory.getLogger(this.getClass)
 
 
@@ -131,26 +131,6 @@ object GameRecorder {
 
 
     }
-  }
-
-  private def initFileRecorder(fileName:String,index:Int,gameInformation: GameInformation,initStateOpt:Option[TankGameEvent.GameSnapshot] = None)
-                              (implicit middleBuffer: MiddleBufferInJvm):FrameOutputStream = {
-    val dir = new File(AppSettings.gameDataDirectoryPath)
-    if(!dir.exists()){
-      dir.mkdir()
-    }
-    val file = AppSettings.gameDataDirectoryPath + fileName + s"_$index"
-    val name = "tank"
-    val version = "0.1"
-    val gameInformationBytes = gameInformation.fillMiddleBuffer(middleBuffer).result()
-    val initStateBytes = initStateOpt.map{
-      case t:TankGameEvent.GameSnapshot =>
-        t.fillMiddleBuffer(middleBuffer).result()
-    }.getOrElse(Array[Byte]())
-    val recorder = new FrameOutputStream(file)
-    recorder.init(name,version,gameInformationBytes,initStateBytes)
-    log.debug(s" init success")
-    recorder
   }
 
 
