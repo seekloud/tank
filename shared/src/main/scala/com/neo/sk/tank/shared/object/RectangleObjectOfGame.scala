@@ -13,7 +13,7 @@ trait RectangleObjectOfGame extends ObjectOfGame{
 
   protected val width : Float
   protected val height : Float
-  protected val collisionOffset: Float
+  protected val collisionOffset: Float //？
 
   final def getWidth = width
   final def getHeight = height
