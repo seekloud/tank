@@ -251,7 +251,14 @@ object UserActor {
       }
     }
 
-
-
+  /**
+    * replay-actor*/
+  private def getGameReplay(ctx: ActorContext[Command]): ActorRef[GameReplay.Command] = {
+    val childName = s"gameReplay"
+    ctx.child(childName).getOrElse {
+      val actor = ctx.spawn(GameReplay.create(), childName)
+      actor
+    }.upcast[GameReplay.Command]
+  }
 
 }
