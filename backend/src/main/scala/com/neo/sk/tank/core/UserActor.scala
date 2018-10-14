@@ -7,6 +7,7 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import org.seekloud.byteobject.MiddleBufferInJvm
+import com.neo.sk.tank.shared.protocol.TankGameEvent.ReplayFrameData
 import org.slf4j.LoggerFactory
 //import com.neo.sk.tank.Boot.roomActor
 import com.neo.sk.tank.Boot.roomManager
@@ -38,6 +39,8 @@ object UserActor {
   case class UserFrontActor(actor:ActorRef[TankGameEvent.WsMsgSource]) extends Command
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
+
+  case class DispatchReplayMsg(msg:ReplayFrameData) extends Command
 
   case object StartGame extends Command
   case class JoinRoom(uid:Long,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command]) extends Command with RoomManager.Command
@@ -213,15 +216,14 @@ object UserActor {
               Behaviors.same
           }
 
-
-
-
+        case DispatchReplayMsg(m) =>
+          frontActor ! m
+          Behaviors.same
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
           roomManager ! RoomManager.LeftRoom(uId,tank.tankId,name,Some(uId))
           Behaviors.stopped
-
 
 
 
@@ -253,10 +255,10 @@ object UserActor {
 
   /**
     * replay-actor*/
-  private def getGameReplay(ctx: ActorContext[Command]): ActorRef[GameReplay.Command] = {
+  private def getGameReplay(ctx: ActorContext[Command],recordId:Long): ActorRef[GameReplay.Command] = {
     val childName = s"gameReplay"
     ctx.child(childName).getOrElse {
-      val actor = ctx.spawn(GameReplay.create(), childName)
+      val actor = ctx.spawn(GameReplay.create(recordId), childName)
       actor
     }.upcast[GameReplay.Command]
   }

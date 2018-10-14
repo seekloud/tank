@@ -50,9 +50,11 @@ object ESSFSupport {
 
   def initFileReader(fileName:String)={
     val input = new FrameInputStream(fileName)
-    val info = input.init()
-    info
+    input
   }
+
+
+
 
   def readData(input: FrameInputStream)= {
     val info = input.init()

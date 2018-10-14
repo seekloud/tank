@@ -121,7 +121,9 @@ object UserManager {
 
 
 
-
+  /**
+    * 创建userActor使用鉴权ID*/
+  @deprecated
   private def getUserActor(ctx: ActorContext[Command],id:Long,name:String):ActorRef[UserActor.Command] = {
     val childName = s"UserActor-${id}"
     ctx.child(childName).getOrElse{
