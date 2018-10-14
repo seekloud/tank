@@ -48,17 +48,25 @@ trait HttpService
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
-        } ~
-          path("join"){
+        } ~ path("join"){
           parameter('name){ name =>
-            log.debug(s"sssssssssname=${name}")
             val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_))
-            complete("sss")
+            dealFutureResult(
+              flowFuture.map(t => handleWebSocketMessages(t))
+            )
+          }
+        } ~ path("replay"){
+          parameter(
+            'id.as[Long]
+          ){ name =>
+            val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_))
             dealFutureResult(
               flowFuture.map(t => handleWebSocketMessages(t))
             )
           }
         }
+
+
 
       }
   }

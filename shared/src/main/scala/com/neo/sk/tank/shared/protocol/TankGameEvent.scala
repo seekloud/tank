@@ -31,6 +31,11 @@ object TankGameEvent {
   final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false) extends WsMsgSource
   final case class PingPackage(sendTime:Long) extends WsMsgServer with WsMsgFront
 
+  /**
+    * 回放*/
+  final case class ReplayData(frameIndex: Int, eventsData: Array[Byte], stateData: Option[Array[Byte]])
+  final case class ReplayFrameData(f:Option[ReplayData]) extends WsMsgServer
+
   sealed trait GameEvent {
     val frame:Long
   }
