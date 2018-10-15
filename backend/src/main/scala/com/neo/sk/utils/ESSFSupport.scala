@@ -50,6 +50,13 @@ object ESSFSupport {
 
   def initFileReader(fileName:String)={
     val input = new FrameInputStream(fileName)
+    val buffer = new MiddleBufferInJvm(input.init().simulatorMetadata)
+    bytesDecode[GameInformation](buffer) match {
+      case Right(req) =>
+        println(req)
+      case Left(e) =>
+        log.error(s"decode binaryMessage failed,error:${e.message}")
+    }
     input
   }
 
@@ -76,12 +83,10 @@ object ESSFSupport {
       case Left(e) =>
         log.error(s"decode binaryMessage failed,error:${e.message}")
     }
-    val gameEventMap = mutable.HashMap[Long,List[GameEvent]]() //frame -> List[GameEvent] 待处理的事件 frame >= curFrame
-    val actionEventMap = mutable.HashMap[Long,List[UserActionEvent]]() //frame -> List[UserActionEvent]
     while (input.hasMoreFrame) {
       input.readFrame() match {
         case Some(FrameData(idx, ev, stOp)) =>
-          val data = if (ev.length > 0) {
+          if (ev.length > 0) {
             println(idx)
             val buffer = new MiddleBufferInJvm(ev)
             bytesDecode[List[TankGameEvent.WsMsgServer]](buffer) match {
@@ -114,7 +119,7 @@ object ESSFSupport {
 
 
   def main(args: Array[String]): Unit = {
-    initFileReader("C:\\Users\\sky\\IdeaProjects\\tank\\backend\\gameDataDirectoryPath\\tankGame_1539309693971_2")
+    readData(initFileReader("C:\\Users\\sky\\IdeaProjects\\tank\\backend\\gameDataDirectoryPath\\tankGame_1539309693971_5"))
   }
 
 }

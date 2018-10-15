@@ -25,7 +25,6 @@ class ReplayPage(name:String,uid:Long,rid:Long) extends Page{
   def init() = {
 
     val gameHolder = new GameHolder("GameReplay",true)
-    println("------1")
     gameHolder.getStartReplayModel(name,uid,rid)
     modal := <div>Please Wait...</div>
   }

@@ -13,6 +13,7 @@ import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html.Canvas
 import org.scalajs.dom.raw.{Event, HTMLElement, MouseEvent}
 import org.scalajs.dom
+import org.seekloud.byteobject.MiddleBufferInJvm
 
 import scala.collection.mutable
 import scala.xml.Elem
@@ -390,15 +391,21 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     e
   }
 
+  var test=1
   private def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
+    println(data)
     data match {
       case e:TankGameEvent.YourInfo =>
+        println(e)
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
         /**
           * 更新游戏数据
           * */
         gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
+        if(replay){
+          setGameState(Constants.GameState.play)
+        }
       case e:TankGameEvent.YouAreKilled =>
         /**
           * 死亡重玩
@@ -423,8 +430,17 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
 
       case e:TankGameEvent.SyncGameAllState =>
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
-        nextFrame = dom.window.requestAnimationFrame(gameRender())
-        setGameState(Constants.GameState.play)
+        if(!replay){
+          nextFrame = dom.window.requestAnimationFrame(gameRender())
+          setGameState(Constants.GameState.play)
+        }
+        //todo 跑通程序后删除
+        if(test==1)
+        {
+          nextFrame = dom.window.requestAnimationFrame(gameRender())
+          test=2
+        }
+
 
       case e:TankGameEvent.UserActionEvent =>
         //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
@@ -444,12 +460,24 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
       case e:TankGameEvent.PingPackage =>
         receivePingPackage(e)
 
+      case e:TankGameEvent.StateData=>
+        println("----1")
+        wsMessageHandler(TankGameEvent.SyncGameAllState(e.s))
 
       case e:TankGameEvent.EventData=>
+        println("----2")
         e.list.foreach(f=>wsMessageHandler(f))
+
+      case f:TankGameEvent.FrameData=>
+
 
       case _ => println(s"unknow msg={sss}")
     }
+  }
+
+  import org.seekloud.byteobject.ByteObject.bytesDecode
+  import org.seekloud.byteobject.MiddleBufferInJs
+  private def wsMessageDecode(d:TankGameEvent.FrameData):Unit = {
   }
 
 }
