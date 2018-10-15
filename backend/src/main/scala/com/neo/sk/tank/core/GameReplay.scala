@@ -19,6 +19,7 @@ import org.seekloud.byteobject.MiddleBufferInJvm
 
 import scala.collection.mutable
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * User: sky
   * Date: 2018/10/12
@@ -71,11 +72,12 @@ object GameReplay {
             switchBehavior(ctx,"work",work(replay))
           case None=>
         }*/
-        Future.successful{
-          val replay=initFileReader("C:\\Users\\sky\\IdeaProjects\\tank\\backend\\gameDataDirectoryPath\\tankGame_1539309693971_1")
+        println("----5")
+        Future{
+          val replay=initFileReader(AppSettings.gameDataDirectoryPath+"tankGame_1539309693971_5")
           switchBehavior(ctx,"work",work(replay))
         }
-        busy()
+        switchBehavior(ctx,"busy",busy())
       }
     }
   }
@@ -90,12 +92,15 @@ object GameReplay {
       msg match {
         case msg:InitReplay=>
           //todo 此处从文件中读取相关数据传送给前端
+          println("----2")
           dispatchTo(msg.userActor,YourInfo(0l,0,"test",AppSettings.tankGameConfig.getTankGameConfigImpl()))
           for(i <- 0 to loadFrame){
             if(fileReader.hasMoreFrame){
-              fileReader.readFrame().foreach(r=>
-                dispatchByteTo(msg.userActor,r)
-              )
+              fileReader.readFrame().foreach { r =>
+                //                dispatchByteTo(msg.userActor,r)
+                dispatchTo(msg.userActor, TankGameEvent.FrameData(r.eventsData))
+                r.stateData.foreach(s=>dispatchTo(msg.userActor, TankGameEvent.FrameData(s)))
+              }
             }
           }
           if(fileReader.hasMoreFrame){

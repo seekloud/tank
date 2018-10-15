@@ -49,7 +49,9 @@ object TankGameEvent {
   /**
     * replay in front
     * */
+  final case class FrameData(e:Array[Byte]) extends WsMsgServer with WsMsgFront
   final case class EventData(list:List[WsMsgServer]) extends WsMsgFront with WsMsgServer
+  final case class StateData(s:GameContainerAllState) extends WsMsgFront with WsMsgServer
 
   final case class UserJoinRoom(userId:Long, name:String, tankState:TankState, override val frame: Long) extends  UserEvent with WsMsgServer
   final case class UserLeftRoom(userId:Long, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer

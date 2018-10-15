@@ -25,23 +25,18 @@ trait PageSwitcher {
   private[this] var internalTargetHash = ""
 
 
-/*  //init.
+  //init.
   {
-
     val func = {
       e: HashChangeEvent =>
         //only handler browser history hash changed.
         if (internalTargetHash != getCurrentHash) {
           println(s"hash changed, new hash: $getCurrentHash")
+          internalTargetHash =getCurrentHash
           switchPageByHash()
         }
     }
     dom.window.addEventListener("hashchange", func, useCapture = false)
-  }*/
-
-  dom.window.onhashchange = { _: Event =>
-    println("PageSwitcher.onhashchange: " + getCurrentHash)
-    switchPageByHash()
   }
 
 

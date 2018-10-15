@@ -54,6 +54,7 @@ case class WebSocketClient(
       println(s"websocket已经启动")
     }else{
       val websocketStream =if(replay){
+        println(getReplaySocketUri(name,uid.get,rid.get))
         new WebSocket(getReplaySocketUri(name,uid.get,rid.get))
       }else{
         new WebSocket(getWebSocketUri(name))
@@ -81,6 +82,7 @@ case class WebSocketClient(
               val buf = fr.result.asInstanceOf[ArrayBuffer]
               val middleDataInJs = new MiddleBufferInJs(buf)
               val data = bytesDecode[TankGameEvent.WsMsgServer](middleDataInJs).right.get
+              println("----3")
               messageHandler(data)
             }
           case jsonStringMsg:String =>
