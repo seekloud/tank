@@ -17,7 +17,8 @@ case class WebSocketClient(
                        connectSuccessCallback: Event => Unit,
                        connectErrorCallback:Event => Unit,
                        messageHandler:TankGameEvent.WsMsgServer => Unit,
-                       closeCallback:Event => Unit
+                       closeCallback:Event => Unit,
+                       replay:Boolean=false
                      ) {
 
 
@@ -33,6 +34,11 @@ case class WebSocketClient(
     s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name)}"
   }
 
+  def getReplaySocketUri(name:String,uid:Long,rid:Long): String = {
+    val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
+    s"$wsProtocol://${dom.document.location.host}${Routes.wsReplayGameUrl(name,uid,rid)}"
+  }
+
   private val sendBuffer:MiddleBufferInJs = new MiddleBufferInJs(4096)
 
   def sendMsg(msg:TankGameEvent.WsMsgFront) = {
@@ -43,11 +49,16 @@ case class WebSocketClient(
   }
 
 
-  def setup(name:String):Unit = {
+  def setup(name:String,uid:Option[Long]=None,rid:Option[Long]=None):Unit = {
     if(wsSetup){
       println(s"websocket已经启动")
     }else{
-      val websocketStream = new WebSocket(getWebSocketUri(name))
+      val websocketStream =if(replay){
+        new WebSocket(getReplaySocketUri(name,uid.get,rid.get))
+      }else{
+        new WebSocket(getWebSocketUri(name))
+      }
+
       websocketStreamOpt = Some(websocketStream)
       websocketStream.onopen = { event: Event =>
         wsSetup = true

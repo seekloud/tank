@@ -6,7 +6,6 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.{ActorContext, StashBuffer, TimerScheduler}
 import com.neo.sk.tank.common.AppSettings
-import com.neo.sk.tank.core.UserActor.DispatchReplayMsg
 import org.slf4j.LoggerFactory
 
 import scala.language.implicitConversions
@@ -14,8 +13,11 @@ import scala.concurrent.duration._
 import com.neo.sk.utils.ESSFSupport._
 import org.seekloud.essf.io.{EpisodeInfo, FrameData, FrameInputStream}
 import com.neo.sk.tank.models.DAO.RecordDAO._
-import com.neo.sk.tank.shared.protocol.TankGameEvent.{ReplayData, ReplayFrameData}
+import com.neo.sk.tank.shared.protocol.TankGameEvent
+import com.neo.sk.tank.shared.protocol.TankGameEvent.{ReplayFrameData, YourInfo}
+import org.seekloud.byteobject.MiddleBufferInJvm
 
+import scala.collection.mutable
 import scala.concurrent.Future
 /**
   * User: sky
@@ -52,15 +54,17 @@ object GameReplay {
   val loadFrame=100
 
   /**actor内部消息*/
-  case class InitReplay(userActor: ActorRef[UserActor.Command]) extends Command
-  case class InitDownload(userActor: ActorRef[UserActor.Command]) extends Command
+  case class InitReplay(userActor: ActorRef[TankGameEvent.WsMsgSource]) extends Command
+  case class InitDownload(userActor: ActorRef[TankGameEvent.WsMsgSource]) extends Command
 
 
   def create(recordId:Long):Behavior[Command] = {
     Behaviors.setup[Command]{ctx=>
       log.info(s"${ctx.self.path} is starting..")
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
+      implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
+        //todo 此处替换从数据库中读取
         /*getRecordById(recordId).map {
           case Some(r)=>
             val replay=initFileReader(r.filePath)
@@ -76,14 +80,22 @@ object GameReplay {
     }
   }
 
-  def work(fileReader:FrameInputStream,userOpt:Option[ActorRef[UserActor.Command]]=None)(implicit stashBuffer:StashBuffer[Command],
-                                        timer:TimerScheduler[Command]):Behavior[Command]={
+  def work(fileReader:FrameInputStream,userOpt:Option[ActorRef[TankGameEvent.WsMsgSource]]=None)
+          (
+            implicit stashBuffer:StashBuffer[Command],
+            timer:TimerScheduler[Command],
+            sendBuffer: MiddleBufferInJvm
+          ):Behavior[Command]={
     Behaviors.receive[Command]{(ctx,msg)=>
       msg match {
         case msg:InitReplay=>
+          //todo 此处从文件中读取相关数据传送给前端
+          dispatchTo(msg.userActor,YourInfo(0l,0,"test",AppSettings.tankGameConfig.getTankGameConfigImpl()))
           for(i <- 0 to loadFrame){
             if(fileReader.hasMoreFrame){
-              dispatchTo(msg.userActor,fileReader.readFrame())
+              fileReader.readFrame().foreach(r=>
+                dispatchByteTo(msg.userActor,r)
+              )
             }
           }
           if(fileReader.hasMoreFrame){
@@ -98,8 +110,10 @@ object GameReplay {
 
         case GameLoop=>
           if(fileReader.hasMoreFrame){
-            userOpt.foreach(r=>
-              dispatchTo(r,fileReader.readFrame())
+            userOpt.foreach(u=>
+              fileReader.readFrame().foreach(f=>
+                dispatchByteTo(u,f)
+              )
             )
             Behaviors.same
           }else{
@@ -114,9 +128,14 @@ object GameReplay {
     }
   }
 
-  def dispatchTo(subscriber: ActorRef[UserActor.Command],msg:Option[FrameData]) = {
-    val data=msg.map(r=>ReplayData(r.frameIndex,r.eventsData,r.stateData))
-    subscriber ! DispatchReplayMsg(ReplayFrameData(data))
+  import org.seekloud.byteobject.ByteObject._
+  def dispatchTo(subscriber: ActorRef[TankGameEvent.WsMsgSource],msg: TankGameEvent.WsMsgServer)(implicit sendBuffer: MiddleBufferInJvm)= {
+    subscriber ! ReplayFrameData(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+  }
+
+  def dispatchByteTo(subscriber: ActorRef[TankGameEvent.WsMsgSource], msg:FrameData) = {
+    subscriber ! ReplayFrameData(msg.eventsData)
+    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(s))
   }
 
   private def busy()(

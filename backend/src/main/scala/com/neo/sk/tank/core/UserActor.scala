@@ -36,17 +36,17 @@ object UserActor {
   case object CompleteMsgFront extends Command
   case class FailMsgFront(ex: Throwable) extends Command
 
-  case class UserFrontActor(actor:ActorRef[TankGameEvent.WsMsgSource]) extends Command
+  case class UserFrontActor(flag:Int,actor:ActorRef[TankGameEvent.WsMsgSource],rid:Option[Long]=None) extends Command
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
-
-  case class DispatchReplayMsg(msg:ReplayFrameData) extends Command
 
   case object StartGame extends Command
   case class JoinRoom(uid:Long,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command]) extends Command with RoomManager.Command
   case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:Long,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
 
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
+
+  case class StartReplay(rid:Long) extends Command
 
   final case class SwitchBehavior(
                                    name: String,
@@ -74,7 +74,7 @@ object UserActor {
     onFailureMessage = FailMsgFront.apply
   )
 
-  def flow(actor:ActorRef[UserActor.Command]):Flow[WebSocketMsg,TankGameEvent.WsMsgSource,Any] = {
+  def flow(flag:Int,actor:ActorRef[UserActor.Command],rid:Option[Long]):Flow[WebSocketMsg,TankGameEvent.WsMsgSource,Any] = {
     val in = Flow[WebSocketMsg].to(sink(actor))
     val out =
       ActorSource.actorRef[TankGameEvent.WsMsgSource](
@@ -86,7 +86,7 @@ object UserActor {
         },
         bufferSize = 128,
         overflowStrategy = OverflowStrategy.dropHead
-      ).mapMaterializedValue(outActor => actor ! UserFrontActor(outActor))
+      ).mapMaterializedValue(outActor => actor ! UserFrontActor(flag,outActor,rid))
     Flow.fromSinkAndSource(in, out)
   }
 
@@ -109,10 +109,16 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case UserFrontActor(frontActor) =>
-          ctx.watchWith(frontActor,UserLeft(frontActor))
-          ctx.self ! StartGame
-          switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+        case UserFrontActor(flag,frontActor,rid) =>
+          if(flag==0){
+            ctx.watchWith(frontActor,UserLeft(frontActor))
+            ctx.self ! StartGame
+            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+          }else{
+            ctx.self ! StartReplay(rid.get)
+            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+          }
+
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
@@ -146,6 +152,10 @@ object UserActor {
             * 还要给userActor发送回带roomId的数据
             * */
           roomManager ! JoinRoom(uId,None,name,ctx.self)
+          Behaviors.same
+
+        case StartReplay(rid)=>
+          getGameReplay(ctx,rid) ! GameReplay.InitReplay(frontActor)
           Behaviors.same
 
         case JoinRoomSuccess(tank,config,uId,roomActor) =>
@@ -210,15 +220,10 @@ object UserActor {
             frontActor ! m
             roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,name)
             switchBehavior(ctx,"idle",idle(uId,name,frontActor))
-
           }else{
               frontActor ! m
               Behaviors.same
           }
-
-        case DispatchReplayMsg(m) =>
-          frontActor ! m
-          Behaviors.same
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
