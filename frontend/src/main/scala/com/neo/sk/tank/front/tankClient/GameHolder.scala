@@ -20,7 +20,7 @@ import scala.xml.Elem
 /**
   * Created by hongruying on 2018/8/26
   */
-case class GameHolder(canvasName:String) extends NetworkInfo {
+case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInfo {
 
   private[this] val canvas = dom.document.getElementById(canvasName).asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
@@ -39,7 +39,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
   private var killerName:String = ""
 
   private[this] var gameContainerOpt : Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
-  private[this] val webSocketClient = WebSocketClient(wsConnectSuccess,wsConnectError,wsMessageHandler,wsConnectClose)
+  private[this] val webSocketClient = WebSocketClient(wsConnectSuccess,wsConnectError,wsMessageHandler,wsConnectClose,replay)
 
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
   private[this] val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
@@ -104,6 +104,10 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
 
   def getStartGameModal():Elem = {
     startGameModal.render
+  }
+
+  def getStartReplayModel(name:String,uid:Long,rid:Long)= {
+    startReplay(name,uid,rid)
   }
 
   def gameRender():Double => Unit = {d =>
@@ -270,6 +274,13 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
     }
   }
 
+  def startReplay(name:String,uid:Long,rid:Long)={
+    canvas.focus()
+    setGameState(Constants.GameState.loadingPlay)
+    webSocketClient.setup(name,Some(uid),Some(rid))
+    gameLoop()
+  }
+
   private def gameLoop():Unit = {
     gameState match {
       case Constants.GameState.loadingPlay =>
@@ -434,6 +445,8 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
         receivePingPackage(e)
 
 
+      case e:TankGameEvent.EventData=>
+        e.list.foreach(f=>wsMessageHandler(f))
 
       case _ => println(s"unknow msg={sss}")
     }

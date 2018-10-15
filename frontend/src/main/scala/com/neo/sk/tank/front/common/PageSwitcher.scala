@@ -4,6 +4,7 @@ import com.neo.sk.tank.front.pages.FirstPage
 import mhtml.{Var, mount}
 import org.scalajs.dom
 import org.scalajs.dom.HashChangeEvent
+import org.scalajs.dom.raw.Event
 
 /**
   * User: Taoz
@@ -14,7 +15,7 @@ trait PageSwitcher {
 
   import scalatags.JsDom.short._
 
-  protected var currentPageName: Var[String] = Var("首页")
+  protected var currentPageHash: Var[List[String]] = Var(Nil)
 
   private val bodyContent = div(*.height := "100%").render
 
@@ -24,7 +25,7 @@ trait PageSwitcher {
   private[this] var internalTargetHash = ""
 
 
-  //init.
+/*  //init.
   {
 
     val func = {
@@ -36,14 +37,19 @@ trait PageSwitcher {
         }
     }
     dom.window.addEventListener("hashchange", func, useCapture = false)
+  }*/
+
+  dom.window.onhashchange = { _: Event =>
+    println("PageSwitcher.onhashchange: " + getCurrentHash)
+    switchPageByHash()
   }
 
 
-  protected def switchToPage(pageName: String): Unit = {
-    currentPageName.update(_ => pageName)
+  protected def switchToPage(pageName: List[String]): Unit = {
+    currentPageHash.update(_ => pageName)
   }
 
-  def getCurrentPageName: Var[String] = currentPageName
+  def getCurrentPageName: Var[List[String]] = currentPageHash
 
   def switchPageByHash(): Unit
 
