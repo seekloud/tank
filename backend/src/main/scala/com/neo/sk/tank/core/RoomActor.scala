@@ -5,6 +5,7 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerSch
 import akka.http.scaladsl.model.ws.Message
 import akka.stream.scaladsl.Flow
 import com.neo.sk.tank.common.AppSettings
+import com.neo.sk.tank.core.GameRecorder.JoinUserInfo
 import com.neo.sk.tank.core.game.GameContainerServerImpl
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.slf4j.LoggerFactory
@@ -78,15 +79,16 @@ object RoomActor {
               dispatchTo(subscribersMap)
             )
             if(AppSettings.gameRecordIsWork){
-              getGameRecorder(ctx,gameContainer)
+              getGameRecorder(ctx,gameContainer, roomId)
             }
             timer.startPeriodicTimer(GameLoopKey,GameLoop,gameContainer.config.frameDuration.millis)
-            idle(Nil,subscribersMap,gameContainer,0L)
+            idle(roomId, Nil,subscribersMap,gameContainer,0L)
         }
     }
   }
 
   def idle(
+            roomId: Long,
             justJoinUser:List[(Long,Option[Int],ActorRef[UserActor.Command])],
             subscribersMap:mutable.HashMap[Long,ActorRef[UserActor.Command]],
             gameContainer:GameContainerServerImpl,
@@ -100,7 +102,7 @@ object RoomActor {
         case JoinRoom(uid,tankIdOpt,name,userActor,roomId) =>
           gameContainer.joinGame(uid,tankIdOpt,name,userActor)
           //这一桢结束时会告诉所有新加入用户的tank信息以及地图全量数据
-          idle((uid,tankIdOpt,userActor) :: justJoinUser, subscribersMap, gameContainer, tickCount)
+          idle(roomId,(uid,tankIdOpt,userActor) :: justJoinUser, subscribersMap, gameContainer, tickCount)
 
         case WebSocketMsg(uid,tankId,req) =>
           gameContainer.receiveUserAction(req)
@@ -113,17 +115,17 @@ object RoomActor {
             if(roomId > 1l) {
               Behaviors.stopped
             }else{
-              idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
+              idle(roomId,justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
             }
           }else{
-            idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
+            idle(roomId,justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
           }
 
 
         case LeftRoomByKilled(uid,tankId,name) =>
 //          gameContainer.tankL
           subscribersMap.remove(uid)
-          idle(justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
+          idle(roomId,justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
 
         case GameLoop =>
           val startTime = System.currentTimeMillis()
@@ -131,7 +133,7 @@ object RoomActor {
 
           val record = gameContainer.getGameEventAndSnapshot()
           if(AppSettings.gameRecordIsWork){
-            getGameRecorder(ctx,gameContainer) ! GameRecorder.GameRecord(record)
+            getGameRecorder(ctx,gameContainer, roomId) ! GameRecorder.GameRecord(record)
           }
           gameContainer.update()
 
@@ -154,7 +156,7 @@ object RoomActor {
           if(tickCount % 100 == 2){
             log.debug(s"${ctx.self.path} curFrame=${gameContainer.systemFrame} use time=${endTime-startTime}")
           }
-          idle(Nil,subscribersMap,gameContainer,tickCount+1)
+          idle(roomId,Nil,subscribersMap,gameContainer,tickCount+1)
 
         case TankFillABullet(tId) =>
           //          log.debug(s"${ctx.self.path} recv a msg=${msg}")
@@ -203,14 +205,14 @@ object RoomActor {
   }
 
 
-    private def getGameRecorder(ctx: ActorContext[Command],gameContainer:GameContainerServerImpl):ActorRef[GameRecorder.Command] = {
+    private def getGameRecorder(ctx: ActorContext[Command],gameContainer:GameContainerServerImpl, rommId: Long):ActorRef[GameRecorder.Command] = {
       val childName = s"gameRecorder"
       ctx.child(childName).getOrElse{
         val curTime = System.currentTimeMillis()
         val fileName = s"tankGame_${curTime}"
-        val gameInformation = TankGameEvent.GameInformation(curTime)
+        val gameInformation = TankGameEvent.GameInformation(curTime, gameContainer.config)
         val initStateOpt = Some(gameContainer.getCurGameSnapshot())
-        val actor = ctx.spawn(GameRecorder.create(fileName,gameInformation,initStateOpt),childName)
+        val actor = ctx.spawn(GameRecorder.create(fileName,gameInformation,initStateOpt, rommId),childName)
         ctx.watchWith(actor,ChildDead(childName,actor))
         actor
       }.upcast[GameRecorder.Command]
