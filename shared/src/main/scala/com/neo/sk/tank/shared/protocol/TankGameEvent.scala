@@ -1,7 +1,7 @@
 package com.neo.sk.tank.shared.protocol
 
 import com.neo.sk.tank.shared.`object`.{BulletState, ObstacleState, PropState, TankState}
-import com.neo.sk.tank.shared.config.TankGameConfigImpl
+import com.neo.sk.tank.shared.config.{TankGameConfig, TankGameConfigImpl}
 import com.neo.sk.tank.shared.game.{GameContainerAllState, GameContainerState}
 import com.neo.sk.tank.shared.model.Score
 
@@ -88,7 +88,8 @@ object TankGameEvent {
 
 
   final case class GameInformation(
-                                    gameStartTime:Long
+                                    gameStartTime:Long,
+                                    tankConfig: TankGameConfig
                                   )
 
 }
