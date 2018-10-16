@@ -10,7 +10,7 @@ import org.seekloud.byteobject.encoder.BytesEncoder
 import org.seekloud.byteobject.{MiddleBuffer, MiddleBufferInJvm}
 import org.seekloud.essf.io.{FrameData, FrameInputStream, FrameOutputStream}
 import org.slf4j.LoggerFactory
-import scala.language.implicitConversions
+
 import scala.collection.mutable
 /**
   * User: sky
@@ -21,11 +21,30 @@ import scala.collection.mutable
 object ESSFSupport {
   import org.seekloud.byteobject.ByteObject._
   private final val log = LoggerFactory.getLogger(this.getClass)
+
   /**
     * 存储
     * @author hongruying on 2018/8/14
     * */
-
+  def initFileRecorder(fileName:String,index:Int,gameInformation: GameInformation,initStateOpt:Option[TankGameEvent.GameSnapshot] = None)
+                              (implicit middleBuffer: MiddleBufferInJvm):FrameOutputStream = {
+    val dir = new File(AppSettings.gameDataDirectoryPath)
+    if(!dir.exists()){
+      dir.mkdir()
+    }
+    val file = AppSettings.gameDataDirectoryPath + fileName + s"_$index"
+    val name = "tank"
+    val version = "0.1"
+    val gameInformationBytes = gameInformation.fillMiddleBuffer(middleBuffer).result()
+    val initStateBytes = initStateOpt.map{
+      case t:TankGameEvent.GameSnapshot =>
+        t.fillMiddleBuffer(middleBuffer).result()
+    }.getOrElse(Array[Byte]())
+    val recorder = new FrameOutputStream(file)
+    recorder.init(name,version,gameInformationBytes,initStateBytes)
+    log.debug(s"file-$fileName-$index init success")
+    recorder
+  }
 
   /**
     * 读取*/

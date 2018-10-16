@@ -211,7 +211,7 @@ object RoomActor {
       ctx.child(childName).getOrElse{
         val curTime = System.currentTimeMillis()
         val fileName = s"tankGame_${curTime}"
-        val gameInformation = TankGameEvent.GameInformation(curTime,gameContainer.config)
+        val gameInformation = TankGameEvent.GameInformation(curTime)
         val initStateOpt = Some(gameContainer.getCurGameSnapshot())
         val actor = ctx.spawn(GameRecorder.create(fileName,gameInformation,initStateOpt),childName)
         ctx.watchWith(actor,ChildDead(childName,actor))
