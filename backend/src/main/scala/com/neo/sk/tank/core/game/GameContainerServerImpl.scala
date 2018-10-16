@@ -56,6 +56,7 @@ case class GameContainerServerImpl(
     def transformGenerateBulletEvent(bulletState: BulletState) = {
       val event = TankGameEvent.GenerateBullet(systemFrame,bulletState)
       dispatch(event)
+//      println(s"bu=${bulletState}")
       addGameEvent(event)
     }
 
@@ -392,9 +393,9 @@ case class GameContainerServerImpl(
     //记录数据
     val gameEventSize = gameEventMap.getOrElse(systemFrame, Nil).size
     val actionEventSize = actionEventMap.getOrElse(systemFrame, Nil).size
-    if(gameEventSize + actionEventSize > 0){
-      log.info(s"tank systemFrame=${systemFrame}, gameEvents=${gameEventSize}, actionEvents=${actionEventSize}")
-    }
+//    if(gameEventSize + actionEventSize > 0){
+//      log.info(s"tank systemFrame=${systemFrame}, gameEvents=${gameEventSize}, actionEvents=${actionEventSize}")
+//    }
     gameEventMap -= systemFrame
     actionEventMap -= systemFrame
     systemFrame += 1
