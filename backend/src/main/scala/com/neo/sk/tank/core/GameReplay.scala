@@ -73,7 +73,7 @@ object GameReplay {
           case None=>
         }*/
         Future{
-          val replay=initFileReader(AppSettings.gameDataDirectoryPath+ "tankGame_1539668718477_1")
+          val replay=initFileReader(AppSettings.gameDataDirectoryPath+ "tankGame_1539696222847_0")
           ctx.self ! SwitchBehavior("work",work(replay))
         }
         switchBehavior(ctx,"busy",busy())
@@ -93,7 +93,7 @@ object GameReplay {
           //todo 此处从文件中读取相关数据传送给前端
           dispatchTo(msg.userActor,YourInfo(1,100,"11",AppSettings.tankGameConfig.getTankGameConfigImpl()))
           //todo 游戏初始时没有tank信息
-          for(i <- 1 to 5){
+          for(i <- 1 to 25){
             if(fileReader.hasMoreFrame){
               fileReader.readFrame()
             }
