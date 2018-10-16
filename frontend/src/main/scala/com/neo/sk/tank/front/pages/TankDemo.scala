@@ -48,7 +48,6 @@ object TankDemo extends Page{
 
 
   override def render: Elem ={
-    println("-----?")
     Shortcut.scheduleOnce(() =>init(),0)
     <div>
       <div >{modal}</div>

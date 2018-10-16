@@ -1,7 +1,9 @@
 package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.front.common.Routes
+import com.neo.sk.tank.shared.game.GameContainerAllState
 import com.neo.sk.tank.shared.protocol.TankGameEvent
+import com.neo.sk.tank.shared.protocol.TankGameEvent.SyncGameAllState
 import org.scalajs.dom
 import org.scalajs.dom.Blob
 import org.scalajs.dom.raw._
@@ -81,9 +83,12 @@ case class WebSocketClient(
             fr.onloadend = { _: Event =>
               val buf = fr.result.asInstanceOf[ArrayBuffer]
               val middleDataInJs = new MiddleBufferInJs(buf)
-              val data = bytesDecode[TankGameEvent.WsMsgServer](middleDataInJs).right.get
-              println("----3")
-              messageHandler(data)
+              bytesDecode[TankGameEvent.WsMsgServer](middleDataInJs) match {
+                case Right(r) =>
+                  messageHandler(r)
+                case Left(e) =>
+                  println(e.message)
+              }
             }
           case jsonStringMsg:String =>
             import io.circe.generic.auto._

@@ -66,8 +66,8 @@ object GameRecorder {
   }
 
 
-  private final val maxRecordNum = 10
-  private final val fileMaxRecordNum = 100
+  private final val maxRecordNum = 100
+  private final val fileMaxRecordNum = 1000
   private final val log = LoggerFactory.getLogger(this.getClass)
 
 
