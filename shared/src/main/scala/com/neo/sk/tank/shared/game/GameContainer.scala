@@ -56,7 +56,7 @@ trait GameContainer extends KillInformation{
 
   var currentRank = List.empty[Score]
 
-  var historyRankMap =Map.empty[Int,Score]
+  var historyRankMap = Map.empty[Int,Score]
   var historyRank = historyRankMap.values.toList.sortBy(_.d).reverse
   var historyRankThreshold =if (historyRank.isEmpty)-1 else historyRank.map(_.d).min
   val historyRankLength = 5
@@ -146,7 +146,7 @@ trait GameContainer extends KillInformation{
   var fakeFrameStart = 0l
 
 
-  protected final def handleMyAction(actions:List[UserActionEvent]) = {
+  protected final def handleMyAction(actions:List[UserActionEvent]) = { //处理出现错误动作的帧
 
     def isHaveReal(id: Int) = {
       var isHave = false

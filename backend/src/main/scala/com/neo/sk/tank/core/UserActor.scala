@@ -115,14 +115,13 @@ object UserActor {
           ctx.unwatch(actor)
           Behaviors.stopped
 
-
-
         case TimeOut(m) =>
           log.debug(s"${ctx.self.path} is time out when busy,msg=${m}")
           Behaviors.stopped
 
         case unknowMsg =>
           stashBuffer.stash(unknowMsg)
+//          log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
       }
     }
@@ -169,6 +168,7 @@ object UserActor {
 
 
         case unknowMsg =>
+//          log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
       }
     }
@@ -224,6 +224,7 @@ object UserActor {
 
 
         case unknowMsg =>
+//          log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
       }
     }
