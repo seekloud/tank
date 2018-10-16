@@ -131,12 +131,27 @@ object GameRecorder {
           Behaviors.same
       }
 
-
     }
   }
 
-
-
-
+  def initFileRecorder(fileName:String,index:Int,gameInformation: GameInformation,initStateOpt:Option[TankGameEvent.GameSnapshot] = None)
+                      (implicit middleBuffer: MiddleBufferInJvm):FrameOutputStream = {
+    val dir = new File(AppSettings.gameDataDirectoryPath)
+    if(!dir.exists()){
+      dir.mkdir()
+    }
+    val file = AppSettings.gameDataDirectoryPath + fileName + s"_$index"
+    val name = "tank"
+    val version = "0.1"
+    val gameInformationBytes = gameInformation.fillMiddleBuffer(middleBuffer).result()
+    val initStateBytes = initStateOpt.map{
+      case t:TankGameEvent.GameSnapshot =>
+        t.fillMiddleBuffer(middleBuffer).result()
+    }.getOrElse(Array[Byte]())
+    val recorder = new FrameOutputStream(file)
+    recorder.init(name,version,gameInformationBytes,initStateBytes)
+    log.debug(s"file-$fileName-$index init success")
+    recorder
+  }
 
 }
