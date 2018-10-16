@@ -69,7 +69,6 @@ final case class PropParameters(
 final case class AirDropParameters(
                                     blood:Int,
                                     num:Int
-
                                   )
 
 final case class BrickParameters(
@@ -83,7 +82,7 @@ final case class RiverParameters(
                                 )
 
 final case class SteelParameters(
-                                  typePos:List[List[(Int, Int)]], //河流的元素位置
+                                  typePos:List[List[(Int, Int)]], //钢铁的元素位置
                                   barrierPos:List[List[(Int,Int)]]
                                 )
 
