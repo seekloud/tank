@@ -95,7 +95,7 @@ object GameRecorder {
     Behaviors.receive{ (ctx,msg) =>
       msg match {
         case t:GameRecord =>
-          t.event._1.filter(_.isInstanceOf[TankGameEvent.UserMouseClick]).foreach(r=>println(r))
+          t.event._1.filter(_.isInstanceOf[TankGameEvent.UserMouseClick]).foreach(println(_))
           t.event._1.filter(_.isInstanceOf[TankGameEvent.GenerateBullet]).foreach(r=>println(r))
           gameRecordBuffer = t :: gameRecordBuffer
           if(gameRecordBuffer.size > maxRecordNum){
