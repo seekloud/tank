@@ -220,6 +220,7 @@ class GameContainerImpl(
   }
 
   def receiveGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
+    println(gameContainerAllState.tanks)
     gameContainerAllStateOpt = Some(gameContainerAllState)
   }
 

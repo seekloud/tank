@@ -52,7 +52,7 @@ object GameReplay {
     stashBuffer.unstashAll(ctx,behavior)
   }
 
-  val loadFrame=100
+  val loadFrame=0
 
   /**actor内部消息*/
   case class InitReplay(userActor: ActorRef[TankGameEvent.WsMsgSource]) extends Command
@@ -72,10 +72,9 @@ object GameReplay {
             switchBehavior(ctx,"work",work(replay))
           case None=>
         }*/
-        println("----5")
         Future{
-          val replay=initFileReader(AppSettings.gameDataDirectoryPath+"tankGame_1539309693971_5")
-          switchBehavior(ctx,"work",work(replay))
+          val replay=initFileReader(AppSettings.gameDataDirectoryPath+ "tankGame_1539668718477_0")
+          ctx.self ! SwitchBehavior("work",work(replay))
         }
         switchBehavior(ctx,"busy",busy())
       }
@@ -92,26 +91,22 @@ object GameReplay {
       msg match {
         case msg:InitReplay=>
           //todo 此处从文件中读取相关数据传送给前端
-          println("----2")
-          dispatchTo(msg.userActor,YourInfo(0l,0,"test",AppSettings.tankGameConfig.getTankGameConfigImpl()))
-          for(i <- 0 to loadFrame){
+          dispatchTo(msg.userActor,YourInfo(1,100,"test",AppSettings.tankGameConfig.getTankGameConfigImpl()))
+          //todo 游戏初始时没有tank信息
+          for(i <- 1 to 5){
             if(fileReader.hasMoreFrame){
-              fileReader.readFrame().foreach { r =>
-                //                dispatchByteTo(msg.userActor,r)
-                dispatchTo(msg.userActor, TankGameEvent.FrameData(r.eventsData))
-                r.stateData.foreach(s=>dispatchTo(msg.userActor, TankGameEvent.FrameData(s)))
-              }
+              fileReader.readFrame()
             }
           }
           if(fileReader.hasMoreFrame){
             timer.startPeriodicTimer(GameLoopKey, GameLoop, 100.millis)
             work(fileReader,Some(msg.userActor))
           }else{
-            Behaviors.stopped
+            switchBehavior(ctx,"busy",busy(),Some(10.seconds))
           }
 
         case msg:InitDownload=>
-          Behaviors.stopped
+          switchBehavior(ctx,"busy",busy(),Some(10.seconds))
 
         case GameLoop=>
           if(fileReader.hasMoreFrame){
@@ -123,7 +118,7 @@ object GameReplay {
             Behaviors.same
           }else{
             timer.cancel(GameLoopKey)
-            Behaviors.stopped
+            switchBehavior(ctx,"busy",busy(),Some(10.seconds))
           }
 
         case unKnowMsg =>
@@ -138,9 +133,10 @@ object GameReplay {
     subscriber ! ReplayFrameData(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
   }
 
-  def dispatchByteTo(subscriber: ActorRef[TankGameEvent.WsMsgSource], msg:FrameData) = {
-    subscriber ! ReplayFrameData(msg.eventsData)
-    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(s))
+  import com.neo.sk.utils.ESSFSupport.{replayEventDecode,replayStateDecode}
+  def dispatchByteTo(subscriber: ActorRef[TankGameEvent.WsMsgSource], msg:FrameData)(implicit sendBuffer: MiddleBufferInJvm) = {
+    subscriber ! ReplayFrameData(replayEventDecode(msg.eventsData).fillMiddleBuffer(sendBuffer).result())
+    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(replayStateDecode(s).fillMiddleBuffer(sendBuffer).result()))
   }
 
   private def busy()(

@@ -46,6 +46,7 @@ object MainPage extends PageSwitcher {
 
 
   def show(): Cancelable = {
+    switchPageByHash()
     val page =
       <div>
         {currentPage}

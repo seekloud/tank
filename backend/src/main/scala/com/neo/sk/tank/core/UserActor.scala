@@ -115,7 +115,6 @@ object UserActor {
             ctx.self ! StartGame
             switchBehavior(ctx,"idle",idle(uId,name,frontActor))
           }else{
-            println("----1")
             ctx.self ! StartReplay(rid.get)
             switchBehavior(ctx,"idle",idle(uId,name,frontActor))
           }
@@ -156,7 +155,6 @@ object UserActor {
           Behaviors.same
 
         case StartReplay(rid)=>
-          println("----3")
           getGameReplay(ctx,rid) ! GameReplay.InitReplay(frontActor)
           Behaviors.same
 

@@ -3,8 +3,9 @@ package com.neo.sk.utils
 import java.io.File
 
 import com.neo.sk.tank.common.AppSettings
+import com.neo.sk.tank.shared.game.GameContainerAllState
 import com.neo.sk.tank.shared.protocol.TankGameEvent
-import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameEvent, GameInformation, UserActionEvent}
+import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameEvent, GameInformation, SyncGameAllState, UserActionEvent}
 import org.seekloud.byteobject.encoder.BytesEncoder
 import org.seekloud.byteobject.{MiddleBuffer, MiddleBufferInJvm}
 import org.seekloud.essf.io.{FrameData, FrameInputStream, FrameOutputStream}
@@ -50,43 +51,48 @@ object ESSFSupport {
 
   def initFileReader(fileName:String)={
     val input = new FrameInputStream(fileName)
-    val buffer = new MiddleBufferInJvm(input.init().simulatorMetadata)
-    bytesDecode[GameInformation](buffer) match {
-      case Right(req) =>
-        println(req)
-      case Left(e) =>
-        log.error(s"decode binaryMessage failed,error:${e.message}")
-    }
+    input.init()
     input
+  }
+
+  /**解码*/
+
+  def replayEventDecode(a:Array[Byte]):TankGameEvent.WsMsgServer={
+    if (a.length > 0) {
+      val buffer = new MiddleBufferInJvm(a)
+      bytesDecode[List[TankGameEvent.WsMsgServer]](buffer) match {
+        case Right(r) =>
+          TankGameEvent.EventData(r)
+        case Left(e) =>
+          TankGameEvent.DecodeError()
+      }
+    }else{
+      TankGameEvent.DecodeError()
+    }
+  }
+
+  def replayStateDecode(a:Array[Byte]):TankGameEvent.WsMsgServer={
+    val buffer = new MiddleBufferInJvm(a)
+    bytesDecode[TankGameEvent.GameSnapshot](buffer) match {
+      case Right(r) =>
+        TankGameEvent.SyncGameAllState(r.asInstanceOf[TankGameEvent.TankGameSnapshot].state)
+      case Left(e) =>
+        TankGameEvent.DecodeError()
+    }
   }
 
 
 
 
   def readData(input: FrameInputStream)= {
-    val info = input.init()
-    val name = info.simulatorId
-    println(name)
-    val version = info.simulatorVersion
-    println(version)
-    val buffer = new MiddleBufferInJvm(info.simulatorMetadata)
-    bytesDecode[GameInformation](buffer) match {
-      case Right(req) =>
-        println(req)
-      case Left(e) =>
-        log.error(s"decode binaryMessage failed,error:${e.message}")
-    }
-    val buffer1 = new MiddleBufferInJvm(info.simulatorInitState)
-    bytesDecode[TankGameEvent.GameSnapshot](buffer1) match {
-      case Right(req) =>
-        println(req)
-      case Left(e) =>
-        log.error(s"decode binaryMessage failed,error:${e.message}")
-    }
     while (input.hasMoreFrame) {
       input.readFrame() match {
         case Some(FrameData(idx, ev, stOp)) =>
-          if (ev.length > 0) {
+          replayEventDecode(ev)
+          stOp.foreach{r=>
+            replayStateDecode(r)
+          }
+          /*if (ev.length > 0) {
             println(idx)
             val buffer = new MiddleBufferInJvm(ev)
             bytesDecode[List[TankGameEvent.WsMsgServer]](buffer) match {
@@ -95,14 +101,16 @@ object ESSFSupport {
               case Left(e) =>
                 log.error(s"decode binaryMessage failed,error:${e.message}")
             }
+//            replayEventDecode(ev)
             stOp.foreach{r=>
-              val buffer = new MiddleBufferInJvm(r)
+              /*val buffer = new MiddleBufferInJvm(r)
               bytesDecode[TankGameEvent.GameSnapshot](buffer) match {
                 case Right(req) =>
                   println(req)
                 case Left(e) =>
                   log.error(s"decode binaryMessage failed,error:${e.message}")
-              }
+              }*/
+              replayStateDecode(r)
             }
           } else {
             if (stOp.isEmpty) {
@@ -110,7 +118,7 @@ object ESSFSupport {
             } else {
               throw new RuntimeException("this game can not go to here.")
             }
-          }
+          }*/
         case None =>
           println("get to the end, no more frame.")
       }

@@ -31,10 +31,6 @@ object TankGameEvent {
   final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false) extends WsMsgSource
   final case class PingPackage(sendTime:Long) extends WsMsgServer with WsMsgFront
 
-  /**
-    * replay-frame-msg*/
-  final case class ReplayFrameData(ws:Array[Byte]) extends WsMsgSource
-
   sealed trait GameEvent {
     val frame:Long
   }
@@ -47,11 +43,14 @@ object TankGameEvent {
   }
 
   /**
+    * replay-frame-msg*/
+  final case class ReplayFrameData(ws:Array[Byte]) extends WsMsgSource
+  /**
     * replay in front
     * */
-  final case class FrameData(e:Array[Byte]) extends WsMsgServer with WsMsgFront
-  final case class EventData(list:List[WsMsgServer]) extends WsMsgFront with WsMsgServer
-  final case class StateData(s:GameContainerAllState) extends WsMsgFront with WsMsgServer
+  final case class ReplayInfo(userId:Long,tankId:Int,name:String,f:Long,config:TankGameConfigImpl) extends WsMsgServer
+  final case class EventData(list:List[WsMsgServer]) extends WsMsgServer
+  final case class DecodeError() extends WsMsgServer
 
   final case class UserJoinRoom(userId:Long, name:String, tankState:TankState, override val frame: Long) extends  UserEvent with WsMsgServer
   final case class UserLeftRoom(userId:Long, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer
