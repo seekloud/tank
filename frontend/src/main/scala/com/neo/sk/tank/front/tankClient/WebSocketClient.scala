@@ -7,6 +7,7 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent.SyncGameAllState
 import org.scalajs.dom
 import org.scalajs.dom.Blob
 import org.scalajs.dom.raw._
+import org.seekloud.byteobject.ByteObject.bytesDecode
 import org.seekloud.byteobject.MiddleBufferInJs
 
 import scala.scalajs.js.typedarray.ArrayBuffer
@@ -77,17 +78,14 @@ case class WebSocketClient(
         //        println(s"recv msg:${event.data.toString}")
         event.data match {
           case blobMsg:Blob =>
-            import org.seekloud.byteobject.ByteObject._
             val fr = new FileReader()
             fr.readAsArrayBuffer(blobMsg)
             fr.onloadend = { _: Event =>
               val buf = fr.result.asInstanceOf[ArrayBuffer]
-              val middleDataInJs = new MiddleBufferInJs(buf)
-              bytesDecode[TankGameEvent.WsMsgServer](middleDataInJs) match {
-                case Right(r) =>
-                  messageHandler(r)
-                case Left(e) =>
-                  println(e.message)
+              if(replay){
+                messageHandler(replayEventDecode(buf))
+              }else{
+                messageHandler(wsByteDecode(buf))
               }
             }
           case jsonStringMsg:String =>
@@ -105,6 +103,48 @@ case class WebSocketClient(
         websocketStreamOpt = None
         closeCallback(event)
       }
+    }
+  }
+
+  import org.seekloud.byteobject.ByteObject._
+
+  private def wsByteDecode(a:ArrayBuffer):TankGameEvent.WsMsgServer={
+    val middleDataInJs = new MiddleBufferInJs(a)
+    bytesDecode[TankGameEvent.WsMsgServer](middleDataInJs) match {
+      case Right(r) =>
+        r
+      case Left(e) =>
+        TankGameEvent.DecodeError()
+    }
+  }
+
+  private def replayEventDecode(a:ArrayBuffer):TankGameEvent.WsMsgServer={
+    val middleDataInJs = new MiddleBufferInJs(a)
+    if (a.byteLength > 0) {
+      bytesDecode[List[TankGameEvent.WsMsgServer]](middleDataInJs) match {
+        case Right(r) =>
+          r.foreach{t=>
+            if(t.isInstanceOf[TankGameEvent.GenerateBullet]){
+              println("============================")
+              println(t)
+            }
+          }
+          TankGameEvent.EventData(r)
+        case Left(e) =>
+          replayStateDecode(a)
+      }
+    }else{
+      TankGameEvent.DecodeError()
+    }
+  }
+
+  private def replayStateDecode(a:ArrayBuffer):TankGameEvent.WsMsgServer={
+    val middleDataInJs = new MiddleBufferInJs(a)
+    bytesDecode[TankGameEvent.GameSnapshot](middleDataInJs) match {
+      case Right(r) =>
+        TankGameEvent.SyncGameAllState(r.asInstanceOf[TankGameEvent.TankGameSnapshot].state)
+      case Left(e) =>
+        TankGameEvent.DecodeError()
     }
   }
 

@@ -338,7 +338,7 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     ctx.textBaseline = "top"
     ctx.font = "36px Helvetica"
     ctx.fillText("请稍等，正在连接服务器", 150, 180)
-    println()
+//    println()
   }
 
   private def drawGameStop():Unit = {
@@ -457,7 +457,6 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     data match {
       case e:TankGameEvent.YourInfo =>
         println("----Start!!!!!")
-        println(e)
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
         gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
@@ -471,7 +470,7 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
           setGameState(Constants.GameState.play)
         }else{
           //fixme 此处存在重复操作
-          gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
+//          gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
           gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks,e.gState.props,e.gState.obstacle,e.gState.tankMoveAction)))
         }
 
@@ -484,15 +483,15 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
 
 
       case e:TankGameEvent.GameEvent =>
-        e match {
+      /*  e match {
           case ee:TankGameEvent.GenerateBullet =>
             gameContainerOpt.foreach(_.receiveGameEvent(e))
           //            if(gameContainerOpt.get.systemFrame > ee.frame)
           //              println(s"recv GenerateBullet, curFrame=${gameContainerOpt.get.systemFrame}, eventFrame=${ee.frame}. event=${ee}")
           //            Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveGameEvent(e)),100)
           case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
-        }
-
+        }*/
+        gameContainerOpt.foreach(_.receiveGameEvent(e))
       case e:TankGameEvent.EventData =>
         e.list.foreach(r=>replayMessageHandler(r))
 
