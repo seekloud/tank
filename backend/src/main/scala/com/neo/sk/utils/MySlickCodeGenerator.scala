@@ -17,11 +17,11 @@ object MySlickCodeGenerator {
 
   val slickDriver = "slick.jdbc.PostgresProfile"
   val jdbcDriver = "org.postgresql.Driver"
-  val url = "jdbc:postgresql://10.1.29.247:5432/tankDemo?useUnicode=true&characterEncoding=utf-8"
+  val url = "jdbc:postgresql://10.1.29.250:5432/tank?useUnicode=true&characterEncoding=utf-8"
   val outputFolder = "target/gencode/genTablesPsql"
-  val pkg = "com.neo.sk.yilia.models.tables"
-  val user = "tankDemo"
-  val password = "tankDemo1qaz@WSX"
+  val pkg = "com.neo.sk.tank.models"
+  val user = "tank"
+  val password = "tank1qaz@WSX"
 
 
   //val dbDriver = MySQLDriver

@@ -67,7 +67,7 @@ object GameRecorder {
 
 
   private final val maxRecordNum = 100
-  private final val fileMaxReocordNum = 100000000
+  private final val fileMaxRecordNum = 100000000
   private final val log = LoggerFactory.getLogger(this.getClass)
 
 
@@ -99,7 +99,7 @@ object GameRecorder {
           if(gameRecordBuffer.size > maxRecordNum){
             val rs = gameRecordBuffer.reverse
             rs.headOption.foreach{ e =>
-              e.event._1.fillMiddleBuffer(middleBuffer).result()
+//              e.event._1.fillMiddleBuffer(middleBuffer).result()
               recorder.writeFrame(e.event._1.fillMiddleBuffer(middleBuffer).result(),e.event._2.map(_.fillMiddleBuffer(middleBuffer).result()))
               rs.tail.foreach{e =>
                 if(e.event._1.nonEmpty){
@@ -110,12 +110,14 @@ object GameRecorder {
               }
             }
             fileRecordNum += rs.size
-            if(fileRecordNum > fileMaxReocordNum){
+            if(fileRecordNum > fileMaxRecordNum){
               recorder.finish()
               log.info(s"${ctx.self.path} has save game data to file=${fileName}_$fileIndex")
               val newRecorder = initFileRecorder(fileName,fileIndex + 1, gameInformation, initStateOpt)
               work(gameRecordData.copy(fileIndex = gameRecordData.fileIndex + 1, recorder = newRecorder, gameRecordBuffer = List[GameRecord](),fileRecordNum = 0))
             }else{
+//              work(gameRecordData.copy(gameRecordBuffer = List[GameRecord]()))
+              gameRecordBuffer = List[GameRecord]()
               Behaviors.same
             }
           }else{
