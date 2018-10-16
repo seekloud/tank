@@ -39,6 +39,7 @@ object GameRecorder {
 
   final case class GameRecord(event:(List[TankGameEvent.WsMsgServer],Option[TankGameEvent.GameSnapshot])) extends Command
   final case class SaveDate(recordId: Long, roomId: Long, startTime: Long, endTime: Long, filePath: String) extends Command
+  final case object Save extends Command
 
   private final val InitTime = Some(5.minutes)
   private final case object BehaviorChangeKey
@@ -105,6 +106,7 @@ object GameRecorder {
         val fileRecorder = initFileRecorder(fileName,0,gameInformation,initStateOpt)
         val gameRecordBuffer:List[GameRecord] = List[GameRecord]()
         val data = GameRecorderData(roomId,fileName,0,gameInformation,initStateOpt,fileRecorder,gameRecordBuffer)
+        timer.startSingleTimer(SaveDateKey, Save, 1.hour)
         switchBehavior(ctx,"work",work(data,mutable.HashMap.empty[Long, EssfMapInfo],mutable.HashMap.empty[Long,Long],mutable.HashMap.empty[Long,Long], 0L, 0L))
       }
     }
@@ -143,7 +145,6 @@ object GameRecorder {
           if(gameRecordBuffer.size > maxRecordNum){
             val rs = gameRecordBuffer.reverse
             rs.headOption.foreach{ e =>
-//              e.event._1.fillMiddleBuffer(middleBuffer).result()
               recorder.writeFrame(e.event._1.fillMiddleBuffer(middleBuffer).result(),e.event._2.map(_.fillMiddleBuffer(middleBuffer).result()))
               rs.tail.foreach{e =>
                 if(e.event._1.nonEmpty){
@@ -154,20 +155,16 @@ object GameRecorder {
               }
             }
 
-            fileRecordNum += rs.size
-            if(fileRecordNum > fileMaxRecordNum){
-              recorder.finish()
-              log.info(s"${ctx.self.path} has save game data to file=${fileName}_$fileIndex")
-              val newRecorder = initFileRecorder(fileName,fileIndex + 1, gameInformation, initStateOpt)
-              work(gameRecordData.copy(fileIndex = gameRecordData.fileIndex + 1, recorder = newRecorder, gameRecordBuffer = List[GameRecord](),fileRecordNum = 0))
-            }else{
-//              work(gameRecordData.copy(gameRecordBuffer = List[GameRecord]()))
-              gameRecordBuffer = List[GameRecord]()
-              Behaviors.same
-            }
+            gameRecordBuffer = List[GameRecord]()
+            Behaviors.same
           }else{
             Behaviors.same
           }
+
+        case Save =>
+          switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
+          timer.startSingleTimer(SaveDateKey, Save, 1.hour)
+          Behaviors.same
 
 
 
@@ -203,9 +200,10 @@ object GameRecorder {
               recorder.putMutableInfo(info._1,info._2)
           }
           recorder.finish()
+          log.info(s"${ctx.self.path} has save game data to file=${fileName}_$fileIndex")
           val endTime = System.currentTimeMillis()
-
-          val recordInfo = rGameRecord(-1L, gameRecordData.roomId, gameRecordData.gameInformation.gameStartTime, endTime,"")
+          val filePath = AppSettings.gameDataDirectoryPath + fileName + s"_$fileIndex"
+          val recordInfo = rGameRecord(-1L, gameRecordData.roomId, gameRecordData.gameInformation.gameStartTime, endTime,filePath)
           RecordDAO.insertGameRecord(recordInfo).onComplete{
             case Success(recordId) =>
               val list = ListBuffer[rUserRecordMap]()
