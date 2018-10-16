@@ -12,7 +12,7 @@ import scala.language.implicitConversions
 import scala.concurrent.duration._
 import com.neo.sk.utils.ESSFSupport._
 import org.seekloud.essf.io.{EpisodeInfo, FrameData, FrameInputStream}
-import com.neo.sk.tank.models.DAO.RecordDAO._
+import com.neo.sk.tank.models.DAO.RecordDAO
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{ReplayFrameData, YourInfo}
 import org.seekloud.byteobject.MiddleBufferInJvm
@@ -73,7 +73,7 @@ object GameReplay {
           case None=>
         }*/
         Future{
-          val replay=initFileReader(AppSettings.gameDataDirectoryPath+ "tankGame_1539668718477_0")
+          val replay=initFileReader(AppSettings.gameDataDirectoryPath+ "tankGame_1539668718477_1")
           ctx.self ! SwitchBehavior("work",work(replay))
         }
         switchBehavior(ctx,"busy",busy())
@@ -91,7 +91,7 @@ object GameReplay {
       msg match {
         case msg:InitReplay=>
           //todo 此处从文件中读取相关数据传送给前端
-          dispatchTo(msg.userActor,YourInfo(1,100,"test",AppSettings.tankGameConfig.getTankGameConfigImpl()))
+          dispatchTo(msg.userActor,YourInfo(1,100,"11",AppSettings.tankGameConfig.getTankGameConfigImpl()))
           //todo 游戏初始时没有tank信息
           for(i <- 1 to 5){
             if(fileReader.hasMoreFrame){
@@ -130,13 +130,16 @@ object GameReplay {
 
   import org.seekloud.byteobject.ByteObject._
   def dispatchTo(subscriber: ActorRef[TankGameEvent.WsMsgSource],msg: TankGameEvent.WsMsgServer)(implicit sendBuffer: MiddleBufferInJvm)= {
-    subscriber ! ReplayFrameData(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+//    subscriber ! ReplayFrameData(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+    subscriber ! ReplayFrameData(List(msg).fillMiddleBuffer(sendBuffer).result())
   }
 
   import com.neo.sk.utils.ESSFSupport.{replayEventDecode,replayStateDecode}
   def dispatchByteTo(subscriber: ActorRef[TankGameEvent.WsMsgSource], msg:FrameData)(implicit sendBuffer: MiddleBufferInJvm) = {
-    subscriber ! ReplayFrameData(replayEventDecode(msg.eventsData).fillMiddleBuffer(sendBuffer).result())
-    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(replayStateDecode(s).fillMiddleBuffer(sendBuffer).result()))
+//    subscriber ! ReplayFrameData(replayEventDecode(msg.eventsData).fillMiddleBuffer(sendBuffer).result())
+//    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(replayStateDecode(s).fillMiddleBuffer(sendBuffer).result()))
+    subscriber ! ReplayFrameData(msg.eventsData)
+    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(s))
   }
 
   private def busy()(
