@@ -28,6 +28,8 @@ object UserManager {
 
   final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
 
+//  final case class GetWebSocketFlow(name:String, userId:Long ,roomIdOpt:Option[Long], replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
+
   private val log = LoggerFactory.getLogger(this.getClass)
 
   def create():Behavior[Command] ={

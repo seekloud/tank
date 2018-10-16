@@ -130,6 +130,7 @@ object RoomActor {
 
 
           val record = gameContainer.getGameEventAndSnapshot()
+//          record._1.filter(_.isInstanceOf[TankGameEvent.GenerateBullet]).foreach(println)
           if(AppSettings.gameRecordIsWork){
             getGameRecorder(ctx,gameContainer) ! GameRecorder.GameRecord(record)
           }
