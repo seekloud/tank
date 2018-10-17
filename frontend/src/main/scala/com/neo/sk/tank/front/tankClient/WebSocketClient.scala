@@ -105,10 +105,6 @@ case class WebSocketClient(
     }
   }
 
-  def wsClose={
-    websocketStreamOpt.foreach(w=>w.close())
-  }
-
   import org.seekloud.byteobject.ByteObject._
 
   private def wsByteDecode(a:ArrayBuffer):TankGameEvent.WsMsgServer={

@@ -112,9 +112,6 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     startReplay(name,uid,rid,f)
   }
 
-  def closeWsConnect={
-    webSocketClient.wsClose
-  }
 
   def gameRender():Double => Unit = {d =>
     val curTime = System.currentTimeMillis()
