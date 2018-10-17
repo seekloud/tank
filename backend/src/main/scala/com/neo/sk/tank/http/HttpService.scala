@@ -60,9 +60,10 @@ trait HttpService
           parameter(
             'name.as[String],
             'uid.as[Long],
-            'rid.as[Long]
-          ){ (name,uid,rid) =>
-            val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetReplaySocketFlow(name,uid,rid,_))
+            'rid.as[Long],
+            'f.as[Int]
+          ){ (name,uid,rid,f) =>
+            val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetReplaySocketFlow(name,uid,rid,f,_))
             dealFutureResult(
               flowFuture.map(t => handleWebSocketMessages(t))
             )

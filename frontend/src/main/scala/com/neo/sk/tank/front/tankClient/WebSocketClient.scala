@@ -37,9 +37,9 @@ case class WebSocketClient(
     s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name)}"
   }
 
-  def getReplaySocketUri(name:String,uid:Long,rid:Long): String = {
+  def getReplaySocketUri(name:String,uid:Long,rid:Long,f:Int): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}${Routes.wsReplayGameUrl(name,uid,rid)}"
+    s"$wsProtocol://${dom.document.location.host}${Routes.wsReplayGameUrl(name,uid,rid,f)}"
   }
 
   private val sendBuffer:MiddleBufferInJs = new MiddleBufferInJs(4096)
@@ -52,13 +52,12 @@ case class WebSocketClient(
   }
 
 
-  def setup(name:String,uid:Option[Long]=None,rid:Option[Long]=None):Unit = {
+  def setup(name:String,uid:Option[Long]=None,rid:Option[Long]=None,f:Option[Int]=None):Unit = {
     if(wsSetup){
       println(s"websocket已经启动")
     }else{
       val websocketStream =if(replay){
-        println(getReplaySocketUri(name,uid.get,rid.get))
-        new WebSocket(getReplaySocketUri(name,uid.get,rid.get))
+        new WebSocket(getReplaySocketUri(name,uid.get,rid.get,f.get))
       }else{
         new WebSocket(getWebSocketUri(name))
       }
@@ -106,6 +105,10 @@ case class WebSocketClient(
     }
   }
 
+  def wsClose={
+    websocketStreamOpt.foreach(w=>w.close())
+  }
+
   import org.seekloud.byteobject.ByteObject._
 
   private def wsByteDecode(a:ArrayBuffer):TankGameEvent.WsMsgServer={
@@ -123,12 +126,6 @@ case class WebSocketClient(
     if (a.byteLength > 0) {
       bytesDecode[List[TankGameEvent.WsMsgServer]](middleDataInJs) match {
         case Right(r) =>
-          r.foreach{t=>
-            if(t.isInstanceOf[TankGameEvent.GenerateBullet]){
-              println("============================")
-              println(t)
-            }
-          }
           TankGameEvent.EventData(r)
         case Left(e) =>
           replayStateDecode(a)
