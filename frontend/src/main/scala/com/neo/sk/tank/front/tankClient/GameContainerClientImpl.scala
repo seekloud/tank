@@ -11,6 +11,7 @@ import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.ObstacleAttacked
 import org.scalajs.dom
+import org.scalajs.dom.ext.Color
 import org.scalajs.dom.html.Image
 
 import scala.collection.mutable
@@ -122,8 +123,18 @@ case class GameContainerClientImpl(
 
 
         case None =>
+          drawDeadImg()
           setGameState(GameState.stop)
       }
+    }
+    def drawDeadImg() = {
+      ctx.fillStyle = Color.Black.toString()
+      ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+      ctx.fillStyle = "rgb(250, 250, 250)"
+      ctx.textAlign = "left"
+      ctx.textBaseline = "top"
+      ctx.font = "36px Helvetica"
+      ctx.fillText(s"您已经死亡", 150, 180)
     }
   }
 

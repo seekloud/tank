@@ -12,8 +12,12 @@ import com.neo.sk.tank.common.AppSettings
 import akka.actor.typed.scaladsl.AskPattern._
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
-import com.neo.sk.tank.Boot.{executor, scheduler, timeout, userManager}
+import com.neo.sk.tank.Boot.{executor, roomManager, scheduler, timeout, userManager}
+//import com.neo.sk.tank.core.RoomManager.{GetRoomIdListReq, GetRoomListRsp}
 import com.neo.sk.tank.core.UserManager
+import com.neo.sk.tank.shared.ptcl.ErrorRsp
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg
+
 
 /**
   * Created by hongruying on 2018/3/11
@@ -38,8 +42,34 @@ trait HttpService
 
 
   import akka.actor.typed.scaladsl.adapter._
+  case class GetRoomPlayersReq(roomId:Int)
+  private def getRoomPlayerListErrorRsp(msg:String) = ErrorRsp(100001,msg)
+//  private val getRoomPlayerList = (path("getRoomPlayerList") & post){
+//    entity(as[Either[Error,GetRoomPlayersReq]]){
+//      case Right(req) =>
+//        val resFuture:Future[] = roomManager ? req
+//      case Left(error) =>
+//
+//    }
+//    val roomListFutureRsp:Future[GetRoomListRsp] = roomManager ? (GetRoomIdListReq(_))
+//    dealFutureResult{
+//      roomListFutureRsp.map{roomList =>
+//        complete(roomList)
+//      }.recover{
+//        case e:Exception =>
+//          log.debug(s"get room id list error:$e")
+//          complete(getRoomPlayerListErrorRsp(s"get room id list error:$e"))
+//      }
+//    }
+//
+//  }
 
 
+
+  private def watchGamePath = path("watch"){
+    val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow4WatchGame(_))
+    dealFutureResult(flowFuture.map(handleWebSocketMessages(_)))
+  }
 
 
 
@@ -49,6 +79,8 @@ trait HttpService
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
         } ~
+        watchGamePath~
+//          getRoomPlayerList~
           path("join"){
           parameter('name){ name =>
             log.debug(s"sssssssssname=${name}")

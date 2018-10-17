@@ -16,6 +16,7 @@ object TankGameEvent {
     * 携带原来tankId
     * */
   final case class RestartGame(tankIdOpt:Option[Int],name:String) extends WsMsgFront
+  final case class WatchGame(roomId:Int,playerId:Long) extends WsMsgFront with WsMsgServer //观战信息
 
   sealed trait WsMsgSource
   case object CompleteMsgServer extends WsMsgSource
@@ -28,6 +29,7 @@ object TankGameEvent {
   final case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends WsMsgServer
   final case class SyncGameState(state:GameContainerState) extends WsMsgServer
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
+  final case class FirstSyncGameAllState(gStateOpt:Option[GameContainerAllState],tankIdOpt:Option[Int],nameOpt:Option[String],configOpt:Option[TankGameConfigImpl]) extends WsMsgServer
   final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false) extends WsMsgSource
   final case class PingPackage(sendTime:Long) extends WsMsgServer with WsMsgFront
 

@@ -13,8 +13,7 @@ import scala.scalajs.js.typedarray.ArrayBuffer
 /**
   * Created by hongruying on 2018/7/9
   */
-case class WebSocketClient(
-                       connectSuccessCallback: Event => Unit,
+case class WebSocketClient(connectSuccessCallback: Event => Unit,
                        connectErrorCallback:Event => Unit,
                        messageHandler:TankGameEvent.WsMsgServer => Unit,
                        closeCallback:Event => Unit
@@ -28,11 +27,6 @@ case class WebSocketClient(
 
   def getWsState = wsSetup
 
-  def getWebSocketUri(name:String): String = {
-    val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name)}"
-  }
-
   private val sendBuffer:MiddleBufferInJs = new MiddleBufferInJs(4096)
 
   def sendMsg(msg:TankGameEvent.WsMsgFront) = {
@@ -42,6 +36,10 @@ case class WebSocketClient(
     }
   }
 
+  def getWebSocketUri(name:String): String = {
+    val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
+    s"$wsProtocol://${dom.document.location.host}${name}"
+  }
 
   def setup(name:String):Unit = {
     if(wsSetup){
