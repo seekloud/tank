@@ -28,7 +28,7 @@ object UserManager {
 
   final case class GetWebSocketFlow(name: String, replyTo: ActorRef[Flow[Message, Message, Any]]) extends Command
 
-  final case class GetReplaySocketFlow(name: String, uid: Long, rid: Long, replyTo: ActorRef[Flow[Message, Message, Any]]) extends Command
+  final case class GetReplaySocketFlow(name: String, uid: Long, rid: Long, f:Int, replyTo: ActorRef[Flow[Message, Message, Any]]) extends Command
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -54,8 +54,8 @@ object UserManager {
           replyTo ! getWebSocketFlow(0,getUserActor(ctx, uidGenerator.getAndIncrement(), name))
           Behaviors.same
 
-        case GetReplaySocketFlow(name, uid, rid, replyTo) =>
-          replyTo ! getWebSocketFlow(1,getUserActor(ctx, uid, name),Some(rid))
+        case GetReplaySocketFlow(name, uid, rid, f, replyTo) =>
+          replyTo ! getWebSocketFlow(1,getUserActor(ctx, uid, name),Some(rid),Some(f))
           Behaviors.same
 
         case ChildDead(child, childRef) =>
@@ -69,7 +69,7 @@ object UserManager {
     }
   }
 
-  private def getWebSocketFlow(flag:Int,userActor: ActorRef[UserActor.Command],rid:Option[Long]=None): Flow[Message, Message, Any] = {
+  private def getWebSocketFlow(flag:Int,userActor: ActorRef[UserActor.Command],rid:Option[Long]=None,f:Option[Int]=None): Flow[Message, Message, Any] = {
     import scala.language.implicitConversions
     import org.seekloud.byteobject.ByteObject._
 
@@ -101,7 +101,7 @@ object UserManager {
               log.error(s"decode binaryMessage failed,error:${e.message}")
               UserActor.WebSocketMsg(None)
           }
-      }.via(UserActor.flow(flag,userActor,rid))
+      }.via(UserActor.flow(flag,userActor,rid,f))
       .map {
         case t: TankGameEvent.Wrap =>
           BinaryMessage.Strict(ByteString(t.ws))

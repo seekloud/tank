@@ -55,7 +55,7 @@ object GameReplay {
   val loadFrame=0
 
   /**actor内部消息*/
-  case class InitReplay(userActor: ActorRef[TankGameEvent.WsMsgSource]) extends Command
+  case class InitReplay(userActor: ActorRef[TankGameEvent.WsMsgSource],f:Int) extends Command
   case class InitDownload(userActor: ActorRef[TankGameEvent.WsMsgSource]) extends Command
 
 
@@ -91,13 +91,8 @@ object GameReplay {
       msg match {
         case msg:InitReplay=>
           //todo 此处从文件中读取相关数据传送给前端
+          timer.cancel(GameLoopKey)
           dispatchTo(msg.userActor,YourInfo(1,100,"11",AppSettings.tankGameConfig.getTankGameConfigImpl()))
-          //todo 游戏初始时没有tank信息
-          for(i <- 1 to 25){
-            if(fileReader.hasMoreFrame){
-              fileReader.readFrame()
-            }
-          }
           if(fileReader.hasMoreFrame){
             timer.startPeriodicTimer(GameLoopKey, GameLoop, 100.millis)
             work(fileReader,Some(msg.userActor))
@@ -111,9 +106,9 @@ object GameReplay {
         case GameLoop=>
           if(fileReader.hasMoreFrame){
             userOpt.foreach(u=>
-              fileReader.readFrame().foreach(f=>
-                dispatchByteTo(u,f)
-              )
+              fileReader.readFrame().foreach { f =>
+                dispatchByteTo(u, f)
+              }
             )
             Behaviors.same
           }else{

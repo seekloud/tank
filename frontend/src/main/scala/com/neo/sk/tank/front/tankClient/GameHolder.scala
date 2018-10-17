@@ -108,8 +108,12 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     startGameModal.render
   }
 
-  def getStartReplayModel(name:String,uid:Long,rid:Long)= {
-    startReplay(name,uid,rid)
+  def getStartReplayModel(name:String,uid:Long,rid:Long,f:Int)= {
+    startReplay(name,uid,rid,f)
+  }
+
+  def closeWsConnect={
+    webSocketClient.wsClose
   }
 
   def gameRender():Double => Unit = {d =>
@@ -276,10 +280,10 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     }
   }
 
-  def startReplay(name:String,uid:Long,rid:Long)={
+  def startReplay(name:String,uid:Long,rid:Long,f:Int)={
     canvas.focus()
     setGameState(Constants.GameState.loadingPlay)
-    webSocketClient.setup(name,Some(uid),Some(rid))
+    webSocketClient.setup(name,Some(uid),Some(rid),Some(f))
     gameLoop()
   }
 
@@ -454,6 +458,7 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
 
   var count=true
   private def replayMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
+    println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
         println("----Start!!!!!")
@@ -463,11 +468,13 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
 //        setGameState(Constants.GameState.play)
 
       case e:TankGameEvent.SyncGameAllState =>
-        if (count){
-          count=false
-          gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
-          nextFrame = dom.window.requestAnimationFrame(gameRender())
-          setGameState(Constants.GameState.play)
+        if(count){
+          if (e.gState.tanks.exists(_.tankId==gameContainerOpt.get.myTankId)){
+            count=false
+            gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
+            nextFrame = dom.window.requestAnimationFrame(gameRender())
+            setGameState(Constants.GameState.play)
+          }
         }else{
           //fixme 此处存在重复操作
 //          gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))

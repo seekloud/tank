@@ -36,7 +36,7 @@ object UserActor {
   case object CompleteMsgFront extends Command
   case class FailMsgFront(ex: Throwable) extends Command
 
-  case class UserFrontActor(flag:Int,actor:ActorRef[TankGameEvent.WsMsgSource],rid:Option[Long]=None) extends Command
+  case class UserFrontActor(flag:Int,actor:ActorRef[TankGameEvent.WsMsgSource],rid:Option[Long]=None,f:Option[Int]=None) extends Command
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
 
@@ -46,7 +46,7 @@ object UserActor {
 
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
 
-  case class StartReplay(rid:Long) extends Command
+  case class StartReplay(rid:Long,f:Int) extends Command
 
   final case class SwitchBehavior(
                                    name: String,
@@ -74,7 +74,7 @@ object UserActor {
     onFailureMessage = FailMsgFront.apply
   )
 
-  def flow(flag:Int,actor:ActorRef[UserActor.Command],rid:Option[Long]):Flow[WebSocketMsg,TankGameEvent.WsMsgSource,Any] = {
+  def flow(flag:Int,actor:ActorRef[UserActor.Command],rid:Option[Long],f:Option[Int]=None):Flow[WebSocketMsg,TankGameEvent.WsMsgSource,Any] = {
     val in = Flow[WebSocketMsg].to(sink(actor))
     val out =
       ActorSource.actorRef[TankGameEvent.WsMsgSource](
@@ -86,7 +86,7 @@ object UserActor {
         },
         bufferSize = 128,
         overflowStrategy = OverflowStrategy.dropHead
-      ).mapMaterializedValue(outActor => actor ! UserFrontActor(flag,outActor,rid))
+      ).mapMaterializedValue(outActor => actor ! UserFrontActor(flag,outActor,rid,f))
     Flow.fromSinkAndSource(in, out)
   }
 
@@ -109,13 +109,13 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case UserFrontActor(flag,frontActor,rid) =>
+        case UserFrontActor(flag,frontActor,rid,f) =>
           if(flag==0){
             ctx.watchWith(frontActor,UserLeft(frontActor))
             ctx.self ! StartGame
             switchBehavior(ctx,"idle",idle(uId,name,frontActor))
           }else{
-            ctx.self ! StartReplay(rid.get)
+            ctx.self ! StartReplay(rid.get,f.get)
             switchBehavior(ctx,"idle",idle(uId,name,frontActor))
           }
 
@@ -152,8 +152,8 @@ object UserActor {
           roomManager ! JoinRoom(uId,None,name,ctx.self)
           Behaviors.same
 
-        case StartReplay(rid)=>
-          getGameReplay(ctx,rid) ! GameReplay.InitReplay(frontActor)
+        case StartReplay(rid,f)=>
+          getGameReplay(ctx,rid) ! GameReplay.InitReplay(frontActor,f)
           Behaviors.same
 
         case JoinRoomSuccess(tank,config,uId,roomActor) =>
@@ -178,6 +178,16 @@ object UserActor {
           ctx.unwatch(actor)
           Behaviors.stopped
 
+
+        case UserFrontActor(flag,frontActor,rid,f) =>
+          if(flag==0){
+            ctx.watchWith(frontActor,UserLeft(frontActor))
+            ctx.self ! StartGame
+            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+          }else{
+            ctx.self ! StartReplay(rid.get,f.get)
+            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+          }
 
 
         case unknowMsg =>
