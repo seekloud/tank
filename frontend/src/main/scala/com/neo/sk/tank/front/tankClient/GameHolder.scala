@@ -2,7 +2,7 @@ package com.neo.sk.tank.front.tankClient
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.neo.sk.tank.front.common.Constants
+import com.neo.sk.tank.front.common.{Constants, Routes}
 import com.neo.sk.tank.front.components.StartGameModal
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.model.Point
@@ -250,7 +250,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
       firstCome = false
       addUserActionListenEvent()
       setGameState(Constants.GameState.loadingPlay)
-      webSocketClient.setup(name)
+      webSocketClient.setup(Routes.wsJoinGameUrl(name))
       gameLoop()
 
     }else if(webSocketClient.getWsState){

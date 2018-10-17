@@ -9,13 +9,14 @@ import com.neo.sk.tank.core.UserActor.{JoinRoom, TimeOut}
 import com.neo.sk.tank.core.game.TankServerImpl
 import com.neo.sk.tank.shared.config.TankGameConfigImpl
 import org.slf4j.LoggerFactory
-import com.neo.sk.tank.common.AppSettings.{personLimit,leftTimeLimit}
+import com.neo.sk.tank.common.AppSettings.{leftTimeLimit, personLimit}
 
 import scala.concurrent.duration._
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import akka.actor.typed.Behavior
+import com.neo.sk.tank.shared.ptcl.CommonRsp
 import com.neo.sk.utils.TimeUtil
 
 import scala.concurrent.duration._
@@ -34,6 +35,14 @@ object RoomManager {
   private case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
 
   case class LeftRoom(uid:Long,tankId:Int,name:String,userOpt: Option[Long]) extends Command
+
+  case class GetRoomListRsp(roomList:List[Long],
+                            errCode:Int = 0,
+                            msg:String = "ok"
+                           ) extends CommonRsp
+  case class GetPlayersListReq(roomId:Int,replyTo:ActorRef[GetRoomListRsp]) extends Command
+//  case class JoinRoom4Watch(roomId:Int,playerId:Long,userActor4Watch: ActorRef[UserActor4WatchGame.Command]) extends Command
+
 
   def create():Behavior[Command] = {
     Behaviors.setup[Command]{
@@ -81,6 +90,20 @@ object RoomManager {
           }
           log.debug(s"now roomInUse:$roomInUse")
 
+          Behaviors.same
+        case RoomActor.JoinRoom4Watch(uid,roomId,playerId,userActor4Watch) =>
+          roomInUse.get(roomId) match {
+            case Some(set) =>
+              set.filter(p => p._1 == playerId).size match {
+                case 0 =>
+                  //没有玩家
+                case _ =>
+                  //找到玩家
+                  getRoomActor(ctx,roomId) ! RoomActor.JoinRoom4Watch(uid,roomId,playerId,userActor4Watch)
+              }
+            case None =>
+              //没有该房间
+          }
           Behaviors.same
 
         case LeftRoom(uid,tankId,name,userOpt) =>
@@ -133,6 +156,13 @@ object RoomManager {
             log.debug(s"I am so sorry that you $name $uid are killed, the timer is beginning....")
             timer.startSingleTimer("room_"+roomExist.head._1+"uid"+uid,LeftRoom(uid,tankId,name,None),leftTime)
           }
+          Behaviors.same
+        case GetPlayersListReq(roomId,replyTo) =>
+          val players = roomInUse.get(roomId) match {
+            case Some(set) =>set.map(_._1)
+            case None =>
+          }
+          replyTo ! GetRoomListRsp(roomInUse.keys.toList)
           Behaviors.same
 
         case ChildDead(child,childRef) =>

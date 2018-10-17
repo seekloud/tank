@@ -4,19 +4,21 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.TimerScheduler
-import com.neo.sk.tank.core.{RoomActor, UserActor}
+import com.neo.sk.tank.core.{RoomActor, UserActor, UserActor4WatchGame}
 import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.TankGameConfig
-import com.neo.sk.tank.shared.game.{GameContainer, GameContainerState}
+import com.neo.sk.tank.shared.game.{GameContainer, GameContainerAllState, GameContainerState}
 import com.neo.sk.tank.shared.model.Constants.{ObstacleType, PropGenerateType, TankColor}
 import com.neo.sk.tank.shared.model.{Point, Score}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.slf4j.Logger
+
 import concurrent.duration._
 import scala.util.Random
 import collection.mutable
 import com.neo.sk.tank.shared.`object`.TankState
 import com.neo.sk.tank.Boot.roomManager
+import com.neo.sk.tank.core.UserActor4WatchGame.JoinRoomSuccess4Watch
 
 /**
   * Created by hongruying on 2018/8/29
@@ -276,6 +278,22 @@ case class GameContainerServerImpl(
         timer.startSingleTimer(s"TankInvincible_${tank.tankId}",RoomActor.TankInvincible(tank.tankId),config.initInvincibleDuration.millis)
     }
     justJoinUser = Nil
+  }
+
+  def handleJoinRoom4Watch(userActor4WatchGame:ActorRef[UserActor4WatchGame.Command],playerId:Long,gameContainerAllState:GameContainerAllState) = {
+    val tankExit = tankMap.filter(_._2.userId == playerId).size match {
+      case n if n > 0 => true
+      case _ =>false
+    }
+    log.debug(s"hadle join room 4 watch")
+    if(tankExit){
+      log.debug(s"tank exit")
+      val tank = tankMap.filter(p => p._2.userId == playerId).head._2
+      userActor4WatchGame ! JoinRoomSuccess4Watch(tank.asInstanceOf[TankServerImpl],config.getTankGameConfigImpl(),playerId,roomActorRef,gameContainerAllState)
+    }else{
+
+    }
+
   }
 
 

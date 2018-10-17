@@ -9,8 +9,11 @@ object Routes {
 
 
   val base = "/tank"
+  val getRoomListRoute = base + "/getRoomIdList"
 
   def wsJoinGameUrl(name:String) = base + s"/game/join?name=${name}"
+
+  def wsWatchGameUrl() = base + s"/game/watch"
 
 
 

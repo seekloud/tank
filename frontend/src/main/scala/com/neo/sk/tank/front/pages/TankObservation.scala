@@ -1,0 +1,25 @@
+package com.neo.sk.tank.front.pages
+
+import com.neo.sk.tank.front.common.Page
+import com.neo.sk.tank.front.tankClient.GameHolderObserver
+import com.neo.sk.tank.front.utils.Shortcut
+import org.scalajs.dom
+
+import scala.xml.Elem
+
+class TankObservation(roomId:Int,playerId:Long) extends Page{
+  dom.window.location.hash = s"#/watchGame/${roomId}/${playerId}"
+  private val canvas = <canvas id="GameWatch" tabindex="1"></canvas>
+  def init() = {
+    val gameObservation = new GameHolderObserver("GameWatch",roomId,playerId)
+    gameObservation.watchGame()
+  }
+
+  override def render: Elem = {
+    Shortcut.scheduleOnce(() => init(),0)
+    <div>
+    {canvas}
+    </div>
+  }
+
+}
