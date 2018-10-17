@@ -479,7 +479,7 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
       case e:TankGameEvent.UserActionEvent =>
         //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
         gameContainerOpt.get.preExecuteUserEvent(e)
-        gameContainerOpt.foreach(_.receiveUserEvent(e))
+//        gameContainerOpt.foreach(_.receiveUserEvent(e))
 
 
       case e:TankGameEvent.GameEvent =>
