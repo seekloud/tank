@@ -27,7 +27,7 @@ object UserManager {
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
 
   final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
-  final case class GetWebSocketFlow4WatchGame(replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
+  final case class GetWebSocketFlow4WatchGame(roomId:Int,playerId:Long,replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -52,9 +52,9 @@ object UserManager {
         case GetWebSocketFlow(name,replyTo) =>
           replyTo ! getWebSocketFlow(getUserActor(ctx,uidGenerator.getAndIncrement(),name))
           Behaviors.same
-        case GetWebSocketFlow4WatchGame(replyTo) =>
+        case GetWebSocketFlow4WatchGame(roomId,playerId,replyTo) =>
           //观战用户建立Actor由userManager监管，消息来自HttpService
-          replyTo ! getWebSocketFlow4WatchGame(getUserActor4WatchGame(ctx,uidGenerator.getAndIncrement()))
+          replyTo ! getWebSocketFlow4WatchGame(roomId,playerId,getUserActor4WatchGame(ctx,uidGenerator.getAndIncrement()))
           Behaviors.same
 
 
@@ -115,7 +115,7 @@ object UserManager {
       }.withAttributes(ActorAttributes.supervisionStrategy(decider))
 
   }
-  private def getWebSocketFlow4WatchGame(userActor4WatchGame: ActorRef[UserActor4WatchGame.Command]):Flow[Message,Message,Any] = {
+  private def getWebSocketFlow4WatchGame(roomId:Int,playerId:Long,userActor4WatchGame: ActorRef[UserActor4WatchGame.Command]):Flow[Message,Message,Any] = {
     import scala.language.implicitConversions
     import org.seekloud.byteobject.ByteObject._
 
@@ -147,7 +147,7 @@ object UserManager {
               log.error(s"decode binaryMessage failed,error:${e.message}")
               UserActor4WatchGame.WebSocketMsg(None)
           }
-      }.via(UserActor4WatchGame.flow(userActor4WatchGame))
+      }.via(UserActor4WatchGame.flow(roomId,playerId,userActor4WatchGame))
       .map {
         case t:TankGameEvent.Wrap =>
 
