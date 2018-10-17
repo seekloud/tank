@@ -28,7 +28,7 @@ object UserActor4WatchGame {
   trait Command
 
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
-  case class UserFrontActor(actor:ActorRef[TankGameEvent.WsMsgSource]) extends Command
+  case class UserFrontActor(roomId:Int,playerId:Long,actor:ActorRef[TankGameEvent.WsMsgSource]) extends Command
 //  case class WatchGame(roomId:Int,playerId:Long) extends Command
   case class JoinRoomSuccess4Watch(tank:TankServerImpl,
                                    config:TankGameConfigImpl,uId:Long,
@@ -57,7 +57,7 @@ object UserActor4WatchGame {
     onFailureMessage = FailMsgFront.apply
   )
 
-  def flow(actor:ActorRef[Command]):Flow[WebSocketMsg,TankGameEvent.WsMsgSource,Any] = {
+  def flow(roomId:Int,playerId:Long,actor:ActorRef[Command]):Flow[WebSocketMsg,TankGameEvent.WsMsgSource,Any] = {
     val in = Flow[WebSocketMsg].to(sink(actor))
     val out =
       ActorSource.actorRef[TankGameEvent.WsMsgSource](
@@ -69,7 +69,7 @@ object UserActor4WatchGame {
         },
         bufferSize = 128,
         overflowStrategy = OverflowStrategy.dropHead
-      ).mapMaterializedValue(outActor => actor ! UserFrontActor(outActor))
+      ).mapMaterializedValue(outActor => actor ! UserFrontActor(roomId:Int,playerId:Long,outActor))
     Flow.fromSinkAndSource(in, out)
   }
 
@@ -79,21 +79,24 @@ object UserActor4WatchGame {
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       Behaviors.withTimers[Command] { implicit timer =>
         implicit val sendBuffer = new MiddleBufferInJvm(8192)
-        switchBehavior(ctx,"init",init(uId),InitTime,TimeOut("init"))
+        switchBehavior(ctx,"init",init(uId,None,None,None,None),InitTime,TimeOut("init"))
       }
     }
   }
 
-  private def init(uId:Long)(
+  private def init(uId:Long,frontActorOpt:Option[ActorRef[TankGameEvent.WsMsgSource]],roomActorOpt:Option[ActorRef[RoomActor.Command]] = None,
+                   tankOpt:Option[TankServerImpl],configOpt:Option[TankGameConfigImpl])(
     implicit stashBuffer:StashBuffer[Command],
     sendBuffer:MiddleBufferInJvm,
     timer:TimerScheduler[Command]
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case UserFrontActor(frontActor) =>
+        case UserFrontActor(roomId,playerId,frontActor) =>
           //websocket建立的时候发送UserFrontActor消息
           ctx.watchWith(frontActor,UserLeft(frontActor))
+          roomManager ! JoinRoom4Watch(uId,roomId,playerId,ctx.self)
+//          init(uId,Some(frontActor))
           switchBehavior(ctx,"idle",idle(uId,frontActor,None,None,None))
 
         case UserLeft(actor) =>
@@ -120,17 +123,6 @@ object UserActor4WatchGame {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
 
-        case WebSocketMsg(reqOpt) =>
-          reqOpt match {
-            case Some(t:TankGameEvent.WatchGame) =>
-              log.debug(s"${ctx.self.path} watch game:$t.roomId,playerId:${t.playerId}")
-              roomManager ! JoinRoom4Watch(uId,t.roomId,t.playerId,ctx.self)
-              Behaviors.same
-            case _ =>
-              log.debug(s"there is no msg")
-              Behaviors.same
-          }
-
         case JoinRoomSuccess4Watch(tank,config,uId,roomActor,gameContainerAllState) =>
           log.debug(s"${ctx.self.path} first sync gameContainerState")
           frontActor ! TankGameEvent.Wrap(TankGameEvent.FirstSyncGameAllState(Some(gameContainerAllState),
@@ -142,6 +134,21 @@ object UserActor4WatchGame {
           //给前端分发数据
           log.debug(s"${ctx.self.path} dispatchMsg")
           frontActor ! m
+          Behaviors.same
+        case WebSocketMsg(reqOpt) =>
+
+          reqOpt match {
+            case Some(t:TankGameEvent.UserActionEvent) =>
+              println(s"${ctx.self.path}分发前端传来的数据")
+              //分发数据给roomActor
+              roomActorOpt.get ! RoomActor.WebSocketMsg(uId,tankOpt.get.tankId,t)
+            case Some(t:TankGameEvent.PingPackage) =>
+
+              frontActor !TankGameEvent.Wrap(t.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+
+            case _ =>
+
+          }
           Behaviors.same
 
         case UserLeft(actor) =>

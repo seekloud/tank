@@ -66,9 +66,14 @@ trait HttpService
 
 
 
-  private def watchGamePath = path("watch"){
-    val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow4WatchGame(_))
-    dealFutureResult(flowFuture.map(handleWebSocketMessages(_)))
+  private def watchGamePath = (path("watchGame") & get & pathEndOrSingleSlash){
+    parameter(
+      'roomId.as[Int],
+    'playerId.as[Long]){
+      (roomId,playerId) =>
+        val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow4WatchGame(roomId,playerId,_))
+        dealFutureResult(flowFuture.map(handleWebSocketMessages(_)))
+    }
   }
 
 

@@ -7,7 +7,6 @@ import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
 import org.scalajs.dom.raw.Event
-//import com.neo.sk.tank.front.tankClient.GameHolder
 import com.neo.sk.tank.front.utils.JsFunc
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -24,6 +23,8 @@ class GameHolderObserver(canvasName:String,roomId:Int,playerId:Long){
   private[this] val canvasHeight = dom.window.innerHeight.toFloat
   private[this] val canvasUnit = 10
   private[this] val canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+  canvas.width = canvasWidth.toInt
+  canvas.height = canvasHeight.toInt
 
   private[this] var gameContainerOpt:Option[GameContainerClientImpl] = None
   private[this] val webSocketClient = WebSocketClient(wsConnectSuccess,wsConnectError,wsMessageHandler,wsConnectClose)
@@ -93,11 +94,39 @@ class GameHolderObserver(canvasName:String,roomId:Int,playerId:Long){
         }
 
       case e:TankGameEvent.SyncGameAllState =>
+        println(s"同步全量数据----------------------------------------------")
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
         nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case e:TankGameEvent.SyncGameState =>
+        println(s"同步数据----------------------------------------------")
+
         gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
+
+      case e:TankGameEvent.Ranks =>
+        /**
+          * 游戏排行榜
+          * */
+        gameContainerOpt.foreach{ t =>
+          t.currentRank = e.currentRank
+          t.historyRank = e.historyRank
+          t.rankUpdated = true
+        }
+
+      case e:TankGameEvent.UserActionEvent =>
+        println("用户行为事件------------------------")
+        //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
+        gameContainerOpt.foreach(_.receiveUserEvent(e))
+
+
+      case e:TankGameEvent.GameEvent =>
+        println(s"游戏事件--------------------------")
+        e match {
+          case ee:TankGameEvent.GenerateBullet =>
+            gameContainerOpt.foreach(_.receiveGameEvent(e))
+          case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
+        }
+
       case _ =>
     }
 
@@ -105,12 +134,7 @@ class GameHolderObserver(canvasName:String,roomId:Int,playerId:Long){
 
   def watchGame() = {
     canvas.focus()
-    webSocketClient.setup(Routes.wsWatchGameUrl())
-    gameContainerOpt match{
-      case Some(gameContainer) =>
-      case None =>
-        webSocketClient.sendMsg(TankGameEvent.WatchGame(roomId,playerId))
-    }
+    webSocketClient.setup(Routes.wsWatchGameUrl(roomId,playerId))
     gameLoop()
   }
 
