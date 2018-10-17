@@ -197,7 +197,7 @@ object GameRecorder {
               }else{
                 essf
               }
-              recorder.putMutableInfo(info._1,info._2)
+              recorder.putMutableInfo(info._1.toString,info._2.toString.getBytes("utf-8"))
           }
           recorder.finish()
           log.info(s"${ctx.self.path} has save game data to file=${fileName}_$fileIndex")
