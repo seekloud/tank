@@ -87,20 +87,18 @@ class GameHolderObserver(canvasName:String,roomId:Int,playerId:Long){
       case e: TankGameEvent.FirstSyncGameAllState=>
         e.tankIdOpt match {
           case Some(tankId) =>
-            timer = Shortcut.scheduleOnce(gameLoop,e.configOpt.get.frameDuration)
+            timer = Shortcut.schedule(gameLoop,e.configOpt.get.frameDuration)
             gameContainerOpt = Some(GameContainerClientImpl(ctx,e.configOpt.get,playerId,tankId,e.nameOpt.get,canvasBoundary,canvasUnit,setGameState))
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gStateOpt.get))
+            gameContainerOpt.get.getTankId(tankId)
             nextFrame = dom.window.requestAnimationFrame(gameRender())
         }
 
       case e:TankGameEvent.SyncGameAllState =>
-        println(s"同步全量数据----------------------------------------------")
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
         nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case e:TankGameEvent.SyncGameState =>
-        println(s"同步数据----------------------------------------------")
-
         gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
 
       case e:TankGameEvent.Ranks =>
@@ -114,13 +112,10 @@ class GameHolderObserver(canvasName:String,roomId:Int,playerId:Long){
         }
 
       case e:TankGameEvent.UserActionEvent =>
-        println("用户行为事件------------------------")
-        //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
         gameContainerOpt.foreach(_.receiveUserEvent(e))
 
 
       case e:TankGameEvent.GameEvent =>
-        println(s"游戏事件--------------------------")
         e match {
           case ee:TankGameEvent.GenerateBullet =>
             gameContainerOpt.foreach(_.receiveGameEvent(e))
