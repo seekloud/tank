@@ -26,7 +26,7 @@ import com.neo.sk.utils.ESSFSupport.{initStateDecode, metaDataDecode, replayEven
   * Date: 2018/10/12
   * Time: 16:06
   */
-object GameReplay {
+object GamePlayer {
   private final val log = LoggerFactory.getLogger(this.getClass)
 
   sealed trait Command
@@ -66,14 +66,18 @@ object GameReplay {
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
-        //todo 此处替换从数据库中读取
         RecordDAO.getRecordById(recordId).map {
           case Some(r)=>
             val replay=initFileReader(r.filePath)
             val info=replay.init()
-            val buffer = new MiddleBufferInJvm(info.simulatorMetadata)
-            ctx.self ! SwitchBehavior("work",work(replay,metaDataDecode(info.simulatorMetadata).right.get,initStateDecode(info.simulatorMetadata).right.get))
+            try{
+              ctx.self ! SwitchBehavior("work",work(replay,metaDataDecode(info.simulatorMetadata).right.get,initStateDecode(info.simulatorMetadata).right.get))
+            }catch {
+              case e=>
+                log.error(e.getMessage)
+            }
           case None=>
+            log.debug(s"record--$recordId didn't exist!!")
         }
         switchBehavior(ctx,"busy",busy())
       }
@@ -94,7 +98,8 @@ object GameReplay {
         case msg:InitReplay=>
           //todo 此处从文件中读取相关数据传送给前端
           timer.cancel(GameLoopKey)
-          dispatchTo(msg.userActor,YourInfo(1,100,"11",AppSettings.tankGameConfig.getTankGameConfigImpl()))
+
+          dispatchTo(msg.userActor,YourInfo(1l,0,"",metaData.tankConfig))
           if(fileReader.hasMoreFrame){
             timer.startPeriodicTimer(GameLoopKey, GameLoop, 100.millis)
             work(fileReader,metaData,initState,Some(msg.userActor))

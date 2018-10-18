@@ -119,7 +119,6 @@ object UserActor {
             switchBehavior(ctx,"idle",idle(uId,name,frontActor))
           }
 
-
         case UserLeft(actor) =>
           ctx.unwatch(actor)
           Behaviors.stopped
@@ -153,7 +152,7 @@ object UserActor {
           Behaviors.same
 
         case StartReplay(rid,f)=>
-          getGameReplay(ctx,rid) ! GameReplay.InitReplay(frontActor,f)
+          getGameReplay(ctx,rid) ! GamePlayer.InitReplay(frontActor,f)
           Behaviors.same
 
         case JoinRoomSuccess(tank,config,uId,roomActor) =>
@@ -268,12 +267,12 @@ object UserActor {
 
   /**
     * replay-actor*/
-  private def getGameReplay(ctx: ActorContext[Command],recordId:Long): ActorRef[GameReplay.Command] = {
+  private def getGameReplay(ctx: ActorContext[Command],recordId:Long): ActorRef[GamePlayer.Command] = {
     val childName = s"gameReplay--$recordId"
     ctx.child(childName).getOrElse {
-      val actor = ctx.spawn(GameReplay.create(recordId), childName)
+      val actor = ctx.spawn(GamePlayer.create(recordId), childName)
       actor
-    }.upcast[GameReplay.Command]
+    }.upcast[GamePlayer.Command]
   }
 
 }
