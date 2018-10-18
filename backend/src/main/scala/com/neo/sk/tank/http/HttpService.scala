@@ -64,6 +64,7 @@ trait HttpService
             'wid.as[Long],
             'f.as[Int]
           ){ (name,uid,rid,wid,f) =>
+            //fixme 此处要和鉴权消息结合，去除无用信息
             val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetReplaySocketFlow(name,uid,rid,wid,f,_))
             dealFutureResult(
               flowFuture.map(t => handleWebSocketMessages(t))

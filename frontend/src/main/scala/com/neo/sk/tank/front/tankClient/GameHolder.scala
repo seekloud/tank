@@ -109,7 +109,7 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
   }
 
   def getStartReplayModel(name:String,uid:Long,rid:Long,wid:Long,f:Int)= {
-    startReplay(name,uid,rid,wid,f)
+    startReplay(name,Some(uid),Some(rid),Some(wid),Some(f))
   }
 
 
@@ -277,11 +277,20 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     }
   }
 
-  def startReplay(name:String,uid:Long,rid:Long,wid:Long,f:Int)={
+  def startReplay(name:String,uid:Option[Long]=None,rid:Option[Long]=None,wid:Option[Long]=None,f:Option[Int]=None)={
     canvas.focus()
     setGameState(Constants.GameState.loadingPlay)
-    webSocketClient.setup(name,Some(uid),Some(rid),Some(wid),Some(f))
-    gameLoop()
+    if(firstCome){
+      webSocketClient.setup(name,uid,rid,wid,f)
+      gameLoop()
+    }else if(webSocketClient.getWsState){
+      //fixme reStart
+//      setGameState(Constants.GameState.play)
+      firstCome=true
+      gameLoop()
+    }else{
+      JsFunc.alert("网络连接失败，请重新刷新")
+    }
   }
 
   private def gameLoop():Unit = {
@@ -350,6 +359,9 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     ctx.textBaseline = "top"
     ctx.font = "36px Helvetica"
     ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
+    if(replay){
+      gameContainerOpt.foreach(t => startReplay(t.myName))
+    }
     println()
   }
 
@@ -458,7 +470,7 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     data match {
       case e:TankGameEvent.YourInfo =>
         println("----Start!!!!!")
-        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
+//        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
         gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
 //        setGameState(Constants.GameState.play)
@@ -466,13 +478,18 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
       case e:TankGameEvent.SyncGameAllState =>
         if(firstCome){
           if (e.gState.tanks.exists(_.tankId==gameContainerOpt.get.myTankId)){
+            println("-----reStart")
             firstCome=false
+            setGameState(Constants.GameState.play)
+            //fixme 此处需要调整（立即同步数据，此处等待周期过长）
+            gameContainerOpt.foreach(_.update())
+            timer = Shortcut.schedule(gameLoop, gameContainerOpt.get.config.frameDuration)
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             nextFrame = dom.window.requestAnimationFrame(gameRender())
-            setGameState(Constants.GameState.play)
           }
         }else{
           //fixme 此处存在重复操作
+          //remind here allState change into state
 //          gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
           gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks,e.gState.props,e.gState.obstacle,e.gState.tankMoveAction)))
         }
@@ -480,6 +497,7 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
 
 
       case e:TankGameEvent.UserActionEvent =>
+        //remind here only add preAction without rollback
         gameContainerOpt.get.preExecuteUserEvent(e)
 
 
