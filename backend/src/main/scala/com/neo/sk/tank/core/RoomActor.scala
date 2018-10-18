@@ -131,11 +131,14 @@ object RoomActor {
           val startTime = System.currentTimeMillis()
 
 
-          val record = gameContainer.getGameEventAndSnapshot()
-          if(AppSettings.gameRecordIsWork){
-            getGameRecorder(ctx,gameContainer, roomId) ! GameRecorder.GameRecord(record)
-          }
+          val snapshotOpt = gameContainer.getCurSnapshot()
+
           gameContainer.update()
+
+          val gameEvents = gameContainer.getLastGameEvent()
+          if(AppSettings.gameRecordIsWork){
+            getGameRecorder(ctx,gameContainer) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
+          }
 
 
 
