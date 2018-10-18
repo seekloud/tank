@@ -15,6 +15,7 @@ object Routes {
 
   def wsJoinGameUrl(name:String) = base + s"/game/join?name=${name}"
 
+  def wsReplayGameUrl(name:String,uid:Long,rid:Long,wid:Long,f:Int) = base + s"/game/replay?name=$name&uid=$uid&rid=$rid&wid=$wid&f=$f"
   def wsJoinGameUrl(name:String, userId:Long, userName:String, accessCode:String, roomIdOpt:Option[Long]): String = {
     base + s"/game/userJoin?name=$name&userId=$userId&userName=$userName&accessCode=$accessCode" +
       (roomIdOpt match {

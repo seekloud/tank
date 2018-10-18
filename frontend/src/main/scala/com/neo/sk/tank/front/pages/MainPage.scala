@@ -31,6 +31,14 @@ object MainPage extends PageSwitcher {
     case Nil => TankDemo.render
     case "playGame" :: playInfoSeq => new PlayPage(playInfoSeq).render
     case "test" :: Nil => <div>TO BE CONTINUE...</div>
+  private val currentPage: Rx[Elem] = currentPageHash.map {
+    case Nil => TankDemo.render
+    case "replay"::name::uid::rid::wid::f::Nil => {
+//      ReplayPage.setParam(name, uid.toLong, rid.toLong, f.toInt)
+//      ReplayPage.render
+      new ReplayPage(name, uid.toLong, rid.toLong,wid.toLong, f.toInt).render
+    }
+    case "test" :: Nil => <div>TO BE CONTINUE...</div>
     case _ => <div>Error Page</div>
   }
 
@@ -40,6 +48,7 @@ object MainPage extends PageSwitcher {
 
 
   def show(): Cancelable = {
+    switchPageByHash()
     val page =
       <div>
         {currentPage}

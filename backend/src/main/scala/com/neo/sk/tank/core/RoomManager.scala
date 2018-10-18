@@ -36,6 +36,7 @@ object RoomManager {
   case class LeftRoom(uid:Long,tankId:Int,name:String,userOpt: Option[Long]) extends Command
 
   def create():Behavior[Command] = {
+    log.debug(s"RoomManager start...")
     Behaviors.setup[Command]{
       ctx =>
         implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
