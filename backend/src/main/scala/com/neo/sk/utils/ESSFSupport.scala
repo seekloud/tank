@@ -42,7 +42,7 @@ object ESSFSupport {
     }.getOrElse(Array[Byte]())
     val recorder = new FrameOutputStream(file)
     recorder.init(name,version,gameInformationBytes,initStateBytes)
-    log.debug(s"file-$fileName-$index init success")
+    log.debug(s" init success")
     recorder
   }
 
