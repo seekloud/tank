@@ -44,6 +44,7 @@ object GameRecorder {
   private final val InitTime = Some(5.minutes)
   private final case object BehaviorChangeKey
   private final case object SaveDateKey
+  private final val saveTime = 1.minute
 
   final case class SwitchBehavior(
                                    name: String,
@@ -69,17 +70,12 @@ object GameRecorder {
                               endTime: Long
                               )
 
-  final case class JoinUserInfo(
-                               userId: Long,
-                               tankId: Long,
-                               joinF: Long
-                               )
 
   private[this] def switchBehavior(ctx: ActorContext[Command],
                                    behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None,timeOut: TimeOut  = TimeOut("busy time error"))
                                   (implicit stashBuffer: StashBuffer[Command],
                                    timer:TimerScheduler[Command]) = {
-    log.debug(s"${ctx.self.path} becomes $behaviorName behavior.")
+    //log.debug(s"${ctx.self.path} becomes $behaviorName behavior.")
     timer.cancel(BehaviorChangeKey)
     durationOpt.foreach(timer.startSingleTimer(BehaviorChangeKey,timeOut,_))
     stashBuffer.unstashAll(ctx,behavior)
@@ -100,7 +96,7 @@ object GameRecorder {
         val fileRecorder = initFileRecorder(fileName,0,gameInformation,initStateOpt)
         val gameRecordBuffer:List[GameRecord] = List[GameRecord]()
         val data = GameRecorderData(roomId,fileName,0,gameInformation,initStateOpt,fileRecorder,gameRecordBuffer)
-        timer.startSingleTimer(SaveDateKey, Save, 1.hour)
+        timer.startSingleTimer(SaveDateKey, Save, saveTime)
         switchBehavior(ctx,"work",work(data,mutable.HashMap.empty[Long, EssfMapInfo],mutable.HashMap.empty[Long,Long],mutable.HashMap.empty[Long,Long], 0L, -1L))
       }
     }
@@ -121,6 +117,7 @@ object GameRecorder {
     Behaviors.receive{ (ctx,msg) =>
       msg match {
         case t:GameRecord =>
+          //log.info(s"${ctx.self.path} work get msg gameRecord")
           val wsMsg = t.event._1
           wsMsg.foreach{
                  case UserJoinRoom(userId, name, tankState,frame) =>
@@ -132,6 +129,8 @@ object GameRecorder {
                    userMap.remove(userId)
                    val startF = essfMap(tankId).startTime
                    essfMap.put(tankId, EssfMapInfo(userId, startF, frame))
+
+                 case _ =>
 
           }
 
@@ -160,7 +159,8 @@ object GameRecorder {
           }
 
         case Save =>
-          timer.startSingleTimer(SaveDateKey, Save, 1.hour)
+          log.info(s"${ctx.self.path} work get msg save")
+          timer.startSingleTimer(SaveDateKey, Save, saveTime)
           ctx.self ! SaveDate
           switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
 
@@ -192,6 +192,7 @@ object GameRecorder {
     Behaviors.receive{(ctx,msg) =>
       msg match {
         case SaveDate =>
+          log.info(s"${ctx.self.path} save get msg saveDate")
           essfMap.foreach{
             essf=>
               val info = if(essf._2.endTime == -1L){
@@ -224,6 +225,7 @@ object GameRecorder {
 
             case Failure(e) =>
               log.error(s"insert geme record fail, error: $e")
+              ctx.self !  SwitchBehavior("initRecorder",initRecorder(roomId,gameRecordData.fileName,fileIndex,gameInformation, userMap))
 
           }
           switchBehavior(ctx,"busy",busy())
@@ -251,6 +253,7 @@ object GameRecorder {
     Behaviors.receive{(ctx,msg) =>
       msg match {
         case t:GameRecord =>
+          log.info(s"${ctx.self.path} init get msg gameRecord")
           val startF = t.event._2.get match {
             case tank:TankGameSnapshot =>
               tank.state.f

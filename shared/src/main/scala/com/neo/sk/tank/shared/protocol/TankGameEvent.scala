@@ -80,7 +80,7 @@ object TankGameEvent {
 
   final case class GameInformation(
                                     gameStartTime:Long,
-                                    tankConfig: TankGameConfig
+                                    tankConfig: TankGameConfigImpl
                                   )
 
 }
