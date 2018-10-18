@@ -42,7 +42,7 @@ object CommonErrorCode{
 
   def checkUserAuthorityErrorRsp(msg: String) = ErrorRsp(1001404, msg)
 
-
+  def noMessageError = ErrorRsp(1000116, "No More Message")
 
 
 
