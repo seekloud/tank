@@ -75,11 +75,6 @@ object GameRecorder {
                                tankId: Long,
                                joinF: Long
                                )
-  final case class LeftUserInfo(
-                                 userId: Long,
-                                 tankId: Long,
-                                 leftF: Long
-                               )
 
   private[this] def switchBehavior(ctx: ActorContext[Command],
                                    behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None,timeOut: TimeOut  = TimeOut("busy time error"))
