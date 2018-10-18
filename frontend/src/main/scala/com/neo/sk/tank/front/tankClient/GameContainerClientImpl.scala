@@ -124,7 +124,6 @@ case class GameContainerClientImpl(
 
         case None =>
           drawDeadImg()
-          setGameState(GameState.stop)
       }
     }
     def drawDeadImg() = {

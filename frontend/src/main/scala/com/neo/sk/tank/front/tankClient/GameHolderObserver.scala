@@ -6,8 +6,9 @@ import com.neo.sk.tank.front.utils.Shortcut
 import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
-import org.scalajs.dom.raw.Event
+import org.scalajs.dom.raw.{Event, HTMLElement}
 import com.neo.sk.tank.front.utils.JsFunc
+import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom.html.Canvas
@@ -49,11 +50,9 @@ class GameHolderObserver(canvasObserver:String,roomId:Int,playerId:Long){
     gameContainerOpt.foreach(_.drawGame(offsetTime,60))
   }
 
-
   def gameLoop() ={
     gameContainerOpt.foreach(_.update())
     logicFrameTime = System.currentTimeMillis()
-
   }
 
   private def wsConnectSuccess(e:Event) = {
@@ -73,23 +72,30 @@ class GameHolderObserver(canvasObserver:String,roomId:Int,playerId:Long){
   }
 
   private def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
+    println(data.getClass)
     data match {
+      case e:TankGameEvent.YourInfo =>
+        setGameState(Constants.GameState.play)
+        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
+        gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
+        gameContainerOpt.get.getTankId(e.tankId)
+
       case e: TankGameEvent.FirstSyncGameAllState=>
-        e.tankIdOpt match {
-          case Some(tankId) =>
-            timer = Shortcut.schedule(gameLoop,e.configOpt.get.frameDuration)
-            gameContainerOpt = Some(GameContainerClientImpl(ctx,e.configOpt.get,playerId,tankId,e.nameOpt.get,canvasBoundary,canvasUnit,this.setGameState))
-            gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gStateOpt.get))
-            gameContainerOpt.get.getTankId(tankId)
-            nextFrame = dom.window.requestAnimationFrame(gameRender())
-        }
+        setGameState(Constants.GameState.play)
+        gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
+        nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case e:TankGameEvent.SyncGameAllState =>
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
+        val tankId = e.gState.tanks.filter(tankState => tankState.userId == playerId).map(_.tankId).head
+        gameContainerOpt.get.getTankId(tankId)
         nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case e:TankGameEvent.SyncGameState =>
         gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
+        val tankId = e.state.tanks.filter(tankState => tankState.userId == playerId).map(_.tankId).head
+        gameContainerOpt.get.getTankId(tankId)
+        nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case e:TankGameEvent.Ranks =>
         /**
@@ -116,6 +122,11 @@ class GameHolderObserver(canvasObserver:String,roomId:Int,playerId:Long){
           * */
         println(s"you are killed")
         killerName = e.name
+        setGameState(Constants.GameState.stop)
+
+      case e:TankGameEvent.PlayerLeftRoom =>
+        Shortcut.cancelSchedule(timer)
+        JsFunc.alert(s"玩家${e.name}已经离开房间")
 
       case _ =>
     }
@@ -125,7 +136,6 @@ class GameHolderObserver(canvasObserver:String,roomId:Int,playerId:Long){
   def watchGame() = {
     canvas.focus()
     webSocketClient.setup(Routes.wsWatchGameUrl(roomId,playerId))
-    gameLoop()
   }
 
 

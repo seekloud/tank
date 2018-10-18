@@ -39,7 +39,7 @@ object RoomActor {
 
   case class LeftRoom(uid:Long,tankId:Int,name:String,uidSet:mutable.HashSet[(Long,Boolean)],roomId:Long) extends Command with RoomManager.Command
   case class LeftRoomByKilled(uid:Long,tankId:Int,name:String) extends Command with RoomManager.Command
-  case class LeftRoom4Watch(uid:Long) extends Command with RoomManager.Command
+  case class LeftRoom4Watch(uid:Long,playerId:Long) extends Command with RoomManager.Command
   case class JoinRoom4Watch(uid:Long,roomId:Int,playerId:Long,userActor4Watch: ActorRef[UserActor4WatchGame.Command]) extends Command with  RoomManager.Command with UserActor4WatchGame.Command
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command with RoomManager.Command
   case object GameLoop extends Command
@@ -109,7 +109,7 @@ object RoomActor {
         case JoinRoom4Watch(uid,roomId,playerId,userActor4Watch) =>
           observersMap.put(uid,userActor4Watch)
           val gameContainerAllState = gameContainer.getGameContainerAllState()
-          gameContainer.handleJoinRoom4Watch(userActor4Watch,playerId,gameContainerAllState)
+          gameContainer.handleJoinRoom4Watch(userActor4Watch,uid,playerId,gameContainerAllState)
           Behaviors.same
 
         case WebSocketMsg(uid,tankId,req) =>
@@ -128,7 +128,8 @@ object RoomActor {
           }else{
             idle(justJoinUser.filter(_._1 != uid),subscribersMap,observersMap,gameContainer,tickCount)
           }
-        case LeftRoom4Watch(uid) =>
+        case LeftRoom4Watch(uid,playerId) =>
+          gameContainer.leftWatchGame(uid,playerId)
           observersMap.remove(uid)
           Behaviors.same
 
@@ -161,11 +162,12 @@ object RoomActor {
           justJoinUser.foreach(t => subscribersMap.put(t._1,t._3))
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           justJoinUser.foreach{t =>
-            dispatchTo(subscribersMap,observersMap)(t._1,TankGameEvent.SyncGameAllState(gameContainerAllState))
+            val ls = gameContainer.getUserActor4WatchGameList(t._1)
+            dispatchTo(subscribersMap,observersMap)(t._1,TankGameEvent.SyncGameAllState(gameContainerAllState),ls)
           }
           val endTime = System.currentTimeMillis()
           if(tickCount % 100 == 2){
-            log.debug(s"${ctx.self.path} curFrame=${gameContainer.systemFrame} use time=${endTime-startTime}")
+//            log.debug(s"${ctx.self.path} curFrame=${gameContainer.systemFrame} use time=${endTime-startTime}")
           }
           idle(Nil,subscribersMap,observersMap,gameContainer,tickCount+1)
 
@@ -176,7 +178,7 @@ object RoomActor {
 
 
         case ChildDead(name, childRef) =>
-          log.debug(s"${ctx.self.path} recv a msg:${msg}")
+//          log.debug(s"${ctx.self.path} recv a msg:${msg}")
           ctx.unwatch(childRef)
           Behaviors.same
 
@@ -209,12 +211,20 @@ object RoomActor {
     observers.values.foreach(_ ! UserActor4WatchGame.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
   }
 
-  def dispatchTo(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]],observers:mutable.HashMap[Long,ActorRef[UserActor4WatchGame.Command]])( id:Long,msg:TankGameEvent.WsMsgServer)(implicit sendBuffer:MiddleBufferInJvm) = {
+  def dispatchTo(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]],observers:mutable.HashMap[Long,ActorRef[UserActor4WatchGame.Command]])( id:Long,msg:TankGameEvent.WsMsgServer,lsa:Option[mutable.HashMap[Long,ActorRef[UserActor4WatchGame.Command]]])(implicit sendBuffer:MiddleBufferInJvm) = {
 //    println(s"$id--------------$msg")
-
     val isKillMsg = msg.isInstanceOf[TankGameEvent.YouAreKilled]
     subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
-    observers.get(id).foreach(_ ! UserActor4WatchGame.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
+    /**
+      * 分发数据
+      * */
+
+    lsa match{
+      case Some(ls) =>ls.keys.foreach(uId4WatchGame =>
+        observers.get(uId4WatchGame).foreach(t => t ! UserActor4WatchGame.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg))))
+      case None => log.debug(s"there is no observers...............................")
+    }
+//    observers.get(id).foreach(_ ! UserActor4WatchGame.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
   }
 
 
