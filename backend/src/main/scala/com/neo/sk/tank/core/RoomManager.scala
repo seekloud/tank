@@ -41,7 +41,6 @@ object RoomManager {
                             msg:String = "ok"
                            ) extends CommonRsp
   case class GetPlayersListReq(roomId:Int,replyTo:ActorRef[GetRoomListRsp]) extends Command
-//  case class JoinRoom4Watch(roomId:Int,playerId:Long,userActor4Watch: ActorRef[UserActor4WatchGame.Command]) extends Command
 
 
   def create():Behavior[Command] = {
@@ -96,13 +95,10 @@ object RoomManager {
             case Some(set) =>
               set.filter(p => p._1 == playerId).size match {
                 case 0 =>
-                  //没有玩家
                 case _ =>
-                  //找到玩家
                   getRoomActor(ctx,roomId) ! RoomActor.JoinRoom4Watch(uid,roomId,playerId,userActor4Watch)
               }
             case None =>
-              //没有该房间
           }
           Behaviors.same
 

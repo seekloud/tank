@@ -114,7 +114,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
   }
 
 
-  private def setGameState(s:Int):Unit = {
+  def setGameState(s:Int):Unit = {
     gameStateVar := s
     gameState = s
   }
