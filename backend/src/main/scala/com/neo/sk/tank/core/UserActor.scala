@@ -137,7 +137,6 @@ object UserActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case StartGame =>
-          //todo 往roomActor发消息获取坦克数据和当前游戏桢数据
           /**换成给roomManager发消息,告知uId,name
             * 还要给userActor发送回带roomId的数据
             * */
@@ -186,7 +185,6 @@ object UserActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case WebSocketMsg(reqOpt) =>
-          //todo 处理前端的请求数据
           reqOpt match {
             case Some(t:TankGameEvent.UserActionEvent) =>
               //分发数据给roomActor

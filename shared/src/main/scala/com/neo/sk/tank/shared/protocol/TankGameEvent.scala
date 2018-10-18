@@ -16,7 +16,6 @@ object TankGameEvent {
     * 携带原来tankId
     * */
   final case class RestartGame(tankIdOpt:Option[Int],name:String) extends WsMsgFront
-  final case class WatchGame(roomId:Int,playerId:Long) extends WsMsgFront with WsMsgServer //观战信息
 
   sealed trait WsMsgSource
   case object CompleteMsgServer extends WsMsgSource
