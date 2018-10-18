@@ -5,7 +5,6 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerSch
 import akka.http.scaladsl.model.ws.Message
 import akka.stream.scaladsl.Flow
 import com.neo.sk.tank.common.AppSettings
-import com.neo.sk.tank.core.GameRecorder.JoinUserInfo
 import com.neo.sk.tank.core.game.GameContainerServerImpl
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.slf4j.LoggerFactory
@@ -213,7 +212,7 @@ object RoomActor {
       ctx.child(childName).getOrElse{
         val curTime = System.currentTimeMillis()
         val fileName = s"tankGame_${curTime}"
-        val gameInformation = TankGameEvent.GameInformation(curTime, gameContainer.config)
+        val gameInformation = TankGameEvent.GameInformation(curTime,AppSettings.tankGameConfig.getTankGameConfigImpl())
         val initStateOpt = Some(gameContainer.getCurGameSnapshot())
         val actor = ctx.spawn(GameRecorder.create(fileName,gameInformation,initStateOpt, rommId),childName)
         ctx.watchWith(actor,ChildDead(childName,actor))
