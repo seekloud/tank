@@ -14,12 +14,13 @@ import com.neo.sk.utils.ESSFSupport._
 import org.seekloud.essf.io.{EpisodeInfo, FrameData, FrameInputStream}
 import com.neo.sk.tank.models.DAO.RecordDAO
 import com.neo.sk.tank.shared.protocol.TankGameEvent
-import com.neo.sk.tank.shared.protocol.TankGameEvent.{ReplayFrameData, YourInfo}
+import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameInformation, ReplayFrameData, YourInfo}
 import org.seekloud.byteobject.MiddleBufferInJvm
 
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import com.neo.sk.utils.ESSFSupport.{initStateDecode, metaDataDecode, replayEventDecode, replayStateDecode}
 /**
   * User: sky
   * Date: 2018/10/12
@@ -69,7 +70,9 @@ object GameReplay {
         RecordDAO.getRecordById(recordId).map {
           case Some(r)=>
             val replay=initFileReader(r.filePath)
-            ctx.self ! SwitchBehavior("work",work(replay))
+            val info=replay.init()
+            val buffer = new MiddleBufferInJvm(info.simulatorMetadata)
+            ctx.self ! SwitchBehavior("work",work(replay,metaDataDecode(info.simulatorMetadata).right.get,initStateDecode(info.simulatorMetadata).right.get))
           case None=>
         }
         switchBehavior(ctx,"busy",busy())
@@ -77,8 +80,11 @@ object GameReplay {
     }
   }
 
-  def work(fileReader:FrameInputStream,userOpt:Option[ActorRef[TankGameEvent.WsMsgSource]]=None)
-          (
+  def work(fileReader:FrameInputStream,
+           metaData:GameInformation,
+           initState:TankGameEvent.TankGameSnapshot,
+           userOpt:Option[ActorRef[TankGameEvent.WsMsgSource]]=None
+          )(
             implicit stashBuffer:StashBuffer[Command],
             timer:TimerScheduler[Command],
             sendBuffer: MiddleBufferInJvm
@@ -91,7 +97,7 @@ object GameReplay {
           dispatchTo(msg.userActor,YourInfo(1,100,"11",AppSettings.tankGameConfig.getTankGameConfigImpl()))
           if(fileReader.hasMoreFrame){
             timer.startPeriodicTimer(GameLoopKey, GameLoop, 100.millis)
-            work(fileReader,Some(msg.userActor))
+            work(fileReader,metaData,initState,Some(msg.userActor))
           }else{
             switchBehavior(ctx,"busy",busy(),Some(10.seconds))
           }
@@ -125,7 +131,6 @@ object GameReplay {
     subscriber ! ReplayFrameData(List(msg).fillMiddleBuffer(sendBuffer).result())
   }
 
-  import com.neo.sk.utils.ESSFSupport.{replayEventDecode,replayStateDecode}
   def dispatchByteTo(subscriber: ActorRef[TankGameEvent.WsMsgSource], msg:FrameData)(implicit sendBuffer: MiddleBufferInJvm) = {
 //    subscriber ! ReplayFrameData(replayEventDecode(msg.eventsData).fillMiddleBuffer(sendBuffer).result())
 //    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(replayStateDecode(s).fillMiddleBuffer(sendBuffer).result()))
