@@ -5,7 +5,7 @@ import java.io.File
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.{ActorContext, StashBuffer, TimerScheduler}
-import akka.parboiled2.RuleTrace.Fail
+
 import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameInformation, TankGameSnapshot, UserJoinRoom, UserLeftRoom}
@@ -20,7 +20,7 @@ import scala.collection.mutable.ListBuffer
 import scala.language.implicitConversions
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
-
+import com.neo.sk.tank.Boot.executor
 
 
 /**
@@ -183,6 +183,10 @@ object GameRecorder {
                     userMap: mutable.HashMap[Long,Long],
                     startF: Long,
                     endF: Long
+                  )(
+                    implicit stashBuffer:StashBuffer[Command],
+                    timer:TimerScheduler[Command],
+                    middleBuffer: MiddleBufferInJvm
                   ): Behavior[Command] = {
     import gameRecordData._
     Behaviors.receive{(ctx,msg) =>
@@ -212,16 +216,17 @@ object GameRecorder {
               RecordDAO.insertUserRecordList(list.toList).onComplete{
                 case Success(_) =>
                   log.info(s"insert user record success")
+                  ctx.self !  SwitchBehavior("initRecorder",initRecorder(roomId,gameRecordData.fileName,fileIndex,gameInformation, userMap))
                 case Failure(e) =>
                   log.error(s"insert user record fail, error: $e")
+                  ctx.self !  SwitchBehavior("initRecorder",initRecorder(roomId,gameRecordData.fileName,fileIndex,gameInformation, userMap))
               }
 
             case Failure(e) =>
               log.error(s"insert geme record fail, error: $e")
 
           }
-
-          switchBehavior(ctx,"initRecorder",initRecorder(roomId,gameRecordData.fileName,fileIndex,gameInformation, userMap))
+          switchBehavior(ctx,"busy",busy())
         case unknow =>
           log.warn(s"${ctx} save got unknow msg ${unknow}")
           Behaviors.same
@@ -238,6 +243,10 @@ object GameRecorder {
                             fileIndex:Int,
                             gameInformation: GameInformation,
                             userMap: mutable.HashMap[Long,Long]
+                          )(
+                            implicit stashBuffer:StashBuffer[Command],
+                            timer:TimerScheduler[Command],
+                            middleBuffer: MiddleBufferInJvm
                           ):Behavior[Command] = {
     Behaviors.receive{(ctx,msg) =>
       msg match {
@@ -267,6 +276,26 @@ object GameRecorder {
     }
 
   }
+
+
+  private def busy()(
+    implicit stashBuffer:StashBuffer[Command],
+    timer:TimerScheduler[Command]
+  ): Behavior[Command] =
+    Behaviors.receive[Command] { (ctx, msg) =>
+      msg match {
+        case SwitchBehavior(name, behavior,durationOpt,timeOut) =>
+          switchBehavior(ctx,name,behavior,durationOpt,timeOut)
+
+        case TimeOut(m) =>
+          log.debug(s"${ctx.self.path} is time out when busy,msg=${m}")
+          Behaviors.stopped
+
+        case unknowMsg =>
+          stashBuffer.stash(unknowMsg)
+          Behavior.same
+      }
+    }
 
   private def initFileRecorder(fileName:String,index:Int,gameInformation: GameInformation,initStateOpt:Option[TankGameEvent.GameSnapshot] = None)
                               (implicit middleBuffer: MiddleBufferInJvm):FrameOutputStream = {
