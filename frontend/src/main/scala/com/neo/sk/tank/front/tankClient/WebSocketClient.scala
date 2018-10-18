@@ -37,9 +37,9 @@ case class WebSocketClient(
     s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name)}"
   }
 
-  def getReplaySocketUri(name:String,uid:Long,rid:Long,f:Int): String = {
+  def getReplaySocketUri(name:String,uid:Long,rid:Long,wid:Long,f:Int): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}${Routes.wsReplayGameUrl(name,uid,rid,f)}"
+    s"$wsProtocol://${dom.document.location.host}${Routes.wsReplayGameUrl(name,uid,rid,wid,f)}"
   }
 
   private val sendBuffer:MiddleBufferInJs = new MiddleBufferInJs(4096)
@@ -52,12 +52,12 @@ case class WebSocketClient(
   }
 
 
-  def setup(name:String,uid:Option[Long]=None,rid:Option[Long]=None,f:Option[Int]=None):Unit = {
+  def setup(name:String,uid:Option[Long]=None,rid:Option[Long]=None,wid:Option[Long]=None,f:Option[Int]=None):Unit = {
     if(wsSetup){
       println(s"websocket已经启动")
     }else{
       val websocketStream =if(replay){
-        new WebSocket(getReplaySocketUri(name,uid.get,rid.get,f.get))
+        new WebSocket(getReplaySocketUri(name,uid.get,rid.get,wid.get,f.get))
       }else{
         new WebSocket(getWebSocketUri(name))
       }

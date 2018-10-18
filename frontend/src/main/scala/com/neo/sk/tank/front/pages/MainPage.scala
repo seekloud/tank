@@ -35,10 +35,10 @@ object MainPage extends PageSwitcher {
 
   private val currentPage: Rx[Elem] = currentPageHash.map {
     case Nil => TankDemo.render
-    case "replay"::name::uid::rid::f::Nil => {
+    case "replay"::name::uid::rid::wid::f::Nil => {
 //      ReplayPage.setParam(name, uid.toLong, rid.toLong, f.toInt)
 //      ReplayPage.render
-      new ReplayPage(name, uid.toLong, rid.toLong, f.toInt).render
+      new ReplayPage(name, uid.toLong, rid.toLong,wid.toLong, f.toInt).render
     }
     case "test" :: Nil => <div>TO BE CONTINUE...</div>
     case _ => <div>Error Page</div>

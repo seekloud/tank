@@ -13,6 +13,7 @@ import scala.concurrent.duration._
 import com.neo.sk.utils.ESSFSupport._
 import org.seekloud.essf.io.{EpisodeInfo, FrameData, FrameInputStream}
 import com.neo.sk.tank.models.DAO.RecordDAO
+import com.neo.sk.tank.protocol.ReplayProtocol.{EssfMapJoinLeftInfo, EssfMapKey}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameInformation, ReplayFrameData, YourInfo}
 import org.seekloud.byteobject.MiddleBufferInJvm
@@ -20,7 +21,7 @@ import org.seekloud.byteobject.MiddleBufferInJvm
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import com.neo.sk.utils.ESSFSupport.{initStateDecode, metaDataDecode, replayEventDecode, replayStateDecode}
+import com.neo.sk.utils.ESSFSupport.{initStateDecode, metaDataDecode, replayEventDecode, replayStateDecode, userMapDecode}
 /**
   * User: sky
   * Date: 2018/10/12
@@ -56,7 +57,7 @@ object GamePlayer {
   val loadFrame=0
 
   /**actor内部消息*/
-  case class InitReplay(userActor: ActorRef[TankGameEvent.WsMsgSource],f:Int) extends Command
+  case class InitReplay(userActor: ActorRef[TankGameEvent.WsMsgSource],userId:Long,f:Int) extends Command
   case class InitDownload(userActor: ActorRef[TankGameEvent.WsMsgSource]) extends Command
 
 
@@ -71,10 +72,15 @@ object GamePlayer {
             val replay=initFileReader(r.filePath)
             val info=replay.init()
             try{
-              ctx.self ! SwitchBehavior("work",work(replay,metaDataDecode(info.simulatorMetadata).right.get,initStateDecode(info.simulatorMetadata).right.get))
+              ctx.self ! SwitchBehavior("work",
+                work(
+                  replay,
+                  metaDataDecode(info.simulatorMetadata).right.get,
+                  userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
+                ))
             }catch {
-              case e=>
-                log.error(e.getMessage)
+              case e:Throwable=>
+                log.error("error---"+e.getMessage)
             }
           case None=>
             log.debug(s"record--$recordId didn't exist!!")
@@ -86,7 +92,8 @@ object GamePlayer {
 
   def work(fileReader:FrameInputStream,
            metaData:GameInformation,
-           initState:TankGameEvent.TankGameSnapshot,
+//           initState:TankGameEvent.TankGameSnapshot,
+           userMap:List[(EssfMapKey,EssfMapJoinLeftInfo)],
            userOpt:Option[ActorRef[TankGameEvent.WsMsgSource]]=None
           )(
             implicit stashBuffer:StashBuffer[Command],
@@ -98,14 +105,19 @@ object GamePlayer {
         case msg:InitReplay=>
           //todo 此处从文件中读取相关数据传送给前端
           timer.cancel(GameLoopKey)
-
-          dispatchTo(msg.userActor,YourInfo(1l,0,"",metaData.tankConfig))
-          if(fileReader.hasMoreFrame){
-            timer.startPeriodicTimer(GameLoopKey, GameLoop, 100.millis)
-            work(fileReader,metaData,initState,Some(msg.userActor))
-          }else{
-            switchBehavior(ctx,"busy",busy(),Some(10.seconds))
+          userMap.find(_._1.userId == msg.userId) match {
+            case Some(u)=>
+              dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,metaData.tankConfig))
+              if(fileReader.hasMoreFrame){
+                timer.startPeriodicTimer(GameLoopKey, GameLoop, 100.millis)
+                work(fileReader,metaData,userMap,Some(msg.userActor))
+              }else{
+                switchBehavior(ctx,"busy",busy(),Some(10.seconds))
+              }
+            case None=>
+              switchBehavior(ctx,"busy",busy(),Some(10.seconds))
           }
+
 
         case msg:InitDownload=>
           switchBehavior(ctx,"busy",busy(),Some(10.seconds))
