@@ -42,6 +42,15 @@ object TankGameEvent {
     val serialNum:Int
   }
 
+  /**
+    * replay-frame-msg*/
+  final case class ReplayFrameData(ws:Array[Byte]) extends WsMsgSource
+  /**
+    * replay in front
+    * */
+  final case class ReplayInfo(userId:Long,tankId:Int,name:String,f:Long,config:TankGameConfigImpl) extends WsMsgServer
+  final case class EventData(list:List[WsMsgServer]) extends WsMsgServer
+  final case class DecodeError() extends WsMsgServer
 
   final case class UserJoinRoom(userId:Long, name:String, tankState:TankState, override val frame: Long) extends  UserEvent with WsMsgServer
   final case class UserLeftRoom(userId:Long, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer

@@ -5,7 +5,6 @@ import java.io.File
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.{ActorContext, StashBuffer, TimerScheduler}
-
 import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameInformation, TankGameSnapshot, UserJoinRoom, UserLeftRoom}
@@ -21,7 +20,8 @@ import scala.language.implicitConversions
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 import com.neo.sk.tank.Boot.executor
-
+import com.neo.sk.tank.protocol.ReplayProtocol.{EssfMapJoinLeftInfo, EssfMapKey}
+import com.neo.sk.utils.ESSFSupport.userMapEncode
 
 /**
   * Created by hongruying on 2018/8/14
@@ -34,7 +34,7 @@ import com.neo.sk.tank.Boot.executor
 object GameRecorder {
 
   import org.seekloud.byteobject.ByteObject._
-
+  import com.neo.sk.utils.ESSFSupport.initFileRecorder
   sealed trait Command
 
   final case class GameRecord(event:(List[TankGameEvent.WsMsgServer],Option[TankGameEvent.GameSnapshot])) extends Command
@@ -65,18 +65,6 @@ object GameRecorder {
                                      var gameRecordBuffer:List[GameRecord]
                                    )
 
-  final case class EssfMapInfo(
-                              map: Array[Byte]
-                              )
-  final case class EssfMapKey(
-                             tankId: Long,
-                             userId: Long
-                             )
-  final case class EssfMapJoinLeftInfo(
-                                      joinF: Long,
-                                      leftF: Long
-                                      )
-
 
 
   private[this] def switchBehavior(ctx: ActorContext[Command],
@@ -105,15 +93,15 @@ object GameRecorder {
         val gameRecordBuffer:List[GameRecord] = List[GameRecord]()
         val data = GameRecorderData(roomId,fileName,0,gameInformation,initStateOpt,fileRecorder,gameRecordBuffer)
         timer.startSingleTimer(SaveDateKey, Save, saveTime)
-        switchBehavior(ctx,"work",work(data,mutable.HashMap.empty[EssfMapKey,EssfMapJoinLeftInfo],mutable.HashMap.empty[Long,Long],mutable.HashMap.empty[Long,Long], 0L, -1L))
+        switchBehavior(ctx,"work",work(data,mutable.HashMap.empty[EssfMapKey,EssfMapJoinLeftInfo],mutable.HashMap.empty[Long,(Int,String)],mutable.HashMap.empty[Long,(Int,String)], 0L, -1L))
       }
     }
   }
 
   private def work(gameRecordData: GameRecorderData,
                    essfMap: mutable.HashMap[EssfMapKey,EssfMapJoinLeftInfo],
-                   userAllMap: mutable.HashMap[Long,Long],
-                   userMap: mutable.HashMap[Long,Long],
+                   userAllMap: mutable.HashMap[Long,(Int,String)],
+                   userMap: mutable.HashMap[Long,(Int,String)],
                    startF: Long,
                    endF: Long
                   )(
@@ -129,14 +117,14 @@ object GameRecorder {
           val wsMsg = t.event._1
           wsMsg.foreach{
                  case UserJoinRoom(userId, name, tankState,frame) =>
-                   userAllMap.put(userId, tankState.tankId)
-                   userMap.put(userId, tankState.tankId)
-                   essfMap.put(EssfMapKey(tankState.tankId, userId), EssfMapJoinLeftInfo(frame, -1l))
+                   userAllMap.put(userId, (tankState.tankId,name))
+                   userMap.put(userId, (tankState.tankId,name))
+                   essfMap.put(EssfMapKey(tankState.tankId, userId, name), EssfMapJoinLeftInfo(frame, -1l))
 
                  case UserLeftRoom(userId, name, tankId,frame) =>
                    userMap.remove(userId)
-                   val startF = essfMap(EssfMapKey(tankId, userId)).joinF
-                   essfMap.put(EssfMapKey(tankId, userId), EssfMapJoinLeftInfo(startF,frame))
+                   val startF = essfMap(EssfMapKey(tankId, userId, name)).joinF
+                   essfMap.put(EssfMapKey(tankId, userId,name), EssfMapJoinLeftInfo(startF,frame))
 
                  case _ =>
 
@@ -187,8 +175,8 @@ object GameRecorder {
   private def save(
                     gameRecordData: GameRecorderData,
                     essfMap: mutable.HashMap[EssfMapKey,EssfMapJoinLeftInfo],
-                    userAllMap: mutable.HashMap[Long,Long],
-                    userMap: mutable.HashMap[Long,Long],
+                    userAllMap: mutable.HashMap[Long,(Int,String)],
+                    userMap: mutable.HashMap[Long,(Int,String)],
                     startF: Long,
                     endF: Long
                   )(
@@ -208,8 +196,8 @@ object GameRecorder {
               }else{
                 essf
               }
-          }.toString().getBytes("utf-8")
-          recorder.putMutableInfo(AppSettings.essfMapKeyName,mapInfo)
+          }
+          recorder.putMutableInfo(AppSettings.essfMapKeyName,userMapEncode(mapInfo))
 
           recorder.finish()
           log.info(s"${ctx.self.path} has save game data to file=${fileName}_$fileIndex")
@@ -253,7 +241,7 @@ object GameRecorder {
                             fileName: String,
                             fileIndex:Int,
                             gameInformation: GameInformation,
-                            userMap: mutable.HashMap[Long,Long]
+                            userMap: mutable.HashMap[Long,(Int,String)]
                           )(
                             implicit stashBuffer:StashBuffer[Command],
                             timer:TimerScheduler[Command],
@@ -273,10 +261,10 @@ object GameRecorder {
           val newGameInformation = GameInformation(startTime, gameInformation.tankConfig)
           val newGameRecorderData = GameRecorderData(roomId, fileName, fileIndex + 1, newGameInformation, newInitStateOpt, newRecorder, gameRecordBuffer = List[GameRecord]())
           val newEssfMap = mutable.HashMap.empty[EssfMapKey, EssfMapJoinLeftInfo]
-          val newUserAllMap = mutable.HashMap.empty[Long,Long]
+          val newUserAllMap = mutable.HashMap.empty[Long,(Int,String)]
           userMap.foreach{
             user=>
-              newEssfMap.put(EssfMapKey(user._2,user._1), EssfMapJoinLeftInfo( startF, -1L))
+              newEssfMap.put(EssfMapKey(user._2._1,user._1,user._2._2), EssfMapJoinLeftInfo( startF, -1L))
               newUserAllMap.put(user._1, user._2)
           }
           switchBehavior(ctx,"work",work(newGameRecorderData, newEssfMap, newUserAllMap, userMap, startF, -1L))
@@ -308,26 +296,6 @@ object GameRecorder {
           Behavior.same
       }
     }
-
-  private def initFileRecorder(fileName:String,index:Int,gameInformation: GameInformation,initStateOpt:Option[TankGameEvent.GameSnapshot] = None)
-                              (implicit middleBuffer: MiddleBufferInJvm):FrameOutputStream = {
-    val dir = new File(AppSettings.gameDataDirectoryPath)
-    if(!dir.exists()){
-      dir.mkdir()
-    }
-    val file = AppSettings.gameDataDirectoryPath + fileName + s"_$index"
-    val name = "tank"
-    val version = "0.1"
-    val gameInformationBytes = gameInformation.fillMiddleBuffer(middleBuffer).result()
-    val initStateBytes = initStateOpt.map{
-      case t:TankGameEvent.GameSnapshot =>
-        t.fillMiddleBuffer(middleBuffer).result()
-    }.getOrElse(Array[Byte]())
-    val recorder = new FrameOutputStream(file)
-    recorder.init(name,version,gameInformationBytes,initStateBytes)
-    log.debug(s" init success")
-    recorder
-  }
 
 
 

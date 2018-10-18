@@ -9,6 +9,9 @@ import com.neo.sk.tank.Boot.executor
   * Created by hongruying on 2018/10/12
   */
 object RecordDAO {
+  def getRecordById(id:Long)={
+    db.run(tGameRecord.filter(_.recordId===id).result.headOption)
+  }
   def insertGameRecord(g: rGameRecord) = {
     db.run( tGameRecord.returning(tGameRecord.map(_.recordId)) += g)
   }

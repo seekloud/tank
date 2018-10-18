@@ -12,38 +12,35 @@ import scala.xml.Elem
 object MainPage extends PageSwitcher {
 
 
-
+  def hashStr2Seq(str: String): IndexedSeq[String] = {
+    if (str.length == 0) {
+      IndexedSeq.empty[String]
+    } else if (str.startsWith("#/")) {
+      val t = str.substring(2).split("/").toIndexedSeq
+      if (t.nonEmpty) {
+        t
+      } else IndexedSeq.empty[String]
+    } else {
+      println("Error hash string:" + str + ". hash string must start with [#/]")
+      IndexedSeq.empty[String]
+    }
+  }
 
   override def switchPageByHash(): Unit = {
-    val tokens = {
-      val t = getCurrentHash.split("/").toList
-      if (t.nonEmpty) {
-        t.tail
-      } else Nil
-    }
-
-    val pageName =
-      tokens match {
-        case Nil => "首页"
-        case "test" :: Nil => "test"
-        case "postManager"::Nil => "帖子管理"
-        case "versionManager"::Nil =>"版本管理"
-        case "register" :: Nil => "管理员登录"
-        case "sticky" :: Nil => "置顶管理"
-        case "recommendBoardManager":: Nil => "推荐版面管理"
-        case x =>
-          println(s"unknown hash: $x")
-          "unknow"
-      }
+    val tokens = hashStr2Seq(getCurrentHash).toList
     println(tokens)
-    println(pageName)
-    switchToPage(pageName)
+    switchToPage(tokens)
   }
 
 
-  private val currentPage: Rx[Elem] = currentPageName.map {
-    case "首页" => TankDemo.render
-    case "test" => <div>TO BE CONTINUE...</div>
+  private val currentPage: Rx[Elem] = currentPageHash.map {
+    case Nil => TankDemo.render
+    case "replay"::name::uid::rid::wid::f::Nil => {
+//      ReplayPage.setParam(name, uid.toLong, rid.toLong, f.toInt)
+//      ReplayPage.render
+      new ReplayPage(name, uid.toLong, rid.toLong,wid.toLong, f.toInt).render
+    }
+    case "test" :: Nil => <div>TO BE CONTINUE...</div>
     case _ => <div>Error Page</div>
   }
 
@@ -53,6 +50,7 @@ object MainPage extends PageSwitcher {
 
 
   def show(): Cancelable = {
+    switchPageByHash()
     val page =
       <div>
         {currentPage}

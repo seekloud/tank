@@ -56,6 +56,7 @@ case class GameContainerServerImpl(
     def transformGenerateBulletEvent(bulletState: BulletState) = {
       val event = TankGameEvent.GenerateBullet(systemFrame,bulletState)
       dispatch(event)
+//      println(s"bu=${bulletState}")
       addGameEvent(event)
     }
 

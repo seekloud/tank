@@ -99,6 +99,18 @@ object AppSettings {
   val ramblerDomain = ramblerConfig.getString("domain")
   val ramblerRootUrl = ramblerConfig.getString("rootUrl")
 
+  private val esheepConfig = appConfig.getConfig("esheep")
+  val esheepAppId = esheepConfig.getString("appId")
+  val esheepSecureKey = esheepConfig.getString("secureKey")
+  val esheepProtocol = esheepConfig.getString("protocol")
+  val esheepHost = esheepConfig.getString("host")
+  val esheepPort = esheepConfig.getInt("port")
+  val esheepDomain = esheepConfig.getString("domain")
+  val esheepGameId = esheepConfig.getLong("gameId")
+  val esheepGameKey = esheepConfig.getString("gsKey")
+  val esheepAuthToken = esheepConfig.getBoolean("authToken")
+
+
 
 
 
