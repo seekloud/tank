@@ -179,6 +179,8 @@ object AppSettings {
     admins.toList
   }
 
+  val essfMapKeyName = "essfMap"
+
 
 
 

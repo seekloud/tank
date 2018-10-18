@@ -4,6 +4,7 @@ import com.neo.sk.tank.front.pages.FirstPage
 import mhtml.{Var, mount}
 import org.scalajs.dom
 import org.scalajs.dom.HashChangeEvent
+import org.scalajs.dom.raw.Event
 
 /**
   * User: Taoz
@@ -26,12 +27,12 @@ trait PageSwitcher {
 
   //init.
   {
-
     val func = {
       e: HashChangeEvent =>
         //only handler browser history hash changed.
         if (internalTargetHash != getCurrentHash) {
           println(s"hash changed, new hash: $getCurrentHash")
+          internalTargetHash =getCurrentHash
           switchPageByHash()
         }
     }
