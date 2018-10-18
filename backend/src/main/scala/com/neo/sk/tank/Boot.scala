@@ -52,7 +52,7 @@ object Boot extends HttpService {
 
   val userManager:ActorRef[UserManager.Command] = system.spawn(UserManager.create(),"userManager")
 
-//  val esheepSyncClient:ActorRef[EsheepSyncClient.Command] = system.spawn(EsheepSyncClient.create,"esheepSyncClient")
+  val esheepSyncClient:ActorRef[EsheepSyncClient.Command] = system.spawn(EsheepSyncClient.create,"esheepSyncClient")
 
 //  var testTime = System.currentTimeMillis()
 //  scheduler.schedule(0.millis,120.millis){

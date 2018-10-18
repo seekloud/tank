@@ -76,21 +76,26 @@ object EsheepSyncClient {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case RefreshToken =>
-          EsheepClient.gsKey2Token().onComplete{
-            case Success(rst) =>
-              rst match {
-                case Right(rsp) =>
-                  ctx.self ! SwitchBehavior("work",work(rsp))
+          if(AppSettings.esheepAuthToken){
+            EsheepClient.gsKey2Token().onComplete{
+              case Success(rst) =>
+                rst match {
+                  case Right(rsp) =>
+                    ctx.self ! SwitchBehavior("work",work(rsp))
 
-                case Left(error) =>
-                  log.error(s"${ctx.self.path} get token failed.error:${error.msg}")
-                  ctx.self ! SwitchBehavior("stop", Behaviors.stopped)
-              }
-            case Failure(error) =>
-              log.error(s"${ctx.self.path} get token failed.,error:${error.getMessage}")
-              ctx.self ! SwitchBehavior("stop", Behaviors.stopped)
+                  case Left(error) =>
+                    log.error(s"${ctx.self.path} get token failed.error:${error.msg}")
+                    ctx.self ! SwitchBehavior("stop", Behaviors.stopped)
+                }
+              case Failure(error) =>
+                log.error(s"${ctx.self.path} get token failed.,error:${error.getMessage}")
+                ctx.self ! SwitchBehavior("stop", Behaviors.stopped)
+            }
+            switchBehavior(ctx, "busy", busy(), GetTokenTime, TimeOut("Get Token"))
+          } else{
+            switchBehavior(ctx, "work", work(EsheepProtocol.GameServerKey2TokenInfo("",System.currentTimeMillis() + 2.days.toMillis)))
           }
-          switchBehavior(ctx, "busy", busy(), GetTokenTime, TimeOut("Get Token"))
+
 
 
         case TimeOut(m) =>

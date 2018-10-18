@@ -108,6 +108,7 @@ object AppSettings {
   val esheepDomain = esheepConfig.getString("domain")
   val esheepGameId = esheepConfig.getLong("gameId")
   val esheepGameKey = esheepConfig.getString("gsKey")
+  val esheepAuthToken = esheepConfig.getBoolean("authToken")
 
 
 
