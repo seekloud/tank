@@ -31,6 +31,7 @@ object MainPage extends PageSwitcher {
         case "register" :: Nil => "管理员登录"
         case "sticky" :: Nil => "置顶管理"
         case "recommendBoardManager":: Nil => "推荐版面管理"
+        case "getGameRec" :: Nil => "游戏记录查看"
         case x =>
           println(s"unknown hash: $x")
           "unknow"
@@ -43,6 +44,7 @@ object MainPage extends PageSwitcher {
 
   private val currentPage: Rx[Elem] = currentPageName.map {
     case "首页" => TankDemo.render
+    case "游戏记录查看" => GameRecordList.render
     case "test" => <div>TO BE CONTINUE...</div>
     case _ => <div>Error Page</div>
   }

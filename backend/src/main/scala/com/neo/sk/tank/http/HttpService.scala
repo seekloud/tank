@@ -20,6 +20,7 @@ import com.neo.sk.tank.core.UserManager
   */
 trait HttpService
   extends ResourceService
+  with gRecordListService
   with ServiceUtils {
 
   import akka.actor.typed.scaladsl.AskPattern._
@@ -43,24 +44,23 @@ trait HttpService
 
 
 
-  lazy val routes: Route = pathPrefix(AppSettings.rootPath) {
+  lazy val routes: Route = pathPrefix(AppSettings.rootPath){
     resourceRoutes ~
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
         } ~
-          path("join"){
-          parameter('name){ name =>
-            log.debug(s"sssssssssname=${name}")
-            val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_))
-            complete("sss")
-            dealFutureResult(
-              flowFuture.map(t => handleWebSocketMessages(t))
-            )
+          path("join") {
+            parameter('name) { name =>
+              log.debug(s"sssssssssname=${name}")
+              val flowFuture: Future[Flow[Message, Message, Any]] = userManager ? (UserManager.GetWebSocketFlow(name, _))
+              complete("sss")
+              dealFutureResult(
+                flowFuture.map(t => handleWebSocketMessages(t))
+              )
+            }
           }
-        }
-
-      }
+      } ~ GameRecRoutes
   }
 
 
