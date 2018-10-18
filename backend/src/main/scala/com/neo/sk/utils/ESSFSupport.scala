@@ -3,6 +3,7 @@ package com.neo.sk.utils
 import java.io.File
 
 import com.neo.sk.tank.common.AppSettings
+import com.neo.sk.tank.protocol.ReplayProtocol.{EssfMapInfo, EssfMapJoinLeftInfo, EssfMapKey}
 import com.neo.sk.tank.shared.game.GameContainerAllState
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameEvent, GameInformation, SyncGameAllState, UserActionEvent}
@@ -65,6 +66,16 @@ object ESSFSupport {
     val buffer = new MiddleBufferInJvm(a)
     bytesDecode[TankGameEvent.TankGameSnapshot](buffer)
   }
+
+  def userMapDecode(a:Array[Byte])={
+    val buffer = new MiddleBufferInJvm(a)
+    bytesDecode[EssfMapInfo](buffer)
+  }
+
+  def userMapEncode(u:mutable.HashMap[EssfMapKey,EssfMapJoinLeftInfo])(implicit middleBuffer: MiddleBufferInJvm)={
+    EssfMapInfo(u.toList).fillMiddleBuffer(middleBuffer).result()
+  }
+
   def replayEventDecode(a:Array[Byte]):TankGameEvent.WsMsgServer={
     if (a.length > 0) {
       val buffer = new MiddleBufferInJvm(a)

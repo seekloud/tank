@@ -108,8 +108,8 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     startGameModal.render
   }
 
-  def getStartReplayModel(name:String,uid:Long,rid:Long,f:Int)= {
-    startReplay(name,uid,rid,f)
+  def getStartReplayModel(name:String,uid:Long,rid:Long,wid:Long,f:Int)= {
+    startReplay(name,uid,rid,wid,f)
   }
 
 
@@ -277,10 +277,10 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     }
   }
 
-  def startReplay(name:String,uid:Long,rid:Long,f:Int)={
+  def startReplay(name:String,uid:Long,rid:Long,wid:Long,f:Int)={
     canvas.focus()
     setGameState(Constants.GameState.loadingPlay)
-    webSocketClient.setup(name,Some(uid),Some(rid),Some(f))
+    webSocketClient.setup(name,Some(uid),Some(rid),Some(wid),Some(f))
     gameLoop()
   }
 
@@ -454,9 +454,7 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
   }
 
   //fixme 此处需要重构（重建文件 or 修改参数）
-  var count=true
   private def replayMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
-    println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
         println("----Start!!!!!")
@@ -466,9 +464,9 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
 //        setGameState(Constants.GameState.play)
 
       case e:TankGameEvent.SyncGameAllState =>
-        if(count){
+        if(firstCome){
           if (e.gState.tanks.exists(_.tankId==gameContainerOpt.get.myTankId)){
-            count=false
+            firstCome=false
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             nextFrame = dom.window.requestAnimationFrame(gameRender())
             setGameState(Constants.GameState.play)
