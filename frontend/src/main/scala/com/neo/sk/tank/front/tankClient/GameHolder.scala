@@ -2,8 +2,9 @@ package com.neo.sk.tank.front.tankClient
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.neo.sk.tank.front.common.Constants
+import com.neo.sk.tank.front.common.{Constants, Routes}
 import com.neo.sk.tank.front.components.StartGameModal
+import com.neo.sk.tank.front.model.PlayerInfo
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -20,7 +21,7 @@ import scala.xml.Elem
 /**
   * Created by hongruying on 2018/8/26
   */
-case class GameHolder(canvasName:String) extends NetworkInfo {
+case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = None) extends NetworkInfo {
 
   private[this] val canvas = dom.document.getElementById(canvasName).asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
@@ -34,7 +35,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
 
   private val gameStateVar:Var[Int] = Var(Constants.GameState.firstCome)
   private var gameState:Int = Constants.GameState.firstCome
-  private val startGameModal = new StartGameModal(gameStateVar,start)
+  private val startGameModal = new StartGameModal(gameStateVar,start, playerInfoOpt)
 
   private var killerName:String = ""
 
@@ -252,7 +253,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
       firstCome = false
       addUserActionListenEvent()
       setGameState(Constants.GameState.loadingPlay)
-      webSocketClient.setup(name)
+      webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, playerInfoOpt))
       gameLoop()
 
     }else if(webSocketClient.getWsState){
@@ -354,8 +355,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
       ctx.fillText(s"重新进入房间，倒计时：${countDownTimes}",150,100)
       ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
       countDownTimes = countDownTimes - 1
-    }
-    else{
+    } else{
       Shortcut.cancelSchedule(reStartTimer)
       gameContainerOpt.foreach(t => start(t.myName))
       countDownTimes = countDown

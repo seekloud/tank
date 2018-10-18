@@ -8,6 +8,8 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.stream.{ActorAttributes, Supervision}
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
+import com.neo.sk.tank.models.{TankGameUserInfo}
+import com.neo.sk.tank.protocol.EsheepProtocol
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import io.circe.{Decoder, Encoder}
 import org.slf4j.LoggerFactory
@@ -26,7 +28,8 @@ object UserManager {
 
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
 
-  final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
+  final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]], playerInfo:Option[EsheepProtocol.PlayerInfo] = None, roomId:Option[Long] = None) extends Command
+
 
 //  final case class GetWebSocketFlow(name:String, userId:Long ,roomIdOpt:Option[Long], replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
 
@@ -50,8 +53,12 @@ object UserManager {
                   ):Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case GetWebSocketFlow(name,replyTo) =>
-          replyTo ! getWebSocketFlow(getUserActor(ctx,uidGenerator.getAndIncrement(),name))
+        case GetWebSocketFlow(name,replyTo, playerInfoOpt, roomIdOpt) =>
+          val playerInfo = playerInfoOpt match {
+            case Some(p) => TankGameUserInfo(p.playerId, p.nickname, name, true)
+            case None => TankGameUserInfo(-uidGenerator.getAndIncrement(), s"guest:${name}", name, false)
+          }
+          replyTo ! getWebSocketFlow(getUserActor(ctx, playerInfo.userId, playerInfo))
           Behaviors.same
 
 
@@ -124,10 +131,10 @@ object UserManager {
 
 
 
-  private def getUserActor(ctx: ActorContext[Command],id:Long,name:String):ActorRef[UserActor.Command] = {
+  private def getUserActor(ctx: ActorContext[Command],id:Long, userInfo: TankGameUserInfo):ActorRef[UserActor.Command] = {
     val childName = s"UserActor-${id}"
     ctx.child(childName).getOrElse{
-      val actor = ctx.spawn(UserActor.create(id,name),childName)
+      val actor = ctx.spawn(UserActor.create(id, userInfo),childName)
       ctx.watchWith(actor,ChildDead(childName,actor))
       actor
     }.upcast[UserActor.Command]

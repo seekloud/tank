@@ -1,6 +1,7 @@
 package com.neo.sk.tank.front.components
 
 import com.neo.sk.tank.front.common.{Component, Constants}
+import com.neo.sk.tank.front.model.PlayerInfo
 import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
@@ -12,7 +13,12 @@ import scala.xml.Elem
 /**
   * Created by hongruying on 2018/7/9
   */
-class StartGameModal(gameState:Var[Int],startGame:(String) => Unit) extends Component{
+class StartGameModal(gameState:Var[Int],startGame:(String) => Unit, playerInfoOpt:Option[PlayerInfo]) extends Component{
+
+
+  private val inputDisabled:Var[Boolean] = Var(playerInfoOpt.isDefined)
+  private val inputValue:Var[String] = Var(playerInfoOpt.map(_.userName).getOrElse(""))
+
 
   private var lives:Int = 3 // 默认第一次进入，生命值3
   private val title = gameState.map{
@@ -33,7 +39,7 @@ class StartGameModal(gameState:Var[Int],startGame:(String) => Unit) extends Comp
   }
 
 
-  private val inputElem = <input id ="TankGameNameInput" onkeydown ={e:KeyboardEvent => clickEnter(e)}></input>
+  private val inputElem = <input id ="TankGameNameInput" onkeydown ={e:KeyboardEvent => clickEnter(e)} disabled={inputDisabled} value ={inputValue}></input>
   private val button = <button id="start_button" class ="btn btn-info" onclick ={() => clickEnter()}>进入</button>
 
 

@@ -1,5 +1,8 @@
 package com.neo.sk.tank.front.common
 
+import com.neo.sk.tank.front.model.PlayerInfo
+import org.scalajs.dom
+
 /**
   * User: Taoz
   * Date: 2/24/2017
@@ -11,6 +14,28 @@ object Routes {
   val base = "/tank"
 
   def wsJoinGameUrl(name:String) = base + s"/game/join?name=${name}"
+
+  def wsJoinGameUrl(name:String, userId:Long, userName:String, accessCode:String, roomIdOpt:Option[Long]): String = {
+    base + s"/game/userJoin?name=$name&userId=$userId&userName=$userName&accessCode=$accessCode" +
+      (roomIdOpt match {
+        case Some(roomId) =>
+          s"&roomId=$roomId"
+        case None =>
+          ""
+      })
+  }
+
+
+  def getJoinGameWebSocketUri(name:String, playerInfoOpt: Option[PlayerInfo]): String = {
+    val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
+    playerInfoOpt match {
+      case Some(playerInfo) =>
+        s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name,playerInfo.userId, playerInfo.userName, playerInfo.accessCode, playerInfo.roomIdOpt)}"
+      case None =>
+        s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name)}"
+    }
+
+  }
 
 
 

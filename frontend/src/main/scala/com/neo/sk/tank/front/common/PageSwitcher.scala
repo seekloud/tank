@@ -14,7 +14,7 @@ trait PageSwitcher {
 
   import scalatags.JsDom.short._
 
-  protected var currentPageName: Var[String] = Var("首页")
+  protected var currentPageHash: Var[List[String]] = Var(Nil)
 
   private val bodyContent = div(*.height := "100%").render
 
@@ -39,11 +39,11 @@ trait PageSwitcher {
   }
 
 
-  protected def switchToPage(pageName: String): Unit = {
-    currentPageName.update(_ => pageName)
+  protected def switchToPage(pageName: List[String]): Unit = {
+    currentPageHash.update(_ => pageName)
   }
 
-  def getCurrentPageName: Var[String] = currentPageName
+  def getCurrentPageName: Var[List[String]] = currentPageHash
 
   def switchPageByHash(): Unit
 

@@ -44,7 +44,7 @@ object EsheepSyncClient {
 
   final case object RefreshToken extends Command
 
-  final case class VerifyAccessCode(accessCode:Long, rsp:ActorRef[EsheepProtocol.VerifyAccessCodeRsp]) extends Command
+  final case class VerifyAccessCode(accessCode:String, rsp:ActorRef[EsheepProtocol.VerifyAccessCodeRsp]) extends Command
 
   private[this] def switchBehavior(ctx: ActorContext[Command],
                                    behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None,timeOut: TimeOut  = TimeOut("busy time error"))
@@ -139,11 +139,16 @@ object EsheepSyncClient {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case VerifyAccessCode(accessCode, rsp) =>
+
           EsheepClient.verifyAccessCode(accessCode, tokenInfo.gsToken).onComplete{
             case Success(rst) =>
               rst match {
                 case Right(value) => rsp ! EsheepProtocol.VerifyAccessCodeRsp(Some(value))
-                case Left(error) => handleErrorRsp(ctx, msg, error)(() => rsp ! error)
+                case Left(error) =>
+                  println(error)
+                  handleErrorRsp(ctx, msg, error) { () =>
+                    rsp !errorRsp2VerifyAccessCodeRsp(error)
+                  }
               }
             case Failure(exception) =>
               log.warn(s"${ctx.self.path} VerifyAccessCode failed, error:${exception.getMessage}")
@@ -167,14 +172,15 @@ object EsheepSyncClient {
 
   implicit def errorRsp2VerifyAccessCodeRsp(errorRsp: ErrorRsp): EsheepProtocol.VerifyAccessCodeRsp =  EsheepProtocol.VerifyAccessCodeRsp(None, errorRsp.errCode, errorRsp.msg)
 
-  private def handleErrorRsp(ctx:ActorContext[Command],msg:Command,errorRsp:ErrorRsp)(unknownErrorHandler: => Unit) = {
+  private def handleErrorRsp(ctx:ActorContext[Command],msg:Command,errorRsp:ErrorRsp)(unknownErrorHandler:() => Unit) = {
     errorRsp.errCode match {
       case 1000 =>
         //token过期处理
         ctx.self ! RefreshToken
         ctx.self ! msg
 
-      case _ => unknownErrorHandler
+      case _ =>
+        unknownErrorHandler()
     }
 
   }
