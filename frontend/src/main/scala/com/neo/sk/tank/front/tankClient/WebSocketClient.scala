@@ -43,11 +43,11 @@ case class WebSocketClient(
   }
 
 
-  def setup(name:String):Unit = {
+  def setup(wsUrl:String):Unit = {
     if(wsSetup){
       println(s"websocket已经启动")
     }else{
-      val websocketStream = new WebSocket(getWebSocketUri(name))
+      val websocketStream = new WebSocket(wsUrl)
       websocketStreamOpt = Some(websocketStream)
       websocketStream.onopen = { event: Event =>
         wsSetup = true

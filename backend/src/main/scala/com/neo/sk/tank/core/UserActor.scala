@@ -6,6 +6,7 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
+import com.neo.sk.tank.models.TankGameUserInfo
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
 //import com.neo.sk.tank.Boot.roomActor
@@ -88,18 +89,18 @@ object UserActor {
   }
 
   //
-  def create(uId:Long,name:String):Behavior[Command] = {
+  def create(uId:Long, userInfo:TankGameUserInfo):Behavior[Command] = {
     Behaviors.setup[Command]{ctx =>
       log.debug(s"${ctx.self.path} is starting...")
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       Behaviors.withTimers[Command] { implicit timer =>
         implicit val sendBuffer = new MiddleBufferInJvm(8192)
-        switchBehavior(ctx,"init",init(uId,name),InitTime,TimeOut("init"))
+        switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
       }
     }
   }
 
-  private def init(uId:Long,name:String)(
+  private def init(uId:Long,userInfo:TankGameUserInfo)(
     implicit stashBuffer:StashBuffer[Command],
     sendBuffer:MiddleBufferInJvm,
     timer:TimerScheduler[Command]
@@ -109,7 +110,7 @@ object UserActor {
         case UserFrontActor(frontActor) =>
           ctx.watchWith(frontActor,UserLeft(frontActor))
           ctx.self ! StartGame
-          switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+          switchBehavior(ctx,"idle",idle(uId, userInfo, frontActor))
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
@@ -128,7 +129,7 @@ object UserActor {
 
 
 
-  private def idle(uId:Long,name:String,frontActor:ActorRef[TankGameEvent.WsMsgSource])(
+  private def idle(uId:Long, userInfo: TankGameUserInfo, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command],
     sendBuffer:MiddleBufferInJvm
@@ -140,22 +141,22 @@ object UserActor {
           /**换成给roomManager发消息,告知uId,name
             * 还要给userActor发送回带roomId的数据
             * */
-          roomManager ! JoinRoom(uId,None,name,ctx.self)
+          roomManager ! JoinRoom(uId,None,userInfo.name,ctx.self)
           Behaviors.same
 
         case JoinRoomSuccess(tank,config,uId,roomActor) =>
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
 //          println("渲染数据")
-          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
-          switchBehavior(ctx,"play",play(uId,name,tank,frontActor,roomActor))
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, userInfo.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          switchBehavior(ctx,"play",play(uId, userInfo,tank,frontActor,roomActor))
 
 
         case WebSocketMsg(reqOpt) =>
           reqOpt match {
             case Some(t:TankGameEvent.RestartGame) =>
               roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,ctx.self)
-              idle(uId,t.name,frontActor)
+              idle(uId, userInfo.copy(name = t.name), frontActor)
             case _ =>
               Behaviors.same
           }
@@ -175,7 +176,7 @@ object UserActor {
 
   private def play(
                     uId:Long,
-                    name:String,
+                    userInfo:TankGameUserInfo,
                     tank:TankServerImpl,
                     frontActor:ActorRef[TankGameEvent.WsMsgSource],
                     roomActor: ActorRef[RoomActor.Command])(
@@ -203,8 +204,8 @@ object UserActor {
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
             frontActor ! m
-            roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,name)
-            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+            roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,userInfo.name)
+            switchBehavior(ctx,"idle",idle(uId,userInfo,frontActor))
 
           }else{
               frontActor ! m
@@ -217,7 +218,7 @@ object UserActor {
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
-          roomManager ! RoomManager.LeftRoom(uId,tank.tankId,name,Some(uId))
+          roomManager ! RoomManager.LeftRoom(uId,tank.tankId,userInfo.name,Some(uId))
           Behaviors.stopped
 
 

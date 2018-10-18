@@ -391,11 +391,11 @@ case class GameContainerServerImpl(
 
   override protected def clearEventWhenUpdate():Unit = {
     //记录数据
-    val gameEventSize = gameEventMap.getOrElse(systemFrame, Nil).size
-    val actionEventSize = actionEventMap.getOrElse(systemFrame, Nil).size
-    if(gameEventSize + actionEventSize > 0){
-      log.info(s"tank systemFrame=${systemFrame}, gameEvents=${gameEventSize}, actionEvents=${actionEventSize}")
-    }
+//    val gameEventSize = gameEventMap.getOrElse(systemFrame, Nil).size
+//    val actionEventSize = actionEventMap.getOrElse(systemFrame, Nil).size
+//    if(gameEventSize + actionEventSize > 0){
+//      log.info(s"tank systemFrame=${systemFrame}, gameEvents=${gameEventSize}, actionEvents=${actionEventSize}")
+//    }
     gameEventMap -= systemFrame - 1
     actionEventMap -= systemFrame - 1
     systemFrame += 1
