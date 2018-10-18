@@ -2,6 +2,7 @@ package com.neo.sk.tank.models.DAO
 import com.neo.sk.tank.models.SlickTables._
 import com.neo.sk.utils.DBUtil.db
 import slick.jdbc.PostgresProfile.api._
+import com.neo.sk.tank.Boot.executor
 
 
 /**
