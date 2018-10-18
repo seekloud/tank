@@ -39,4 +39,21 @@ object EsheepProtocol {
                                   msg: String = "ok"
                                 ) extends CommonRsp
 
+
+  case class BatRecordeInfo(
+                           playerId: String,
+                           gameId: Long,
+                           nickname: String,
+                           killing: Int,
+                           killed: Int,
+                           score: Int,
+                           gameExtent: String,
+                           startTime: Long,
+                           endTime: Long
+                           )
+  case class batRecorde(
+                       playerRecord: BatRecordeInfo
+                       )
+
+
 }
