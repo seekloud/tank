@@ -453,6 +453,7 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     }
   }
 
+  //fixme 此处需要重构（重建文件 or 修改参数）
   var count=true
   private def replayMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
     println(data.getClass)
@@ -481,21 +482,12 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
 
 
       case e:TankGameEvent.UserActionEvent =>
-        //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
         gameContainerOpt.get.preExecuteUserEvent(e)
-//        gameContainerOpt.foreach(_.receiveUserEvent(e))
 
 
       case e:TankGameEvent.GameEvent =>
-      /*  e match {
-          case ee:TankGameEvent.GenerateBullet =>
-            gameContainerOpt.foreach(_.receiveGameEvent(e))
-          //            if(gameContainerOpt.get.systemFrame > ee.frame)
-          //              println(s"recv GenerateBullet, curFrame=${gameContainerOpt.get.systemFrame}, eventFrame=${ee.frame}. event=${ee}")
-          //            Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveGameEvent(e)),100)
-          case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
-        }*/
         gameContainerOpt.foreach(_.receiveGameEvent(e))
+
       case e:TankGameEvent.EventData =>
         e.list.foreach(r=>replayMessageHandler(r))
 

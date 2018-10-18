@@ -113,6 +113,7 @@ case class WebSocketClient(
       case Right(r) =>
         r
       case Left(e) =>
+        println(e.message)
         TankGameEvent.DecodeError()
     }
   }
@@ -124,6 +125,7 @@ case class WebSocketClient(
         case Right(r) =>
           TankGameEvent.EventData(r)
         case Left(e) =>
+          println(e.message)
           replayStateDecode(a)
       }
     }else{
@@ -137,6 +139,7 @@ case class WebSocketClient(
       case Right(r) =>
         TankGameEvent.SyncGameAllState(r.asInstanceOf[TankGameEvent.TankGameSnapshot].state)
       case Left(e) =>
+        println(e.message)
         TankGameEvent.DecodeError()
     }
   }
