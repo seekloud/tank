@@ -86,6 +86,7 @@ trait GameContainer extends KillInformation{
 
 
   final protected def handleUserJoinRoomEvent(e:UserJoinRoom) :Unit = {
+    println(s"-------------------处理用户加入房间事件")
     val tank : Tank = e.tankState
     tankMap.put(e.tankState.tankId,tank)
     quadTree.insert(tank)
