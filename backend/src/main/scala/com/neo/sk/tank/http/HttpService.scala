@@ -25,6 +25,7 @@ trait HttpService
   import akka.actor.typed.scaladsl.AskPattern._
   import com.neo.sk.utils.CirceSupport._
   import io.circe.generic.auto._
+  import io.circe._
 
   implicit val system: ActorSystem
 
@@ -48,18 +49,26 @@ trait HttpService
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
-        } ~
-          path("join"){
+        } ~ path("join"){
           parameter('name){ name =>
-            log.debug(s"sssssssssname=${name}")
             val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_))
-            complete("sss")
+            dealFutureResult(
+              flowFuture.map(t => handleWebSocketMessages(t))
+            )
+          }
+        } ~ path("replay"){
+          parameter(
+            'name.as[String],
+            'uid.as[Long],
+            'rid.as[Long],
+            'f.as[Int]
+          ){ (name,uid,rid,f) =>
+            val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetReplaySocketFlow(name,uid,rid,f,_))
             dealFutureResult(
               flowFuture.map(t => handleWebSocketMessages(t))
             )
           }
         }
-
       }
   }
 
