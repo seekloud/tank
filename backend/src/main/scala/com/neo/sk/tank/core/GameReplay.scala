@@ -66,15 +66,11 @@ object GameReplay {
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
         //todo 此处替换从数据库中读取
-        /*getRecordById(recordId).map {
+        RecordDAO.getRecordById(recordId).map {
           case Some(r)=>
             val replay=initFileReader(r.filePath)
-            switchBehavior(ctx,"work",work(replay))
+            ctx.self ! SwitchBehavior("work",work(replay))
           case None=>
-        }*/
-        Future{
-          val replay=initFileReader(AppSettings.gameDataDirectoryPath+ "tankGame_1539696222847_0")
-          ctx.self ! SwitchBehavior("work",work(replay))
         }
         switchBehavior(ctx,"busy",busy())
       }

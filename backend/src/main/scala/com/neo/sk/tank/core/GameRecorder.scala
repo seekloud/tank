@@ -34,7 +34,7 @@ import com.neo.sk.tank.Boot.executor
 object GameRecorder {
 
   import org.seekloud.byteobject.ByteObject._
-
+  import com.neo.sk.utils.ESSFSupport.initFileRecorder
   sealed trait Command
 
   final case class GameRecord(event:(List[TankGameEvent.WsMsgServer],Option[TankGameEvent.GameSnapshot])) extends Command
@@ -299,26 +299,6 @@ object GameRecorder {
           Behavior.same
       }
     }
-
-  private def initFileRecorder(fileName:String,index:Int,gameInformation: GameInformation,initStateOpt:Option[TankGameEvent.GameSnapshot] = None)
-                              (implicit middleBuffer: MiddleBufferInJvm):FrameOutputStream = {
-    val dir = new File(AppSettings.gameDataDirectoryPath)
-    if(!dir.exists()){
-      dir.mkdir()
-    }
-    val file = AppSettings.gameDataDirectoryPath + fileName + s"_$index"
-    val name = "tank"
-    val version = "0.1"
-    val gameInformationBytes = gameInformation.fillMiddleBuffer(middleBuffer).result()
-    val initStateBytes = initStateOpt.map{
-      case t:TankGameEvent.GameSnapshot =>
-        t.fillMiddleBuffer(middleBuffer).result()
-    }.getOrElse(Array[Byte]())
-    val recorder = new FrameOutputStream(file)
-    recorder.init(name,version,gameInformationBytes,initStateBytes)
-    log.debug(s" init success")
-    recorder
-  }
 
 
 
