@@ -147,8 +147,9 @@ object UserActor {
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
 //          println("渲染数据")
+          val startTime = System.currentTimeMillis()
           frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
-          switchBehavior(ctx,"play",play(uId,name,tank,frontActor,roomActor))
+          switchBehavior(ctx,"play",play(uId,name,startTime,tank,frontActor,roomActor))
 
 
         case WebSocketMsg(reqOpt) =>
@@ -176,6 +177,7 @@ object UserActor {
   private def play(
                     uId:Long,
                     name:String,
+                    startTime: Long,
                     tank:TankServerImpl,
                     frontActor:ActorRef[TankGameEvent.WsMsgSource],
                     roomActor: ActorRef[RoomActor.Command])(
@@ -217,6 +219,9 @@ object UserActor {
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
+          val leftTime = System.currentTimeMillis()
+          val killTankNum = tank.killTankNum
+
           roomManager ! RoomManager.LeftRoom(uId,tank.tankId,name,Some(uId))
           Behaviors.stopped
 
