@@ -38,7 +38,7 @@ object GameRecorder {
   sealed trait Command
 
   final case class GameRecord(event:(List[TankGameEvent.WsMsgServer],Option[TankGameEvent.GameSnapshot])) extends Command
-  final case class SaveDate(recordId: Long, roomId: Long, startTime: Long, endTime: Long, filePath: String) extends Command
+  final case object SaveDate extends Command
   final case object Save extends Command
 
   private final val InitTime = Some(5.minutes)
@@ -61,8 +61,7 @@ object GameRecorder {
                                      gameInformation: GameInformation,
                                      initStateOpt: Option[TankGameEvent.GameSnapshot],
                                      recorder:FrameOutputStream,
-                                     var gameRecordBuffer:List[GameRecord],
-                                     var fileRecordNum:Int = 0
+                                     var gameRecordBuffer:List[GameRecord]
                                    )
   final case class EssfMapInfo(
                               userId: Long,
@@ -102,7 +101,7 @@ object GameRecorder {
         val gameRecordBuffer:List[GameRecord] = List[GameRecord]()
         val data = GameRecorderData(roomId,fileName,0,gameInformation,initStateOpt,fileRecorder,gameRecordBuffer)
         timer.startSingleTimer(SaveDateKey, Save, 1.hour)
-        switchBehavior(ctx,"work",work(data,mutable.HashMap.empty[Long, EssfMapInfo],mutable.HashMap.empty[Long,Long],mutable.HashMap.empty[Long,Long], 0L, 0L))
+        switchBehavior(ctx,"work",work(data,mutable.HashMap.empty[Long, EssfMapInfo],mutable.HashMap.empty[Long,Long],mutable.HashMap.empty[Long,Long], 0L, -1L))
       }
     }
   }
@@ -137,6 +136,10 @@ object GameRecorder {
           }
 
           gameRecordBuffer = t :: gameRecordBuffer
+          val newEndF = t.event._2.get match {
+            case tank:TankGameSnapshot =>
+              tank.state.f
+          }
           if(gameRecordBuffer.size > maxRecordNum){
             val rs = gameRecordBuffer.reverse
             rs.headOption.foreach{ e =>
@@ -151,15 +154,15 @@ object GameRecorder {
             }
 
             gameRecordBuffer = List[GameRecord]()
-            Behaviors.same
+            switchBehavior(ctx,"work",work(gameRecordData,essfMap,userAllMap,userMap, startF, newEndF))
           }else{
-            Behaviors.same
+            switchBehavior(ctx,"work",work(gameRecordData,essfMap,userAllMap,userMap, startF, newEndF))
           }
 
         case Save =>
-          switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
           timer.startSingleTimer(SaveDateKey, Save, 1.hour)
-          Behaviors.same
+          ctx.self ! SaveDate
+          switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
 
 
 
@@ -184,7 +187,7 @@ object GameRecorder {
     import gameRecordData._
     Behaviors.receive{(ctx,msg) =>
       msg match {
-        case s:SaveDate =>
+        case SaveDate =>
           essfMap.foreach{
             essf=>
               val info = if(essf._2.endTime == -1L){
@@ -247,7 +250,7 @@ object GameRecorder {
           val newInitStateOpt =t.event._2
           val newRecorder = initFileRecorder(fileName,fileIndex + 1, gameInformation, newInitStateOpt)
           val newGameInformation = GameInformation(startTime, gameInformation.tankConfig)
-          val newGameRecorderData = GameRecorderData(roomId, fileName, fileIndex + 1, newGameInformation, newInitStateOpt, newRecorder, gameRecordBuffer = List[GameRecord](),fileRecordNum = 0)
+          val newGameRecorderData = GameRecorderData(roomId, fileName, fileIndex + 1, newGameInformation, newInitStateOpt, newRecorder, gameRecordBuffer = List[GameRecord]())
           val newEssfMap = mutable.HashMap.empty[Long, EssfMapInfo]
           val newUserAllMap = mutable.HashMap.empty[Long,Long]
           userMap.foreach{

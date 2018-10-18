@@ -137,7 +137,7 @@ object RoomActor {
 
           val gameEvents = gameContainer.getLastGameEvent()
           if(AppSettings.gameRecordIsWork){
-            getGameRecorder(ctx,gameContainer) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
+            getGameRecorder(ctx,gameContainer,roomId) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
           }
 
 
