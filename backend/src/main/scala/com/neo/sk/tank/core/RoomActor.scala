@@ -129,12 +129,14 @@ object RoomActor {
           val startTime = System.currentTimeMillis()
 
 
-          val record = gameContainer.getGameEventAndSnapshot()
-//          record._1.filter(_.isInstanceOf[TankGameEvent.GenerateBullet]).foreach(println)
-          if(AppSettings.gameRecordIsWork){
-            getGameRecorder(ctx,gameContainer) ! GameRecorder.GameRecord(record)
-          }
+          val snapshotOpt = gameContainer.getCurSnapshot()
+
           gameContainer.update()
+
+          val gameEvents = gameContainer.getLastGameEvent()
+          if(AppSettings.gameRecordIsWork){
+            getGameRecorder(ctx,gameContainer) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
+          }
 
 
 
