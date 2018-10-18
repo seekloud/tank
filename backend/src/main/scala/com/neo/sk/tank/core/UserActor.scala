@@ -10,7 +10,7 @@ import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.shared.protocol.TankGameEvent.ReplayFrameData
 import org.slf4j.LoggerFactory
 //import com.neo.sk.tank.Boot.roomActor
-import com.neo.sk.tank.Boot.roomManager
+import com.neo.sk.tank.Boot.{roomManager, esheepSyncClient}
 import com.neo.sk.tank.core.game.TankServerImpl
 import com.neo.sk.tank.shared.config.TankGameConfigImpl
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -236,9 +236,8 @@ object UserActor {
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
-          val leftTime = System.currentTimeMillis()
-          val killTankNum = tank.killTankNum
-
+          val endTime = System.currentTimeMillis()
+          esheepSyncClient ! EsheepSyncClient.InputRecord(name, tank.killTankNum, 3, tank.damageStatistics, startTime, endTime)
           roomManager ! RoomManager.LeftRoom(uId,tank.tankId,name,Some(uId))
           Behaviors.stopped
 
