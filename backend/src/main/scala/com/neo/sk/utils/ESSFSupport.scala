@@ -51,12 +51,20 @@ object ESSFSupport {
 
   def initFileReader(fileName:String)={
     val input = new FrameInputStream(fileName)
-    input.init()
     input
   }
 
   /**解码*/
 
+  def metaDataDecode(a:Array[Byte])={
+    val buffer = new MiddleBufferInJvm(a)
+    bytesDecode[GameInformation](buffer)
+  }
+
+  def initStateDecode(a:Array[Byte]) ={
+    val buffer = new MiddleBufferInJvm(a)
+    bytesDecode[TankGameEvent.TankGameSnapshot](buffer)
+  }
   def replayEventDecode(a:Array[Byte]):TankGameEvent.WsMsgServer={
     if (a.length > 0) {
       val buffer = new MiddleBufferInJvm(a)
