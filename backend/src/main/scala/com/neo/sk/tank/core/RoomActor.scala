@@ -78,16 +78,16 @@ object RoomActor {
               dispatchTo(subscribersMap)
             )
             if(AppSettings.gameRecordIsWork){
-              getGameRecorder(ctx,gameContainer, roomId)
+              getGameRecorder(ctx,gameContainer,roomId)
             }
             timer.startPeriodicTimer(GameLoopKey,GameLoop,gameContainer.config.frameDuration.millis)
-            idle(roomId, Nil,subscribersMap,gameContainer,0L)
+            idle(roomId,Nil,subscribersMap,gameContainer,0L)
         }
     }
   }
 
   def idle(
-            roomId: Long,
+            roomId:Long,
             justJoinUser:List[(Long,Option[Int],ActorRef[UserActor.Command])],
             subscribersMap:mutable.HashMap[Long,ActorRef[UserActor.Command]],
             gameContainer:GameContainerServerImpl,
@@ -207,14 +207,14 @@ object RoomActor {
   }
 
 
-    private def getGameRecorder(ctx: ActorContext[Command],gameContainer:GameContainerServerImpl, rommId: Long):ActorRef[GameRecorder.Command] = {
+    private def getGameRecorder(ctx: ActorContext[Command],gameContainer:GameContainerServerImpl,roomId:Long):ActorRef[GameRecorder.Command] = {
       val childName = s"gameRecorder"
       ctx.child(childName).getOrElse{
         val curTime = System.currentTimeMillis()
         val fileName = s"tankGame_${curTime}"
         val gameInformation = TankGameEvent.GameInformation(curTime,AppSettings.tankGameConfig.getTankGameConfigImpl())
         val initStateOpt = Some(gameContainer.getCurGameSnapshot())
-        val actor = ctx.spawn(GameRecorder.create(fileName,gameInformation,initStateOpt, rommId),childName)
+        val actor = ctx.spawn(GameRecorder.create(fileName,gameInformation,initStateOpt,roomId),childName)
         ctx.watchWith(actor,ChildDead(childName,actor))
         actor
       }.upcast[GameRecorder.Command]
