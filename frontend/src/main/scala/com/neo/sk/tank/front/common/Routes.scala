@@ -12,13 +12,7 @@ object Routes {
 
   def wsJoinGameUrl(name:String) = base + s"/game/join?name=${name}"
 
-
-
-
-
-
-
-
+  def wsReplayGameUrl(name:String,uid:Long,rid:Long,f:Int) = base + s"/game/replay?name=$name&uid=$uid&rid=$rid&f=$f"
 
 
 }

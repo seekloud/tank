@@ -394,7 +394,7 @@ case class GameContainerServerImpl(
     val gameEventSize = gameEventMap.getOrElse(systemFrame, Nil).size
     val actionEventSize = actionEventMap.getOrElse(systemFrame, Nil).size
     if(gameEventSize + actionEventSize > 0){
-      log.info(s"tank systemFrame=${systemFrame}, gameEvents=${gameEventSize}, actionEvents=${actionEventSize}")
+      //log.info(s"tank systemFrame=${systemFrame}, gameEvents=${gameEventSize}, actionEvents=${actionEventSize}")
     }
     gameEventMap -= systemFrame - 1
     actionEventMap -= systemFrame - 1

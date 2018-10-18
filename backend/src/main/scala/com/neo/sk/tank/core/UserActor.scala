@@ -7,6 +7,7 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import org.seekloud.byteobject.MiddleBufferInJvm
+import com.neo.sk.tank.shared.protocol.TankGameEvent.ReplayFrameData
 import org.slf4j.LoggerFactory
 //import com.neo.sk.tank.Boot.roomActor
 import com.neo.sk.tank.Boot.roomManager
@@ -35,7 +36,7 @@ object UserActor {
   case object CompleteMsgFront extends Command
   case class FailMsgFront(ex: Throwable) extends Command
 
-  case class UserFrontActor(actor:ActorRef[TankGameEvent.WsMsgSource]) extends Command
+  case class UserFrontActor(flag:Int,actor:ActorRef[TankGameEvent.WsMsgSource],rid:Option[Long]=None,f:Option[Int]=None) extends Command
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
 
@@ -44,6 +45,8 @@ object UserActor {
   case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:Long,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
 
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
+
+  case class StartReplay(rid:Long,f:Int) extends Command
 
   final case class SwitchBehavior(
                                    name: String,
@@ -71,7 +74,7 @@ object UserActor {
     onFailureMessage = FailMsgFront.apply
   )
 
-  def flow(actor:ActorRef[UserActor.Command]):Flow[WebSocketMsg,TankGameEvent.WsMsgSource,Any] = {
+  def flow(flag:Int,actor:ActorRef[UserActor.Command],rid:Option[Long],f:Option[Int]=None):Flow[WebSocketMsg,TankGameEvent.WsMsgSource,Any] = {
     val in = Flow[WebSocketMsg].to(sink(actor))
     val out =
       ActorSource.actorRef[TankGameEvent.WsMsgSource](
@@ -83,7 +86,7 @@ object UserActor {
         },
         bufferSize = 128,
         overflowStrategy = OverflowStrategy.dropHead
-      ).mapMaterializedValue(outActor => actor ! UserFrontActor(outActor))
+      ).mapMaterializedValue(outActor => actor ! UserFrontActor(flag,outActor,rid,f))
     Flow.fromSinkAndSource(in, out)
   }
 
@@ -106,10 +109,16 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case UserFrontActor(frontActor) =>
-          ctx.watchWith(frontActor,UserLeft(frontActor))
-          ctx.self ! StartGame
-          switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+        case UserFrontActor(flag,frontActor,rid,f) =>
+          if(flag==0){
+            ctx.watchWith(frontActor,UserLeft(frontActor))
+            ctx.self ! StartGame
+            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+          }else{
+            ctx.self ! StartReplay(rid.get,f.get)
+            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+          }
+
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
@@ -143,6 +152,10 @@ object UserActor {
           roomManager ! JoinRoom(uId,None,name,ctx.self)
           Behaviors.same
 
+        case StartReplay(rid,f)=>
+          getGameReplay(ctx,rid) ! GameReplay.InitReplay(frontActor,f)
+          Behaviors.same
+
         case JoinRoomSuccess(tank,config,uId,roomActor) =>
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
@@ -165,6 +178,16 @@ object UserActor {
           ctx.unwatch(actor)
           Behaviors.stopped
 
+
+        case UserFrontActor(flag,frontActor,rid,f) =>
+          if(flag==0){
+            ctx.watchWith(frontActor,UserLeft(frontActor))
+            ctx.self ! StartGame
+            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+          }else{
+            ctx.self ! StartReplay(rid.get,f.get)
+            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+          }
 
 
         case unknowMsg =>
@@ -205,21 +228,15 @@ object UserActor {
             frontActor ! m
             roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,name)
             switchBehavior(ctx,"idle",idle(uId,name,frontActor))
-
           }else{
               frontActor ! m
               Behaviors.same
           }
 
-
-
-
-
         case UserLeft(actor) =>
           ctx.unwatch(actor)
           roomManager ! RoomManager.LeftRoom(uId,tank.tankId,name,Some(uId))
           Behaviors.stopped
-
 
 
 
@@ -249,7 +266,14 @@ object UserActor {
       }
     }
 
-
-
+  /**
+    * replay-actor*/
+  private def getGameReplay(ctx: ActorContext[Command],recordId:Long): ActorRef[GameReplay.Command] = {
+    val childName = s"gameReplay--$recordId"
+    ctx.child(childName).getOrElse {
+      val actor = ctx.spawn(GameReplay.create(recordId), childName)
+      actor
+    }.upcast[GameReplay.Command]
+  }
 
 }
