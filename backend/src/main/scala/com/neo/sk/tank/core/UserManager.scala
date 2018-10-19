@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.stream.{ActorAttributes, Supervision}
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
-import com.neo.sk.tank.models.{TankGameUserInfo}
+import com.neo.sk.tank.models.TankGameUserInfo
 import com.neo.sk.tank.protocol.EsheepProtocol
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import io.circe.{Decoder, Encoder}
@@ -60,15 +60,17 @@ object UserManager {
 //          Behaviors.same
 
         case GetReplaySocketFlow(name, uid, rid, wid, f, replyTo) =>
+          println(msg)
           getUserActorOpt(ctx, uid) match {
             case Some(userActor) =>
               // todo 将用户actor杀死，防止重登录问题
-
+              //remind 进入等待状态
+              userActor ! UserActor.ChangeBehaviorToInit
             case None =>
           }
           val userActor = getUserActor(ctx, uid, TankGameUserInfo(uid, name, name, true))
           replyTo ! getWebSocketFlow(userActor)
-          userActor ! UserActor.StartReplay(rid, uid, f)
+          userActor ! UserActor.StartReplay(rid, wid, f)
           Behaviors.same
 
 

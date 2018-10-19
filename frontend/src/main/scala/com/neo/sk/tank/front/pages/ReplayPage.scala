@@ -37,6 +37,7 @@ class ReplayPage(n: String, u: Long, r: Long, w: Long, frame: Int) extends Page 
     }*/
   private def init() = {
     println("-----new holder------")
+    //fixme here is a bug the last holder is still exist
     val gameHolder = new GameHolder("GameReplay", replay = true)
     gameHolder.getStartReplayModel(n, u, r, w, frame)
     //    gameHolderOpt=Some(gameHolder)
