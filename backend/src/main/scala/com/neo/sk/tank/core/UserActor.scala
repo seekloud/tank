@@ -7,6 +7,7 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import com.neo.sk.tank.models.TankGameUserInfo
+import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameRsp, GetUserInRecordRsp, PlayerList, RecordFrameInfo}
 import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.shared.protocol.TankGameEvent.ReplayFrameData
 import org.slf4j.LoggerFactory
@@ -40,6 +41,10 @@ object UserActor {
   //fixme 等待变更
   /**此消息用于外部控制状态转入初始状态，以便于重建WebSocket*/
   case object ChangeBehaviorToInit extends Command
+
+  /**外部调用*/
+  final case class GetUserInRecord(recordId:Long,replyTo:ActorRef[GetUserInRecordRsp]) extends Command
+  final case class GetRecordFrame(recordId:Long,replyTo:ActorRef[GetRecordFrameRsp]) extends Command
 
   case class UserFrontActor(actor:ActorRef[TankGameEvent.WsMsgSource]) extends Command
 
@@ -123,6 +128,14 @@ object UserActor {
           ctx.unwatch(actor)
           Behaviors.stopped
 
+        case msg:GetUserInRecord=>
+          getGameReplay(ctx,msg.recordId) ! GamePlayer.GetUserInRecord(msg.replyTo)
+          Behaviors.same
+
+        case msg:GetRecordFrame=>
+          getGameReplay(ctx,msg.recordId) ! GamePlayer.GetRecordFrame(msg.replyTo)
+          Behaviors.same
+
         case TimeOut(m) =>
           log.debug(s"${ctx.self.path} is time out when busy,msg=${m}")
           Behaviors.stopped
@@ -180,6 +193,13 @@ object UserActor {
           ctx.unwatch(actor)
           Behaviors.stopped
 
+        case msg:GetUserInRecord=>
+          getGameReplay(ctx,msg.recordId) ! GamePlayer.GetUserInRecord(msg.replyTo)
+          Behaviors.same
+
+        case msg:GetRecordFrame=>
+          getGameReplay(ctx,msg.recordId) ! GamePlayer.GetRecordFrame(msg.replyTo)
+          Behaviors.same
 
         case unknowMsg =>
 //          log.warn(s"got unknown msg: $unknowMsg")

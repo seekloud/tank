@@ -2,6 +2,7 @@ package com.neo.sk.tank.core
 
 import java.util.concurrent.atomic.AtomicLong
 
+import akka.actor.typed.scaladsl.AskPattern._
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, TimerScheduler}
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
@@ -10,10 +11,11 @@ import akka.stream.scaladsl.Flow
 import akka.util.ByteString
 import com.neo.sk.tank.models.TankGameUserInfo
 import com.neo.sk.tank.protocol.EsheepProtocol
+import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameRsp, GetUserInRecordRsp, PlayerList, RecordFrameInfo}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import io.circe.{Decoder, Encoder}
 import org.slf4j.LoggerFactory
-
+import com.neo.sk.tank.Boot.{executor, scheduler, timeout}
 /**
   * Created by hongruying on 2018/7/9
   */
@@ -33,7 +35,10 @@ object UserManager {
 
   final case class GetReplaySocketFlow(name: String, uid: Long, rid: Long, wid:Long, f:Int, replyTo: ActorRef[Flow[Message, Message, Any]]) extends Command
 
-//  final case class GetWebSocketFlow(name:String, userId:Long ,roomIdOpt:Option[Long], replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
+  /**外部调用*/
+  final case class GetUserInRecordMsg(recordId:Long, watchId:Long, replyTo:ActorRef[GetUserInRecordRsp]) extends Command
+  final case class GetRecordFrameMsg(recordId:Long, watchId:Long, replyTo:ActorRef[GetRecordFrameRsp]) extends Command
+
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -89,6 +94,19 @@ object UserManager {
           val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
           replyTo ! getWebSocketFlow(userActor)
           userActor ! UserActor.StartGame
+          Behaviors.same
+
+        case msg:GetUserInRecordMsg=>
+          getUserActor(ctx,msg.watchId,
+            TankGameUserInfo(msg.watchId,
+              msg.watchId.toString,msg.watchId.toString,false)
+          ) ! UserActor.GetUserInRecord(msg.recordId,msg.replyTo)
+          Behaviors.same
+
+        case msg:GetRecordFrameMsg=>
+          getUserActor(ctx,msg.watchId,
+            TankGameUserInfo(msg.watchId,msg.watchId.toString,msg.watchId.toString,false)
+          ) ! UserActor.GetRecordFrame(msg.recordId,msg.replyTo)
           Behaviors.same
 
         case ChildDead(child, childRef) =>

@@ -114,6 +114,7 @@ object RoomActor {
             if(roomId > 1l) {
               Behaviors.stopped
             }else{
+
               idle(roomId,justJoinUser.filter(_._1 != uid),subscribersMap,gameContainer,tickCount)
             }
           }else{
