@@ -93,7 +93,7 @@ object UserActor4WatchGame {
       msg match {
         case UserFrontActor(roomId,playerId,frontActor) =>
           ctx.watchWith(frontActor,UserLeft(frontActor))
-          roomManager ! JoinRoom4Watch(uId,roomId,playerId,ctx.self)
+//          roomManager ! JoinRoom4Watch(uId,roomId,playerId,ctx.self)
           switchBehavior(ctx,"idle",idle(uId,frontActor,roomId,playerId))
 
         case UserLeft(actor) =>

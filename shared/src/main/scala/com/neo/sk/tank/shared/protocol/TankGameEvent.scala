@@ -23,9 +23,11 @@ object TankGameEvent {
   case class FailMsgServer(ex: Exception) extends WsMsgSource
 
   sealed trait WsMsgServer extends WsMsgSource
+
+  final case class WsMsgErrorRsp(errCode:Int, msg:String) extends WsMsgServer
   //  final case class GameConfig(config:TankGameConfigImpl) extends WsMsgServer
   final case class YourInfo(userId:Long,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
-  final case class YouAreKilled(tankId:Int,name:String) extends WsMsgServer //可能会丢弃
+//  final case class YouAreKilled(tankId:Int,name:String) extends WsMsgServer //可能会丢弃
 //  final case class PlayerAreKilled(tankId:Int,name:String) extends WsMsgServer
   final case class YouAreKilled(tankId:Int,name:String, hasLife:Boolean) extends WsMsgServer //可能会丢弃
   final case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends WsMsgServer

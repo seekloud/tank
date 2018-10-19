@@ -69,11 +69,21 @@ trait HttpService
 
   private def watchGamePath = (path("watchGame") & get & pathEndOrSingleSlash){
     parameter(
-      'roomId.as[Int],
-    'playerId.as[Long]){
-      (roomId,playerId) =>
-        val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow4WatchGame(roomId,playerId,_))
-        dealFutureResult(flowFuture.map(handleWebSocketMessages(_)))
+      'roomId.as[Long],
+      'accessCode.as[String],
+      'playerId.as[Long].?
+    ){
+      (roomId, accessCode, watchedUserIdOpt) =>
+//        authPlatUser(accessCode) { user =>
+        if (watchedUserIdOpt.nonEmpty){
+          val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow4WatchGame(roomId, watchedUserIdOpt.get, _))
+          dealFutureResult(flowFuture.map(handleWebSocketMessages))
+        } else {
+          complete("暂时不支持随机用户视角观战")
+        }
+
+//        }
+
     }
   }
 
@@ -84,11 +94,9 @@ trait HttpService
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
-        } ~
-        watchGamePath~
+        } ~ watchGamePath ~
 //          getRoomPlayerList~
-          path("join"){
-        } ~ path("join"){
+        path("join"){
           parameter('name){ name =>
             val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_))
             dealFutureResult(

@@ -3,7 +3,6 @@ package com.neo.sk.tank.front.pages
 import com.neo.sk.tank.front.common.{Page, PageSwitcher}
 import mhtml.{Cancelable, Rx, Var, mount}
 import org.scalajs.dom
-import com.neo.sk.tank.front.pages.TankObservation
 
 import scala.xml.Elem
 
@@ -32,13 +31,11 @@ object MainPage extends PageSwitcher {
     case Nil => TankDemo.render
     case "playGame" :: playInfoSeq => PlayPage(playInfoSeq).render
     case "replay":: name :: uid :: rid :: wid :: f :: Nil => new ReplayPage(name, uid.toLong, rid.toLong,wid.toLong, f.toInt).render
+
+    case "watchGame" :: roomId :: playerId :: accessCode ::Nil => new TankObservation(roomId.toLong, accessCode, Some(playerId.toLong)).render
+    case "watchGame" :: roomId :: accessCode :: Nil => new TankObservation(roomId.toLong, accessCode).render
+
     case "test" :: Nil => <div>TO BE CONTINUE...</div>
-  private val currentPage: Rx[Elem] = currentPageName.map {
-    case Nil => TankDemo.render
-    case "首页"::Nil => TankDemo.render
-    case "test"::Nil => <div>TO BE CONTINUE...</div>
-    case "watchGame" :: roomId::playerId::Nil =>
-      new TankObservation(roomId.toInt,playerId.toLong).render
     case _ => <div>Error Page</div>
   }
 
