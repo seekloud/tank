@@ -71,6 +71,7 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
   private var eKeyBoardState4AddBlood = true
 
 
+  var testHolfer=""
 
 
   private val watchKeys = Set(
@@ -280,8 +281,9 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
 
   def startReplay(name:String,uid:Option[Long]=None,rid:Option[Long]=None,wid:Option[Long]=None,f:Option[Int]=None)={
     canvas.focus()
-    setGameState(Constants.GameState.loadingPlay)
     if(firstCome){
+      setGameState(Constants.GameState.loadingPlay)
+      testHolfer=f.get.toString
       webSocketClient.setup(Routes.getReplaySocketUri(name, uid.get, rid.get, wid.get, f.get))
       gameLoop()
     }else if(webSocketClient.getWsState){
@@ -295,6 +297,9 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
   }
 
   private def gameLoop():Unit = {
+    println(testHolfer)
+//    println(s"gameState--$gameState")
+//    println(s"firstCome---$firstCome")
     gameState match {
       case Constants.GameState.loadingPlay =>
         println(s"等待同步数据")
@@ -377,10 +382,6 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
     ctx.textBaseline = "top"
     ctx.font = "36px Helvetica"
     ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
-    if(replay){
-      // todo why?
-      gameContainerOpt.foreach(t => startReplay(t.myName))
-    }
     println()
   }
 
@@ -403,6 +404,11 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
       Shortcut.cancelSchedule(reStartTimer)
       gameContainerOpt.foreach(t => start(t.myName))
       countDownTimes = countDown
+    }
+    if(replay){
+      // todo why?
+      //remind   fake to be new here
+      gameContainerOpt.foreach(t => startReplay(t.myName))
     }
 
   }
@@ -496,12 +502,10 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
 //        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
         gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
-//        setGameState(Constants.GameState.play)
 
       case e:TankGameEvent.SyncGameAllState =>
         if(firstCome){
           if (e.gState.tanks.exists(_.tankId==gameContainerOpt.get.myTankId)){
-            println("-----reStart")
             firstCome=false
             setGameState(Constants.GameState.play)
             //fixme 此处需要调整（立即同步数据，此处等待周期过长）

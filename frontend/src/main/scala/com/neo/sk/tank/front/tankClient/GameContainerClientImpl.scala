@@ -124,7 +124,6 @@ case class GameContainerClientImpl(
 
         case None =>
           info(s"tankid=${myTankId} has no in tankMap.....................................")
-//          setGameState(GameState.stop)
       }
     }
   }

@@ -37,6 +37,10 @@ object UserActor {
   case object CompleteMsgFront extends Command
   case class FailMsgFront(ex: Throwable) extends Command
 
+  //fixme 等待变更
+  /**此消息用于外部控制状态转入初始状态，以便于重建WebSocket*/
+  case object ChangeBehaviorToInit extends Command
+
   case class UserFrontActor(actor:ActorRef[TankGameEvent.WsMsgSource]) extends Command
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
@@ -47,7 +51,7 @@ object UserActor {
 
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
 
-  case class StartReplay(rid:Long,uid:Long,f:Int) extends Command
+  case class StartReplay(rid:Long, wid:Long, f:Int) extends Command
 
   final case class SwitchBehavior(
                                    name: String,
@@ -115,6 +119,7 @@ object UserActor {
           switchBehavior(ctx,"idle",idle(uId, userInfo, frontActor))
 
         case UserLeft(actor) =>
+          log.info("webSocket--error in init")
           ctx.unwatch(actor)
           Behaviors.stopped
 
@@ -167,11 +172,13 @@ object UserActor {
               Behaviors.same
           }
 
+        case ChangeBehaviorToInit=>
+          switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
         case UserLeft(actor) =>
+          log.info("webSocket--error in idle")
           ctx.unwatch(actor)
           Behaviors.stopped
-
 
 
         case unknowMsg =>
@@ -218,6 +225,7 @@ object UserActor {
           }
 
         case UserLeft(actor) =>
+          log.info("webSocket--error in play")
           ctx.unwatch(actor)
           roomManager ! RoomManager.LeftRoom(uId,tank.tankId,userInfo.name,Some(uId))
           Behaviors.stopped
