@@ -45,7 +45,7 @@ object EsheepSyncClient {
   final case object RefreshToken extends Command
 
   final case class VerifyAccessCode(accessCode:Long, rsp:ActorRef[EsheepProtocol.VerifyAccessCodeRsp]) extends Command
-  final case class InputRecord(nickname: String, killing: Int, killed:Int, score: Int, startTime: Long, endTime: Long ) extends Command
+  final case class InputRecord(playerId:Long,nickname: String, killing: Int, killed:Int, score: Int, startTime: Long, endTime: Long ) extends Command
 
   private[this] def switchBehavior(ctx: ActorContext[Command],
                                    behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None,timeOut: TimeOut  = TimeOut("busy time error"))
@@ -158,7 +158,7 @@ object EsheepSyncClient {
           switchBehavior(ctx,"init",init(),InitTime,TimeOut("init"))
 
         case r:InputRecord =>
-          EsheepClient.inputBatRecoder(tokenInfo.gsToken,playerId,r.nickname,r.killing,r.killed,r.score,gameExtent,r.startTime,r.endTime).onComplete{
+          EsheepClient.inputBatRecoder(tokenInfo.gsToken,r.playerId.toString,r.nickname,r.killing,r.killed,r.score,"",r.startTime,r.endTime).onComplete{
             case Success(rst) =>
               rst match {
                 case Right(value) =>

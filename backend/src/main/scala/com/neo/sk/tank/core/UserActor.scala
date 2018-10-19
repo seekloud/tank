@@ -48,6 +48,8 @@ object UserActor {
 
   case class StartReplay(rid:Long,uid:Long,f:Int) extends Command
 
+  case object AddPlayIndex extends Command
+
   final case class SwitchBehavior(
                                    name: String,
                                    behavior: Behavior[Command],
@@ -113,10 +115,10 @@ object UserActor {
           if(flag==0){
             ctx.watchWith(frontActor,UserLeft(frontActor))
             ctx.self ! StartGame
-            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+            switchBehavior(ctx,"idle",idle(uId,name,0,frontActor))
           }else{
             ctx.self ! StartReplay(rid.get,uid.get,f.get)
-            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+            switchBehavior(ctx,"idle",idle(uId,name,0,frontActor))
           }
 
         case UserLeft(actor) =>
@@ -136,7 +138,7 @@ object UserActor {
 
 
 
-  private def idle(uId:Long,name:String,frontActor:ActorRef[TankGameEvent.WsMsgSource])(
+  private def idle(uId:Long,name:String,playIndex:Int,frontActor:ActorRef[TankGameEvent.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command],
     sendBuffer:MiddleBufferInJvm
@@ -161,14 +163,14 @@ object UserActor {
 //          println("渲染数据")
           val startTime = System.currentTimeMillis()
           frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
-          switchBehavior(ctx,"play",play(uId,name,startTime,tank,frontActor,roomActor))
+          switchBehavior(ctx,"play",play(uId,name,startTime,playIndex,tank,frontActor,roomActor))
 
 
         case WebSocketMsg(reqOpt) =>
           reqOpt match {
             case Some(t:TankGameEvent.RestartGame) =>
               roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,ctx.self)
-              idle(uId,t.name,frontActor)
+              idle(uId,t.name,playIndex + 1,frontActor)
             case _ =>
               Behaviors.same
           }
@@ -183,10 +185,10 @@ object UserActor {
           if(flag==0){
             ctx.watchWith(frontActor,UserLeft(frontActor))
             ctx.self ! StartGame
-            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+            switchBehavior(ctx,"idle",idle(uId,name,0,frontActor))
           }else{
             ctx.self ! StartReplay(rid.get,uid.get,f.get)
-            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+            switchBehavior(ctx,"idle",idle(uId,name,0,frontActor))
           }
 
 
@@ -200,6 +202,7 @@ object UserActor {
                     uId:Long,
                     name:String,
                     startTime: Long,
+                    playIndex: Int,
                     tank:TankServerImpl,
                     frontActor:ActorRef[TankGameEvent.WsMsgSource],
                     roomActor: ActorRef[RoomActor.Command])(
@@ -228,7 +231,7 @@ object UserActor {
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
             frontActor ! m
             roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,name)
-            switchBehavior(ctx,"idle",idle(uId,name,frontActor))
+            switchBehavior(ctx,"idle",idle(uId,name,playIndex + 1,frontActor))
           }else{
               frontActor ! m
               Behaviors.same
@@ -237,7 +240,9 @@ object UserActor {
         case UserLeft(actor) =>
           ctx.unwatch(actor)
           val endTime = System.currentTimeMillis()
-          esheepSyncClient ! EsheepSyncClient.InputRecord(name, tank.killTankNum, 3, tank.damageStatistics, startTime, endTime)
+          if(uId > 0){
+            esheepSyncClient ! EsheepSyncClient.InputRecord(uId,name, tank.killTankNum, playIndex, tank.damageStatistics, startTime, endTime)
+          }
           roomManager ! RoomManager.LeftRoom(uId,tank.tankId,name,Some(uId))
           Behaviors.stopped
 
