@@ -68,38 +68,23 @@ object GamePlayer {
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       implicit val sendBuffer = new MiddleBufferInJvm(81920)
       Behaviors.withTimers[Command] { implicit timer =>
-//        RecordDAO.getRecordById(recordId).map {
-//          case Some(r)=>
-//            val replay=initFileReader(r.filePath)
-//            val info=replay.init()
-//            try{
-//              ctx.self ! SwitchBehavior("work",
-//                work(
-//                  replay,
-//                  metaDataDecode(info.simulatorMetadata).right.get,
-//                  userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
-//                ))
-//            }catch {
-//              case e:Throwable=>
-//                log.error("error---"+e.getMessage)
-//            }
-//          case None=>
-//            log.debug(s"record--$recordId didn't exist!!")
-//        }
-        Future{
-          val replay=initFileReader("gameDataDirectoryPath/tankGame_1539851125239_0")
-          val info=replay.init()
-          try{
-            ctx.self ! SwitchBehavior("work",
-              work(
-                replay,
-                metaDataDecode(info.simulatorMetadata).right.get,
-                userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
-              ))
-          }catch {
-            case e:Throwable=>
-              log.error("error---"+e.getMessage)
-          }
+        RecordDAO.getRecordById(recordId).map {
+          case Some(r)=>
+            val replay=initFileReader(r.filePath)
+            val info=replay.init()
+            try{
+              ctx.self ! SwitchBehavior("work",
+                work(
+                  replay,
+                  metaDataDecode(info.simulatorMetadata).right.get,
+                  userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
+                ))
+            }catch {
+              case e:Throwable=>
+                log.error("error---"+e.getMessage)
+            }
+          case None=>
+            log.debug(s"record--$recordId didn't exist!!")
         }
         switchBehavior(ctx,"busy",busy())
       }
