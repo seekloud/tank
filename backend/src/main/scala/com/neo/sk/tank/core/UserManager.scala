@@ -64,6 +64,7 @@ object UserManager {
           getUserActorOpt(ctx, uid) match {
             case Some(userActor) =>
               // todo 将用户actor杀死，防止重登录问题
+              //remind 进入等待状态
               userActor ! UserActor.ChangeBehaviorToInit
             case None =>
           }

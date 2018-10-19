@@ -297,9 +297,6 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
   }
 
   private def gameLoop():Unit = {
-    println(testHolfer)
-//    println(s"gameState--$gameState")
-//    println(s"firstCome---$firstCome")
     gameState match {
       case Constants.GameState.loadingPlay =>
         println(s"等待同步数据")
