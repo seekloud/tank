@@ -11,7 +11,7 @@ import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, ReplayFrameData}
 import org.slf4j.LoggerFactory
 //import com.neo.sk.tank.Boot.roomActor
-import com.neo.sk.tank.Boot.roomManager
+import com.neo.sk.tank.Boot.{roomManager,esheepSyncClient}
 import com.neo.sk.tank.core.game.TankServerImpl
 import com.neo.sk.tank.shared.config.TankGameConfigImpl
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -37,6 +37,10 @@ object UserActor {
   case object CompleteMsgFront extends Command
   case class FailMsgFront(ex: Throwable) extends Command
 
+  //fixme 等待变更
+  /**此消息用于外部控制状态转入初始状态，以便于重建WebSocket*/
+  case object ChangeBehaviorToInit extends Command
+
   case class UserFrontActor(actor:ActorRef[TankGameEvent.WsMsgSource]) extends Command
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
@@ -48,7 +52,7 @@ object UserActor {
 
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
 
-  case class StartReplay(rid:Long,uid:Long,f:Int) extends Command
+  case class StartReplay(rid:Long, wid:Long, f:Int) extends Command
 
   final case class StartObserve(roomId:Long, watchedUserId:Long) extends Command
 
@@ -127,6 +131,7 @@ object UserActor {
           switchBehavior(ctx,"idle",idle(uId, userInfo, frontActor))
 
         case UserLeft(actor) =>
+          log.info("webSocket--error in init")
           ctx.unwatch(actor)
           Behaviors.stopped
 
@@ -165,8 +170,9 @@ object UserActor {
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
 //          println("渲染数据")
+          val startTime = System.currentTimeMillis()
           frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, userInfo.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
-          switchBehavior(ctx,"play",play(uId, userInfo,tank,frontActor,roomActor))
+          switchBehavior(ctx,"play",play(uId, userInfo,tank,startTime,frontActor,roomActor))
 
 
         case StartObserve(roomId, watchedUserId) =>
@@ -183,11 +189,13 @@ object UserActor {
               Behaviors.same
           }
 
+        case ChangeBehaviorToInit=>
+          switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
         case UserLeft(actor) =>
+          log.info("webSocket--error in idle")
           ctx.unwatch(actor)
           Behaviors.stopped
-
 
 
         case unknowMsg =>
@@ -276,6 +284,7 @@ object UserActor {
                     uId:Long,
                     userInfo:TankGameUserInfo,
                     tank:TankServerImpl,
+                    startTime:Long,
                     frontActor:ActorRef[TankGameEvent.WsMsgSource],
                     roomActor: ActorRef[RoomActor.Command])(
                     implicit stashBuffer:StashBuffer[Command],
@@ -300,6 +309,10 @@ object UserActor {
 
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
+            if(tank.lives -1 <= 0 && uId > 0){
+               val endTime = System.currentTimeMillis()
+               esheepSyncClient ! EsheepSyncClient.InputRecord(uId,userInfo.nickName,tank.killTankNum,tank.config.getTankLivesLimit,tank.damageStatistics, startTime, endTime)
+            }
             frontActor ! m
             roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,userInfo.name)
             switchBehavior(ctx,"idle",idle(uId,userInfo,frontActor))
@@ -309,6 +322,12 @@ object UserActor {
           }
 
         case UserLeft(actor) =>
+          log.info("webSocket--error in play")
+          if(uId > 0){
+            val endTime = System.currentTimeMillis()
+            val killed = tank.config.getTankLivesLimit - tank.lives
+            esheepSyncClient ! EsheepSyncClient.InputRecord(uId,userInfo.nickName,tank.killTankNum,killed,tank.damageStatistics, startTime, endTime)
+          }
           ctx.unwatch(actor)
           roomManager ! RoomManager.LeftRoom(uId,tank.tankId,userInfo.name,Some(uId))
           Behaviors.stopped

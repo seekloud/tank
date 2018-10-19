@@ -30,8 +30,10 @@ import com.neo.sk.utils.ESSFSupport.{initStateDecode, metaDataDecode, replayEven
 object GamePlayer {
   private final val log = LoggerFactory.getLogger(this.getClass)
 
+  private val waitTime=10.minutes
   sealed trait Command
   private final case object BehaviorChangeKey
+  private final case object BehaviorWaitKey
   private final case object GameLoopKey
 
   final case class SwitchBehavior(
@@ -58,7 +60,7 @@ object GamePlayer {
   /**actor内部消息*/
   case class InitReplay(userActor: ActorRef[TankGameEvent.WsMsgSource],userId:Long,f:Int) extends Command
   case class InitDownload(userActor: ActorRef[TankGameEvent.WsMsgSource]) extends Command
-
+  case object GetUserListInRecord extends Command
 
   def create(recordId:Long):Behavior[Command] = {
     Behaviors.setup[Command]{ctx=>
@@ -102,19 +104,31 @@ object GamePlayer {
     Behaviors.receive[Command]{(ctx,msg)=>
       msg match {
         case msg:InitReplay=>
-          //todo 此处从文件中读取相关数据传送给前端
+          log.info("start new replay!")
           timer.cancel(GameLoopKey)
+          timer.cancel(BehaviorWaitKey)
           userMap.find(_._1.userId == msg.userId) match {
             case Some(u)=>
               dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,metaData.tankConfig))
+              log.info(s" set replay from frame=${msg.f}")
+              //fixme 跳转帧数goto失效
+              fileReader.reset()
+              for(i <- 1 to msg.f){
+                if(fileReader.hasMoreFrame){
+                  fileReader.readFrame()
+                }
+              }
+              log.info(s"replay from frame=${fileReader.getFramePosition}")
               if(fileReader.hasMoreFrame){
                 timer.startPeriodicTimer(GameLoopKey, GameLoop, 100.millis)
                 work(fileReader,metaData,userMap,Some(msg.userActor))
               }else{
-                switchBehavior(ctx,"busy",busy(),Some(10.seconds))
+                timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
+                Behaviors.same
               }
             case None=>
-              switchBehavior(ctx,"busy",busy(),Some(10.seconds))
+              timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
+              Behaviors.same
           }
 
 
@@ -131,8 +145,12 @@ object GamePlayer {
             Behaviors.same
           }else{
             timer.cancel(GameLoopKey)
-            switchBehavior(ctx,"busy",busy(),Some(10.seconds))
+            timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
+            Behaviors.same
           }
+
+        case msg:TimeOut=>
+          Behaviors.stopped
 
         case unKnowMsg =>
           stashBuffer.stash(unKnowMsg)
