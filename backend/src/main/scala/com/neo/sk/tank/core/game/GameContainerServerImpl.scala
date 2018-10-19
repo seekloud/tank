@@ -61,6 +61,7 @@ case class GameContainerServerImpl(
     def transformGenerateBulletEvent(bulletState: BulletState) = {
       val event = TankGameEvent.GenerateBullet(systemFrame,bulletState)
       dispatch(event)
+//      println(s"bu=${bulletState}")
       addGameEvent(event)
     }
 
@@ -105,6 +106,7 @@ case class GameContainerServerImpl(
   override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
     dispatchTo(tank.userId,TankGameEvent.YouAreKilled(bulletTankId,bulletTankName),getUserActor4WatchGameList(tank.userId))
     val tankState = tank.getTankState()
+    dispatchTo(tank.userId,TankGameEvent.YouAreKilled(bulletTankId,bulletTankName, tankState.lives > 1))
     val curTankState = TankState(tankState.userId,tankState.tankId,tankState.direction,tankState.gunDirection,tankState.blood,tankState.bloodLevel,tankState.speedLevel,tankState.curBulletNum,
       tankState.position,tankState.bulletPowerLevel,tankState.tankColorType,tankState.name,tankState.lives-1,None,tankState.killTankNum,tankState.damageTank,tankState.invincible,
       tankState.shotgunState,tankState.speed,tankState.isMove)
@@ -437,13 +439,13 @@ case class GameContainerServerImpl(
 
   override protected def clearEventWhenUpdate():Unit = {
     //记录数据
-    val gameEventSize = gameEventMap.getOrElse(systemFrame, Nil).size
-    val actionEventSize = actionEventMap.getOrElse(systemFrame, Nil).size
-    if(gameEventSize + actionEventSize > 0){
-      log.info(s"tank systemFrame=${systemFrame}, gameEvents=${gameEventSize}, actionEvents=${actionEventSize}")
-    }
-    gameEventMap -= systemFrame
-    actionEventMap -= systemFrame
+//    val gameEventSize = gameEventMap.getOrElse(systemFrame, Nil).size
+//    val actionEventSize = actionEventMap.getOrElse(systemFrame, Nil).size
+//    if(gameEventSize + actionEventSize > 0){
+//      log.info(s"tank systemFrame=${systemFrame}, gameEvents=${gameEventSize}, actionEvents=${actionEventSize}")
+//    }
+    gameEventMap -= systemFrame - 1
+    actionEventMap -= systemFrame - 1
     systemFrame += 1
   }
 
@@ -505,6 +507,16 @@ case class GameContainerServerImpl(
     TankGameEvent.TankGameSnapshot(getGameContainerAllState())
   }
 
+
+  def getLastGameEvent(): List[TankGameEvent.WsMsgServer] = {
+    (gameEventMap.getOrElse(this.systemFrame - 1, Nil) ::: actionEventMap.getOrElse(this.systemFrame - 1, Nil))
+    .filter(_.isInstanceOf[TankGameEvent.WsMsgServer]).map(_.asInstanceOf[TankGameEvent.WsMsgServer])
+  }
+
+
+  def getCurSnapshot(): Option[TankGameEvent.GameSnapshot] = {
+    Some(getCurGameSnapshot())
+  }
 
   def getGameEventAndSnapshot():(List[TankGameEvent.WsMsgServer],Option[TankGameEvent.GameSnapshot]) = {
     ((gameEventMap.getOrElse(this.systemFrame, Nil) ::: actionEventMap.getOrElse(this.systemFrame, Nil))

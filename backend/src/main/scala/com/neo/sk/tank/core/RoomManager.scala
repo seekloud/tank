@@ -44,6 +44,7 @@ object RoomManager {
 
 
   def create():Behavior[Command] = {
+    log.debug(s"RoomManager start...")
     Behaviors.setup[Command]{
       ctx =>
         implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)

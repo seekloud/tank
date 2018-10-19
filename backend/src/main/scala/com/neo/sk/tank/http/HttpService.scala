@@ -24,11 +24,12 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg
   */
 trait HttpService
   extends ResourceService
-  with ServiceUtils {
+  with ServiceUtils with PlayService{
 
   import akka.actor.typed.scaladsl.AskPattern._
   import com.neo.sk.utils.CirceSupport._
   import io.circe.generic.auto._
+  import io.circe._
 
   implicit val system: ActorSystem
 
@@ -87,16 +88,28 @@ trait HttpService
         watchGamePath~
 //          getRoomPlayerList~
           path("join"){
+        } ~ path("join"){
           parameter('name){ name =>
-            log.debug(s"sssssssssname=${name}")
             val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_))
-            complete("sss")
             dealFutureResult(
               flowFuture.map(t => handleWebSocketMessages(t))
             )
           }
-        }
-
+        } ~ path("replay"){
+          parameter(
+            'name.as[String],
+            'uid.as[Long],
+            'rid.as[Long],
+            'wid.as[Long],
+            'f.as[Int]
+          ){ (name,uid,rid,wid,f) =>
+            //fixme 此处要和鉴权消息结合，去除无用信息
+            val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetReplaySocketFlow(name,uid,rid,wid,f,_))
+            dealFutureResult(
+              flowFuture.map(t => handleWebSocketMessages(t))
+            )
+          }
+        } ~ playRoute
       }
   }
 
