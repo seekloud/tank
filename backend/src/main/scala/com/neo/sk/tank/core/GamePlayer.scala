@@ -54,7 +54,6 @@ object GamePlayer {
     stashBuffer.unstashAll(ctx,behavior)
   }
 
-  val loadFrame=0
 
   /**actor内部消息*/
   case class InitReplay(userActor: ActorRef[TankGameEvent.WsMsgSource],userId:Long,f:Int) extends Command

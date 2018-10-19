@@ -21,7 +21,7 @@ case class WebSocketClient(
                        connectErrorCallback:Event => Unit,
                        messageHandler:TankGameEvent.WsMsgServer => Unit,
                        closeCallback:Event => Unit,
-                       replay:Boolean=false
+                       replay:Boolean = false
                      ) {
 
 
@@ -52,15 +52,11 @@ case class WebSocketClient(
   }
 
 
-  def setup(name:String,uid:Option[Long]=None,rid:Option[Long]=None,wid:Option[Long]=None,f:Option[Int]=None):Unit = {
+  def setup(wsUrl:String):Unit = {
     if(wsSetup){
       println(s"websocket已经启动")
     }else{
-      val websocketStream =if(replay){
-        new WebSocket(getReplaySocketUri(name,uid.get,rid.get,wid.get,f.get))
-      }else{
-        new WebSocket(getWebSocketUri(name))
-      }
+      val websocketStream = new WebSocket(wsUrl)
 
       websocketStreamOpt = Some(websocketStream)
       websocketStream.onopen = { event: Event =>
@@ -81,11 +77,8 @@ case class WebSocketClient(
             fr.readAsArrayBuffer(blobMsg)
             fr.onloadend = { _: Event =>
               val buf = fr.result.asInstanceOf[ArrayBuffer]
-              if(replay){
-                messageHandler(replayEventDecode(buf))
-              }else{
-                messageHandler(wsByteDecode(buf))
-              }
+              if(replay) messageHandler(replayEventDecode(buf))
+              else messageHandler(wsByteDecode(buf))
             }
           case jsonStringMsg:String =>
             import io.circe.generic.auto._

@@ -24,7 +24,7 @@ object TankGameEvent {
   sealed trait WsMsgServer extends WsMsgSource
   //  final case class GameConfig(config:TankGameConfigImpl) extends WsMsgServer
   final case class YourInfo(userId:Long,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
-  final case class YouAreKilled(tankId:Int,name:String) extends WsMsgServer //可能会丢弃
+  final case class YouAreKilled(tankId:Int,name:String, hasLife:Boolean) extends WsMsgServer //可能会丢弃
   final case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends WsMsgServer
   final case class SyncGameState(state:GameContainerState) extends WsMsgServer
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
