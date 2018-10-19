@@ -14,6 +14,8 @@ import akka.actor.typed.scaladsl.AskPattern._
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import com.neo.sk.tank.Boot.{executor, scheduler, timeout, userManager}
 import com.neo.sk.tank.core.UserManager
+import com.neo.sk.tank.protocol.CommonErrorCode
+import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameReq, GetRecordFrameRsp, GetUserInRecordReq, GetUserInRecordRsp}
 import org.slf4j.LoggerFactory
 
 /**
@@ -22,6 +24,7 @@ import org.slf4j.LoggerFactory
 trait PlayService extends AuthService{
   import com.neo.sk.utils.CirceSupport._
   import io.circe.generic.auto._
+  import io.circe._
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -44,7 +47,30 @@ trait PlayService extends AuthService{
     }
   }
 
+  private def getRecordFrame=(path("getRecordFrame") & post){
+    entity(as[Either[Error,GetRecordFrameReq]]){
+      case Right(req)=>
+        val flowFuture:Future[GetRecordFrameRsp]=userManager ? (UserManager.GetRecordFrameMsg(req.recordId,req.playerId,_))
+        dealFutureResult(
+          flowFuture.map(r=>complete(r))
+        )
+      case Left(e)=>
+        complete(CommonErrorCode.parseJsonError)
+    }
+  }
 
-  protected val playRoute:Route = userJoin
+  private def getRecordPlayerList=(path("getRecordPlayerList") & post){
+    entity(as[Either[Error,GetUserInRecordReq]]){
+      case Right(req)=>
+        val flowFuture:Future[GetUserInRecordRsp]=userManager ? (UserManager.GetUserInRecordMsg(req.recordId,req.playerId,_))
+        dealFutureResult(
+          flowFuture.map(r=>complete(r))
+        )
+      case Left(e)=>
+        complete(CommonErrorCode.parseJsonError)
+    }
+  }
+
+  protected val playRoute:Route = userJoin ~ getRecordFrame ~ getRecordPlayerList
 
 }

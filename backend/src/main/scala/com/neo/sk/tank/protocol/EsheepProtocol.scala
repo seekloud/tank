@@ -39,4 +39,32 @@ object EsheepProtocol {
                                   msg: String = "ok"
                                 ) extends CommonRsp
 
+  /**获取录像内玩家列表*/
+  case class GetUserInRecordReq(
+                            recordId:Long,
+                            playerId:Long
+                            )
+
+  case class GetUserInRecordRsp(
+                               data:PlayerList,
+                               errCode: Int = 0,
+                               msg: String = "ok"
+                               ) extends CommonRsp
+
+  case class PlayerList(playerList:List[PlayerInfo])
+
+  /**获取录像播放进度}*/
+  case class GetRecordFrameReq(
+                              recordId:Long,
+                              playerId:Long
+                              )
+
+  case class GetRecordFrameRsp(
+                              data:RecordFrameInfo,
+                              errCode: Int = 0,
+                              msg: String = "ok"
+                              ) extends CommonRsp
+
+  case class RecordFrameInfo(frame:Int)
+
 }
