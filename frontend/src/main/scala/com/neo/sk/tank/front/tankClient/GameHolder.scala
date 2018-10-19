@@ -23,8 +23,7 @@ import scala.xml.Elem
 /**
   * Created by hongruying on 2018/8/26
   */
-case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = None) extends NetworkInfo {
-case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInfo {
+case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = None, replay: Boolean = false) extends NetworkInfo {
 
   private[this] val canvas = dom.document.getElementById(canvasName).asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
@@ -43,7 +42,7 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
   private var killerName:String = ""
 
   private[this] var gameContainerOpt : Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
-  private[this] val webSocketClient = WebSocketClient(wsConnectSuccess,wsConnectError,if(replay) replayMessageHandler else wsMessageHandler,wsConnectClose,replay)
+  private[this] val webSocketClient = WebSocketClient(wsConnectSuccess,wsConnectError, getWsMessageHandler, wsConnectClose, replay)
 
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
   private[this] val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
@@ -283,12 +282,12 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     canvas.focus()
     setGameState(Constants.GameState.loadingPlay)
     if(firstCome){
-      webSocketClient.setup(name,uid,rid,wid,f)
+      webSocketClient.setup(Routes.getReplaySocketUri(name, uid.get, rid.get, wid.get, f.get))
       gameLoop()
     }else if(webSocketClient.getWsState){
       //fixme reStart
 //      setGameState(Constants.GameState.play)
-      firstCome=true
+      firstCome = true
       gameLoop()
     }else{
       JsFunc.alert("网络连接失败，请重新刷新")
@@ -307,34 +306,51 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
         ping()
 
       case Constants.GameState.stop =>
-        gameContainerOpt.foreach{t =>
-          t.tankMap.get(t.myTankId) match {
-            case Some(tank) =>
-              if(tank.lives-1 > 0){
-                /**
-                  * 在生命值之内死亡重玩，倒计时进入
-                  * */
-                dom.window.cancelAnimationFrame(nextFrame)
-                Shortcut.cancelSchedule(timer)
-                drawGameRestart()
-              }else{
-                /**
-                  * 重新生成id
-                  * */
-                dom.window.cancelAnimationFrame(nextFrame)
-                Shortcut.cancelSchedule(timer)
-                Shortcut.cancelSchedule(reStartTimer)
-                drawGameStop()
-                dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
-              }
-            case None =>
-              dom.window.cancelAnimationFrame(nextFrame)
-              Shortcut.cancelSchedule(timer)
-              Shortcut.cancelSchedule(reStartTimer)
-              drawGameStop()
-              dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
-          }
-        }
+        dom.window.cancelAnimationFrame(nextFrame)
+        Shortcut.cancelSchedule(timer)
+        Shortcut.cancelSchedule(reStartTimer)
+        drawGameStop()
+        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+
+
+//        gameContainerOpt.foreach{t =>
+//          t.tankMap.get(t.myTankId) match {
+//            case Some(tank) =>
+//              if(tank.lives-1 > 0){
+//                /**
+//                  * 在生命值之内死亡重玩，倒计时进入
+//                  * */
+//                dom.window.cancelAnimationFrame(nextFrame)
+//                Shortcut.cancelSchedule(timer)
+//                drawGameRestart()
+//              }else{
+//                /**
+//                  * 重新生成id
+//                  * */
+//                dom.window.cancelAnimationFrame(nextFrame)
+//                Shortcut.cancelSchedule(timer)
+//                Shortcut.cancelSchedule(reStartTimer)
+//                drawGameStop()
+//                dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+//              }
+//            case None =>
+//              dom.window.cancelAnimationFrame(nextFrame)
+//              Shortcut.cancelSchedule(timer)
+//              Shortcut.cancelSchedule(reStartTimer)
+//              drawGameStop()
+//              dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+//          }
+//        }
+
+      case Constants.GameState.relive =>
+        /**
+          * 在生命值之内死亡重玩，倒计时进入
+          * */
+        dom.window.cancelAnimationFrame(nextFrame)
+        Shortcut.cancelSchedule(timer)
+        drawGameRestart()
+
+      case _ => println(s"state=${gameState} failed")
     }
   }
 
@@ -362,6 +378,7 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     ctx.font = "36px Helvetica"
     ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
     if(replay){
+      // todo why?
       gameContainerOpt.foreach(t => startReplay(t.myName))
     }
     println()
@@ -406,6 +423,8 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
     e
   }
 
+  private def getWsMessageHandler:TankGameEvent.WsMsgServer => Unit = if (replay) replayMessageHandler else wsMessageHandler
+
   private def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
     data match {
       case e:TankGameEvent.YourInfo =>
@@ -422,8 +441,11 @@ case class GameHolder(canvasName:String,replay:Boolean=false) extends NetworkInf
           * */
         println(s"you are killed")
         killerName = e.name
-        reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
-        setGameState(Constants.GameState.stop)
+        if(e.hasLife){
+          reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
+          setGameState(Constants.GameState.relive)
+        } else setGameState(Constants.GameState.stop)
+//        setGameState(Constants.GameState.stop)
 
       case e:TankGameEvent.Ranks =>
         /**

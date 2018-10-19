@@ -71,8 +71,6 @@ trait HttpService
             )
           }
         } ~ playRoute
-
-        }
       }
   }
 
