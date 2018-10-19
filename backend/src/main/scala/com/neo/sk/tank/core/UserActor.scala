@@ -6,11 +6,12 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
+import com.neo.sk.tank.models.TankGameUserInfo
 import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.shared.protocol.TankGameEvent.ReplayFrameData
 import org.slf4j.LoggerFactory
 //import com.neo.sk.tank.Boot.roomActor
-import com.neo.sk.tank.Boot.{roomManager, esheepSyncClient}
+import com.neo.sk.tank.Boot.roomManager
 import com.neo.sk.tank.core.game.TankServerImpl
 import com.neo.sk.tank.shared.config.TankGameConfigImpl
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -36,7 +37,7 @@ object UserActor {
   case object CompleteMsgFront extends Command
   case class FailMsgFront(ex: Throwable) extends Command
 
-  case class UserFrontActor(flag:Int,actor:ActorRef[TankGameEvent.WsMsgSource],rid:Option[Long]=None,uid:Option[Long],f:Option[Int]=None) extends Command
+  case class UserFrontActor(actor:ActorRef[TankGameEvent.WsMsgSource]) extends Command
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
 
@@ -47,8 +48,6 @@ object UserActor {
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
 
   case class StartReplay(rid:Long,uid:Long,f:Int) extends Command
-
-  case object AddPlayIndex extends Command
 
   final case class SwitchBehavior(
                                    name: String,
@@ -76,7 +75,7 @@ object UserActor {
     onFailureMessage = FailMsgFront.apply
   )
 
-  def flow(flag:Int,actor:ActorRef[UserActor.Command],rid:Option[Long],uid:Option[Long],f:Option[Int]=None):Flow[WebSocketMsg,TankGameEvent.WsMsgSource,Any] = {
+  def flow(actor:ActorRef[UserActor.Command]):Flow[WebSocketMsg,TankGameEvent.WsMsgSource,Any] = {
     val in = Flow[WebSocketMsg].to(sink(actor))
     val out =
       ActorSource.actorRef[TankGameEvent.WsMsgSource](
@@ -88,38 +87,32 @@ object UserActor {
         },
         bufferSize = 128,
         overflowStrategy = OverflowStrategy.dropHead
-      ).mapMaterializedValue(outActor => actor ! UserFrontActor(flag,outActor,rid,uid,f))
+      ).mapMaterializedValue(outActor => actor ! UserFrontActor(outActor))
     Flow.fromSinkAndSource(in, out)
   }
 
   //
-  def create(uId:Long,name:String):Behavior[Command] = {
+  def create(uId:Long, userInfo:TankGameUserInfo):Behavior[Command] = {
     Behaviors.setup[Command]{ctx =>
       log.debug(s"${ctx.self.path} is starting...")
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       Behaviors.withTimers[Command] { implicit timer =>
         implicit val sendBuffer = new MiddleBufferInJvm(8192)
-        switchBehavior(ctx,"init",init(uId,name),InitTime,TimeOut("init"))
+        switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
       }
     }
   }
 
-  private def init(uId:Long,name:String)(
+  private def init(uId:Long,userInfo:TankGameUserInfo)(
     implicit stashBuffer:StashBuffer[Command],
     sendBuffer:MiddleBufferInJvm,
     timer:TimerScheduler[Command]
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case UserFrontActor(flag,frontActor,rid,uid,f) =>
-          if(flag==0){
-            ctx.watchWith(frontActor,UserLeft(frontActor))
-            ctx.self ! StartGame
-            switchBehavior(ctx,"idle",idle(uId,name,0,frontActor))
-          }else{
-            ctx.self ! StartReplay(rid.get,uid.get,f.get)
-            switchBehavior(ctx,"idle",idle(uId,name,0,frontActor))
-          }
+        case UserFrontActor(frontActor) =>
+          ctx.watchWith(frontActor,UserLeft(frontActor))
+          switchBehavior(ctx,"idle",idle(uId, userInfo, frontActor))
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
@@ -138,7 +131,7 @@ object UserActor {
 
 
 
-  private def idle(uId:Long,name:String,playIndex:Int,frontActor:ActorRef[TankGameEvent.WsMsgSource])(
+  private def idle(uId:Long, userInfo: TankGameUserInfo, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command],
     sendBuffer:MiddleBufferInJvm
@@ -150,10 +143,10 @@ object UserActor {
           /**换成给roomManager发消息,告知uId,name
             * 还要给userActor发送回带roomId的数据
             * */
-          roomManager ! JoinRoom(uId,None,name,ctx.self)
+          roomManager ! JoinRoom(uId,None,userInfo.name,ctx.self)
           Behaviors.same
 
-        case StartReplay(rid,uid,f)=>
+        case StartReplay(rid,uid,f) =>
           getGameReplay(ctx,rid) ! GamePlayer.InitReplay(frontActor,uid,f)
           Behaviors.same
 
@@ -161,16 +154,15 @@ object UserActor {
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
 //          println("渲染数据")
-          val startTime = System.currentTimeMillis()
-          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
-          switchBehavior(ctx,"play",play(uId,name,startTime,playIndex,tank,frontActor,roomActor))
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, userInfo.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          switchBehavior(ctx,"play",play(uId, userInfo,tank,frontActor,roomActor))
 
 
         case WebSocketMsg(reqOpt) =>
           reqOpt match {
             case Some(t:TankGameEvent.RestartGame) =>
               roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,ctx.self)
-              idle(uId,t.name,playIndex + 1,frontActor)
+              idle(uId, userInfo.copy(name = t.name), frontActor)
             case _ =>
               Behaviors.same
           }
@@ -181,16 +173,6 @@ object UserActor {
           Behaviors.stopped
 
 
-        case UserFrontActor(flag,frontActor,rid,uid,f) =>
-          if(flag==0){
-            ctx.watchWith(frontActor,UserLeft(frontActor))
-            ctx.self ! StartGame
-            switchBehavior(ctx,"idle",idle(uId,name,0,frontActor))
-          }else{
-            ctx.self ! StartReplay(rid.get,uid.get,f.get)
-            switchBehavior(ctx,"idle",idle(uId,name,0,frontActor))
-          }
-
 
         case unknowMsg =>
 //          log.warn(s"got unknown msg: $unknowMsg")
@@ -200,9 +182,7 @@ object UserActor {
 
   private def play(
                     uId:Long,
-                    name:String,
-                    startTime: Long,
-                    playIndex: Int,
+                    userInfo:TankGameUserInfo,
                     tank:TankServerImpl,
                     frontActor:ActorRef[TankGameEvent.WsMsgSource],
                     roomActor: ActorRef[RoomActor.Command])(
@@ -230,8 +210,8 @@ object UserActor {
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
             frontActor ! m
-            roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,name)
-            switchBehavior(ctx,"idle",idle(uId,name,playIndex + 1,frontActor))
+            roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,userInfo.name)
+            switchBehavior(ctx,"idle",idle(uId,userInfo,frontActor))
           }else{
               frontActor ! m
               Behaviors.same
@@ -239,11 +219,7 @@ object UserActor {
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
-          val endTime = System.currentTimeMillis()
-          if(uId > 0){
-            esheepSyncClient ! EsheepSyncClient.InputRecord(uId,name, tank.killTankNum, playIndex, tank.damageStatistics, startTime, endTime)
-          }
-          roomManager ! RoomManager.LeftRoom(uId,tank.tankId,name,Some(uId))
+          roomManager ! RoomManager.LeftRoom(uId,tank.tankId,userInfo.name,Some(uId))
           Behaviors.stopped
 
 

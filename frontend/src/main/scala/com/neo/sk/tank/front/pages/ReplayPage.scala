@@ -37,7 +37,7 @@ class ReplayPage(n: String, u: Long, r: Long, w: Long, frame: Int) extends Page 
     }*/
   private def init() = {
     println("-----new holder------")
-    val gameHolder = new GameHolder("GameReplay", true)
+    val gameHolder = new GameHolder("GameReplay", replay = true)
     gameHolder.getStartReplayModel(n, u, r, w, frame)
     //    gameHolderOpt=Some(gameHolder)
     modal := <div>观看中...</div>

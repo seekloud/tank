@@ -12,22 +12,16 @@ import scala.xml.Elem
 object MainPage extends PageSwitcher {
 
 
-  def hashStr2Seq(str: String): IndexedSeq[String] = {
-    if (str.length == 0) {
-      IndexedSeq.empty[String]
-    } else if (str.startsWith("#/")) {
-      val t = str.substring(2).split("/").toIndexedSeq
-      if (t.nonEmpty) {
-        t
-      } else IndexedSeq.empty[String]
-    } else {
-      println("Error hash string:" + str + ". hash string must start with [#/]")
-      IndexedSeq.empty[String]
-    }
-  }
+
 
   override def switchPageByHash(): Unit = {
-    val tokens = hashStr2Seq(getCurrentHash).toList
+    val tokens = {
+      val t = getCurrentHash.split("/").toList
+      if (t.nonEmpty) {
+        t.tail
+      } else Nil
+    }
+
     println(tokens)
     switchToPage(tokens)
   }
@@ -35,11 +29,8 @@ object MainPage extends PageSwitcher {
 
   private val currentPage: Rx[Elem] = currentPageHash.map {
     case Nil => TankDemo.render
-    case "replay"::name::uid::rid::wid::f::Nil => {
-//      ReplayPage.setParam(name, uid.toLong, rid.toLong, f.toInt)
-//      ReplayPage.render
-      new ReplayPage(name, uid.toLong, rid.toLong,wid.toLong, f.toInt).render
-    }
+    case "playGame" :: playInfoSeq => PlayPage(playInfoSeq).render
+    case "replay":: name :: uid :: rid :: wid :: f :: Nil => new ReplayPage(name, uid.toLong, rid.toLong,wid.toLong, f.toInt).render
     case "test" :: Nil => <div>TO BE CONTINUE...</div>
     case _ => <div>Error Page</div>
   }
