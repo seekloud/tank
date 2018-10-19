@@ -1,7 +1,7 @@
 package com.neo.sk.tank.shared.protocol
 
 import com.neo.sk.tank.shared.`object`.{BulletState, ObstacleState, PropState, TankState}
-import com.neo.sk.tank.shared.config.TankGameConfigImpl
+import com.neo.sk.tank.shared.config.{TankGameConfig, TankGameConfigImpl}
 import com.neo.sk.tank.shared.game.{GameContainerAllState, GameContainerState}
 import com.neo.sk.tank.shared.model.Score
 import com.neo.sk.tank.shared.protocol.TankGameEvent.UserEvent
@@ -27,6 +27,7 @@ object TankGameEvent {
   final case class YourInfo(userId:Long,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
   final case class YouAreKilled(tankId:Int,name:String) extends WsMsgServer //可能会丢弃
 //  final case class PlayerAreKilled(tankId:Int,name:String) extends WsMsgServer
+  final case class YouAreKilled(tankId:Int,name:String, hasLife:Boolean) extends WsMsgServer //可能会丢弃
   final case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends WsMsgServer
   final case class SyncGameState(state:GameContainerState) extends WsMsgServer
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
@@ -45,6 +46,15 @@ object TankGameEvent {
     val serialNum:Int
   }
 
+  /**
+    * replay-frame-msg*/
+  final case class ReplayFrameData(ws:Array[Byte]) extends WsMsgSource
+  /**
+    * replay in front
+    * */
+  final case class ReplayInfo(userId:Long,tankId:Int,name:String,f:Long,config:TankGameConfigImpl) extends WsMsgServer
+  final case class EventData(list:List[WsMsgServer]) extends WsMsgServer
+  final case class DecodeError() extends WsMsgServer
 
   final case class UserJoinRoom(userId:Long, name:String, tankState:TankState, override val frame: Long) extends  UserEvent with WsMsgServer
   final case class UserLeftRoom(userId:Long, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer
@@ -82,7 +92,8 @@ object TankGameEvent {
 
 
   final case class GameInformation(
-                                    gameStartTime:Long
+                                    gameStartTime:Long,
+                                    tankConfig: TankGameConfigImpl
                                   )
 
 }

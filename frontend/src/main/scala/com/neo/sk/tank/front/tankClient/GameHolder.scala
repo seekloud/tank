@@ -4,7 +4,9 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.tank.front.common.{Constants, Routes}
 import com.neo.sk.tank.front.components.StartGameModal
+import com.neo.sk.tank.front.model.PlayerInfo
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
+import com.neo.sk.tank.shared.game.GameContainerState
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import mhtml.Var
@@ -15,12 +17,13 @@ import org.scalajs.dom.raw.{Event, HTMLElement, MouseEvent}
 import org.scalajs.dom
 
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 import scala.xml.Elem
 
 /**
   * Created by hongruying on 2018/8/26
   */
-case class GameHolder(canvasName:String) extends NetworkInfo {
+case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = None, replay: Boolean = false) extends NetworkInfo {
 
   private[this] val canvas = dom.document.getElementById(canvasName).asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
@@ -34,15 +37,15 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
 
   private val gameStateVar:Var[Int] = Var(Constants.GameState.firstCome)
   private var gameState:Int = Constants.GameState.firstCome
-  private val startGameModal = new StartGameModal(gameStateVar,start)
+  private val startGameModal = new StartGameModal(gameStateVar,start, playerInfoOpt)
 
   private var killerName:String = ""
 
   private[this] var gameContainerOpt : Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
-  private[this] val webSocketClient = WebSocketClient(wsConnectSuccess,wsConnectError,wsMessageHandler,wsConnectClose)
+  private[this] val webSocketClient = WebSocketClient(wsConnectSuccess,wsConnectError, getWsMessageHandler, wsConnectClose, replay)
 
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
-  private[this] val preExecuteFrameOffset = 2
+  private[this] val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
 
 
   private var timer:Int = 0
@@ -106,6 +109,11 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
     startGameModal.render
   }
 
+  def getStartReplayModel(name:String,uid:Long,rid:Long,wid:Long,f:Int)= {
+    startReplay(name,Some(uid),Some(rid),Some(wid),Some(f))
+  }
+
+
   def gameRender():Double => Unit = {d =>
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
@@ -162,7 +170,9 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
-          gameContainerOpt.get.addMyAction(preExecuteAction)
+          if(com.neo.sk.tank.shared.model.Constants.fakeRender){
+            gameContainerOpt.get.addMyAction(preExecuteAction)
+          }
           e.preventDefault()
 
         }
@@ -176,7 +186,6 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           val preExecuteAction = TankGameEvent.UserKeyboardMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset,Theta.toFloat , getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
-          gameContainerOpt.get.addMyAction(preExecuteAction)
           e.preventDefault()
 
         }
@@ -185,7 +194,6 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction) //发送鼠标位置
-          gameContainerOpt.get.addMyAction(preExecuteAction)
           e.preventDefault()
 
         }
@@ -211,7 +219,9 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
-          gameContainerOpt.get.addMyAction(preExecuteAction)
+          if(com.neo.sk.tank.shared.model.Constants.fakeRender) {
+            gameContainerOpt.get.addMyAction(preExecuteAction)
+          }
           e.preventDefault()
 
         }
@@ -251,6 +261,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
       addUserActionListenEvent()
       setGameState(Constants.GameState.loadingPlay)
       webSocketClient.setup(Routes.wsJoinGameUrl(name))
+      webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, playerInfoOpt))
       gameLoop()
 
     }else if(webSocketClient.getWsState){
@@ -268,6 +279,22 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
     }
   }
 
+  def startReplay(name:String,uid:Option[Long]=None,rid:Option[Long]=None,wid:Option[Long]=None,f:Option[Int]=None)={
+    canvas.focus()
+    setGameState(Constants.GameState.loadingPlay)
+    if(firstCome){
+      webSocketClient.setup(Routes.getReplaySocketUri(name, uid.get, rid.get, wid.get, f.get))
+      gameLoop()
+    }else if(webSocketClient.getWsState){
+      //fixme reStart
+//      setGameState(Constants.GameState.play)
+      firstCome = true
+      gameLoop()
+    }else{
+      JsFunc.alert("网络连接失败，请重新刷新")
+    }
+  }
+
   private def gameLoop():Unit = {
     gameState match {
       case Constants.GameState.loadingPlay =>
@@ -280,34 +307,51 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
         ping()
 
       case Constants.GameState.stop =>
-        gameContainerOpt.foreach{t =>
-          t.tankMap.get(t.myTankId) match {
-            case Some(tank) =>
-              if(tank.lives-1 > 0){
-                /**
-                  * 在生命值之内死亡重玩，倒计时进入
-                  * */
-                dom.window.cancelAnimationFrame(nextFrame)
-                Shortcut.cancelSchedule(timer)
-                drawGameRestart()
-              }else{
-                /**
-                  * 重新生成id
-                  * */
-                dom.window.cancelAnimationFrame(nextFrame)
-                Shortcut.cancelSchedule(timer)
-                Shortcut.cancelSchedule(reStartTimer)
-                drawGameStop()
-                dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
-              }
-            case None =>
-              dom.window.cancelAnimationFrame(nextFrame)
-              Shortcut.cancelSchedule(timer)
-              Shortcut.cancelSchedule(reStartTimer)
-              drawGameStop()
-              dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
-          }
-        }
+        dom.window.cancelAnimationFrame(nextFrame)
+        Shortcut.cancelSchedule(timer)
+        Shortcut.cancelSchedule(reStartTimer)
+        drawGameStop()
+        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+
+
+//        gameContainerOpt.foreach{t =>
+//          t.tankMap.get(t.myTankId) match {
+//            case Some(tank) =>
+//              if(tank.lives-1 > 0){
+//                /**
+//                  * 在生命值之内死亡重玩，倒计时进入
+//                  * */
+//                dom.window.cancelAnimationFrame(nextFrame)
+//                Shortcut.cancelSchedule(timer)
+//                drawGameRestart()
+//              }else{
+//                /**
+//                  * 重新生成id
+//                  * */
+//                dom.window.cancelAnimationFrame(nextFrame)
+//                Shortcut.cancelSchedule(timer)
+//                Shortcut.cancelSchedule(reStartTimer)
+//                drawGameStop()
+//                dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+//              }
+//            case None =>
+//              dom.window.cancelAnimationFrame(nextFrame)
+//              Shortcut.cancelSchedule(timer)
+//              Shortcut.cancelSchedule(reStartTimer)
+//              drawGameStop()
+//              dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+//          }
+//        }
+
+      case Constants.GameState.relive =>
+        /**
+          * 在生命值之内死亡重玩，倒计时进入
+          * */
+        dom.window.cancelAnimationFrame(nextFrame)
+        Shortcut.cancelSchedule(timer)
+        drawGameRestart()
+
+      case _ => println(s"state=${gameState} failed")
     }
   }
 
@@ -323,7 +367,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
     ctx.textBaseline = "top"
     ctx.font = "36px Helvetica"
     ctx.fillText("请稍等，正在连接服务器", 150, 180)
-    println()
+//    println()
   }
 
   private def drawGameStop():Unit = {
@@ -334,6 +378,10 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
     ctx.textBaseline = "top"
     ctx.font = "36px Helvetica"
     ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
+    if(replay){
+      // todo why?
+      gameContainerOpt.foreach(t => startReplay(t.myName))
+    }
     println()
   }
 
@@ -352,8 +400,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
       ctx.fillText(s"重新进入房间，倒计时：${countDownTimes}",150,100)
       ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
       countDownTimes = countDownTimes - 1
-    }
-    else{
+    } else{
       Shortcut.cancelSchedule(reStartTimer)
       gameContainerOpt.foreach(t => start(t.myName))
       countDownTimes = countDown
@@ -377,6 +424,8 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
     e
   }
 
+  private def getWsMessageHandler:TankGameEvent.WsMsgServer => Unit = if (replay) replayMessageHandler else wsMessageHandler
+
   private def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
     data match {
       case e:TankGameEvent.YourInfo =>
@@ -386,14 +435,18 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
           * */
         gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
+
       case e:TankGameEvent.YouAreKilled =>
         /**
           * 死亡重玩
           * */
         println(s"you are killed")
         killerName = e.name
-        reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
-        setGameState(Constants.GameState.stop)
+        if(e.hasLife){
+          reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
+          setGameState(Constants.GameState.relive)
+        } else setGameState(Constants.GameState.stop)
+//        setGameState(Constants.GameState.stop)
 
       case e:TankGameEvent.Ranks =>
         /**
@@ -413,6 +466,7 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
         nextFrame = dom.window.requestAnimationFrame(gameRender())
         setGameState(Constants.GameState.play)
 
+
       case e:TankGameEvent.UserActionEvent =>
         //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
         gameContainerOpt.foreach(_.receiveUserEvent(e))
@@ -431,6 +485,56 @@ case class GameHolder(canvasName:String) extends NetworkInfo {
       case e:TankGameEvent.PingPackage =>
         receivePingPackage(e)
 
+      case _ => println(s"unknow msg={sss}")
+    }
+  }
+
+  //fixme 此处需要重构（重建文件 or 修改参数）
+  private def replayMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
+    data match {
+      case e:TankGameEvent.YourInfo =>
+        println("----Start!!!!!")
+//        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
+        gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
+        gameContainerOpt.get.getTankId(e.tankId)
+//        setGameState(Constants.GameState.play)
+
+      case e:TankGameEvent.SyncGameAllState =>
+        if(firstCome){
+          if (e.gState.tanks.exists(_.tankId==gameContainerOpt.get.myTankId)){
+            println("-----reStart")
+            firstCome=false
+            setGameState(Constants.GameState.play)
+            //fixme 此处需要调整（立即同步数据，此处等待周期过长）
+            gameContainerOpt.foreach(_.update())
+            timer = Shortcut.schedule(gameLoop, gameContainerOpt.get.config.frameDuration)
+            gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
+            nextFrame = dom.window.requestAnimationFrame(gameRender())
+          }
+        }else{
+          //fixme 此处存在重复操作
+          //remind here allState change into state
+//          gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
+          gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks,e.gState.props,e.gState.obstacle,e.gState.tankMoveAction)))
+        }
+
+
+
+      case e:TankGameEvent.UserActionEvent =>
+        //remind here only add preAction without rollback
+        gameContainerOpt.get.preExecuteUserEvent(e)
+
+
+      case e:TankGameEvent.GameEvent =>
+        gameContainerOpt.foreach(_.receiveGameEvent(e))
+
+      case e:TankGameEvent.EventData =>
+        e.list.foreach(r=>replayMessageHandler(r))
+
+      case e:TankGameEvent.PingPackage =>
+        receivePingPackage(e)
+
+      case e:TankGameEvent.DecodeError=>
 
 
       case _ => println(s"unknow msg={sss}")

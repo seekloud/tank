@@ -15,7 +15,7 @@ trait PageSwitcher {
 
   import scalatags.JsDom.short._
 
-  protected var currentPageName: Var[List[String]] = Var(Nil)
+  protected var currentPageHash: Var[List[String]] = Var(Nil)
 
   private val bodyContent = div(*.height := "100%").render
 
@@ -25,35 +25,26 @@ trait PageSwitcher {
   private[this] var internalTargetHash = ""
 
 
-//  //init.
-//  {
-//
-//    val func = {
-//      e: HashChangeEvent =>
-//        //only handler browser history hash changed.
-//        if (internalTargetHash != getCurrentHash) {
-//          println(s"hash changed, new hash: $getCurrentHash")
-//          switchPageByHash()
-//        }
-//    }
-//    dom.window.addEventListener("hashchange", func, useCapture = false)
-//  }
-  dom.window.onhashchange = {_:Event =>
-    switchPageByHash()
-//    if (internalTargetHash != getCurrentHash) {
-//      println(s"hash changed, new hash: $getCurrentHash")
-//      switchPageByHash()
-//    }
+  //init.
+  {
+    val func = {
+      e: HashChangeEvent =>
+        //only handler browser history hash changed.
+        if (internalTargetHash != getCurrentHash) {
+          println(s"hash changed, new hash: $getCurrentHash")
+          internalTargetHash =getCurrentHash
+          switchPageByHash()
+        }
+    }
+    dom.window.addEventListener("hashchange", func, useCapture = false)
   }
-
 
 
   protected def switchToPage(pageName: List[String]): Unit = {
-    println("=============="+pageName)
-    currentPageName := pageName
+    currentPageHash.update(_ => pageName)
   }
 
-  def getCurrentPageName: Var[List[String]] = currentPageName
+  def getCurrentPageName: Var[List[String]] = currentPageHash
 
   def switchPageByHash(): Unit
 
