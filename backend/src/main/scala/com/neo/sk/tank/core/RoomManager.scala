@@ -89,17 +89,18 @@ object RoomManager {
             getRoomActor(ctx,roomExistUidMap.head._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,userActor,roomExistUidMap.head._1)
           }
           log.debug(s"now roomInUse:$roomInUse")
-
           Behaviors.same
+
+
         case RoomActor.JoinRoom4Watch(uid,roomId,playerId,userActor4Watch) =>
+          log.debug(s"${ctx.self.path} recv a msg=${msg}")
           roomInUse.get(roomId) match {
             case Some(set) =>
-              set.filter(p => p._1 == playerId).size match {
-                case 0 =>
-                case _ =>
-                  getRoomActor(ctx,roomId) ! RoomActor.JoinRoom4Watch(uid,roomId,playerId,userActor4Watch)
+              set.exists(p => p._1 == playerId) match {
+                case false => userActor4Watch ! UserActor.JoinRoomFail4Watch("您所观察的用户不在房间里")
+                case _ => getRoomActor(ctx,roomId) ! RoomActor.JoinRoom4Watch(uid,roomId,playerId,userActor4Watch)
               }
-            case None =>
+            case None => userActor4Watch ! UserActor.JoinRoomFail4Watch("您所观察的房间不存在")
           }
           Behaviors.same
 

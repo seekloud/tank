@@ -34,8 +34,8 @@ object UserManager {
   final case class GetReplaySocketFlow(name: String, uid: Long, rid: Long, wid:Long, f:Int, replyTo: ActorRef[Flow[Message, Message, Any]]) extends Command
 
 //  final case class GetWebSocketFlow(name:String, userId:Long ,roomIdOpt:Option[Long], replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
-  final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
-  final case class GetWebSocketFlow4WatchGame(roomId:Int,playerId:Long,replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
+//  final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
+  final case class GetWebSocketFlow4WatchGame(roomId:Long, watchedUserId:Long, replyTo:ActorRef[Flow[Message,Message,Any]], playerInfo:Option[EsheepProtocol.PlayerInfo] = None) extends Command
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -90,9 +90,24 @@ object UserManager {
           replyTo ! getWebSocketFlow(userActor)
           userActor ! UserActor.StartGame
           Behaviors.same
-        case GetWebSocketFlow4WatchGame(roomId,playerId,replyTo) =>
+
+
+        case GetWebSocketFlow4WatchGame(roomId, watchedUserId, replyTo, playerInfoOpt) =>
           //观战用户建立Actor由userManager监管，消息来自HttpService
-          replyTo ! getWebSocketFlow4WatchGame(roomId,playerId,getUserActor4WatchGame(ctx,uidGenerator.getAndIncrement()))
+          val playerInfo = playerInfoOpt match {
+            case Some(p) => TankGameUserInfo(p.playerId, p.nickname, p.nickname, true)
+            case None => TankGameUserInfo(-uidGenerator.getAndIncrement(), s"guest:observer", s"guest:observer", false)
+          }
+          getUserActorOpt(ctx, playerInfo.userId) match {
+            case Some(userActor) =>
+            // todo 将用户actor杀死，防止重登录问题
+
+            case None =>
+          }
+          val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
+          replyTo ! getWebSocketFlow(userActor)
+          //发送用户观战命令
+          userActor ! UserActor.StartObserve(roomId, watchedUserId)
           Behaviors.same
 
         case ChildDead(child, childRef) =>
