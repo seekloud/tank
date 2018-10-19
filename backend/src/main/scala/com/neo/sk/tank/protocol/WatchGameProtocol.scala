@@ -5,7 +5,8 @@ import com.neo.sk.tank.core.{RoomManager, UserActor4WatchGame}
 
 object WatchGameProtocol {
   //esheep请求房间号
-  case class GetRoomIdReq(playerId:Long,replyTo:ActorRef[RoomIdRsp]) extends RoomManager.Command
+  case class GetRoomIdReq(playerId:Long)
+  case class GetRoomId(playerId:Long,replyTo:ActorRef[RoomIdRsp]) extends RoomManager.Command
   case class RoomInfo(roomId:Int)
   case class RoomIdRsp(
                         data:RoomInfo,
@@ -13,13 +14,15 @@ object WatchGameProtocol {
                         msg:String = "ok")
 
   //根据房间Id获取该房间的用户列表
+  case class GetUserInfoListReq(roomId:Int)
+  case class GetUserInfoList(roomId:Int,replyTo:ActorRef[UserInfoListByRoomIdRsp]) extends RoomManager.Command
   case class UserInfo(
-                     uId:Long,
-                     name:String
+                       uId:Long,
+                       name:String
                      )
-  case class GetUserInfoListReq(roomId:Int,replyTo:ActorRef[UserInfoListByRoomIdRsp]) extends RoomManager.Command
+  case class UserInfoList(playerList:List[UserInfo])
   case class UserInfoListByRoomIdRsp(
-                                    data:Option[List[UserInfo]],
+                                    data:UserInfoList,
                                     errCode:Int = 0,
                                     msg:String = "ok"
                                     )
