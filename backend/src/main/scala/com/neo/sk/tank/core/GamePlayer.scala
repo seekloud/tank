@@ -58,7 +58,7 @@ object GamePlayer {
   /**actor内部消息*/
   case class InitReplay(userActor: ActorRef[TankGameEvent.WsMsgSource],userId:Long,f:Int) extends Command
   case class InitDownload(userActor: ActorRef[TankGameEvent.WsMsgSource]) extends Command
-
+  case object GetUserListInRecord extends Command
 
   def create(recordId:Long):Behavior[Command] = {
     Behaviors.setup[Command]{ctx=>
