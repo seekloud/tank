@@ -99,8 +99,8 @@ case class GameContainerServerImpl(
 
 
   override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
-    dispatchTo(tank.userId,TankGameEvent.YouAreKilled(bulletTankId,bulletTankName))
     val tankState = tank.getTankState()
+    dispatchTo(tank.userId,TankGameEvent.YouAreKilled(bulletTankId,bulletTankName, tankState.lives > 1))
     val curTankState = TankState(tankState.userId,tankState.tankId,tankState.direction,tankState.gunDirection,tankState.blood,tankState.bloodLevel,tankState.speedLevel,tankState.curBulletNum,
       tankState.position,tankState.bulletPowerLevel,tankState.tankColorType,tankState.name,tankState.lives-1,None,tankState.killTankNum,tankState.damageTank,tankState.invincible,
       tankState.shotgunState,tankState.speed,tankState.isMove)

@@ -15,7 +15,8 @@ object Routes {
 
   def wsJoinGameUrl(name:String) = base + s"/game/join?name=${name}"
 
-  def wsReplayGameUrl(name:String,uid:Long,rid:Long,wid:Long,f:Int) = base + s"/game/replay?name=$name&uid=$uid&rid=$rid&wid=$wid&f=$f"
+
+
   def wsJoinGameUrl(name:String, userId:Long, userName:String, accessCode:String, roomIdOpt:Option[Long]): String = {
     base + s"/game/userJoin?name=$name&userId=$userId&userName=$userName&accessCode=$accessCode" +
       (roomIdOpt match {
@@ -25,6 +26,9 @@ object Routes {
           ""
       })
   }
+
+  def wsReplayGameUrl(name:String,uid:Long,rid:Long,wid:Long,f:Int) = base + s"/game/replay?name=$name&uid=$uid&rid=$rid&wid=$wid&f=$f"
+
 
 
   def getJoinGameWebSocketUri(name:String, playerInfoOpt: Option[PlayerInfo]): String = {
@@ -36,6 +40,12 @@ object Routes {
         s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name)}"
     }
 
+  }
+
+
+  def getReplaySocketUri(name:String,uid:Long,rid:Long,wid:Long,f:Int): String = {
+    val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
+    s"$wsProtocol://${dom.document.location.host}${Routes.wsReplayGameUrl(name,uid,rid,wid,f)}"
   }
 
 

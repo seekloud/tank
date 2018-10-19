@@ -20,12 +20,12 @@ class StartGameModal(gameState:Var[Int],startGame:(String) => Unit, playerInfoOp
   private val inputValue:Var[String] = Var(playerInfoOpt.map(_.userName).getOrElse(""))
 
 
-  private var lives:Int = 3 // 默认第一次进入，生命值3
+//  private var lives:Int = 3 // 默认第一次进入，生命值3
   private val title = gameState.map{
     case Constants.GameState.firstCome => "欢迎来到坦克大战io，请输入用户名进行游戏体验"
     case Constants.GameState.stop =>
-      if(lives == 0) lives = 2
-      else lives = lives - 1
+//      if(lives == 0) lives = 2
+//      else lives = lives - 1
       "重新开始"
     case _ => ""
   }
@@ -33,7 +33,8 @@ class StartGameModal(gameState:Var[Int],startGame:(String) => Unit, playerInfoOp
   private val divStyle = gameState.map{
     case Constants.GameState.play => "display:none;"
     case Constants.GameState.loadingPlay => "display:none;"
-    case Constants.GameState.stop if lives != 1 => "display:none"
+    case Constants.GameState.relive => "display:none;"
+//    case Constants.GameState.stop if lives != 1 => "display:none"
 
     case _ => "display:block;"
   }
