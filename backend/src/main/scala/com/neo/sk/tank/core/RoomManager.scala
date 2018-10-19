@@ -26,7 +26,7 @@ object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
   private final val leftTime = leftTimeLimit.minutes
   private case object LeftRoomKey
-  private val roomInUse = mutable.HashMap[Long,mutable.HashSet[(Long,Boolean)]]()//roomId->Set((uid,False))uid-->等待复活
+  private val roomInUse = mutable.HashMap[Long,mutable.HashSet[(Long,String,Boolean)]]()//roomId->Set((uid,False))uid-->等待复活
 
 
   trait Command
@@ -70,20 +70,20 @@ object RoomManager {
             val roomCanBeUse = roomInUse.filter(_._2.size < personLimit)
             if(roomCanBeUse.size > 0){
               log.debug(s"room already exists !!! user$uid :$name enter into ${roomCanBeUse.keys.min}")
-              roomInUse(roomCanBeUse.keys.min).add((uid,false))
+              roomInUse(roomCanBeUse.keys.min).add((uid,name,false))
               getRoomActor(ctx,roomCanBeUse.keys.min) ! RoomActor.JoinRoom(uid,tankIdOpt,name,userActor,roomCanBeUse.keys.min)
             }else{
               val roomId = roomIdGenerator.getAndIncrement()
               log.debug(s"new room !!!! user$uid :$name enter into $roomId")
-              roomInUse.put(roomId,mutable.HashSet((uid,false)))
+              roomInUse.put(roomId,mutable.HashSet((uid,name,false)))
               getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,userActor,roomId)
             }
           }else{
             //重新回到原来房间，说明是reStart game
-            roomExistUidMap.head._2.remove((uid,true))
-            roomExistUidMap.head._2.add((uid,false))
-//            roomExistUidMap.head._2.update((uid,false),true)
-            roomInUse.update(roomExistUidMap.head._1,roomExistUidMap.head._2)
+            var userInRoomSet = roomExistUidMap.head._2
+            userInRoomSet = userInRoomSet.filterNot(u => u._1 == uid)
+            userInRoomSet.add((uid,name,false))
+            roomInUse.update(roomExistUidMap.head._1,userInRoomSet)
             log.debug(s"enter repeatedly !!! user$uid :$name is already in ${roomExistUidMap.head._1}")
             getRoomActor(ctx,roomExistUidMap.head._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,userActor,roomExistUidMap.head._1)
           }
@@ -114,8 +114,8 @@ object RoomManager {
                 //断开websocket
                 log.debug(s"玩家：$uid--$name 离开房间:${roomExist.head._1}")
                 roomInUse(roomExist.head._1).filter(u => u._1 == uid).head match {
-                  case (uid,isDead) =>
-                    roomInUse.update(roomExist.head._1,roomInUse(roomExist.head._1).-((uid,isDead)))
+                  case (uid,name,isDead) =>
+                    roomInUse.update(roomExist.head._1,roomInUse(roomExist.head._1).-((uid,name,isDead)))
                     getRoomActor(ctx,roomExist.head._1) ! RoomActor.LeftRoom(uid,tankId,name,roomInUse(roomExist.head._1),roomExist.head._1)
                     if(roomInUse(roomExist.head._1).isEmpty && roomExist.head._1 > 1l){
                       roomInUse.remove(roomExist.head._1)
@@ -126,9 +126,9 @@ object RoomManager {
               case None =>
                 //死亡时间超过10分钟
                 roomInUse(roomExist.head._1).filter(u => u._1 == uid).head match {
-                  case (uid,isDead) =>
+                  case (uid,name,isDead) =>
                     if(isDead){
-                      roomInUse.update(roomExist.head._1,roomInUse(roomExist.head._1).-((uid,isDead)))
+                      roomInUse.update(roomExist.head._1,roomInUse(roomExist.head._1).-((uid,name,isDead)))
                       getRoomActor(ctx,roomExist.head._1) ! RoomActor.LeftRoom(uid,tankId,name,roomInUse(roomExist.head._1),roomExist.head._1)
                       if(roomInUse(roomExist.head._1).isEmpty && roomExist.head._1 > 1l){
                         roomInUse.remove(roomExist.head._1)
@@ -146,8 +146,8 @@ object RoomManager {
         case LeftRoomByKilled(uid,tankId,name) =>
           val roomExist = roomInUse.filter(p => p._2.exists(u => u._1 == uid))
           if(roomExist.size >= 1){
-            roomExist.head._2.remove((uid,false))
-            roomExist.head._2.add((uid,true))
+            roomExist.head._2.remove((uid,name,false))
+            roomExist.head._2.add((uid,name,true))
             getRoomActor(ctx,roomExist.head._1) ! LeftRoomByKilled(uid,tankId,name)
             log.debug(s"I am so sorry that you $name $uid are killed, the timer is beginning....")
             timer.startSingleTimer("room_"+roomExist.head._1+"uid"+uid,LeftRoom(uid,tankId,name,None),leftTime)
