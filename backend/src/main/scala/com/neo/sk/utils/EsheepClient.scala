@@ -4,7 +4,7 @@ import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.utils.SecureUtil.{PostEnvelope, genPostEnvelope}
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.Boot.executor
-import com.neo.sk.tank.shared.ptcl.ErrorRsp
+import com.neo.sk.tank.shared.ptcl.{CommonRsp, ErrorRsp}
 
 import scala.concurrent.Future
 /**
@@ -86,6 +86,40 @@ object EsheepClient extends HttpUtil {
         log.debug(s"${methodName}  failed,error:${error.getMessage}")
         Left(ErrorRsp(-1,error.getMessage))
     }
+  }
+
+
+  def inputBatRecoder(token:String,playerId: String, nickname: String, killing: Int, killed: Int, score: Int, gameExtent: String, startTime: Long, endTime: Long): Future[Either[String,String]]={
+    val methodName = s"addPlayerRecord"
+    val url = s"${baseUrl}/esheep/api/gameServer/addPlayerRecord?token=${token}"
+
+    val data = EsheepProtocol.BatRecordeInfo(playerId,gameId,nickname,killing,killed,score,gameExtent,startTime,endTime).asJson.noSpaces
+
+    val sn = appId + System.currentTimeMillis()
+    val (timestamp, noce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, data), secureKey)
+    val postData = PostEnvelope(appId,sn,timestamp,noce,data,signature).asJson.noSpaces
+
+    postJsonRequestSend(methodName,url,Nil,postData).map{
+      case Right(jsonStr) =>
+        decode[CommonRsp](jsonStr) match {
+          case Right(rsp) =>
+            if(rsp.errCode == 0){
+              Right(s"${methodName} success")
+            }else{
+              log.debug(s"${methodName} failed,error:${rsp.msg}")
+              Left("error")
+            }
+          case Left(error) =>
+            log.warn(s"${methodName} parse json error:${error.getMessage}")
+            Left("error")
+        }
+      case Left(error) =>
+        log.debug(s"${methodName}  failed,error:${error.getMessage}")
+        Left("error")
+    }
+
+
+
   }
 
 

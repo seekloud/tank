@@ -67,4 +67,21 @@ object EsheepProtocol {
 
   case class RecordFrameInfo(frame:Int)
 
+
+  case class BatRecordeInfo(
+                           playerId: String,
+                           gameId: Long,
+                           nickname: String,
+                           killing: Int,
+                           killed: Int,
+                           score: Int,
+                           gameExtent: String,
+                           startTime: Long,
+                           endTime: Long
+                           )
+  case class batRecorde(
+                       playerRecord: BatRecordeInfo
+                       )
+
+
 }
