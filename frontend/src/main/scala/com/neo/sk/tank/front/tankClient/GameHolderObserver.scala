@@ -87,15 +87,9 @@ class GameHolderObserver(canvasObserver:String,roomId:Int,playerId:Long){
 
       case e:TankGameEvent.SyncGameAllState =>
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
-        val tankId = e.gState.tanks.filter(tankState => tankState.userId == playerId).map(_.tankId).head
-        gameContainerOpt.get.getTankId(tankId)
-        nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case e:TankGameEvent.SyncGameState =>
         gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
-        val tankId = e.state.tanks.filter(tankState => tankState.userId == playerId).map(_.tankId).head
-        gameContainerOpt.get.getTankId(tankId)
-        nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case e:TankGameEvent.Ranks =>
         /**
