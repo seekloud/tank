@@ -24,7 +24,8 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg
   */
 trait HttpService
   extends ResourceService
-  with ServiceUtils with PlayService{
+  with ServiceUtils with PlayService
+   with RoomInfoService{
 
   import akka.actor.typed.scaladsl.AskPattern._
   import com.neo.sk.utils.CirceSupport._
@@ -90,7 +91,7 @@ trait HttpService
 
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath) {
-    resourceRoutes ~
+    resourceRoutes ~ roomInfoRoute~
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")

@@ -16,6 +16,8 @@ import scala.collection.immutable.HashMap
 import scala.collection.mutable
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import akka.actor.typed.Behavior
+import com.neo.sk.tank.protocol.WatchGameProtocol
+import com.neo.sk.tank.protocol.WatchGameProtocol._
 import com.neo.sk.tank.shared.ptcl.CommonRsp
 import com.neo.sk.utils.TimeUtil
 
@@ -35,13 +37,6 @@ object RoomManager {
   private case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
 
   case class LeftRoom(uid:Long,tankId:Int,name:String,userOpt: Option[Long]) extends Command
-
-  case class GetRoomListRsp(roomList:List[Long],
-                            errCode:Int = 0,
-                            msg:String = "ok"
-                           ) extends CommonRsp
-  case class GetPlayersListReq(roomId:Int,replyTo:ActorRef[GetRoomListRsp]) extends Command
-
 
   def create():Behavior[Command] = {
     log.debug(s"RoomManager start...")
@@ -155,12 +150,25 @@ object RoomManager {
             timer.startSingleTimer("room_"+roomExist.head._1+"uid"+uid,LeftRoom(uid,tankId,name,None),leftTime)
           }
           Behaviors.same
-        case GetPlayersListReq(roomId,replyTo) =>
-          val players = roomInUse.get(roomId) match {
-            case Some(set) =>set.map(_._1)
-            case None =>
+
+        case WatchGameProtocol.GetRoomId(playerId,replyTo) =>
+          val roomExist = roomInUse.map{p =>(p._1,p._2.exists(t => t._1 == playerId))}
+            .filter(t => t._2 == true).headOption
+          roomExist match{
+            case Some((roomId,playerIsIn)) =>replyTo ! WatchGameProtocol.RoomIdRsp(WatchGameProtocol.RoomInfo(roomId))
+            case None =>replyTo ! WatchGameProtocol.RoomIdRsp(WatchGameProtocol.RoomInfo(-1),errCode = 100005,msg = "this player exists no room")
           }
-          replyTo ! GetRoomListRsp(roomInUse.keys.toList)
+          Behaviors.same
+
+        case GetUserInfoList(roomId,replyTo) =>
+          roomInUse.filter(p => p._1 == roomId).headOption match{
+            case Some(tuple) => replyTo ! UserInfoListByRoomIdRsp(UserInfoList(tuple._2.map{ t => UserInfo(t._1,t._2)}.toList))
+            case None => replyTo ! UserInfoListByRoomIdRsp(UserInfoList(Nil),errCode = 100006,msg = "该房间未被创建")
+          }
+          Behaviors.same
+
+        case GetRoomListReq(replyTo) =>
+          replyTo ! RoomListRsp(RoomList(roomInUse.keys.toList))
           Behaviors.same
 
         case ChildDead(child,childRef) =>
