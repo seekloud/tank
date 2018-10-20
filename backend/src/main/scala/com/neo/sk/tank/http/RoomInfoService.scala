@@ -75,6 +75,6 @@ trait RoomInfoService extends ServiceUtils{
       }
     }
   }
-  val RoomInfoRoute :Route = getRoomList ~ getRoomId ~ getRoomPlayerList
+  val roomInfoRoute :Route = getRoomList ~ getRoomId ~ getRoomPlayerList
 
 }
