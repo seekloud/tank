@@ -17,8 +17,8 @@ object WatchGameProtocol {
   case class GetUserInfoListReq(roomId:Long)
   case class GetUserInfoList(roomId:Long,replyTo:ActorRef[UserInfoListByRoomIdRsp]) extends RoomManager.Command
   case class UserInfo(
-                       uId:Long,
-                       name:String
+                       playerId:Long,
+                       nickname:String
                      )
   case class UserInfoList(playerList:List[UserInfo])
   case class UserInfoListByRoomIdRsp(
