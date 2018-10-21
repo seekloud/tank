@@ -2,7 +2,7 @@ package com.neo.sk.tank.core
 
 import java.io.File
 
-import akka.actor.typed.Behavior
+import akka.actor.typed.{Behavior, PostStop}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.{ActorContext, StashBuffer, TimerScheduler}
 import com.neo.sk.tank.common.AppSettings
@@ -22,6 +22,8 @@ import scala.util.{Failure, Success}
 import com.neo.sk.tank.Boot.executor
 import com.neo.sk.tank.protocol.ReplayProtocol.{EssfMapJoinLeftInfo, EssfMapKey}
 import com.neo.sk.utils.ESSFSupport.userMapEncode
+
+import scala.concurrent.{Await, Future}
 
 /**
   * Created by hongruying on 2018/8/14
@@ -110,7 +112,7 @@ object GameRecorder {
                     middleBuffer: MiddleBufferInJvm
                   ) : Behavior[Command] = {
     import gameRecordData._
-    Behaviors.receive{ (ctx,msg) =>
+    Behaviors.receive[Command] { (ctx,msg) =>
       msg match {
         case t:GameRecord =>
           //log.info(s"${ctx.self.path} work get msg gameRecord")
@@ -158,7 +160,8 @@ object GameRecorder {
           log.info(s"${ctx.self.path} work get msg save")
           timer.startSingleTimer(SaveDateKey, Save, saveTime)
           ctx.self ! SaveDate
-          switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
+          //switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
+          save(gameRecordData,essfMap,userAllMap,userMap,startF,endF)
 
 
 
@@ -166,8 +169,32 @@ object GameRecorder {
           log.warn(s"${ctx.self.path} recv an unknown msg:${unknow}")
           Behaviors.same
       }
-
-
+    }.receiveSignal{
+      case (ctx,PostStop) =>
+        timer.cancelAll()
+        log.info(s"${ctx.self.path} stopping....")
+        // todo  保存信息
+        val mapInfo = essfMap.map{
+          essf=>
+            if(essf._2.leftF == -1L){
+              (essf._1,EssfMapJoinLeftInfo(essf._2.joinF,endF))
+            }else{
+              essf
+            }
+        }
+        recorder.putMutableInfo(AppSettings.essfMapKeyName,userMapEncode(mapInfo))
+        recorder.finish()
+        val endTime = System.currentTimeMillis()
+        val filePath = AppSettings.gameDataDirectoryPath + fileName + s"_$fileIndex"
+        val recordInfo = rGameRecord(-1L, gameRecordData.roomId, gameRecordData.gameInformation.gameStartTime, endTime,filePath)
+        val recordId =Await.result(RecordDAO.insertGameRecord(recordInfo), 1.minute)
+        val list = ListBuffer[rUserRecordMap]()
+        userAllMap.foreach{
+          userRecord =>
+            list.append(rUserRecordMap(userRecord._1, recordId, roomId))
+        }
+        Await.result(RecordDAO.insertUserRecordList(list.toList), 2.minute)
+        Behaviors.stopped
     }
   }
 
@@ -198,8 +225,8 @@ object GameRecorder {
               }
           }
           recorder.putMutableInfo(AppSettings.essfMapKeyName,userMapEncode(mapInfo))
-
           recorder.finish()
+
           log.info(s"${ctx.self.path} has save game data to file=${fileName}_$fileIndex")
           val endTime = System.currentTimeMillis()
           val filePath = AppSettings.gameDataDirectoryPath + fileName + s"_$fileIndex"
@@ -230,7 +257,6 @@ object GameRecorder {
           log.warn(s"${ctx} save got unknow msg ${unknow}")
           Behaviors.same
       }
-
     }
 
   }
@@ -296,9 +322,6 @@ object GameRecorder {
           Behavior.same
       }
     }
-
-
-
 
 
 }
