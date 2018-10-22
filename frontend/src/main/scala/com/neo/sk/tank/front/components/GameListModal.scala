@@ -5,6 +5,7 @@ import mhtml.Var
 import com.neo.sk.tank.front.utils.{Http, JsFunc}
 import io.circe.generic.auto._
 import io.circe.syntax._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.Elem
 import com.neo.sk.tank.front.utils.Shortcut
@@ -12,7 +13,8 @@ import org.scalajs.dom
 import org.scalajs.dom.KeyboardEvent
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.Input
-import com.neo.sk.tank.shared.ptcl.GameRecPtcl.{getGameRecReq, getGameRecByIdReq, getGameRecByRoomReq, getGameRecByPlayerReq, getGameRecRsp, gameRec}
+import com.neo.sk.tank.shared.ptcl.GameRecPtcl.{gameRec, getGameRecByIdReq, getGameRecByPlayerReq, getGameRecByRoomReq, getGameRecReq, getGameRecRsp}
+import org.scalajs.dom.raw.MouseEvent
 
 /**
   * Created by hongruying on 2018/7/9
@@ -79,8 +81,14 @@ object GameListModal extends Component{
     Shortcut.dateFormatDefault(time)
   }
 
-  def toOneRecord() ={
-    dom.window.location.hash = "https://www.baidu.com"
+  def toOneRecord(recordId:Long) ={
+    val op=dom.document.getElementById(recordId.toString).asInstanceOf[Input].value
+    println(op)
+    if(op==""){
+      JsFunc.alert("请选择视角")
+    }else{
+      Shortcut.redirect(s"#/watchRecord/$recordId/$op/0/fasgasgsag")
+    }
   }
 
   def changeToUser = {
@@ -123,17 +131,26 @@ object GameListModal extends Component{
             <th>EndTime</th>
             <th>PepleCounts</th>
             <th>Members</th>
+            <th>WatchId</th>
           </tr>
         </thead>
         <tbody>
           {lst.map{l =>
-          <tr onclick={() => toOneRecord()}>
+          <tr onclick={() => toOneRecord(l.recordId)}>
             <td>{l.recordId}</td>
             <td>{l.roomId}</td>
             <td>{longToTime(l.startTime)}</td>
             <td>{longToTime(l.endTime)}</td>
             <td>{l.userCounts}</td>
             <td>{l.userList.mkString(",")}</td>
+            <td>
+              <select id={l.recordId.toString} onclick={e:MouseEvent=>
+                e.stopPropagation()}>
+                {l.userList.map(r=>
+                  <option value={r.toString}>{r}</option>
+                )}
+              </select>
+            </td>
           </tr>
           }}
         </tbody>
