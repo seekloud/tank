@@ -2,7 +2,7 @@ package com.neo.sk.tank.core
 
 import java.io.File
 
-import akka.actor.typed.Behavior
+import akka.actor.typed.{Behavior, PostStop}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.{ActorContext, StashBuffer, TimerScheduler}
 import com.neo.sk.tank.common.AppSettings
@@ -23,6 +23,8 @@ import com.neo.sk.tank.Boot.executor
 import com.neo.sk.tank.protocol.ReplayProtocol.{EssfMapJoinLeftInfo, EssfMapKey}
 import com.neo.sk.utils.ESSFSupport.userMapEncode
 
+import scala.concurrent.{Await, Future}
+
 /**
   * Created by hongruying on 2018/8/14
   * 采用essf工具进行记录
@@ -38,8 +40,10 @@ object GameRecorder {
   sealed trait Command
 
   final case class GameRecord(event:(List[TankGameEvent.WsMsgServer],Option[TankGameEvent.GameSnapshot])) extends Command
-  final case object SaveDate extends Command
+  final case class SaveDate(stop:Int) extends Command
   final case object Save extends Command
+  final case object RoomClose extends Command
+  final case object StopRecord extends Command
 
   private final val InitTime = Some(5.minutes)
   private final case object BehaviorChangeKey
@@ -110,7 +114,7 @@ object GameRecorder {
                     middleBuffer: MiddleBufferInJvm
                   ) : Behavior[Command] = {
     import gameRecordData._
-    Behaviors.receive{ (ctx,msg) =>
+    Behaviors.receive[Command] { (ctx,msg) =>
       msg match {
         case t:GameRecord =>
           //log.info(s"${ctx.self.path} work get msg gameRecord")
@@ -157,7 +161,12 @@ object GameRecorder {
         case Save =>
           log.info(s"${ctx.self.path} work get msg save")
           timer.startSingleTimer(SaveDateKey, Save, saveTime)
-          ctx.self ! SaveDate
+          ctx.self ! SaveDate(0)
+          switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
+
+        case RoomClose =>
+          log.info(s"${ctx.self.path} work get msg save, room close")
+          ctx.self ! SaveDate(1)
           switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
 
 
@@ -166,8 +175,32 @@ object GameRecorder {
           log.warn(s"${ctx.self.path} recv an unknown msg:${unknow}")
           Behaviors.same
       }
-
-
+    }.receiveSignal{
+      case (ctx,PostStop) =>
+        timer.cancelAll()
+        log.info(s"${ctx.self.path} stopping....")
+        // todo  保存信息
+        val mapInfo = essfMap.map{
+          essf=>
+            if(essf._2.leftF == -1L){
+              (essf._1,EssfMapJoinLeftInfo(essf._2.joinF,endF))
+            }else{
+              essf
+            }
+        }
+        recorder.putMutableInfo(AppSettings.essfMapKeyName,userMapEncode(mapInfo))
+        recorder.finish()
+        val endTime = System.currentTimeMillis()
+        val filePath = AppSettings.gameDataDirectoryPath + fileName + s"_$fileIndex"
+        val recordInfo = rGameRecord(-1L, gameRecordData.roomId, gameRecordData.gameInformation.gameStartTime, endTime,filePath)
+        val recordId =Await.result(RecordDAO.insertGameRecord(recordInfo), 1.minute)
+        val list = ListBuffer[rUserRecordMap]()
+        userAllMap.foreach{
+          userRecord =>
+            list.append(rUserRecordMap(userRecord._1, recordId, roomId))
+        }
+        Await.result(RecordDAO.insertUserRecordList(list.toList), 2.minute)
+        Behaviors.stopped
     }
   }
 
@@ -187,7 +220,7 @@ object GameRecorder {
     import gameRecordData._
     Behaviors.receive{(ctx,msg) =>
       msg match {
-        case SaveDate =>
+        case s:SaveDate =>
           log.info(s"${ctx.self.path} save get msg saveDate")
           val mapInfo = essfMap.map{
             essf=>
@@ -215,17 +248,20 @@ object GameRecorder {
                 case Success(_) =>
                   log.info(s"insert user record success")
                   ctx.self !  SwitchBehavior("initRecorder",initRecorder(roomId,gameRecordData.fileName,fileIndex,gameInformation, userMap))
+                  if(s.stop == 1) ctx.self ! StopRecord
                 case Failure(e) =>
                   log.error(s"insert user record fail, error: $e")
                   ctx.self !  SwitchBehavior("initRecorder",initRecorder(roomId,gameRecordData.fileName,fileIndex,gameInformation, userMap))
+                  if(s.stop == 1) ctx.self ! StopRecord
               }
 
             case Failure(e) =>
               log.error(s"insert geme record fail, error: $e")
               ctx.self !  SwitchBehavior("initRecorder",initRecorder(roomId,gameRecordData.fileName,fileIndex,gameInformation, userMap))
+              if(s.stop == 1) ctx.self ! StopRecord
 
           }
-          switchBehavior(ctx,"busy",busy())
+            switchBehavior(ctx,"busy",busy())
         case unknow =>
           log.warn(s"${ctx} save got unknow msg ${unknow}")
           Behaviors.same
@@ -268,6 +304,10 @@ object GameRecorder {
               newUserAllMap.put(user._1, user._2)
           }
           switchBehavior(ctx,"work",work(newGameRecorderData, newEssfMap, newUserAllMap, userMap, startF, -1L))
+
+        case StopRecord=>
+          log.info(s"${ctx.self.path} room close, stop record ")
+          Behaviors.stopped
 
         case unknow =>
           log.warn(s"${ctx} initRecorder got unknow msg ${unknow}")
