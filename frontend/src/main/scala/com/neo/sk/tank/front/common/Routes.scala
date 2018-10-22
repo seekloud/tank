@@ -13,7 +13,10 @@ object Routes {
   val base = "/tank"
   val getRoomListRoute = base + "/getRoomIdList"
 
-  val getGameRecordUrl = base + s"/game/getGameRec"
+  val getRecordListUrl = base + s"/getGameRec"
+  val getRecordListByPlayerUrl = base + s"/getGameRecByPlayer"
+  val getRecordListByRoomUrl = base + s"/getGameRecByRoom"
+  val getRecordListByIdUrl = base + s"/getGameRecById"
 
   def wsJoinGameUrl(name:String) = base + s"/game/join?name=${name}"
 
