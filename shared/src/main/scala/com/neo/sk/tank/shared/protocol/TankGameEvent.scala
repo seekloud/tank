@@ -29,7 +29,7 @@ object TankGameEvent {
   final case class YourInfo(userId:Long,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
 //  final case class YouAreKilled(tankId:Int,name:String) extends WsMsgServer //可能会丢弃
 //  final case class PlayerAreKilled(tankId:Int,name:String) extends WsMsgServer
-  final case class YouAreKilled(tankId:Int,name:String, hasLife:Boolean) extends WsMsgServer //可能会丢弃
+  final case class YouAreKilled(tankId:Int,name:String, hasLife:Boolean,killTankNum:Int,lives:Int,damageStatistics:Int) extends WsMsgServer //可能会丢弃
   final case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends WsMsgServer
   final case class SyncGameState(state:GameContainerState) extends WsMsgServer
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
@@ -60,7 +60,7 @@ object TankGameEvent {
 
   final case class UserJoinRoom(userId:Long, name:String, tankState:TankState, override val frame: Long) extends  UserEvent with WsMsgServer
   final case class UserLeftRoom(userId:Long, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer
-  final case class PlayerLeftRoom(userId:Long,name:String,tankId:Int,override val frame:Long) extends UserEvent with WsMsgServer
+  final case class PlayerLeftRoom(userId:Long,name:String,tankId:Int,override val frame:Long,killTankNum:Int,lives:Int,damageStatistics:Int) extends UserEvent with WsMsgServer
   final case class UserMouseMove(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
   final case class UserKeyboardMove(tankId:Int,override val frame:Long,angle:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 
