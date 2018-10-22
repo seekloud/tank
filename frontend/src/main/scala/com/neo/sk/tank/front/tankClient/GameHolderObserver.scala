@@ -75,14 +75,15 @@ class GameHolderObserver(canvasObserver:String,roomId:Long, accessCode:String, p
     println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
-        setGameState(Constants.GameState.loadingPlay)
+//        setGameState(Constants.GameState.loadingPlay)
         gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, true))
         gameContainerOpt.get.getTankId(e.tankId)
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
 
       case e:TankGameEvent.PlayerLeftRoom =>
         Shortcut.cancelSchedule(timer)
-        JsFunc.alert(s"玩家${e.name}已经离开房间")
+        gameContainerOpt.foreach(_.drawDeadImg(s"玩家已经离开了房间，请重新选择观战对象"))
+//        JsFunc.alert(s"玩家${e.name}已经离开房间")
 
 //      case e: TankGameEvent.FirstSyncGameAllState=>
 //        setGameState(Constants.GameState.play)
@@ -91,7 +92,7 @@ class GameHolderObserver(canvasObserver:String,roomId:Long, accessCode:String, p
 
       case e:TankGameEvent.SyncGameAllState =>
         println("sssssssssssssssssssssssssssssssssssssssssssss=")
-        setGameState(Constants.GameState.play)
+//        setGameState(Constants.GameState.play)
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
         dom.window.cancelAnimationFrame(nextFrame)
         nextFrame = dom.window.requestAnimationFrame(gameRender())
@@ -127,10 +128,17 @@ class GameHolderObserver(canvasObserver:String,roomId:Long, accessCode:String, p
           * */
         println(s"you are killed")
         killerName = e.name
-        setGameState(Constants.GameState.stop)
+        if(e.hasLife){
+//          setGameState(Constants.GameState.relive)
+          gameContainerOpt.foreach(_.drawDeadImg(s"玩家死亡，生命值未用尽，等待玩家复活"))
+        }else{
+//          setGameState(Constants.GameState.stop)
+          gameContainerOpt.foreach(_.drawDeadImg(s"玩家死亡，生命值已经用完啦！可以在此界面等待玩家重新进入房间"))
+
+        }
         dom.window.cancelAnimationFrame(nextFrame)
         Shortcut.cancelSchedule(timer)
-        gameContainerOpt.foreach(_.drawDeadImg())
+//        gameContainerOpt.foreach(_.drawDeadImg())
 
 
 
