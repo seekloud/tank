@@ -21,7 +21,7 @@ object GameRecPtcl {
 
   //根据用户获取
   case class getGameRecByPlayerReq(
-                                    playerId:Long,
+                                    playerId:String,
                                     lastRecordId:Long,
                                     count:Int
                                   )
@@ -33,7 +33,7 @@ object GameRecPtcl {
                       startTime:Long,
                       endTime:Long,
                       userCounts:Int,
-                      userList:Seq[Long]
+                      userList:Seq[String]
                     )
 
   //列表回复

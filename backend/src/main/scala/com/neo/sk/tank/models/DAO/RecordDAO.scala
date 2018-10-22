@@ -50,7 +50,7 @@ object RecordDAO {
   }
 
   //根据用户选择录像
-  def queryRecByPlayer(userId: Long, lastId: Long, count: Int) = {
+  def queryRecByPlayer(userId: String, lastId: Long, count: Int) = {
     val action = for{
       recordIds <- tUserRecordMap.filter(t => t.userId === userId && t.recordId > lastId).sortBy(_.recordId).map(_.recordId).take(count).result
       rst <- tGameRecord.filter(_.recordId.inSet(recordIds)).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
