@@ -18,7 +18,6 @@ import scala.util.Random
 import collection.mutable
 import com.neo.sk.tank.shared.`object`.TankState
 import com.neo.sk.tank.Boot.roomManager
-import .JoinRoomSuccess4Watch
 
 /**
   * Created by hongruying on 2018/8/29

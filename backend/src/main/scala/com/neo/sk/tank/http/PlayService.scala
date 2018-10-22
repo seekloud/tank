@@ -14,7 +14,7 @@ import akka.actor.typed.scaladsl.AskPattern._
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import com.neo.sk.tank.Boot.{executor, scheduler, timeout, userManager}
 import com.neo.sk.tank.core.UserManager
-import com.neo.sk.tank.protocol.CommonErrorCode
+import com.neo.sk.tank.protocol.{CommonErrorCode, ReplayProtocol}
 import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameReq, GetRecordFrameRsp, GetUserInRecordReq, GetUserInRecordRsp}
 import org.slf4j.LoggerFactory
 
@@ -50,7 +50,7 @@ trait PlayService extends AuthService{
   private def getRecordFrame=(path("getRecordFrame") & post){
     entity(as[Either[Error,GetRecordFrameReq]]){
       case Right(req)=>
-        val flowFuture:Future[GetRecordFrameRsp]=userManager ? (UserManager.GetRecordFrameMsg(req.recordId,req.playerId,_))
+        val flowFuture:Future[GetRecordFrameRsp]=userManager ? (ReplayProtocol.GetRecordFrameMsg(req.recordId,req.playerId,_))
         dealFutureResult(
           flowFuture.map(r=>complete(r))
         )
@@ -62,7 +62,7 @@ trait PlayService extends AuthService{
   private def getRecordPlayerList=(path("getRecordPlayerList") & post){
     entity(as[Either[Error,GetUserInRecordReq]]){
       case Right(req)=>
-        val flowFuture:Future[GetUserInRecordRsp]=userManager ? (UserManager.GetUserInRecordMsg(req.recordId,req.playerId,_))
+        val flowFuture:Future[GetUserInRecordRsp]=userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId,req.playerId,_))
         dealFutureResult(
           flowFuture.map(r=>complete(r))
         )
