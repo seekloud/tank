@@ -334,11 +334,22 @@ object UserActor {
           Behaviors.same
 
         case DispatchMsg(m) =>
+          m match {
+            case k:TankGameEvent.YouAreKilled =>
+              if(tank.lives -1 <= 0 && uId > 0){
+                val endTime = System.currentTimeMillis()
+                esheepSyncClient ! EsheepSyncClient.InputRecord(uId,userInfo.nickName,k.killTankNum,tank.config.getTankLivesLimit,k.damageStatistics, startTime, endTime)
+              }
+            case l:TankGameEvent.PlayerLeftRoom =>
+              if(uId > 0){
+                val endTime = System.currentTimeMillis()
+                val killed = tank.config.getTankLivesLimit - l.lives
+                esheepSyncClient ! EsheepSyncClient.InputRecord(uId,userInfo.nickName,l.killTankNum,killed,l.damageStatistics, startTime, endTime)
+              }
+            case _ =>
+
+          }
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
-            if(tank.lives -1 <= 0 && uId > 0){
-               val endTime = System.currentTimeMillis()
-               esheepSyncClient ! EsheepSyncClient.InputRecord(uId,userInfo.nickName,tank.killTankNum,tank.config.getTankLivesLimit,tank.damageStatistics, startTime, endTime)
-            }
             frontActor ! m
             roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,userInfo.name)
             switchBehavior(ctx,"idle",idle(uId,userInfo,frontActor))
@@ -349,12 +360,6 @@ object UserActor {
 
         case UserLeft(actor) =>
           log.info("webSocket--error in play")
-
-          if(uId > 0){
-            val endTime = System.currentTimeMillis()
-            val killed = tank.config.getTankLivesLimit - tank.lives
-            esheepSyncClient ! EsheepSyncClient.InputRecord(uId,userInfo.nickName,tank.killTankNum,killed,tank.damageStatistics, startTime, endTime)
-          }
           ctx.unwatch(actor)
           roomManager ! RoomManager.LeftRoom(uId,tank.tankId,userInfo.name,Some(uId))
           Behaviors.stopped
