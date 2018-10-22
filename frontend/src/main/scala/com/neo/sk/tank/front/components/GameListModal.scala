@@ -30,7 +30,7 @@ object GameListModal extends Component{
     val id = dom.window.document.getElementById("inputContent").asInstanceOf[Input].value
     if(selectState == 0 && id != ""){
       lastRecordId = (currentPageState-1) * 10
-      val data = getGameRecByPlayerReq(id.toLong, lastRecordId, 10).asJson.noSpaces
+      val data = getGameRecByPlayerReq(id, lastRecordId, 10).asJson.noSpaces
       Http.postJsonAndParse[getGameRecRsp](Routes.getRecordListByPlayerUrl, data).map{rsp =>
         if(rsp.errCode == 0){
           recordTable := rsp.data.get
