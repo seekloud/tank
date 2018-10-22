@@ -22,4 +22,8 @@ object Constants {
 
 
 
+  val TankGameUserIdPrefix = "tank_guest_"
+
+
+
 }

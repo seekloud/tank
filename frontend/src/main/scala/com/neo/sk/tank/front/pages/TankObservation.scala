@@ -7,7 +7,7 @@ import org.scalajs.dom
 
 import scala.xml.Elem
 
-class TankObservation(roomId:Long, accessCode:String, playerIdOpt: Option[Long] = None) extends Page{
+class TankObservation(roomId:Long, accessCode:String, playerIdOpt: Option[String] = None) extends Page{
 //  dom.window.location.hash = s"#/watchGame/${roomId}/${playerId}"
   private val canvas = <canvas id="GameWatch" tabindex="1"></canvas>
   def init() = {

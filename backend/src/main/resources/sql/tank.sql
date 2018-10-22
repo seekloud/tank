@@ -13,7 +13,7 @@ file_path TEXT NOT NULL
 
 
 create TABLE user_record_map(
-user_id BIGINT NOT NULL ,
+user_id VARCHAR(32) NOT NULL ,
 record_id BIGINT NOT NULL ,
 room_id BIGINT NOT NULL
 );

@@ -13,7 +13,7 @@ import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom.html.Canvas
 
-class GameHolderObserver(canvasObserver:String,roomId:Long, accessCode:String, playerId:Option[Long]){
+class GameHolderObserver(canvasObserver:String,roomId:Long, accessCode:String, playerId:Option[String]){
 
   private[this] val canvas = dom.document.getElementById(canvasObserver).asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]

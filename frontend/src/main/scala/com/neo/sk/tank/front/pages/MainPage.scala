@@ -30,8 +30,8 @@ object MainPage extends PageSwitcher {
   private val currentPage: Rx[Elem] = currentPageHash.map {
     case Nil => TankDemo.render
     case "playGame" :: playInfoSeq => PlayPage(playInfoSeq).render
-    case "replay":: name :: uid :: rid :: wid :: f :: Nil => new ReplayPage(name, uid.toLong, rid.toLong,wid.toLong, f.toInt).render
-    case "watchGame" :: roomId :: playerId :: accessCode ::Nil => new TankObservation(roomId.toLong, accessCode, Some(playerId.toLong)).render
+    case "replay":: name :: uid :: rid :: wid :: f :: Nil => new ReplayPage(name, uid, rid.toLong,wid, f.toInt).render
+    case "watchGame" :: roomId :: playerId :: accessCode ::Nil => new TankObservation(roomId.toLong, accessCode, Some(playerId)).render
     case "watchGame" :: roomId :: accessCode :: Nil => new TankObservation(roomId.toLong, accessCode).render
     case "getGameRec" :: Nil => GameRecordList.render
 

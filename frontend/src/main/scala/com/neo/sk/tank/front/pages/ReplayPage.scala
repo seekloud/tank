@@ -12,7 +12,7 @@ import scala.xml.Elem
   * Date: 2018/10/15
   * Time: 12:35
   */
-class ReplayPage(n: String, u: Long, r: Long, w: Long, frame: Int) extends Page {
+class ReplayPage(n: String, u: String, r: Long, w: String, frame: Int) extends Page {
 
   private val cannvas = <canvas id="GameReplay" tabindex="1"></canvas>
 

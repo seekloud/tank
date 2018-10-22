@@ -25,7 +25,7 @@ object EsheepProtocol {
 
 
   case class PlayerInfo(
-                         playerId:Long,
+                         playerId:String,
                          nickname:String
                        )
 
@@ -42,7 +42,7 @@ object EsheepProtocol {
   /**获取录像内玩家列表*/
   case class GetUserInRecordReq(
                             recordId:Long,
-                            playerId:Long
+                            playerId:String
                             )
 
   case class GetUserInRecordRsp(
@@ -56,7 +56,7 @@ object EsheepProtocol {
   /**获取录像播放进度}*/
   case class GetRecordFrameReq(
                               recordId:Long,
-                              playerId:Long
+                              playerId:String
                               )
 
   case class GetRecordFrameRsp(
