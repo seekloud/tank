@@ -49,7 +49,8 @@ object RecordDAO {
     db.run(q)
   }
 
-  def getRecByUserId(userId: Long, lastId: Long, count: Int) = {
+  //根据用户选择录像
+  def queryRecByPlayer(userId: Long, lastId: Long, count: Int) = {
     val action = for{
       recordIds <- tUserRecordMap.filter(t => t.userId === userId && t.recordId > lastId).sortBy(_.recordId).map(_.recordId).take(count).result
       rst <- tGameRecord.filter(_.recordId.inSet(recordIds)).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
@@ -59,8 +60,25 @@ object RecordDAO {
     db.run(action.transactionally)
   }
 
+  //根据房间号选择ID
+  def queryRecByRoom(roomId:Long, lastId: Long, count: Int) = {
+    val q = for {
+      rst <- tGameRecord.filter(r => r.recordId > lastId && r.roomId === roomId).sortBy(_.recordId).take(count).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
+    } yield rst
+    db.run(q)
+  }
+
+  //根据录像Id选择录像
+  def queryRecById(recordId:Long) = {
+    val q = for {
+      rst <- tGameRecord.filter(r => r.recordId === recordId).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
+    } yield rst
+    db.run(q)
+  }
+
   def getFilePath(recordId:Long) = {
     val q = tGameRecord.filter(_.recordId === recordId).map(_.filePath).result
     db.run(q)
   }
+
 }

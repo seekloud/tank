@@ -75,6 +75,60 @@ object Shortcut {
     y + m
   }
 
+  def dateFormatDefault(timestamp: Long, format: String = "yyyy-MM-dd HH:mm:ss"): String = {
+    DateFormatter(new Date(timestamp), format)
+  }
+
+  def DateFormatter(date: Date, `type`: String): String = {
+    val y = date.getFullYear()
+    val m = date.getMonth() + 1
+    val d = date.getDate()
+    val h = date.getHours()
+    val mi = date.getMinutes()
+    val s = date.getSeconds()
+    date.getDate()
+    val mS = if (m < 10)
+      "0" + m
+    else
+      m
+    val dS = if (d < 10)
+      "0" + d
+    else
+      d
+    val hS = if (h < 10)
+      "0" + h
+    else
+      h
+    val miS = if (mi < 10)
+      "0" + mi
+    else
+      mi
+    val sS = if (s < 10)
+      "0" + s
+    else
+      s
+    `type` match {
+      case "yyyy-MM-dd hh:mm:ss" =>
+        y + "-" + mS + "-" + dS + " " + hS + ":" + miS + ":" + sS
+      case "yyyy-MM-dd hh:mm" =>
+        y + "-" + mS + "-" + dS + " " + hS + ":" + miS
+      case "yyyy-MM-dd" =>
+        y + "-" + mS + "-" + dS
+      case "yyyyMMdd" =>
+        y + "" + mS + "" + dS
+      case "yyyy/MM/dd" =>
+        y + "/" + mS + "/" + dS
+      case "yyyy-MM" =>
+        y + "-" + mS
+      case "MM-dd" =>
+        mS + "-" + dS
+      case "hh:mm" =>
+        hS + ":" + miS
+      case x =>
+        y + "-" + mS + "-" + dS + " " + hS + ":" + miS + ":" + sS
+    }
+  }
+
   def scheduleOnce(f: () => Any, delayMillisecond: Long): Int = {
     dom.window.setTimeout(() => f(), delayMillisecond)
   }
@@ -86,6 +140,7 @@ object Shortcut {
   def cancelSchedule(h:Int): Unit = {
     dom.window.clearInterval(h)
   }
+
 
 
 }
