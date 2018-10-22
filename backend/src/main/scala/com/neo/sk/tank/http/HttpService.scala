@@ -20,7 +20,7 @@ import com.neo.sk.tank.core.UserManager
   */
 trait HttpService
   extends ResourceService
-  with gRecordListService
+  with RecordApiService
   with ServiceUtils {
 
   import akka.actor.typed.scaladsl.AskPattern._
@@ -45,7 +45,7 @@ trait HttpService
 
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath){
-    resourceRoutes ~
+    resourceRoutes ~ GameRecRoutes ~
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
@@ -60,7 +60,7 @@ trait HttpService
               )
             }
           }
-      } ~ GameRecRoutes
+      }
   }
 
 
