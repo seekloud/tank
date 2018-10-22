@@ -27,7 +27,8 @@ trait HttpService
   extends ResourceService
     with ServiceUtils
     with PlayService
-    with RoomInfoService{
+    with RoomInfoService
+  with RecordApiService {
 
   import akka.actor.typed.scaladsl.AskPattern._
   import com.neo.sk.utils.CirceSupport._
@@ -111,9 +112,10 @@ trait HttpService
 
 
 
-  lazy val routes: Route = pathPrefix(AppSettings.rootPath) {
-    resourceRoutes ~ roomInfoRoute~
-      pathPrefix("game") {
+
+  lazy val routes: Route = pathPrefix(AppSettings.rootPath){
+    resourceRoutes ~ GameRecRoutes ~
+      (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
         } ~ watchGamePath ~
@@ -140,6 +142,7 @@ trait HttpService
             )
           }
         } ~ playRoute
+
       }
   }
 
