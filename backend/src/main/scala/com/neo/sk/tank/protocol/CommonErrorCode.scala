@@ -8,6 +8,13 @@ import com.neo.sk.tank.shared.ptcl.ErrorRsp
   * Time: 14:58
   */
 object CommonErrorCode{
+  trait Response{
+    val errCode:Int
+    val msg:String
+  }
+
+  case class CommonRsp(errCode:Int = 0,msg:String = "ok") extends Response
+  val successRsp = CommonRsp()
   def internalError(message:String) = ErrorRsp(1000101,s"internal error: $message")
 
   def noSessionError(message:String="no session") = ErrorRsp(1000202,s"$message")
@@ -41,11 +48,4 @@ object CommonErrorCode{
   def sessionErrorRsp(msg: String) = ErrorRsp(1001320, msg)
 
   def checkUserAuthorityErrorRsp(msg: String) = ErrorRsp(1001404, msg)
-
-  def noMessageError = ErrorRsp(1000116, "No More Message")
-
-
-
-
-
 }
