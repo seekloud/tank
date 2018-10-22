@@ -98,18 +98,18 @@ trait ServiceUtils extends CirceSupport with SessionBase{
   def dealPostReq[A](f: A => Future[server.Route])(implicit decoder: Decoder[A]): server.Route = {
     entity(as[Either[Error, PostEnvelope]]) {
       case Right(envelope) =>
-        if(authCheck) {
-          ensurePostEnvelope(envelope) {
-            decode[A](envelope.data) match {
-              case Right(req) =>
-                f(req)
-
-              case Left(e) =>
-                log.error(s"json parse detail type,data=${envelope.data} error: $e")
-                Future.successful(complete(parseJsonError))
-            }
-          }
-        } else {
+//        if(authCheck) {
+//          ensurePostEnvelope(envelope) {
+//            decode[A](envelope.data) match {
+//              case Right(req) =>
+//                f(req)
+//
+//              case Left(e) =>
+//                log.error(s"json parse detail type,data=${envelope.data} error: $e")
+//                Future.successful(complete(parseJsonError))
+//            }
+//          }
+//        } else {
           dealFutureResult {
             decode[A](envelope.data) match {
               case Right(req) =>
@@ -120,7 +120,7 @@ trait ServiceUtils extends CirceSupport with SessionBase{
                 Future.successful(complete(parseJsonError))
             }
           }
-        }
+//        }
 
       case Left(e) =>
         log.error(s"json parse PostEnvelope error: $e")
