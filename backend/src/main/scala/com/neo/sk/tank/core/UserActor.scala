@@ -223,6 +223,15 @@ object UserActor {
           frontActor ! TankGameEvent.CompleteMsgServer
           Behaviors.stopped
 
+        case DispatchMsg(m) =>
+          if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
+//            frontActor ! m
+//            switchBehavior(ctx,"observeInit",observeInit(uId, userInfo, frontActor))
+          }else{
+            frontActor ! m
+          }
+          Behaviors.same
+
         case UserLeft(actor) =>
           ctx.unwatch(actor)
           Behaviors.stopped
