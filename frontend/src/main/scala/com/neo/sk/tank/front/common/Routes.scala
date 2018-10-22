@@ -11,9 +11,10 @@ import com.neo.sk.tank.front.model.ReplayInfo
   */
 object Routes {
 
-
   val base = "/tank"
   val getRoomListRoute = base + "/getRoomIdList"
+
+  val getGameRecordUrl = base + s"/game/getGameRec"
 
   def wsJoinGameUrl(name:String) = base + s"/game/join?name=${name}"
 

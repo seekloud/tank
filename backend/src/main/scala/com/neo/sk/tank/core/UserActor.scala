@@ -47,7 +47,7 @@ object UserActor {
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
 
-  case object StartGame extends Command
+  case class StartGame(roomId:Option[Long]) extends Command
   case class JoinRoom(uid:Long,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command]) extends Command with RoomManager.Command
 
   case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:Long,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
@@ -165,7 +165,7 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case StartGame =>
+        case StartGame(roomIdOpt) =>
           /**换成给roomManager发消息,告知uId,name
             * 还要给userActor发送回带roomId的数据
             * */
@@ -239,6 +239,15 @@ object UserActor {
           frontActor ! TankGameEvent.Wrap(TankGameEvent.WsMsgErrorRsp(1, error).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           frontActor ! TankGameEvent.CompleteMsgServer
           Behaviors.stopped
+
+        case DispatchMsg(m) =>
+          if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
+//            frontActor ! m
+//            switchBehavior(ctx,"observeInit",observeInit(uId, userInfo, frontActor))
+          }else{
+            frontActor ! m
+          }
+          Behaviors.same
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
