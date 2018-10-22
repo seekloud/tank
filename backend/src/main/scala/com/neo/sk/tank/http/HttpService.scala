@@ -23,9 +23,8 @@ trait HttpService
   extends ResourceService
     with ServiceUtils
     with PlayService
-    with RoomInfoService{
-  with RecordApiService
-  with ServiceUtils {
+    with RoomInfoService
+  with RecordApiService {
 
   import akka.actor.typed.scaladsl.AskPattern._
   import com.neo.sk.utils.CirceSupport._
@@ -90,9 +89,7 @@ trait HttpService
 
 
 
-  lazy val routes: Route = pathPrefix(AppSettings.rootPath) {
-    resourceRoutes ~ roomInfoRoute~
-      pathPrefix("game") {
+
   lazy val routes: Route = pathPrefix(AppSettings.rootPath){
     resourceRoutes ~ GameRecRoutes ~
       (pathPrefix("game") & get){
@@ -122,17 +119,7 @@ trait HttpService
             )
           }
         } ~ playRoute
-        } ~
-          path("join") {
-            parameter('name) { name =>
-              log.debug(s"sssssssssname=${name}")
-              val flowFuture: Future[Flow[Message, Message, Any]] = userManager ? (UserManager.GetWebSocketFlow(name, _))
-              complete("sss")
-              dealFutureResult(
-                flowFuture.map(t => handleWebSocketMessages(t))
-              )
-            }
-          }
+
       }
   }
 
