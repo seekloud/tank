@@ -28,7 +28,8 @@ trait HttpService
     with ServiceUtils
     with PlayService
     with RoomInfoService
-  with RecordApiService {
+    with RecordApiService
+    with GameRecService{
 
   import akka.actor.typed.scaladsl.AskPattern._
   import com.neo.sk.utils.CirceSupport._
@@ -114,7 +115,7 @@ trait HttpService
 
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath){
-    resourceRoutes ~ GameRecRoutes ~
+    resourceRoutes ~ GameRecRoutes ~ GameRecRoutesLocal ~
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
@@ -129,17 +130,17 @@ trait HttpService
           }
         } ~ path("replay"){
           parameter(
-            'name.as[String],
-            'uid.as[Long],
             'rid.as[Long],
             'wid.as[Long],
-            'f.as[Int]
-          ){ (name,uid,rid,wid,f) =>
-            //fixme 此处要和鉴权消息结合，去除无用信息
-            val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetReplaySocketFlow(name,uid,rid,wid,f,_))
-            dealFutureResult(
-              flowFuture.map(t => handleWebSocketMessages(t))
-            )
+            'f.as[Int],
+            'accessCode.as[String]
+          ){ (rid,wid,f,accessCode) =>
+            authPlatUser(accessCode){player=>
+              val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetReplaySocketFlow(player.nickname,player.playerId,rid,wid,f,_))
+              dealFutureResult(
+                flowFuture.map(t => handleWebSocketMessages(t))
+              )
+            }
           }
         } ~ playRoute
 
