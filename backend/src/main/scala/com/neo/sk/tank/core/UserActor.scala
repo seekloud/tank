@@ -48,7 +48,7 @@ object UserActor {
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
 
   case class StartGame(roomId:Option[Long]) extends Command
-  case class JoinRoom(uid:Long,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command]) extends Command with RoomManager.Command
+  case class JoinRoom(uid:Long,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None) extends Command with RoomManager.Command
 
   case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:Long,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
 
@@ -169,7 +169,7 @@ object UserActor {
           /**换成给roomManager发消息,告知uId,name
             * 还要给userActor发送回带roomId的数据
             * */
-          roomManager ! JoinRoom(uId,None,userInfo.name,ctx.self)
+          roomManager ! JoinRoom(uId,None,userInfo.name,ctx.self, roomIdOpt)
           Behaviors.same
 
         case StartReplay(rid,uid,f) =>
