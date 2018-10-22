@@ -48,4 +48,12 @@ object CommonErrorCode{
   def sessionErrorRsp(msg: String) = ErrorRsp(1001320, msg)
 
   def checkUserAuthorityErrorRsp(msg: String) = ErrorRsp(1001404, msg)
+
+
+
+
+
+
+
+
 }

@@ -77,7 +77,7 @@ object AppSettings {
 
   val gameDataDirectoryPath = appConfig.getString("gameDataDirectoryPath")
   val gameRecordIsWork = appConfig.getBoolean("gameRecordIsWork")
-
+  val gameRecordTime = appConfig.getInt("gameRecordTime")
 
 
   val slickConfig = config.getConfig("slick.db")
@@ -98,6 +98,18 @@ object AppSettings {
   val ramblerPort = ramblerConfig.getInt("port")
   val ramblerDomain = ramblerConfig.getString("domain")
   val ramblerRootUrl = ramblerConfig.getString("rootUrl")
+
+  private val esheepConfig = appConfig.getConfig("esheep")
+  val esheepAppId = esheepConfig.getString("appId")
+  val esheepSecureKey = esheepConfig.getString("secureKey")
+  val esheepProtocol = esheepConfig.getString("protocol")
+  val esheepHost = esheepConfig.getString("host")
+  val esheepPort = esheepConfig.getInt("port")
+  val esheepDomain = esheepConfig.getString("domain")
+  val esheepGameId = esheepConfig.getLong("gameId")
+  val esheepGameKey = esheepConfig.getString("gsKey")
+  val esheepAuthToken = esheepConfig.getBoolean("authToken")
+
 
 
 
@@ -166,6 +178,8 @@ object AppSettings {
     }
     admins.toList
   }
+
+  val essfMapKeyName = "essfMap"
 
 
 
