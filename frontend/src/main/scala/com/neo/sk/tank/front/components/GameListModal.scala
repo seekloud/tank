@@ -8,12 +8,13 @@ import io.circe.syntax._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.Elem
-import scala.scalajs.js.Date
 import com.neo.sk.tank.front.utils.Shortcut
 import org.scalajs.dom
 import org.scalajs.dom.KeyboardEvent
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.Input
+import com.neo.sk.tank.shared.ptcl.GameRecPtcl.{gameRec, getGameRecByIdReq, getGameRecByPlayerReq, getGameRecByRoomReq, getGameRecReq, getGameRecRsp}
+import org.scalajs.dom.raw.MouseEvent
 
 /**
   * Created by hongruying on 2018/7/9
@@ -22,38 +23,72 @@ object GameListModal extends Component{
 
   private val selectOpt = Var("用户ID")
   private var selectState = 0
-  private val recordTable = Var(List.empty[(Long, Long, Long, Long, List[Long])])
-
+  private val recordTable = Var(List.empty[gameRec])
   private var currentPage = Var(1)
   private var currentPageState = 1
+  private var lastRecordId = 0L
 
   def getRecordById():Unit = {
-    var userId, recordId, roomId = 0L
     val id = dom.window.document.getElementById("inputContent").asInstanceOf[Input].value
     if(selectState == 0 && id != ""){
-      userId = id.toLong
+      lastRecordId = (currentPageState-1) * 10
+      val data = getGameRecByPlayerReq(id.toLong, lastRecordId, 10).asJson.noSpaces
+      Http.postJsonAndParse[getGameRecRsp](Routes.getRecordListByPlayerUrl, data).map{rsp =>
+        if(rsp.errCode == 0){
+          recordTable := rsp.data.get
+        } else {
+          JsFunc.alert(rsp.msg)
+          println(rsp.msg)
+        }
+      }
     }else if(selectState == 1 && id != ""){
-      recordId = id.toLong
+      lastRecordId = (currentPageState-1) * 10
+      val data = getGameRecByIdReq(id.toLong).asJson.noSpaces
+      Http.postJsonAndParse[getGameRecRsp](Routes.getRecordListByIdUrl, data).map{rsp =>
+        if(rsp.errCode == 0){
+          recordTable := rsp.data.get
+        } else {
+          JsFunc.alert(rsp.msg)
+          println(rsp.msg)
+        }
+      }
     }else if(selectState==2 && id != ""){
-      roomId = id.toLong
-    }
-    val data = GameRecordReq(userId,recordId,roomId,currentPageState).asJson.noSpaces
-    Http.postJsonAndParse[GameRecordRsp](Routes.getGameRecordUrl, data).map{rsp =>
-      if(rsp.errCode == 0){
-        recordTable := rsp.lst.get.sortBy(_._1)
-      } else {
-        JsFunc.alert(rsp.msg)
-        println(rsp.msg)
+      lastRecordId = (currentPageState-1) * 10
+      val data = getGameRecByRoomReq(id.toLong, lastRecordId, 10).asJson.noSpaces
+      Http.postJsonAndParse[getGameRecRsp](Routes.getRecordListByRoomUrl, data).map{rsp =>
+        if(rsp.errCode == 0){
+          recordTable := rsp.data.get
+        } else {
+          JsFunc.alert(rsp.msg)
+          println(rsp.msg)
+        }
+      }
+    }else{
+      lastRecordId = (currentPageState-1) * 10
+      val data = getGameRecReq(lastRecordId,10).asJson.noSpaces
+      Http.postJsonAndParse[getGameRecRsp](Routes.getRecordListUrl, data).map{rsp =>
+        if(rsp.errCode == 0){
+          recordTable := rsp.data.get
+        } else {
+          JsFunc.alert(rsp.msg)
+          println(rsp.msg)
+        }
       }
     }
   }
 
   def longToTime(time:Long) = {
-    Shortcut.formatyyyyMMdd(new Date(time))
+    Shortcut.dateFormatDefault(time)
   }
 
-  def toOneRecord() ={
-    dom.window.location.hash = "https://www.baidu.com"
+  def toOneRecord(recordId:Long) ={
+    val op=dom.document.getElementById(recordId.toString).asInstanceOf[Input].value
+    println(op)
+    if(op==""){
+      JsFunc.alert("请选择视角")
+    }else{
+      Shortcut.redirect(s"#/watchRecord/$recordId/$op/0/fasgasgsag")
+    }
   }
 
   def changeToUser = {
@@ -96,17 +131,26 @@ object GameListModal extends Component{
             <th>EndTime</th>
             <th>PepleCounts</th>
             <th>Members</th>
+            <th>WatchId</th>
           </tr>
         </thead>
         <tbody>
           {lst.map{l =>
-          <tr onclick={() => toOneRecord()}>
-            <td>{l._1}</td>
-            <td>{l._2}</td>
-            <td>{longToTime(l._3)}</td>
-            <td>{longToTime(l._4)}</td>
-            <td>{l._5.size}</td>
-            <td>{l._5.mkString(",")}</td>
+          <tr onclick={() => toOneRecord(l.recordId)}>
+            <td>{l.recordId}</td>
+            <td>{l.roomId}</td>
+            <td>{longToTime(l.startTime)}</td>
+            <td>{longToTime(l.endTime)}</td>
+            <td>{l.userCounts}</td>
+            <td>{l.userList.mkString(",")}</td>
+            <td>
+              <select id={l.recordId.toString} onclick={e:MouseEvent=>
+                e.stopPropagation()}>
+                {l.userList.map(r=>
+                  <option value={r.toString}>{r}</option>
+                )}
+              </select>
+            </td>
           </tr>
           }}
         </tbody>
@@ -179,7 +223,7 @@ object GameListModal extends Component{
 
 
   override def render: Elem = {
-    Shortcut.scheduleOnce(() => getRecordById(),1000)
+    Shortcut.scheduleOnce(() => getRecordById(),500)
     <div>
       <div id="searchGameRecord">
         <div class="input-group">
