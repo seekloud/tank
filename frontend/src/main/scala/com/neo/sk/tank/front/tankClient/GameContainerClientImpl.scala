@@ -125,21 +125,21 @@ case class GameContainerClientImpl(
 
 
         case None =>
-          info(s"tankid=${myTankId} has no in tankMap.....................................")
+//          info(s"tankid=${myTankId} has no in tankMap.....................................")
 //          setGameState(GameState.stop)
-          if(isObserve) drawDeadImg()
+//          if(isObserve) drawDeadImg()
       }
     }
   }
 
-  def drawDeadImg() = {
+  def drawDeadImg(s:String) = {
     ctx.fillStyle = Color.Black.toString()
     ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     ctx.fillStyle = "rgb(250, 250, 250)"
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
     ctx.font = "36px Helvetica"
-    ctx.fillText(s"您已经死亡", 150, 180)
+    ctx.fillText(s"$s", 150, 180)
   }
 
 
