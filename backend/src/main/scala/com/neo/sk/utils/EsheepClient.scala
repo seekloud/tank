@@ -4,7 +4,7 @@ import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.utils.SecureUtil.{PostEnvelope, genPostEnvelope}
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.Boot.executor
-import com.neo.sk.tank.shared.ptcl.{CommonRsp, ErrorRsp}
+import com.neo.sk.tank.shared.ptcl.{ComRsp, CommonRsp, ErrorRsp}
 
 import scala.concurrent.Future
 /**
@@ -101,7 +101,7 @@ object EsheepClient extends HttpUtil {
 
     postJsonRequestSend(methodName,url,Nil,postData).map{
       case Right(jsonStr) =>
-        decode[CommonRsp](jsonStr) match {
+        decode[ComRsp](jsonStr) match {
           case Right(rsp) =>
             if(rsp.errCode == 0){
               Right(s"${methodName} success")
