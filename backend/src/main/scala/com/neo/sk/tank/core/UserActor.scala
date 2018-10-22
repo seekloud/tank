@@ -349,6 +349,7 @@ object UserActor {
 
         case UserLeft(actor) =>
           log.info("webSocket--error in play")
+
           if(uId > 0){
             val endTime = System.currentTimeMillis()
             val killed = tank.config.getTankLivesLimit - tank.lives

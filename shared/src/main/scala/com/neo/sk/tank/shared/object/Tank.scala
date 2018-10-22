@@ -48,6 +48,8 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   private def accelerationTime(implicit config: TankGameConfig) = config.getTankAccByLevel(speedLevel)
   private def decelerationTime(implicit config: TankGameConfig) = config.getTankDecByLevel(speedLevel)
 
+  def getTankLivesLimit(implicit config: TankGameConfig) = config.getTankLivesLimit
+
   def getShotGunState():Boolean = shotgunState
 
   def isLived() : Boolean = blood > 0
