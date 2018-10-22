@@ -34,6 +34,8 @@ object UserManager {
   final case class GetReplaySocketFlow(name: String, uid: Long, rid: Long, wid:Long, f:Int, replyTo: ActorRef[Flow[Message, Message, Any]]) extends Command
 
 //  final case class GetWebSocketFlow(name:String, userId:Long ,roomIdOpt:Option[Long], replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
+//  final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
+  final case class GetWebSocketFlow4WatchGame(roomId:Long, watchedUserId:Long, replyTo:ActorRef[Flow[Message,Message,Any]], playerInfo:Option[EsheepProtocol.PlayerInfo] = None) extends Command
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -89,6 +91,25 @@ object UserManager {
           val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
           replyTo ! getWebSocketFlow(userActor)
           userActor ! UserActor.StartGame
+          Behaviors.same
+
+
+        case GetWebSocketFlow4WatchGame(roomId, watchedUserId, replyTo, playerInfoOpt) =>
+          //观战用户建立Actor由userManager监管，消息来自HttpService
+          val playerInfo = playerInfoOpt match {
+            case Some(p) => TankGameUserInfo(p.playerId, p.nickname, p.nickname, true)
+            case None => TankGameUserInfo(-uidGenerator.getAndIncrement(), s"guest:observer", s"guest:observer", false)
+          }
+          getUserActorOpt(ctx, playerInfo.userId) match {
+            case Some(userActor) =>
+            // todo 将用户actor杀死，防止重登录问题
+
+            case None =>
+          }
+          val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
+          replyTo ! getWebSocketFlow(userActor)
+          //发送用户观战命令
+          userActor ! UserActor.StartObserve(roomId, watchedUserId)
           Behaviors.same
 
         case ChildDead(child, childRef) =>
@@ -148,6 +169,52 @@ object UserManager {
       }.withAttributes(ActorAttributes.supervisionStrategy(decider))
 
   }
+  private def getWebSocketFlow4WatchGame(roomId:Int,playerId:Long,userActor4WatchGame: ActorRef[UserActor4WatchGame.Command]):Flow[Message,Message,Any] = {
+    import scala.language.implicitConversions
+    import org.seekloud.byteobject.ByteObject._
+
+
+    implicit def parseJsonString2WsMsgFront(s:String):Option[TankGameEvent.WsMsgFront] = {
+      import io.circe.generic.auto._
+      import io.circe.parser._
+
+      try {
+        val wsMsg = decode[TankGameEvent.WsMsgFront](s).right.get
+        Some(wsMsg)
+      }catch {
+        case e:Exception =>
+          log.warn(s"parse front msg failed when json parse,s=${s}")
+          None
+      }
+    }
+
+    Flow[Message]
+      .collect{
+        case TextMessage.Strict(m) =>
+          UserActor4WatchGame.WebSocketMsg(m)
+
+        case BinaryMessage.Strict(m) =>
+          val buffer = new MiddleBufferInJvm(m.asByteBuffer)
+          bytesDecode[TankGameEvent.WsMsgFront](buffer) match {
+            case Right(req) => UserActor4WatchGame.WebSocketMsg(Some(req))
+            case Left(e) =>
+              log.error(s"decode binaryMessage failed,error:${e.message}")
+              UserActor4WatchGame.WebSocketMsg(None)
+          }
+      }.via(UserActor4WatchGame.flow(roomId,playerId,userActor4WatchGame))
+      .map {
+        case t:TankGameEvent.Wrap =>
+
+
+          BinaryMessage.Strict(ByteString(t.ws))
+
+
+        case x =>
+          log.debug(s"akka stream receive unknown msg=${x}")
+          TextMessage.apply("")
+      }.withAttributes(ActorAttributes.supervisionStrategy(decider))
+
+  }
 
   private val decider: Supervision.Decider = {
     e: Throwable =>
@@ -172,6 +239,15 @@ object UserManager {
   private def getUserActorOpt(ctx: ActorContext[Command],id:Long):Option[ActorRef[UserActor.Command]] = {
     val childName = s"UserActor-${id}"
     ctx.child(childName).map(_.upcast[UserActor.Command])
+  }
+
+  private def getUserActor4WatchGame(ctx:ActorContext[Command],id:Long):ActorRef[UserActor4WatchGame.Command] = {
+    val childName = s"UserActor4WatchGame-${id}"
+    ctx.child(childName).getOrElse{
+      val actor = ctx.spawn(UserActor4WatchGame.create(id),childName)
+      ctx.watchWith(actor,ChildDead(childName,actor))
+      actor
+    }.upcast[UserActor4WatchGame.Command]
   }
 
 }
