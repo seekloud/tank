@@ -51,7 +51,6 @@ object Routes {
   }
 
 
-  def getReplaySocketUri(name:String,uid:String,rid:Long,wid:String,f:Int): String = {
   def getReplaySocketUri(info:ReplayInfo): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
     s"$wsProtocol://${dom.document.location.host}${Routes.wsReplayGameUrl(info)}"
