@@ -10,11 +10,15 @@ import akka.stream.scaladsl.Flow
 import akka.util.Timeout
 import com.neo.sk.tank.common.AppSettings
 import akka.actor.typed.scaladsl.AskPattern._
+import com.neo.sk.tank.Boot.roomManager
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import com.neo.sk.tank.Boot.{executor, scheduler, timeout, userManager}
 import com.neo.sk.tank.core.UserManager
+import com.neo.sk.tank.protocol.WatchGameProtocol.{GetUserInfoList, UserInfoListByRoomIdRsp}
 import com.neo.sk.tank.shared.ptcl.ErrorRsp
+
+import scala.util.Random
 
 /**
   * Created by hongruying on 2018/3/11
@@ -78,10 +82,29 @@ trait HttpService
           val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow4WatchGame(roomId, watchedUserIdOpt.get, _))
           dealFutureResult(flowFuture.map(handleWebSocketMessages))
         } else {
-          complete("暂时不支持随机用户视角观战")
+          val resFuture:Future[UserInfoListByRoomIdRsp] = roomManager ? (GetUserInfoList(roomId,_))
+          dealFutureResult{
+            resFuture.map{res =>
+              if(res.errCode == 0){
+                if(res.data.playerList.length > 0){
+                  val random = (new Random).nextInt(res.data.playerList.length)
+                  val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow4WatchGame(roomId, res.data.playerList(random).playerId, _))
+                  dealFutureResult(flowFuture.map(handleWebSocketMessages))
+                }else{
+                  log.debug(s"该房间没有玩家")
+                  complete("该房间没有玩家")
+                }
+              }else{
+                log.debug(s"该房间未被创建")
+                complete("该房间未被创建")
+              }
+            }.recover{
+              case e:Exception =>
+                log.debug(s"websocket 建立连接失败${e}")
+                complete(s"websocket 建立连接失败${e}")
+            }
+          }
         }
-
-//        }
 
     }
   }
