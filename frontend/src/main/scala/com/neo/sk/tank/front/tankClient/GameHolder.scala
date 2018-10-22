@@ -113,8 +113,6 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
 
   def getStartReplayModel(info:ReplayInfo)= {
     startReplay(Some(info))
-  def getStartReplayModel(name:String,uid:String,rid:Long,wid:String,f:Int)= {
-    startReplay(name,Some(uid),Some(rid),Some(wid),Some(f))
   }
 
 
@@ -284,7 +282,6 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
   }
 
   def startReplay(option: Option[ReplayInfo]=None)={
-  def startReplay(name:String,uid:Option[String]=None,rid:Option[Long]=None,wid:Option[String]=None,f:Option[Int]=None)={
     canvas.focus()
     if(firstCome){
       setGameState(Constants.GameState.loadingPlay)
