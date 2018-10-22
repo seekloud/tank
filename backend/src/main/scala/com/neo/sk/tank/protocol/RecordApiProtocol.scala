@@ -1,5 +1,7 @@
 package com.neo.sk.tank.protocol
 
+import com.neo.sk.tank.shared.ptcl.CommonRsp
+
 object RecordApiProtocol {
   //全量获取
   case class getGameRecReq(
@@ -42,6 +44,6 @@ object RecordApiProtocol {
                             data:Option[List[gameRec]],
                             errCode:Int = 0,
                             msg:String = "ok"
-                          )
+                          ) extends CommonRsp
 
 }

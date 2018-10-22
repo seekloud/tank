@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.stream.scaladsl.{FileIO, Source}
 import java.io.File
-
+import com.neo.sk.tank.shared.ptcl.ErrorRsp
 /**
   *
   * 提供获取游戏录像列表的接口
@@ -25,7 +25,7 @@ trait RecordApiService extends ServiceUtils{
   import io.circe.generic.auto._
 
   private val log = LoggerFactory.getLogger(getClass)
-  private def getGameRecErrorRsp(msg:String) = CommonErrorCode.CommonRsp(1000020,msg)
+  private def getGameRecErrorRsp(msg:String) = ErrorRsp(1000020,msg)
 
   private val getRecordList = (path("getRecordList") & post){
     dealPostReq[getGameRecReq]{req =>
