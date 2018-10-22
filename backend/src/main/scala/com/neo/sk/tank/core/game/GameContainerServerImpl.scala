@@ -294,6 +294,7 @@ case class GameContainerServerImpl(
 
   def leftGame(userId:Long,name:String,tankId:Int) = {
     val event = TankGameEvent.UserLeftRoom(userId,name,tankId,systemFrame)
+    val tank= tankMap.filter(_._2 == userId).head._2
     addGameEvent(event)
     dispatch(event)
     dispatchTo(userId,TankGameEvent.PlayerLeftRoom(userId,name,tankId,systemFrame),getUserActor4WatchGameList(userId))
