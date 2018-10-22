@@ -24,7 +24,8 @@ trait HttpService
     with ServiceUtils
     with PlayService
     with RoomInfoService
-  with RecordApiService {
+    with RecordApiService
+    with GameRecService{
 
   import akka.actor.typed.scaladsl.AskPattern._
   import com.neo.sk.utils.CirceSupport._
@@ -91,7 +92,7 @@ trait HttpService
 
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath){
-    resourceRoutes ~ GameRecRoutes ~
+    resourceRoutes ~ GameRecRoutes ~ GameRecRoutesLocal ~
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")

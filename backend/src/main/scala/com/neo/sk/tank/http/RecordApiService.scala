@@ -67,7 +67,7 @@ trait RecordApiService extends ServiceUtils{
 
   private val getRecordListByPlayer = (path("getRecordListByPlayer") & post){
     dealPostReq[getGameRecByPlayerReq]{req =>
-      RecordDAO.getRecByUserId(req.playerId, req.lastRecordId, req.count).map{r =>
+      RecordDAO.queryRecByPlayer(req.playerId, req.lastRecordId, req.count).map{r =>
         val temp = r.groupBy(_._1)
         var tempList = List.empty[gameRec]
         for((k, v) <- temp){

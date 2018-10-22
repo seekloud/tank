@@ -12,7 +12,7 @@ import scala.xml.Elem
 
 
 
-object GameRecordList extends Page{
+object GameRecordPage extends Page{
 
   private val modal = Var(emptyHTML)
 
