@@ -41,6 +41,7 @@ object GameRecorder {
   final case class SaveDate(stop:Int) extends Command
   final case object Save extends Command
   final case object RoomClose extends Command
+  final case object StopRecord extends Command
 
   private final val InitTime = Some(5.minutes)
   private final case object BehaviorChangeKey
@@ -221,21 +222,20 @@ object GameRecorder {
                 case Success(_) =>
                   log.info(s"insert user record success")
                   ctx.self !  SwitchBehavior("initRecorder",initRecorder(roomId,gameRecordData.fileName,fileIndex,gameInformation, userMap))
+                  if(s.stop == 1) ctx.self ! StopRecord
                 case Failure(e) =>
                   log.error(s"insert user record fail, error: $e")
                   ctx.self !  SwitchBehavior("initRecorder",initRecorder(roomId,gameRecordData.fileName,fileIndex,gameInformation, userMap))
+                  if(s.stop == 1) ctx.self ! StopRecord
               }
 
             case Failure(e) =>
               log.error(s"insert geme record fail, error: $e")
               ctx.self !  SwitchBehavior("initRecorder",initRecorder(roomId,gameRecordData.fileName,fileIndex,gameInformation, userMap))
+              if(s.stop == 1) ctx.self ! StopRecord
 
           }
-          if(s.stop == 1){
-            Behaviors.stopped
-          }else{
             switchBehavior(ctx,"busy",busy())
-          }
         case unknow =>
           log.warn(s"${ctx} save got unknow msg ${unknow}")
           Behaviors.same
@@ -278,6 +278,10 @@ object GameRecorder {
               newUserAllMap.put(user._1, user._2)
           }
           switchBehavior(ctx,"work",work(newGameRecorderData, newEssfMap, newUserAllMap, userMap, startF, -1L))
+
+        case StopRecord=>
+          log.info(s"${ctx.self.path} room close, stop record ")
+          Behaviors.stopped
 
         case unknow =>
           log.warn(s"${ctx} initRecorder got unknow msg ${unknow}")
