@@ -6,12 +6,13 @@ import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.TimerScheduler
 import com.neo.sk.tank.core.{RoomActor, UserActor}
 import com.neo.sk.tank.shared.`object`._
-import com.neo.sk.tank.shared.config.TankGameConfig
-import com.neo.sk.tank.shared.game.{GameContainer, GameContainerState}
+import com.neo.sk.tank.shared.config.{TankGameConfig, TankGameConfigImpl}
+import com.neo.sk.tank.shared.game.{GameContainer, GameContainerAllState, GameContainerState}
 import com.neo.sk.tank.shared.model.Constants.{ObstacleType, PropGenerateType, TankColor}
 import com.neo.sk.tank.shared.model.{Point, Score}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.slf4j.Logger
+
 import concurrent.duration._
 import scala.util.Random
 import collection.mutable
@@ -27,7 +28,7 @@ case class GameContainerServerImpl(
                                     timer:TimerScheduler[RoomActor.Command],
                                     log:Logger,
                                     dispatch:TankGameEvent.WsMsgServer => Unit,
-                                    dispatchTo:(Long,TankGameEvent.WsMsgServer) => Unit
+                                    dispatchTo:(Long,TankGameEvent.WsMsgServer,Option[mutable.HashMap[Long,ActorRef[UserActor.Command]]]) => Unit
                                   ) extends GameContainer{
 
   import scala.language.implicitConversions
@@ -38,6 +39,7 @@ case class GameContainerServerImpl(
   private val propIdGenerator = new AtomicInteger(100)
 
   private var justJoinUser:List[(Long,Option[Int],String,ActorRef[UserActor.Command])] = Nil // tankIdOpt
+  private val userMapObserver:mutable.HashMap[Long,mutable.HashMap[Long,ActorRef[UserActor.Command]]] = mutable.HashMap.empty
   private val random = new Random(System.currentTimeMillis())
 
   init()
@@ -50,6 +52,8 @@ case class GameContainerServerImpl(
   override protected implicit def tankState2Impl(tank:TankState):Tank = {
     new TankServerImpl(roomActorRef,timer,config,tank)
   }
+
+  def getUserActor4WatchGameList(uId:Long) = userMapObserver.get(uId)
 
   override def tankExecuteLaunchBulletAction(tankId: Int, tank: Tank): Unit = {
 
@@ -98,8 +102,8 @@ case class GameContainerServerImpl(
 
 
   override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
-    dispatchTo(tank.userId,TankGameEvent.YouAreKilled(bulletTankId,bulletTankName))
     val tankState = tank.getTankState()
+    dispatchTo(tank.userId,TankGameEvent.YouAreKilled(bulletTankId,bulletTankName, tankState.lives > 1), getUserActor4WatchGameList(tank.userId))
     val curTankState = TankState(tankState.userId,tankState.tankId,tankState.direction,tankState.gunDirection,tankState.blood,tankState.bloodLevel,tankState.speedLevel,tankState.curBulletNum,
       tankState.position,tankState.bulletPowerLevel,tankState.tankColorType,tankState.name,tankState.lives-1,None,tankState.killTankNum,tankState.damageTank,tankState.invincible,
       tankState.shotgunState,tankState.speed,tankState.isMove)
@@ -164,20 +168,6 @@ case class GameContainerServerImpl(
     val event = TankGameEvent.ObstacleAttacked(o.oId,bullet.bId,bullet.damage,systemFrame)
     dispatch(event)
     addGameEvent(event)
-    //    if(!o.isLived()){
-    //      val obstacleOpt = o.obstacleType match {
-    //        case ObstacleType.airDropBox =>
-    //          generatePropEvent((random.nextInt(4) + 1).toByte, o.getPosition,PropGenerateType.airDrop)
-    //          Some(generateAirDrop())
-    //        case ObstacleType.brick => Some(generateBrick())
-    //        case _ => None
-    //      }
-    //      obstacleOpt.foreach{ obstacle =>
-    //        val event = TankGameEvent.GenerateObstacle(systemFrame,obstacle.getObstacleState())
-    //        dispatch(event)
-    //        addGameEvent(event)
-    //      }
-    //    }
   }
 
   override protected def handleObstacleAttacked(e: TankGameEvent.ObstacleAttacked): Unit = {
@@ -268,8 +258,17 @@ case class GameContainerServerImpl(
         val event = TankGameEvent.UserJoinRoom(userId,name,tank.getTankState(),systemFrame)
         dispatch(event)
         addGameEvent(event)
-//        roomManager ! UserActor.JoinRoomSuccess(tank,config.getTankGameConfigImpl(),ref,userId,roomId)
         ref ! UserActor.JoinRoomSuccess(tank, config.getTankGameConfigImpl(),userId,roomActor = roomActorRef)
+        userMapObserver.get(userId) match{
+          case Some(maps) =>
+            maps.foreach{p =>
+              val event1 = UserActor.JoinRoomSuccess4Watch(tank,config.getTankGameConfigImpl(), roomActorRef, TankGameEvent.SyncGameAllState(getGameContainerAllState()))
+              p._2 ! event1
+            }
+
+          case None =>
+            userMapObserver.update(userId,mutable.HashMap.empty)
+        }
         tankMap.put(tank.tankId,tank)
         quadTree.insert(tank)
         //无敌时间消除
@@ -278,11 +277,37 @@ case class GameContainerServerImpl(
     justJoinUser = Nil
   }
 
+  def handleJoinRoom4Watch(userActor4WatchGame:ActorRef[UserActor.Command],uid:Long,playerId:Long) = {
+    tankMap.find(_._2.userId == playerId) match {
+      case Some((_, tank)) =>
+        val playerObserversMap = userMapObserver.getOrElse(playerId, mutable.HashMap[Long, ActorRef[UserActor.Command]]())
+        playerObserversMap.put(uid, userActor4WatchGame)
+        userMapObserver.put(playerId, playerObserversMap)
+        log.debug(s"当前的userMapObservers是${userMapObserver}")
+        userActor4WatchGame ! UserActor.JoinRoomSuccess4Watch(tank.asInstanceOf[TankServerImpl],config.getTankGameConfigImpl(),roomActorRef, TankGameEvent.SyncGameAllState(getGameContainerAllState()))
+
+      case None =>
+        userActor4WatchGame ! UserActor.JoinRoomFail4Watch(s"观察的用户id=${playerId}不存在")
+    }
+  }
+
 
   def leftGame(userId:Long,name:String,tankId:Int) = {
     val event = TankGameEvent.UserLeftRoom(userId,name,tankId,systemFrame)
     addGameEvent(event)
     dispatch(event)
+    dispatchTo(userId,TankGameEvent.PlayerLeftRoom(userId,name,tankId,systemFrame),getUserActor4WatchGameList(userId))
+    userMapObserver.remove(userId)
+  }
+
+  def leftWatchGame(uId:Long,playerId:Long) = {
+    userMapObserver.get(playerId) match{
+      case Some(maps) =>
+        maps.remove(uId)
+        userMapObserver.update(playerId,maps)
+      case None =>
+    }
+
   }
 
 
@@ -390,13 +415,13 @@ case class GameContainerServerImpl(
 
   override protected def clearEventWhenUpdate():Unit = {
     //记录数据
-    val gameEventSize = gameEventMap.getOrElse(systemFrame, Nil).size
-    val actionEventSize = actionEventMap.getOrElse(systemFrame, Nil).size
-    if(gameEventSize + actionEventSize > 0){
-      log.info(s"tank systemFrame=${systemFrame}, gameEvents=${gameEventSize}, actionEvents=${actionEventSize}")
-    }
-    gameEventMap -= systemFrame
-    actionEventMap -= systemFrame
+//    val gameEventSize = gameEventMap.getOrElse(systemFrame, Nil).size
+//    val actionEventSize = actionEventMap.getOrElse(systemFrame, Nil).size
+//    if(gameEventSize + actionEventSize > 0){
+//      log.info(s"tank systemFrame=${systemFrame}, gameEvents=${gameEventSize}, actionEvents=${actionEventSize}")
+//    }
+    gameEventMap -= systemFrame - 1
+    actionEventMap -= systemFrame - 1
     systemFrame += 1
   }
 
@@ -458,6 +483,16 @@ case class GameContainerServerImpl(
     TankGameEvent.TankGameSnapshot(getGameContainerAllState())
   }
 
+
+  def getLastGameEvent(): List[TankGameEvent.WsMsgServer] = {
+    (gameEventMap.getOrElse(this.systemFrame - 1, Nil) ::: actionEventMap.getOrElse(this.systemFrame - 1, Nil))
+    .filter(_.isInstanceOf[TankGameEvent.WsMsgServer]).map(_.asInstanceOf[TankGameEvent.WsMsgServer])
+  }
+
+
+  def getCurSnapshot(): Option[TankGameEvent.GameSnapshot] = {
+    Some(getCurGameSnapshot())
+  }
 
   def getGameEventAndSnapshot():(List[TankGameEvent.WsMsgServer],Option[TankGameEvent.GameSnapshot]) = {
     ((gameEventMap.getOrElse(this.systemFrame, Nil) ::: actionEventMap.getOrElse(this.systemFrame, Nil))

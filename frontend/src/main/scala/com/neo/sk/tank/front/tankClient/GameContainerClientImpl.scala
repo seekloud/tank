@@ -11,6 +11,7 @@ import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.ObstacleAttacked
 import org.scalajs.dom
+import org.scalajs.dom.ext.Color
 import org.scalajs.dom.html.Image
 
 import scala.collection.mutable
@@ -26,7 +27,8 @@ case class GameContainerClientImpl(
                                     myName:String,
                                     canvasBoundary:Point,
                                     canvasUnit:Int,
-                                    setGameState:Int => Unit
+                                    setGameState:Int => Unit,
+                                    isObserve: Boolean = false
                                   ) extends GameContainerImpl(config,myId,myTankId,myName)
   with Background
   with ObstacleDrawUtil
@@ -81,7 +83,8 @@ case class GameContainerClientImpl(
 
   override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
     if(tank.tankId == myTankId){
-      setGameState(GameState.stop)
+      if (tank.lives > 1) setGameState(GameState.relive)
+      else setGameState(GameState.stop)
     }
   }
 
@@ -122,9 +125,21 @@ case class GameContainerClientImpl(
 
 
         case None =>
-          setGameState(GameState.stop)
+          info(s"tankid=${myTankId} has no in tankMap.....................................")
+//          setGameState(GameState.stop)
+          if(isObserve) drawDeadImg()
       }
     }
+  }
+
+  def drawDeadImg() = {
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.fillStyle = "rgb(250, 250, 250)"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    ctx.font = "36px Helvetica"
+    ctx.fillText(s"您已经死亡", 150, 180)
   }
 
 

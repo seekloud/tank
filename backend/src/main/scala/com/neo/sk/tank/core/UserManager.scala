@@ -2,16 +2,20 @@ package com.neo.sk.tank.core
 
 import java.util.concurrent.atomic.AtomicLong
 
+import akka.actor.typed.scaladsl.AskPattern._
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, TimerScheduler}
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.stream.{ActorAttributes, Supervision}
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
+import com.neo.sk.tank.models.TankGameUserInfo
+import com.neo.sk.tank.protocol.EsheepProtocol
+import com.neo.sk.tank.protocol.ReplayProtocol.{GetRecordFrameMsg,GetUserInRecordMsg}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import io.circe.{Decoder, Encoder}
 import org.slf4j.LoggerFactory
-
+import com.neo.sk.tank.Boot.{executor, scheduler, timeout}
 /**
   * Created by hongruying on 2018/7/9
   */
@@ -22,19 +26,23 @@ object UserManager {
   import org.seekloud.byteobject.ByteObject._
   import org.seekloud.byteobject.MiddleBufferInJvm
 
-  sealed trait Command
+  trait Command
 
-  final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
+  final case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
-  final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]]) extends Command
+  final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]], playerInfo:Option[EsheepProtocol.PlayerInfo] = None, roomId:Option[Long] = None) extends Command
+
+  final case class GetReplaySocketFlow(name: String, uid: Long, rid: Long, wid:Long, f:Int, replyTo: ActorRef[Flow[Message, Message, Any]]) extends Command
+
+  final case class GetWebSocketFlow4WatchGame(roomId:Long, watchedUserId:Long, replyTo:ActorRef[Flow[Message,Message,Any]], playerInfo:Option[EsheepProtocol.PlayerInfo] = None) extends Command
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  def create():Behavior[Command] ={
+  def create(): Behavior[Command] = {
     log.debug(s"UserManager start...")
-    Behaviors.setup[Command]{
+    Behaviors.setup[Command] {
       ctx =>
-        Behaviors.withTimers[Command]{
+        Behaviors.withTimers[Command] {
           implicit timer =>
             val uidGenerator = new AtomicLong(1L)
             idle(uidGenerator)
@@ -42,18 +50,81 @@ object UserManager {
     }
   }
 
-  private def idle(uidGenerator:AtomicLong)
+  private def idle(uidGenerator: AtomicLong)
                   (
-                    implicit timer:TimerScheduler[Command]
-                  ):Behavior[Command] = {
+                    implicit timer: TimerScheduler[Command]
+                  ): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case GetWebSocketFlow(name,replyTo) =>
-          replyTo ! getWebSocketFlow(getUserActor(ctx,uidGenerator.getAndIncrement(),name))
+//        case GetWebSocketFlow(name, replyTo) =>
+//          replyTo ! getWebSocketFlow(0,getUserActor(ctx, uidGenerator.getAndIncrement(), name))
+//          Behaviors.same
+
+        case GetReplaySocketFlow(name, uid, rid, wid, f, replyTo) =>
+          println(msg)
+          getUserActorOpt(ctx, uid) match {
+            case Some(userActor) =>
+              // todo 将用户actor杀死，防止重登录问题
+              //remind 进入等待状态
+              userActor ! UserActor.ChangeBehaviorToInit
+            case None =>
+          }
+          val userActor = getUserActor(ctx, uid, TankGameUserInfo(uid, name, name, true))
+          replyTo ! getWebSocketFlow(userActor)
+          userActor ! UserActor.StartReplay(rid, wid, f)
           Behaviors.same
 
 
-        case ChildDead(child,childRef) =>
+
+        case GetWebSocketFlow(name,replyTo, playerInfoOpt, roomIdOpt) =>
+          val playerInfo = playerInfoOpt match {
+            case Some(p) => TankGameUserInfo(p.playerId, p.nickname, name, true)
+            case None => TankGameUserInfo(-uidGenerator.getAndIncrement(), s"guest:${name}", name, false)
+          }
+          getUserActorOpt(ctx, playerInfo.userId) match {
+            case Some(userActor) =>
+            // todo 将用户actor杀死，防止重登录问题
+
+            case None =>
+          }
+          val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
+          replyTo ! getWebSocketFlow(userActor)
+          userActor ! UserActor.StartGame
+          Behaviors.same
+
+
+        case GetWebSocketFlow4WatchGame(roomId, watchedUserId, replyTo, playerInfoOpt) =>
+          //观战用户建立Actor由userManager监管，消息来自HttpService
+          val playerInfo = playerInfoOpt match {
+            case Some(p) => TankGameUserInfo(p.playerId, p.nickname, p.nickname, true)
+            case None => TankGameUserInfo(-uidGenerator.getAndIncrement(), s"guest:observer", s"guest:observer", false)
+          }
+          getUserActorOpt(ctx, playerInfo.userId) match {
+            case Some(userActor) =>
+            // todo 将用户actor杀死，防止重登录问题
+
+            case None =>
+          }
+          val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
+          replyTo ! getWebSocketFlow(userActor)
+          //发送用户观战命令
+          userActor ! UserActor.StartObserve(roomId, watchedUserId)
+          Behaviors.same
+
+        case msg:GetUserInRecordMsg=>
+          getUserActor(ctx,msg.watchId,
+            TankGameUserInfo(msg.watchId,
+              msg.watchId.toString,msg.watchId.toString,false)
+          ) ! msg
+          Behaviors.same
+
+        case msg:GetRecordFrameMsg=>
+          getUserActor(ctx,msg.watchId,
+            TankGameUserInfo(msg.watchId,msg.watchId.toString,msg.watchId.toString,false)
+          ) ! msg
+          Behaviors.same
+
+        case ChildDead(child, childRef) =>
           ctx.unwatch(childRef)
           Behaviors.same
 
@@ -64,27 +135,27 @@ object UserManager {
     }
   }
 
-  private def getWebSocketFlow(userActor: ActorRef[UserActor.Command]):Flow[Message,Message,Any] = {
+  private def getWebSocketFlow(userActor: ActorRef[UserActor.Command]): Flow[Message, Message, Any] = {
     import scala.language.implicitConversions
     import org.seekloud.byteobject.ByteObject._
 
 
-    implicit def parseJsonString2WsMsgFront(s:String):Option[TankGameEvent.WsMsgFront] = {
+    implicit def parseJsonString2WsMsgFront(s: String): Option[TankGameEvent.WsMsgFront] = {
       import io.circe.generic.auto._
       import io.circe.parser._
 
       try {
         val wsMsg = decode[TankGameEvent.WsMsgFront](s).right.get
         Some(wsMsg)
-      }catch {
-        case e:Exception =>
+      } catch {
+        case e: Exception =>
           log.warn(s"parse front msg failed when json parse,s=${s}")
           None
       }
     }
 
     Flow[Message]
-      .collect{
+      .collect {
         case TextMessage.Strict(m) =>
           UserActor.WebSocketMsg(m)
 
@@ -98,11 +169,11 @@ object UserManager {
           }
       }.via(UserActor.flow(userActor))
       .map {
-        case t:TankGameEvent.Wrap =>
-
-
+        case t: TankGameEvent.Wrap =>
           BinaryMessage.Strict(ByteString(t.ws))
 
+        case t: TankGameEvent.ReplayFrameData =>
+          BinaryMessage.Strict(ByteString(t.ws))
 
         case x =>
           log.debug(s"akka stream receive unknown msg=${x}")
@@ -122,13 +193,18 @@ object UserManager {
 
 
 
-  private def getUserActor(ctx: ActorContext[Command],id:Long,name:String):ActorRef[UserActor.Command] = {
+  private def getUserActor(ctx: ActorContext[Command],id:Long, userInfo: TankGameUserInfo):ActorRef[UserActor.Command] = {
     val childName = s"UserActor-${id}"
     ctx.child(childName).getOrElse{
-      val actor = ctx.spawn(UserActor.create(id,name),childName)
+      val actor = ctx.spawn(UserActor.create(id, userInfo),childName)
       ctx.watchWith(actor,ChildDead(childName,actor))
       actor
     }.upcast[UserActor.Command]
+  }
+
+  private def getUserActorOpt(ctx: ActorContext[Command],id:Long):Option[ActorRef[UserActor.Command]] = {
+    val childName = s"UserActor-${id}"
+    ctx.child(childName).map(_.upcast[UserActor.Command])
   }
 
 }
