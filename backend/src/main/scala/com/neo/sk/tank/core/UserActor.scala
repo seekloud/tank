@@ -20,6 +20,7 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 import org.seekloud.byteobject.ByteObject._
+import com.neo.sk.tank.protocol.ReplayProtocol.{GetUserInRecordMsg,GetRecordFrameMsg}
 /**
   * Created by hongruying on 2018/7/9
   *
@@ -31,7 +32,7 @@ object UserActor {
   private final val InitTime = Some(5.minutes)
   private final case object BehaviorChangeKey
 
-  sealed trait Command
+  trait Command
 
   case class WebSocketMsg(reqOpt:Option[TankGameEvent.WsMsgFront]) extends Command
 
@@ -41,10 +42,6 @@ object UserActor {
   //fixme 等待变更
   /**此消息用于外部控制状态转入初始状态，以便于重建WebSocket*/
   case object ChangeBehaviorToInit extends Command
-
-  /**外部调用*/
-  final case class GetUserInRecord(recordId:Long,replyTo:ActorRef[GetUserInRecordRsp]) extends Command
-  final case class GetRecordFrame(recordId:Long,replyTo:ActorRef[GetRecordFrameRsp]) extends Command
 
   case class UserFrontActor(actor:ActorRef[TankGameEvent.WsMsgSource]) extends Command
 
@@ -140,12 +137,12 @@ object UserActor {
           ctx.unwatch(actor)
           Behaviors.stopped
 
-        case msg:GetUserInRecord=>
-          getGameReplay(ctx,msg.recordId) ! GamePlayer.GetUserInRecord(msg.replyTo)
+        case msg:GetUserInRecordMsg=>
+          getGameReplay(ctx,msg.recordId) ! msg
           Behaviors.same
 
-        case msg:GetRecordFrame=>
-          getGameReplay(ctx,msg.recordId) ! GamePlayer.GetRecordFrame(msg.replyTo)
+        case msg:GetRecordFrameMsg=>
+          getGameReplay(ctx,msg.recordId) ! msg
           Behaviors.same
 
         case TimeOut(m) =>
@@ -210,12 +207,12 @@ object UserActor {
           ctx.unwatch(actor)
           Behaviors.stopped
 
-        case msg:GetUserInRecord=>
-          getGameReplay(ctx,msg.recordId) ! GamePlayer.GetUserInRecord(msg.replyTo)
+        case msg:GetUserInRecordMsg=>
+          getGameReplay(ctx,msg.recordId) ! msg
           Behaviors.same
 
-        case msg:GetRecordFrame=>
-          getGameReplay(ctx,msg.recordId) ! GamePlayer.GetRecordFrame(msg.replyTo)
+        case msg:GetRecordFrameMsg=>
+          getGameReplay(ctx,msg.recordId) ! msg
           Behaviors.same
 
         case unknowMsg =>

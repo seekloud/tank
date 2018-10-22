@@ -14,13 +14,16 @@ import akka.actor.typed.scaladsl.AskPattern._
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import com.neo.sk.tank.Boot.{executor, scheduler, timeout, userManager}
 import com.neo.sk.tank.core.UserManager
+import com.neo.sk.tank.shared.ptcl.ErrorRsp
 
 /**
   * Created by hongruying on 2018/3/11
   */
 trait HttpService
   extends ResourceService
-  with ServiceUtils with PlayService{
+    with ServiceUtils
+    with PlayService
+    with RoomInfoService{
 
   import akka.actor.typed.scaladsl.AskPattern._
   import com.neo.sk.utils.CirceSupport._
@@ -86,10 +89,8 @@ trait HttpService
 
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath) {
-    resourceRoutes ~
-      pathPrefix("game"){
     resourceRoutes ~ roomInfoRoute~
-      (pathPrefix("game") & get){
+      pathPrefix("game") {
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
         } ~ watchGamePath ~

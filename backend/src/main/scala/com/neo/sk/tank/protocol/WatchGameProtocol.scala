@@ -1,7 +1,7 @@
 package com.neo.sk.tank.protocol
 
 import akka.actor.typed.ActorRef
-import com.neo.sk.tank.core.{RoomManager, UserActor4WatchGame}
+import com.neo.sk.tank.core.RoomManager
 
 object WatchGameProtocol {
   //esheep请求房间号

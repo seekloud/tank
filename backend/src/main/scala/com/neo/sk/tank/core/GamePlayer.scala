@@ -23,6 +23,7 @@ import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.neo.sk.utils.ESSFSupport.{initFileReader => _, metaDataDecode => _, userMapDecode => _, _}
+import com.neo.sk.tank.protocol.ReplayProtocol.{GetUserInRecordMsg,GetRecordFrameMsg}
 /**
   * User: sky
   * Date: 2018/10/12
@@ -32,7 +33,7 @@ object GamePlayer {
   private final val log = LoggerFactory.getLogger(this.getClass)
 
   private val waitTime=10.minutes
-  sealed trait Command
+  trait Command
   private final case object BehaviorChangeKey
   private final case object BehaviorWaitKey
   private final case object GameLoopKey
@@ -56,10 +57,6 @@ object GamePlayer {
     durationOpt.foreach(timer.startSingleTimer(BehaviorChangeKey,timeOut,_))
     stashBuffer.unstashAll(ctx,behavior)
   }
-
-  /**外部调用*/
-  final case class GetUserInRecord(replyTo:ActorRef[GetUserInRecordRsp]) extends Command
-  final case class GetRecordFrame(replyTo:ActorRef[GetRecordFrameRsp]) extends Command
 
   /**actor内部消息*/
   case class InitReplay(userActor: ActorRef[TankGameEvent.WsMsgSource],userId:Long,f:Int) extends Command
@@ -154,11 +151,11 @@ object GamePlayer {
             Behaviors.same
           }
 
-        case msg:GetRecordFrame=>
+        case msg:GetRecordFrameMsg=>
           msg.replyTo ! GetRecordFrameRsp(RecordFrameInfo(fileReader.getFramePosition))
           Behaviors.same
 
-        case msg:GetUserInRecord=>
+        case msg:GetUserInRecordMsg=>
           val data=userMap.map{r=>PlayerInfo(r._1.userId,r._1.name)}
           msg.replyTo ! GetUserInRecordRsp(PlayerList(data))
           Behaviors.same
