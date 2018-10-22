@@ -9,6 +9,7 @@ import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.game.GameContainerState
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
+import com.neo.sk.tank.front.model.ReplayInfo
 import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
@@ -110,6 +111,8 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
     startGameModal.render
   }
 
+  def getStartReplayModel(info:ReplayInfo)= {
+    startReplay(Some(info))
   def getStartReplayModel(name:String,uid:String,rid:Long,wid:String,f:Int)= {
     startReplay(name,Some(uid),Some(rid),Some(wid),Some(f))
   }
@@ -280,12 +283,12 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
     }
   }
 
+  def startReplay(option: Option[ReplayInfo]=None)={
   def startReplay(name:String,uid:Option[String]=None,rid:Option[Long]=None,wid:Option[String]=None,f:Option[Int]=None)={
     canvas.focus()
     if(firstCome){
       setGameState(Constants.GameState.loadingPlay)
-      testHolfer=f.get.toString
-      webSocketClient.setup(Routes.getReplaySocketUri(name, uid.get, rid.get, wid.get, f.get))
+      webSocketClient.setup(Routes.getReplaySocketUri(option.get))
       gameLoop()
     }else if(webSocketClient.getWsState){
       //fixme reStart
@@ -406,7 +409,7 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
     if(replay){
       // todo why?
       //remind   fake to be new here
-      gameContainerOpt.foreach(t => startReplay(t.myName))
+      gameContainerOpt.foreach(t => startReplay())
     }
 
   }

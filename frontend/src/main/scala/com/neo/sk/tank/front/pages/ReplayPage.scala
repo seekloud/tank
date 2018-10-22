@@ -3,6 +3,7 @@ package com.neo.sk.tank.front.pages
 import com.neo.sk.tank.front.common.Page
 import com.neo.sk.tank.front.tankClient.GameHolder
 import com.neo.sk.tank.front.utils.Shortcut
+import com.neo.sk.tank.front.model.ReplayInfo
 import mhtml.{Var, emptyHTML}
 
 import scala.xml.Elem
@@ -12,7 +13,7 @@ import scala.xml.Elem
   * Date: 2018/10/15
   * Time: 12:35
   */
-class ReplayPage(n: String, u: String, r: Long, w: String, frame: Int) extends Page {
+class ReplayPage(info:ReplayInfo) extends Page {
 
   private val cannvas = <canvas id="GameReplay" tabindex="1"></canvas>
 
@@ -39,7 +40,7 @@ class ReplayPage(n: String, u: String, r: Long, w: String, frame: Int) extends P
     println("-----new holder------")
     //fixme here is a bug the last holder is still exist
     val gameHolder = new GameHolder("GameReplay", replay = true)
-    gameHolder.getStartReplayModel(n, u, r, w, frame)
+    gameHolder.getStartReplayModel(info)
     //    gameHolderOpt=Some(gameHolder)
     modal := <div>观看中...</div>
   }
