@@ -118,6 +118,16 @@ trait HttpService
             dealFutureResult(
               flowFuture.map(t => handleWebSocketMessages(t))
             )
+            'wid.as[Long],
+            'f.as[Int],
+            'accessCode.as[String]
+          ){ (rid,wid,f,accessCode) =>
+            authPlatUser(accessCode){player=>
+              val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetReplaySocketFlow(player.nickname,player.playerId,rid,wid,f,_))
+              dealFutureResult(
+                flowFuture.map(t => handleWebSocketMessages(t))
+              )
+            }
           }
         } ~ playRoute
 
