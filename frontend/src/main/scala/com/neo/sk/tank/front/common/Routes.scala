@@ -12,8 +12,11 @@ object Routes {
 
 
   val base = "/tank"
+  val getRoomListRoute = base + "/getRoomIdList"
 
   def wsJoinGameUrl(name:String) = base + s"/game/join?name=${name}"
+
+  def wsWatchGameUrl(roomId:Long, accessCode:String, playerId:Option[Long]) = base + s"/game/watchGame?roomId=$roomId&accessCode=${accessCode}" + playerId.map(t => s"&playerId=$t").getOrElse("")
 
 
 
@@ -46,6 +49,11 @@ object Routes {
   def getReplaySocketUri(name:String,uid:Long,rid:Long,wid:Long,f:Int): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
     s"$wsProtocol://${dom.document.location.host}${Routes.wsReplayGameUrl(name,uid,rid,wid,f)}"
+  }
+
+  def getWsSocketUri(roomId:Long, accessCode:String, playerId:Option[Long]): String = {
+    val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
+    s"$wsProtocol://${dom.document.location.host}${Routes.wsWatchGameUrl(roomId, accessCode, playerId)}"
   }
 
 

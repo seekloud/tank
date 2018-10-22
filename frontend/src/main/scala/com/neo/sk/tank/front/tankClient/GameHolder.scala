@@ -123,7 +123,7 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
   }
 
 
-  private def setGameState(s:Int):Unit = {
+  def setGameState(s:Int):Unit = {
     gameStateVar := s
     gameState = s
   }
@@ -261,6 +261,7 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
       firstCome = false
       addUserActionListenEvent()
       setGameState(Constants.GameState.loadingPlay)
+//      webSocketClient.setup(Routes.wsJoinGameUrl(name))
       webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, playerInfoOpt))
       gameLoop()
 
