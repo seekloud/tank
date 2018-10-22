@@ -3,7 +3,6 @@ package com.neo.sk.tank.front.components
 import com.neo.sk.tank.front.common.{Component, Routes}
 import mhtml.Var
 import com.neo.sk.tank.front.utils.{Http, JsFunc}
-import com.neo.sk.tank.shared.ptcl.TankGameProtocol.{GameRecordReq, GameRecordRsp}
 import io.circe.generic.auto._
 import io.circe.syntax._
 
@@ -27,35 +26,6 @@ object GameListModal extends Component{
 
   private var currentPage = Var(1)
   private var currentPageState = 1
-
-//  def groupTheLst(lst: List[(Long, Long, Long, Long, Option[Long])]) = {
-//    val RecMapUser = scala.collection.mutable.Map[Long,List[Long]]()
-//    for(one <- lst) {
-//      val userId = one._5.getOrElse(-1L)
-//      if (RecMapUser.contains(one._1) && userId > 0L)
-//        RecMapUser(one._1) = RecMapUser(one._1) :+ userId
-//      else if(userId > 0L)
-//        RecMapUser(one._1) = List(userId)
-//    }
-//    RecMapUser
-//  }
-
-//
-//  def getRecord(): Unit = {
-//    JsFunc.alert(currentPageState.toString)
-//    val data = GameRecordReq(0L, 0L, 0L, currentPageState).asJson.noSpaces
-//    Http.postJsonAndParse[GameRecordRsp](Routes.getGameRecordUrl, data).map{rsp =>
-//        if(rsp.errCode == 0){
-//          val RecMapUser = groupTheLst(rsp.lst.get)
-//          JsFunc.alert(RecMapUser.toString())
-//          val temp = (for(one <- rsp.lst.get) yield (one._1, one._2, one._3, one._4, RecMapUser.getOrElse(one._1,List()))).toSet
-//          recordTable := temp.toList
-//        } else {
-//          JsFunc.alert(rsp.msg)
-//          println(rsp.msg)
-//        }
-//    }
-//  }
 
   def getRecordById():Unit = {
     var userId, recordId, roomId = 0L
