@@ -7,6 +7,7 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import com.neo.sk.tank.models.TankGameUserInfo
+import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameRsp, GetUserInRecordRsp, PlayerList, RecordFrameInfo}
 import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, ReplayFrameData}
 import org.slf4j.LoggerFactory
@@ -19,6 +20,7 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 import org.seekloud.byteobject.ByteObject._
+import com.neo.sk.tank.protocol.ReplayProtocol.{GetUserInRecordMsg,GetRecordFrameMsg}
 /**
   * Created by hongruying on 2018/7/9
   *
@@ -30,7 +32,7 @@ object UserActor {
   private final val InitTime = Some(5.minutes)
   private final case object BehaviorChangeKey
 
-  sealed trait Command
+  trait Command
 
   case class WebSocketMsg(reqOpt:Option[TankGameEvent.WsMsgFront]) extends Command
 
@@ -45,7 +47,7 @@ object UserActor {
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
 
-  case object StartGame extends Command
+  case class StartGame(roomId:Option[Long]) extends Command
   case class JoinRoom(uid:Long,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command]) extends Command with RoomManager.Command
 
   case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:Long,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
@@ -135,6 +137,14 @@ object UserActor {
           ctx.unwatch(actor)
           Behaviors.stopped
 
+        case msg:GetUserInRecordMsg=>
+          getGameReplay(ctx,msg.recordId) ! msg
+          Behaviors.same
+
+        case msg:GetRecordFrameMsg=>
+          getGameReplay(ctx,msg.recordId) ! msg
+          Behaviors.same
+
         case TimeOut(m) =>
           log.debug(s"${ctx.self.path} is time out when busy,msg=${m}")
           Behaviors.stopped
@@ -155,7 +165,7 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case StartGame =>
+        case StartGame(roomIdOpt) =>
           /**换成给roomManager发消息,告知uId,name
             * 还要给userActor发送回带roomId的数据
             * */
@@ -197,6 +207,13 @@ object UserActor {
           ctx.unwatch(actor)
           Behaviors.stopped
 
+        case msg:GetUserInRecordMsg=>
+          getGameReplay(ctx,msg.recordId) ! msg
+          Behaviors.same
+
+        case msg:GetRecordFrameMsg=>
+          getGameReplay(ctx,msg.recordId) ! msg
+          Behaviors.same
 
         case unknowMsg =>
 //          log.warn(s"got unknown msg: $unknowMsg")

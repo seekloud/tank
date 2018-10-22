@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.TimerScheduler
-import com.neo.sk.tank.core.{RoomActor, UserActor, UserActor4WatchGame}
+import com.neo.sk.tank.core.{RoomActor, UserActor}
 import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.{TankGameConfig, TankGameConfigImpl}
 import com.neo.sk.tank.shared.game.{GameContainer, GameContainerAllState, GameContainerState}
@@ -18,7 +18,6 @@ import scala.util.Random
 import collection.mutable
 import com.neo.sk.tank.shared.`object`.TankState
 import com.neo.sk.tank.Boot.roomManager
-import com.neo.sk.tank.core.UserActor4WatchGame.JoinRoomSuccess4Watch
 
 /**
   * Created by hongruying on 2018/8/29

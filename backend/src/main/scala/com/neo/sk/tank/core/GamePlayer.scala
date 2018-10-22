@@ -13,6 +13,7 @@ import scala.concurrent.duration._
 import com.neo.sk.utils.ESSFSupport._
 import org.seekloud.essf.io.{EpisodeInfo, FrameData, FrameInputStream}
 import com.neo.sk.tank.models.DAO.RecordDAO
+import com.neo.sk.tank.protocol.EsheepProtocol._
 import com.neo.sk.tank.protocol.ReplayProtocol.{EssfMapJoinLeftInfo, EssfMapKey}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameInformation, ReplayFrameData, YourInfo}
@@ -21,7 +22,8 @@ import org.seekloud.byteobject.MiddleBufferInJvm
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import com.neo.sk.utils.ESSFSupport.{initStateDecode, metaDataDecode, replayEventDecode, replayStateDecode, userMapDecode}
+import com.neo.sk.utils.ESSFSupport.{initFileReader => _, metaDataDecode => _, userMapDecode => _, _}
+import com.neo.sk.tank.protocol.ReplayProtocol.{GetUserInRecordMsg,GetRecordFrameMsg}
 /**
   * User: sky
   * Date: 2018/10/12
@@ -31,7 +33,7 @@ object GamePlayer {
   private final val log = LoggerFactory.getLogger(this.getClass)
 
   private val waitTime=10.minutes
-  sealed trait Command
+  trait Command
   private final case object BehaviorChangeKey
   private final case object BehaviorWaitKey
   private final case object GameLoopKey
@@ -55,7 +57,6 @@ object GamePlayer {
     durationOpt.foreach(timer.startSingleTimer(BehaviorChangeKey,timeOut,_))
     stashBuffer.unstashAll(ctx,behavior)
   }
-
 
   /**actor内部消息*/
   case class InitReplay(userActor: ActorRef[TankGameEvent.WsMsgSource],userId:Long,f:Int) extends Command
@@ -112,12 +113,13 @@ object GamePlayer {
               dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,metaData.tankConfig))
               log.info(s" set replay from frame=${msg.f}")
               //fixme 跳转帧数goto失效
-              fileReader.reset()
-              for(i <- 1 to msg.f){
-                if(fileReader.hasMoreFrame){
-                  fileReader.readFrame()
-                }
-              }
+//              fileReader.reset()
+//              for(i <- 1 to msg.f){
+//                if(fileReader.hasMoreFrame){
+//                  fileReader.readFrame()
+//                }
+//              }
+              fileReader.gotoSnapshot(msg.f)
               log.info(s"replay from frame=${fileReader.getFramePosition}")
               if(fileReader.hasMoreFrame){
                 timer.startPeriodicTimer(GameLoopKey, GameLoop, 100.millis)
@@ -148,6 +150,15 @@ object GamePlayer {
             timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
             Behaviors.same
           }
+
+        case msg:GetRecordFrameMsg=>
+          msg.replyTo ! GetRecordFrameRsp(RecordFrameInfo(fileReader.getFramePosition))
+          Behaviors.same
+
+        case msg:GetUserInRecordMsg=>
+          val data=userMap.map{r=>PlayerInfo(r._1.userId,r._1.name)}
+          msg.replyTo ! GetUserInRecordRsp(PlayerList(data))
+          Behaviors.same
 
         case msg:TimeOut=>
           Behaviors.stopped
