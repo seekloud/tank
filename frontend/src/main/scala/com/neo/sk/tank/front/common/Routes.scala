@@ -2,6 +2,7 @@ package com.neo.sk.tank.front.common
 
 import com.neo.sk.tank.front.model.PlayerInfo
 import org.scalajs.dom
+import com.neo.sk.tank.front.model.ReplayInfo
 
 /**
   * User: Taoz
@@ -30,7 +31,7 @@ object Routes {
       })
   }
 
-  def wsReplayGameUrl(name:String,uid:Long,rid:Long,wid:Long,f:Int) = base + s"/game/replay?name=$name&uid=$uid&rid=$rid&wid=$wid&f=$f"
+  def wsReplayGameUrl(info:ReplayInfo) = base + s"/game/replay?rid=${info.recordId}&wid=${info.playerId}&f=${info.frame}&accessCode=${info.accessCode}"
 
 
 
@@ -42,13 +43,12 @@ object Routes {
       case None =>
         s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name)}"
     }
-
   }
 
 
-  def getReplaySocketUri(name:String,uid:Long,rid:Long,wid:Long,f:Int): String = {
+  def getReplaySocketUri(info:ReplayInfo): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}${Routes.wsReplayGameUrl(name,uid,rid,wid,f)}"
+    s"$wsProtocol://${dom.document.location.host}${Routes.wsReplayGameUrl(info)}"
   }
 
   def getWsSocketUri(roomId:Long, accessCode:String, playerId:Option[Long]): String = {
