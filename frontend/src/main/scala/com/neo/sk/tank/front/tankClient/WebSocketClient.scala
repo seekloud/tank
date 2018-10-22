@@ -37,7 +37,7 @@ case class WebSocketClient(
     s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name)}"
   }
 
-  def getReplaySocketUri(name:String,uid:Long,rid:Long,wid:Long,f:Int): String = {
+  def getReplaySocketUri(name:String,uid:String,rid:Long,wid:String,f:Int): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
     s"$wsProtocol://${dom.document.location.host}${Routes.wsReplayGameUrl(name,uid,rid,wid,f)}"
   }

@@ -6,6 +6,7 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
+import com.neo.sk.tank.common.Constants
 import com.neo.sk.tank.models.TankGameUserInfo
 import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameRsp, GetUserInRecordRsp, PlayerList, RecordFrameInfo}
 import org.seekloud.byteobject.MiddleBufferInJvm
@@ -48,15 +49,15 @@ object UserActor {
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
 
   case class StartGame(roomId:Option[Long]) extends Command
-  case class JoinRoom(uid:Long,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None) extends Command with RoomManager.Command
+  case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None) extends Command with RoomManager.Command
 
-  case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:Long,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
+  case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:String,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
 
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
 
-  case class StartReplay(rid:Long, wid:Long, f:Int) extends Command
+  case class StartReplay(rid:Long, wid:String, f:Int) extends Command
 
-  final case class StartObserve(roomId:Long, watchedUserId:Long) extends Command
+  final case class StartObserve(roomId:Long, watchedUserId:String) extends Command
 
   case class JoinRoomFail4Watch(msg:String) extends Command
 
@@ -110,7 +111,7 @@ object UserActor {
   }
 
   //
-  def create(uId:Long, userInfo:TankGameUserInfo):Behavior[Command] = {
+  def create(uId:String, userInfo:TankGameUserInfo):Behavior[Command] = {
     Behaviors.setup[Command]{ctx =>
       log.debug(s"${ctx.self.path} is starting...")
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
@@ -121,7 +122,7 @@ object UserActor {
     }
   }
 
-  private def init(uId:Long,userInfo:TankGameUserInfo)(
+  private def init(uId:String,userInfo:TankGameUserInfo)(
     implicit stashBuffer:StashBuffer[Command],
     sendBuffer:MiddleBufferInJvm,
     timer:TimerScheduler[Command]
@@ -158,7 +159,7 @@ object UserActor {
 
 
 
-  private def idle(uId:Long, userInfo: TankGameUserInfo, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
+  private def idle(uId:String, userInfo: TankGameUserInfo, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command],
     sendBuffer:MiddleBufferInJvm
@@ -222,7 +223,7 @@ object UserActor {
     }
 
 
-  private def observeInit(uId:Long, userInfo: TankGameUserInfo, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
+  private def observeInit(uId:String, userInfo: TankGameUserInfo, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command],
     sendBuffer:MiddleBufferInJvm
@@ -261,7 +262,7 @@ object UserActor {
     }
 
   private def observe(
-                       uId:Long,
+                       uId:String,
                        userInfo: TankGameUserInfo,
                        tank:TankServerImpl,
                        frontActor:ActorRef[TankGameEvent.WsMsgSource],
@@ -307,7 +308,7 @@ object UserActor {
 
 
   private def play(
-                    uId:Long,
+                    uId:String,
                     userInfo:TankGameUserInfo,
                     tank:TankServerImpl,
                     startTime:Long,
@@ -335,7 +336,7 @@ object UserActor {
 
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
-            if(tank.lives -1 <= 0 && uId > 0){
+            if(tank.lives -1 <= 0 && !uId.contains(Constants.TankGameUserIdPrefix)){
                val endTime = System.currentTimeMillis()
                esheepSyncClient ! EsheepSyncClient.InputRecord(uId,userInfo.nickName,tank.killTankNum,tank.config.getTankLivesLimit,tank.damageStatistics, startTime, endTime)
             }
@@ -349,7 +350,7 @@ object UserActor {
 
         case UserLeft(actor) =>
           log.info("webSocket--error in play")
-          if(uId > 0){
+          if(!uId.contains(Constants.TankGameUserIdPrefix)){
             val endTime = System.currentTimeMillis()
             val killed = tank.config.getTankLivesLimit - tank.lives
             esheepSyncClient ! EsheepSyncClient.InputRecord(uId,userInfo.nickName,tank.killTankNum,killed,tank.damageStatistics, startTime, endTime)

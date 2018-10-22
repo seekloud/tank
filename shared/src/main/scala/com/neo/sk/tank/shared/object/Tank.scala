@@ -13,10 +13,10 @@ import com.neo.sk.tank.shared.util.QuadTree
   * Created by hongruying on 2018/8/22
   */
 
-case class TankState(userId:Long,tankId:Int,direction:Float,gunDirection:Float,blood:Int,bloodLevel:Byte,speedLevel:Byte,curBulletNum:Int,position:Point,bulletPowerLevel:Byte,tankColorType:Byte,
+case class TankState(userId:String,tankId:Int,direction:Float,gunDirection:Float,blood:Int,bloodLevel:Byte,speedLevel:Byte,curBulletNum:Int,position:Point,bulletPowerLevel:Byte,tankColorType:Byte,
                      name:String,lives:Int,medicalNumOpt:Option[Int],killTankNum:Int,damageTank:Int,invincible:Boolean,shotgunState:Boolean, speed: Point, isMove: Boolean)
 trait Tank extends CircleObjectOfGame with ObstacleTank{
-  val userId : Long
+  val userId : String
   val tankId : Int
   val name : String
   var lives:Int  // 记录tank当前的生命值
@@ -485,7 +485,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
 
 case class TankImpl(
                    config: TankGameConfig,
-                   userId : Long,
+                   userId : String,
                    tankId : Int,
                    name : String,
                    protected var blood:Int,

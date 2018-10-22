@@ -71,7 +71,7 @@ trait HttpService
     parameter(
       'roomId.as[Long],
       'accessCode.as[String],
-      'playerId.as[Long].?
+      'playerId.as[String].?
     ){
       (roomId, accessCode, watchedUserIdOpt) =>
 //        authPlatUser(accessCode) { user =>
@@ -107,9 +107,9 @@ trait HttpService
         } ~ path("replay"){
           parameter(
             'name.as[String],
-            'uid.as[Long],
+            'uid.as[String],
             'rid.as[Long],
-            'wid.as[Long],
+            'wid.as[String],
             'f.as[Int]
           ){ (name,uid,rid,wid,f) =>
             //fixme 此处要和鉴权消息结合，去除无用信息

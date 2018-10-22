@@ -17,7 +17,7 @@ case class TankServerImpl(
                            roomActor:ActorRef[RoomActor.Command],
                            timer:TimerScheduler[RoomActor.Command],
                            config:TankGameConfig,
-                           userId : Long,
+                           userId : String,
                            tankId : Int,
                            name : String,
                            protected var blood:Int,

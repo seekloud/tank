@@ -45,7 +45,7 @@ object EsheepSyncClient {
   final case object RefreshToken extends Command
 
   final case class VerifyAccessCode(accessCode:String, rsp:ActorRef[EsheepProtocol.VerifyAccessCodeRsp]) extends Command
-  final case class InputRecord(playerId:Long,nickname: String, killing: Int, killed:Int, score: Int, startTime: Long, endTime: Long ) extends Command
+  final case class InputRecord(playerId:String,nickname: String, killing: Int, killed:Int, score: Int, startTime: Long, endTime: Long ) extends Command
 
   private[this] def switchBehavior(ctx: ActorContext[Command],
                                    behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None,timeOut: TimeOut  = TimeOut("busy time error"))

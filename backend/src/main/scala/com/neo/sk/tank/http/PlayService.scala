@@ -32,7 +32,7 @@ trait PlayService extends AuthService{
   private def userJoin = path("userJoin") {
     parameter(
       'name.as[String],
-      'userId.as[Long],
+      'userId.as[String],
       'userName.as[String],
       'accessCode.as[String],
       'roomId.as[Long].?
