@@ -1,5 +1,8 @@
 package com.neo.sk.tank.protocol
 
+import akka.actor.typed.ActorRef
+import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameRsp, GetUserInRecordRsp}
+import com.neo.sk.tank.core._
 import scala.collection.mutable
 
 /**
@@ -18,4 +21,8 @@ object ReplayProtocol {
                                         leftF: Long
                                       )
   final case class EssfMapInfo(m:List[(EssfMapKey,EssfMapJoinLeftInfo)])
+
+  /**Actor间查询信息*/
+  final case class GetUserInRecordMsg(recordId:Long, watchId:Long, replyTo:ActorRef[GetUserInRecordRsp]) extends UserManager.Command with UserActor.Command with GamePlayer.Command
+  final case class GetRecordFrameMsg(recordId:Long, watchId:Long, replyTo:ActorRef[GetRecordFrameRsp]) extends UserManager.Command with UserActor.Command with GamePlayer.Command
 }

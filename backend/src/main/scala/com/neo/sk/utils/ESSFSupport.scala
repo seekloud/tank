@@ -48,7 +48,8 @@ object ESSFSupport {
   }
 
   /**
-    * 读取*/
+    * 读取
+    * @author sky*/
 
   def initFileReader(fileName:String)={
     val input = new FrameInputStream(fileName)
@@ -76,6 +77,7 @@ object ESSFSupport {
     EssfMapInfo(u.toList).fillMiddleBuffer(middleBuffer).result()
   }
 
+  /**用于后端先解码数据然后再进行编码传输*/
   def replayEventDecode(a:Array[Byte]):TankGameEvent.WsMsgServer={
     if (a.length > 0) {
       val buffer = new MiddleBufferInJvm(a)

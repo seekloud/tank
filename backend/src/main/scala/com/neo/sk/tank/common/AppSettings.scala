@@ -77,7 +77,7 @@ object AppSettings {
 
   val gameDataDirectoryPath = appConfig.getString("gameDataDirectoryPath")
   val gameRecordIsWork = appConfig.getBoolean("gameRecordIsWork")
-
+  val gameRecordTime = appConfig.getInt("gameRecordTime")
 
 
   val slickConfig = config.getConfig("slick.db")
