@@ -97,15 +97,15 @@ object GameRecorder {
         val gameRecordBuffer:List[GameRecord] = List[GameRecord]()
         val data = GameRecorderData(roomId,fileName,0,gameInformation,initStateOpt,fileRecorder,gameRecordBuffer)
         timer.startSingleTimer(SaveDateKey, Save, saveTime)
-        switchBehavior(ctx,"work",work(data,mutable.HashMap.empty[EssfMapKey,EssfMapJoinLeftInfo],mutable.HashMap.empty[Long,(Int,String)],mutable.HashMap.empty[Long,(Int,String)], 0L, -1L))
+        switchBehavior(ctx,"work",work(data,mutable.HashMap.empty[EssfMapKey,EssfMapJoinLeftInfo],mutable.HashMap.empty[String,(Int,String)],mutable.HashMap.empty[String,(Int,String)], 0L, -1L))
       }
     }
   }
 
   private def work(gameRecordData: GameRecorderData,
                    essfMap: mutable.HashMap[EssfMapKey,EssfMapJoinLeftInfo],
-                   userAllMap: mutable.HashMap[Long,(Int,String)],
-                   userMap: mutable.HashMap[Long,(Int,String)],
+                   userAllMap: mutable.HashMap[String,(Int,String)],
+                   userMap: mutable.HashMap[String,(Int,String)],
                    startF: Long,
                    endF: Long
                   )(
@@ -196,6 +196,7 @@ object GameRecorder {
         val list = ListBuffer[rUserRecordMap]()
         userAllMap.foreach{
           userRecord =>
+            // todo
             list.append(rUserRecordMap(userRecord._1, recordId, roomId))
         }
         Await.result(RecordDAO.insertUserRecordList(list.toList), 2.minute)
@@ -207,8 +208,8 @@ object GameRecorder {
   private def save(
                     gameRecordData: GameRecorderData,
                     essfMap: mutable.HashMap[EssfMapKey,EssfMapJoinLeftInfo],
-                    userAllMap: mutable.HashMap[Long,(Int,String)],
-                    userMap: mutable.HashMap[Long,(Int,String)],
+                    userAllMap: mutable.HashMap[String,(Int,String)],
+                    userMap: mutable.HashMap[String,(Int,String)],
                     startF: Long,
                     endF: Long
                   )(
@@ -276,7 +277,7 @@ object GameRecorder {
                             fileName: String,
                             fileIndex:Int,
                             gameInformation: GameInformation,
-                            userMap: mutable.HashMap[Long,(Int,String)]
+                            userMap: mutable.HashMap[String,(Int,String)]
                           )(
                             implicit stashBuffer:StashBuffer[Command],
                             timer:TimerScheduler[Command],
@@ -296,7 +297,7 @@ object GameRecorder {
           val newGameInformation = GameInformation(startTime, gameInformation.tankConfig)
           val newGameRecorderData = GameRecorderData(roomId, fileName, fileIndex + 1, newGameInformation, newInitStateOpt, newRecorder, gameRecordBuffer = List[GameRecord]())
           val newEssfMap = mutable.HashMap.empty[EssfMapKey, EssfMapJoinLeftInfo]
-          val newUserAllMap = mutable.HashMap.empty[Long,(Int,String)]
+          val newUserAllMap = mutable.HashMap.empty[String,(Int,String)]
           userMap.foreach{
             user=>
               newEssfMap.put(EssfMapKey(user._2._1,user._1,user._2._2), EssfMapJoinLeftInfo( startF, -1L))

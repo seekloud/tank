@@ -17,8 +17,8 @@ case class PlayPage(
 
 
   private def parsePlayerInfoSeq: Option[PlayerInfo] = playerInfoSeq match {
-    case userId :: userName :: roomId :: accessCode :: Nil => Some(PlayerInfo(userId.toLong, userName, accessCode, Some(roomId.toLong)))
-    case userId :: userName  :: accessCode :: Nil => Some(PlayerInfo(userId.toLong, userName, accessCode, None))
+    case userId :: userName :: roomId :: accessCode :: Nil => Some(PlayerInfo(userId, userName, accessCode, Some(roomId.toLong)))
+    case userId :: userName  :: accessCode :: Nil => Some(PlayerInfo(userId, userName, accessCode, None))
     case _ => None
   }
 

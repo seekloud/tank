@@ -26,13 +26,11 @@ object GameListModal extends Component{
   private val recordTable = Var(List.empty[gameRec])
   private var currentPage = Var(1)
   private var currentPageState = 1
-  private var lastRecordId = 0L
 
   def getRecordById():Unit = {
     val id = dom.window.document.getElementById("inputContent").asInstanceOf[Input].value
     if(selectState == 0 && id != ""){
-      lastRecordId = (currentPageState-1) * 10
-      val data = getGameRecByPlayerReq(id.toLong, lastRecordId, 10).asJson.noSpaces
+      val data = getGameRecByPlayerReq(id, currentPageState * 10, 10).asJson.noSpaces
       Http.postJsonAndParse[getGameRecRsp](Routes.getRecordListByPlayerUrl, data).map{rsp =>
         if(rsp.errCode == 0){
           recordTable := rsp.data.get
@@ -42,7 +40,6 @@ object GameListModal extends Component{
         }
       }
     }else if(selectState == 1 && id != ""){
-      lastRecordId = (currentPageState-1) * 10
       val data = getGameRecByIdReq(id.toLong).asJson.noSpaces
       Http.postJsonAndParse[getGameRecRsp](Routes.getRecordListByIdUrl, data).map{rsp =>
         if(rsp.errCode == 0){
@@ -52,9 +49,8 @@ object GameListModal extends Component{
           println(rsp.msg)
         }
       }
-    }else if(selectState==2 && id != ""){
-      lastRecordId = (currentPageState-1) * 10
-      val data = getGameRecByRoomReq(id.toLong, lastRecordId, 10).asJson.noSpaces
+    }else if(selectState == 2 && id != ""){
+      val data = getGameRecByRoomReq(id.toLong, currentPageState * 10, 10).asJson.noSpaces
       Http.postJsonAndParse[getGameRecRsp](Routes.getRecordListByRoomUrl, data).map{rsp =>
         if(rsp.errCode == 0){
           recordTable := rsp.data.get
@@ -64,8 +60,7 @@ object GameListModal extends Component{
         }
       }
     }else{
-      lastRecordId = (currentPageState-1) * 10
-      val data = getGameRecReq(lastRecordId,10).asJson.noSpaces
+      val data = getGameRecReq(currentPageState * 10, 10).asJson.noSpaces
       Http.postJsonAndParse[getGameRecRsp](Routes.getRecordListUrl, data).map{rsp =>
         if(rsp.errCode == 0){
           recordTable := rsp.data.get

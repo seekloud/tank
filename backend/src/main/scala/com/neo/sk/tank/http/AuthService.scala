@@ -48,7 +48,7 @@ trait AuthService extends ServiceUtils{
         }
       }
     } else {
-      f(EsheepProtocol.PlayerInfo(12,"test"))
+      f(EsheepProtocol.PlayerInfo("test12","test"))
     }
   }
 

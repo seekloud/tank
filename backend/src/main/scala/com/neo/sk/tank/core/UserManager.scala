@@ -11,11 +11,12 @@ import akka.stream.scaladsl.Flow
 import akka.util.ByteString
 import com.neo.sk.tank.models.TankGameUserInfo
 import com.neo.sk.tank.protocol.EsheepProtocol
-import com.neo.sk.tank.protocol.ReplayProtocol.{GetRecordFrameMsg,GetUserInRecordMsg}
+import com.neo.sk.tank.protocol.ReplayProtocol.{GetRecordFrameMsg, GetUserInRecordMsg}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import io.circe.{Decoder, Encoder}
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.Boot.{executor, scheduler, timeout}
+import com.neo.sk.tank.common.Constants
 /**
   * Created by hongruying on 2018/7/9
   */
@@ -32,9 +33,9 @@ object UserManager {
 
   final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]], playerInfo:Option[EsheepProtocol.PlayerInfo] = None, roomId:Option[Long] = None) extends Command
 
-  final case class GetReplaySocketFlow(name: String, uid: Long, rid: Long, wid:Long, f:Int, replyTo: ActorRef[Flow[Message, Message, Any]]) extends Command
+  final case class GetReplaySocketFlow(name: String, uid: String, rid: Long, wid:String, f:Int, replyTo: ActorRef[Flow[Message, Message, Any]]) extends Command
 
-  final case class GetWebSocketFlow4WatchGame(roomId:Long, watchedUserId:Long, replyTo:ActorRef[Flow[Message,Message,Any]], playerInfo:Option[EsheepProtocol.PlayerInfo] = None) extends Command
+  final case class GetWebSocketFlow4WatchGame(roomId:Long, watchedUserId:String, replyTo:ActorRef[Flow[Message,Message,Any]], playerInfo:Option[EsheepProtocol.PlayerInfo] = None) extends Command
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -79,7 +80,7 @@ object UserManager {
         case GetWebSocketFlow(name,replyTo, playerInfoOpt, roomIdOpt) =>
           val playerInfo = playerInfoOpt match {
             case Some(p) => TankGameUserInfo(p.playerId, p.nickname, name, true)
-            case None => TankGameUserInfo(-uidGenerator.getAndIncrement(), s"guest:${name}", name, false)
+            case None => TankGameUserInfo(Constants.TankGameUserIdPrefix + s"-${uidGenerator.getAndIncrement()}", s"guest:${name}", name, false)
           }
           getUserActorOpt(ctx, playerInfo.userId) match {
             case Some(userActor) =>
@@ -97,7 +98,7 @@ object UserManager {
           //观战用户建立Actor由userManager监管，消息来自HttpService
           val playerInfo = playerInfoOpt match {
             case Some(p) => TankGameUserInfo(p.playerId, p.nickname, p.nickname, true)
-            case None => TankGameUserInfo(-uidGenerator.getAndIncrement(), s"guest:observer", s"guest:observer", false)
+            case None => TankGameUserInfo(Constants.TankGameUserIdPrefix + s"-${uidGenerator.getAndIncrement()}", s"guest:observer", s"guest:observer", false)
           }
           getUserActorOpt(ctx, playerInfo.userId) match {
             case Some(userActor) =>
@@ -193,7 +194,7 @@ object UserManager {
 
 
 
-  private def getUserActor(ctx: ActorContext[Command],id:Long, userInfo: TankGameUserInfo):ActorRef[UserActor.Command] = {
+  private def getUserActor(ctx: ActorContext[Command],id:String, userInfo: TankGameUserInfo):ActorRef[UserActor.Command] = {
     val childName = s"UserActor-${id}"
     ctx.child(childName).getOrElse{
       val actor = ctx.spawn(UserActor.create(id, userInfo),childName)
@@ -202,7 +203,7 @@ object UserManager {
     }.upcast[UserActor.Command]
   }
 
-  private def getUserActorOpt(ctx: ActorContext[Command],id:Long):Option[ActorRef[UserActor.Command]] = {
+  private def getUserActorOpt(ctx: ActorContext[Command],id:String):Option[ActorRef[UserActor.Command]] = {
     val childName = s"UserActor-${id}"
     ctx.child(childName).map(_.upcast[UserActor.Command])
   }

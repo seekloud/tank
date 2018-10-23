@@ -32,6 +32,7 @@ case class WebSocketClient(
 
   def getWsState = wsSetup
 
+
   private val sendBuffer:MiddleBufferInJs = new MiddleBufferInJs(4096)
 
   def sendMsg(msg:TankGameEvent.WsMsgFront) = {
