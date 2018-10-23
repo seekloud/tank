@@ -131,17 +131,18 @@ trait ServiceUtils extends CirceSupport with SessionBase{
   def dealGetReq(f: => Future[server.Route]): server.Route = {
     entity(as[Either[Error, PostEnvelope]]) {
       case Right(envelope) =>
-        if (authCheck) {
-          ensurePostEnvelope(envelope) {
-            f
-          }
-        } else {
-          dealFutureResult {
-
-            log.error(s"json parse detail type error")
-            Future.successful(complete(parseJsonError))
-          }
-        }
+        dealFutureResult(f)
+//        if (authCheck) {
+//          ensurePostEnvelope(envelope) {
+//            f
+//          }
+//        } else {
+//          dealFutureResult {
+//
+//            log.error(s"json parse detail type error")
+//            Future.successful(complete(parseJsonError))
+//          }
+//        }
 
       case Left(e) =>
         log.error(s"json parse PostEnvelope error: $e")
