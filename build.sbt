@@ -14,6 +14,7 @@ resolvers += Resolver.sonatypeRepo("snapshots")
 
 
 val projectMainClass = "com.neo.sk.tank.Boot"
+val clientMainClass = "com.neo.sk.tank.App"
 
 def commonSettings = Seq(
   version := projectVersion,
@@ -65,6 +66,19 @@ lazy val frontend = (project in file("frontend"))
     )
   )
   .dependsOn(sharedJs)
+
+lazy val client = project.in(file("client")).enablePlugins(PackPlugin)
+  .settings(commonSettings: _*)
+  .settings(name := "client")
+  .settings(
+    packMain := Map("tank" -> clientMainClass),
+    packJvmOpts := Map("tank" -> Seq("-Xmx256m", "-Xms64m")),
+    packExtraClasspath := Map("tank" -> Seq("."))
+  )
+  .settings(
+    libraryDependencies ++= Dependencies.clientDependencies
+  )
+  .dependsOn(sharedJvm)
 
 
 
