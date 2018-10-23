@@ -53,7 +53,7 @@ object RoomManager {
           (implicit stashBuffer: StashBuffer[Command],timer:TimerScheduler[Command]) = {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {
-        case JoinRoom(uid,tankIdOpt,name,userActor, roomIdOpt) =>
+        case JoinRoom(uid,tankIdOpt,name,startTime,userActor, roomIdOpt) =>
           roomInUse.map{p =>(p._1,p._2.exists(t => t._1 == uid),p._2)}
             .find(_._2 == true) match{
             case Some(tuple) =>
@@ -62,7 +62,7 @@ object RoomManager {
 
               roomInUse.put(tuple._1,(uid,name,false) :: roomInUse(tuple._1).filterNot(_._1 == uid))
               //              log.debug(s"enter repeatedly !!! user$uid :$name is already in ${tuple._1}")
-              getRoomActor(ctx,tuple._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,userActor,tuple._1)
+              getRoomActor(ctx,tuple._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,tuple._1)
 
 
             case None =>
@@ -71,12 +71,12 @@ object RoomManager {
                 case Some(v) =>
                   //有可分发的房间
                   roomInUse.put(v._1,(uid,name,false)::roomInUse(v._1))
-                  getRoomActor(ctx,v._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,userActor,v._1)
+                  getRoomActor(ctx,v._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,v._1)
                 case None =>
                   //新建房间
                   val roomId = roomIdGenerator.getAndIncrement()
                   roomInUse.put(roomId,List((uid,name,false)))
-                  getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,userActor,roomId)
+                  getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
               }
           }
           log.debug(s"now roomInUse:$roomInUse")

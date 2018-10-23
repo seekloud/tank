@@ -94,8 +94,9 @@ object EsheepClient extends HttpUtil {
     val methodName = s"addPlayerRecord"
     val url = s"${baseUrl}/esheep/api/gameServer/addPlayerRecord?token=${token}"
 
-    val data = EsheepProtocol.BatRecordeInfo(playerId,gameId,nickname,killing,killed,score,gameExtent,startTime,endTime).asJson.noSpaces
-
+    val info = EsheepProtocol.BatRecordInfo(playerId,gameId,nickname,killing,killed,score,gameExtent,startTime,endTime)
+    val data = EsheepProtocol.BatRecord(info).asJson.noSpaces
+    log.debug("inputBatRecoder"+data)
     val sn = appId + System.currentTimeMillis()
     val (timestamp, noce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, data), secureKey)
     val postData = PostEnvelope(appId,sn,timestamp,noce,data,signature).asJson.noSpaces

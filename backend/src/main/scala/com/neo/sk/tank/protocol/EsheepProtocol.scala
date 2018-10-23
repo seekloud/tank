@@ -67,8 +67,8 @@ object EsheepProtocol {
 
   case class RecordFrameInfo(frame:Int)
 
-
-  case class BatRecordeInfo(
+//战绩信息
+  case class BatRecordInfo(
                            playerId: String,
                            gameId: Long,
                            nickname: String,
@@ -79,8 +79,8 @@ object EsheepProtocol {
                            startTime: Long,
                            endTime: Long
                            )
-  case class batRecorde(
-                       playerRecord: BatRecordeInfo
+  case class BatRecord(
+                       playerRecord: BatRecordInfo
                        )
 
 

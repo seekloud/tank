@@ -9,6 +9,7 @@ import org.scalajs.dom.ext.Color
 import org.scalajs.dom.raw.{Event, HTMLElement}
 import com.neo.sk.tank.front.utils.JsFunc
 import com.neo.sk.tank.shared.`object`.Tank
+import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom.html.Canvas
@@ -30,8 +31,8 @@ class GameHolderObserver(canvasObserver:String,roomId:Long, accessCode:String, p
   private var nextFrame = 0
   private var logicFrameTime = System.currentTimeMillis()
   private var timer:Int = 0
-  private val gameStateVar:Var[Int] = Var(Constants.GameState.firstCome)
-  private var gameState:Int = Constants.GameState.firstCome
+  private val gameStateVar:Var[Int] = Var(GameState.firstCome)
+  private var gameState:Int = GameState.firstCome
   private var killerName:String = ""
 
   def setGameState(s:Int):Unit = {

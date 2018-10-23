@@ -9,6 +9,7 @@ import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import com.neo.sk.tank.common.Constants
 import com.neo.sk.tank.models.TankGameUserInfo
 import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameRsp, GetUserInRecordRsp, PlayerList, RecordFrameInfo}
+import com.neo.sk.tank.shared.model.Constants.GameState
 import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, ReplayFrameData}
 import org.slf4j.LoggerFactory
@@ -49,7 +50,7 @@ object UserActor {
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
 
   case class StartGame(roomId:Option[Long]) extends Command
-  case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None) extends Command with RoomManager.Command
+  case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None) extends Command with RoomManager.Command
 
   case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:String,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
 
@@ -67,6 +68,10 @@ object UserActor {
                                           roomActor:ActorRef[RoomActor.Command],
                                           gameState:TankGameEvent.SyncGameAllState
                                         ) extends Command
+
+  case class  InputRecordByDead(killTankNum:Int,lives:Int,damageStatistics:Int) extends Command
+
+  case class InputRecordByLeft(killTankNum:Int,lives:Int,damageStatistics:Int) extends Command
 
   final case class SwitchBehavior(
                                    name: String,
@@ -131,7 +136,7 @@ object UserActor {
       msg match {
         case UserFrontActor(frontActor) =>
           ctx.watchWith(frontActor,UserLeft(frontActor))
-          switchBehavior(ctx,"idle",idle(uId, userInfo, frontActor))
+          switchBehavior(ctx,"idle",idle(uId, userInfo,System.currentTimeMillis(), frontActor))
 
         case UserLeft(actor) =>
           log.info("webSocket--error in init")
@@ -159,7 +164,7 @@ object UserActor {
 
 
 
-  private def idle(uId:String, userInfo: TankGameUserInfo, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
+  private def idle(uId:String, userInfo: TankGameUserInfo,startTime:Long, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command],
     sendBuffer:MiddleBufferInJvm
@@ -170,7 +175,7 @@ object UserActor {
           /**换成给roomManager发消息,告知uId,name
             * 还要给userActor发送回带roomId的数据
             * */
-          roomManager ! JoinRoom(uId,None,userInfo.name,ctx.self, roomIdOpt)
+          roomManager ! JoinRoom(uId,None,userInfo.name,startTime,ctx.self, roomIdOpt)
           Behaviors.same
 
         case StartReplay(rid,uid,f) =>
@@ -181,7 +186,6 @@ object UserActor {
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
 //          println("渲染数据")
-          val startTime = System.currentTimeMillis()
           frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, userInfo.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId, userInfo,tank,startTime,frontActor,roomActor))
 
@@ -194,8 +198,15 @@ object UserActor {
         case WebSocketMsg(reqOpt) =>
           reqOpt match {
             case Some(t:TankGameEvent.RestartGame) =>
-              roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,ctx.self)
-              idle(uId, userInfo.copy(name = t.name), frontActor)
+              if(t.gameState == GameState.stop){
+                log.debug("dead 3--------------")
+                val newStartTime = System.currentTimeMillis()
+                roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,newStartTime,ctx.self)
+                idle(uId,userInfo.copy(name = t.name),newStartTime,frontActor)
+              }else{
+                roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,startTime,ctx.self)
+                idle(uId,userInfo.copy(name = t.name),startTime,frontActor)
+              }
             case _ =>
               Behaviors.same
           }
@@ -336,13 +347,9 @@ object UserActor {
 
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
-            if(tank.lives -1 <= 0 && !uId.contains(Constants.TankGameUserIdPrefix)){
-               val endTime = System.currentTimeMillis()
-               esheepSyncClient ! EsheepSyncClient.InputRecord(uId,userInfo.nickName,tank.killTankNum,tank.config.getTankLivesLimit,tank.damageStatistics, startTime, endTime)
-            }
             frontActor ! m
             roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,userInfo.name)
-            switchBehavior(ctx,"idle",idle(uId,userInfo,frontActor))
+            switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
           }else{
               frontActor ! m
               Behaviors.same
@@ -350,16 +357,18 @@ object UserActor {
 
         case UserLeft(actor) =>
           log.info("webSocket--error in play")
-          if(!uId.contains(Constants.TankGameUserIdPrefix)){
-            val endTime = System.currentTimeMillis()
-            val killed = tank.config.getTankLivesLimit - tank.lives
-            esheepSyncClient ! EsheepSyncClient.InputRecord(uId,userInfo.nickName,tank.killTankNum,killed,tank.damageStatistics, startTime, endTime)
-          }
           ctx.unwatch(actor)
           roomManager ! RoomManager.LeftRoom(uId,tank.tankId,userInfo.name,Some(uId))
           Behaviors.stopped
 
-
+        case k:InputRecordByDead =>
+          log.debug(s"input record by dead msg")
+          if(tank.lives -1 <= 0 && !uId.contains(Constants.TankGameUserIdPrefix)){
+            val endTime = System.currentTimeMillis()
+            log.debug(s"input record ${EsheepSyncClient.InputRecord(uId,userInfo.nickName,k.killTankNum,tank.config.getTankLivesLimit,k.damageStatistics, startTime, endTime)}")
+            esheepSyncClient ! EsheepSyncClient.InputRecord(uId,userInfo.nickName,k.killTankNum,tank.config.getTankLivesLimit,k.damageStatistics, startTime, endTime)
+          }
+          Behaviors.same
 
         case unknowMsg =>
 //          log.warn(s"got unknown msg: $unknowMsg")
