@@ -37,7 +37,7 @@ trait AuthService extends ServiceUtils{
       dealFutureResult{
         verifyAccessCodeFutureRst.map{ rsp =>
           if(rsp.errCode == 0 && rsp.data.nonEmpty){
-            f(rsp.data.get.playerInfo)
+            f(rsp.data.get)
           } else{
             complete(AuthUserErrorRsp(rsp.msg))
           }
