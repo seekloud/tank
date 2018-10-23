@@ -363,7 +363,7 @@ object UserActor {
 
         case k:InputRecordByDead =>
           log.debug(s"input record by dead msg")
-          if(tank.lives -1 <= 0 && uId.contains(Constants.TankGameUserIdPrefix)){
+          if(tank.lives -1 <= 0 && !uId.contains(Constants.TankGameUserIdPrefix)){
             val endTime = System.currentTimeMillis()
             log.debug(s"input record ${EsheepSyncClient.InputRecord(uId,userInfo.nickName,k.killTankNum,tank.config.getTankLivesLimit,k.damageStatistics, startTime, endTime)}")
             esheepSyncClient ! EsheepSyncClient.InputRecord(uId,userInfo.nickName,k.killTankNum,tank.config.getTankLivesLimit,k.damageStatistics, startTime, endTime)
