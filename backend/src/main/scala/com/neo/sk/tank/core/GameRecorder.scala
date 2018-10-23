@@ -179,7 +179,6 @@ object GameRecorder {
       case (ctx,PostStop) =>
         timer.cancelAll()
         log.info(s"${ctx.self.path} stopping....")
-        // todo  保存信息
         val mapInfo = essfMap.map{
           essf=>
             if(essf._2.leftF == -1L){

@@ -16,14 +16,14 @@ import com.neo.sk.tank.models.DAO.RecordDAO
 import com.neo.sk.tank.protocol.EsheepProtocol._
 import com.neo.sk.tank.protocol.ReplayProtocol.{EssfMapJoinLeftInfo, EssfMapKey}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
-import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameInformation, ReplayFrameData, YourInfo}
+import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameInformation, ReplayFrameData, SyncGameAllState, YourInfo}
 import org.seekloud.byteobject.MiddleBufferInJvm
 
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.neo.sk.utils.ESSFSupport.{initFileReader => _, metaDataDecode => _, userMapDecode => _, _}
-import com.neo.sk.tank.protocol.ReplayProtocol.{GetUserInRecordMsg,GetRecordFrameMsg}
+import com.neo.sk.tank.protocol.ReplayProtocol.{GetRecordFrameMsg, GetUserInRecordMsg}
 /**
   * User: sky
   * Date: 2018/10/12
@@ -60,7 +60,6 @@ object GamePlayer {
 
   /**actor内部消息*/
   case class InitReplay(userActor: ActorRef[TankGameEvent.WsMsgSource],userId:String,f:Int) extends Command
-  case class InitDownload(userActor: ActorRef[TankGameEvent.WsMsgSource]) extends Command
   case object GetUserListInRecord extends Command
 
   def create(recordId:Long):Behavior[Command] = {
@@ -71,9 +70,9 @@ object GamePlayer {
       Behaviors.withTimers[Command] { implicit timer =>
         RecordDAO.getRecordById(recordId).map {
           case Some(r)=>
-            val replay=initFileReader(r.filePath)
-            val info=replay.init()
             try{
+              val replay=initFileReader(r.filePath)
+              val info=replay.init()
               ctx.self ! SwitchBehavior("work",
                 work(
                   replay,
@@ -83,9 +82,11 @@ object GamePlayer {
             }catch {
               case e:Throwable=>
                 log.error("error---"+e.getMessage)
+                ctx.self ! SwitchBehavior("initError",initError)
             }
           case None=>
             log.debug(s"record--$recordId didn't exist!!")
+            ctx.self ! SwitchBehavior("initError",initError)
         }
         switchBehavior(ctx,"busy",busy())
       }
@@ -94,7 +95,6 @@ object GamePlayer {
 
   def work(fileReader:FrameInputStream,
            metaData:GameInformation,
-//           initState:TankGameEvent.TankGameSnapshot,
            userMap:List[(EssfMapKey,EssfMapJoinLeftInfo)],
            userOpt:Option[ActorRef[TankGameEvent.WsMsgSource]]=None
           )(
@@ -112,13 +112,6 @@ object GamePlayer {
             case Some(u)=>
               dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,metaData.tankConfig))
               log.info(s" set replay from frame=${msg.f}")
-              //fixme 跳转帧数goto失效
-//              fileReader.reset()
-//              for(i <- 1 to msg.f){
-//                if(fileReader.hasMoreFrame){
-//                  fileReader.readFrame()
-//                }
-//              }
               fileReader.gotoSnapshot(msg.f)
               log.info(s"replay from frame=${fileReader.getFramePosition}")
               if(fileReader.hasMoreFrame){
@@ -129,13 +122,10 @@ object GamePlayer {
                 Behaviors.same
               }
             case None=>
+              dispatchTo(msg.userActor,TankGameEvent.InitReplayError("本局游戏中不存在该用户！！"))
               timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
               Behaviors.same
           }
-
-
-        case msg:InitDownload=>
-          switchBehavior(ctx,"busy",busy(),Some(10.seconds))
 
         case GameLoop=>
           if(fileReader.hasMoreFrame){
@@ -146,6 +136,9 @@ object GamePlayer {
             )
             Behaviors.same
           }else{
+            userOpt.foreach(u=>
+              dispatchTo(u,TankGameEvent.ReplayFinish())
+            )
             timer.cancel(GameLoopKey)
             timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
             Behaviors.same
@@ -170,13 +163,25 @@ object GamePlayer {
     }
   }
 
+  private def initError(
+                         implicit sendBuffer: MiddleBufferInJvm
+                       ):Behavior[Command]={
+    Behaviors.receive[Command]{(ctx,msg)=>
+      msg match {
+        case msg:InitReplay =>
+          dispatchTo(msg.userActor,TankGameEvent.InitReplayError("游戏文件不存在或者已损坏！！"))
+          Behaviors.stopped
+      }
+    }
+  }
+
   import org.seekloud.byteobject.ByteObject._
-  def dispatchTo(subscriber: ActorRef[TankGameEvent.WsMsgSource],msg: TankGameEvent.WsMsgServer)(implicit sendBuffer: MiddleBufferInJvm)= {
+  private def dispatchTo(subscriber: ActorRef[TankGameEvent.WsMsgSource],msg: TankGameEvent.WsMsgServer)(implicit sendBuffer: MiddleBufferInJvm)= {
 //    subscriber ! ReplayFrameData(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
     subscriber ! ReplayFrameData(List(msg).fillMiddleBuffer(sendBuffer).result())
   }
 
-  def dispatchByteTo(subscriber: ActorRef[TankGameEvent.WsMsgSource], msg:FrameData)(implicit sendBuffer: MiddleBufferInJvm) = {
+  private def dispatchByteTo(subscriber: ActorRef[TankGameEvent.WsMsgSource], msg:FrameData)(implicit sendBuffer: MiddleBufferInJvm) = {
 //    subscriber ! ReplayFrameData(replayEventDecode(msg.eventsData).fillMiddleBuffer(sendBuffer).result())
 //    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(replayStateDecode(s).fillMiddleBuffer(sendBuffer).result()))
     subscriber ! ReplayFrameData(msg.eventsData)

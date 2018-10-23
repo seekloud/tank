@@ -1,18 +1,25 @@
 package com.neo.sk.tank.http
 
 import org.slf4j.LoggerFactory
-import com.neo.sk.utils.HttpUtil
 import akka.http.scaladsl.server.Directives.{complete, _}
 import akka.http.scaladsl.server.Route
-import com.neo.sk.tank.protocol.CommonErrorCode
-import com.neo.sk.tank.protocol.RecordApiProtocol.{getGameRecReq, getGameRecByTimeReq, getGameRecByPlayerReq, downloadRecordReq, getGameRecRsp, gameRec}
+import com.neo.sk.tank.protocol.{CommonErrorCode, EsheepProtocol}
+import com.neo.sk.tank.protocol.RecordApiProtocol.{DownloadRecordReq, GameRec, GetGameRecByPlayerReq, GetGameRecByTimeReq, GetGameRecReq, GetGameRecRsp}
+
 import scala.language.postfixOps
 import com.neo.sk.tank.models.DAO.RecordDAO
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.stream.scaladsl.{FileIO, Source}
 import java.io.File
+import com.neo.sk.tank.Boot.{esheepSyncClient, executor, scheduler, timeout}
+import com.neo.sk.tank.core.EsheepSyncClient
 import com.neo.sk.tank.shared.ptcl.ErrorRsp
+import scala.concurrent.Future
+import akka.actor.typed.scaladsl.AskPattern._
+
+
 /**
   *
   * 提供获取游戏录像列表的接口
@@ -28,16 +35,16 @@ trait RecordApiService extends ServiceUtils{
   private def getGameRecErrorRsp(msg:String) = ErrorRsp(1000020,msg)
 
   private val getRecordList = (path("getRecordList") & post){
-    dealPostReq[getGameRecReq]{req =>
+    dealPostReq[GetGameRecReq]{req =>
       RecordDAO.queryAllRec(req.lastRecordId, req.count).map{r =>
         val temp = r.groupBy(_._1)
-        var tempList = List.empty[gameRec]
+        var tempList = List.empty[GameRec]
         for((k, v) <- temp){
           if(v.head._2.nonEmpty)
-            tempList = tempList :+ gameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
-          else tempList = tempList :+ gameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
+            tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
+          else tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
         }
-        complete(getGameRecRsp(Some(tempList.sortBy(_.recordId))))
+        complete(GetGameRecRsp(Some(tempList.sortBy(_.recordId))))
       }.recover{
         case e:Exception =>
           log.debug(s"获取游戏录像失败，recover error:$e")
@@ -47,16 +54,16 @@ trait RecordApiService extends ServiceUtils{
   }
 
   private val getRecordListByTime = (path("getRecordListByTime") & post){
-    dealPostReq[getGameRecByTimeReq]{req =>
+    dealPostReq[GetGameRecByTimeReq]{req =>
       RecordDAO.queryRecByTime(req.startTime, req.endTime, req.lastRecordId, req.count).map{r =>
         val temp = r.groupBy(_._1)
-        var tempList = List.empty[gameRec]
+        var tempList = List.empty[GameRec]
         for((k, v) <- temp){
           if(v.head._2.nonEmpty)
-            tempList = tempList :+ gameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
-          else tempList = tempList :+ gameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
+            tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
+          else tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
         }
-        complete(getGameRecRsp(Some(tempList.sortBy(_.recordId))))
+        complete(GetGameRecRsp(Some(tempList.sortBy(_.recordId))))
       }.recover{
         case e:Exception =>
           log.debug(s"获取游戏录像失败，recover error:$e")
@@ -66,16 +73,16 @@ trait RecordApiService extends ServiceUtils{
   }
 
   private val getRecordListByPlayer = (path("getRecordListByPlayer") & post){
-    dealPostReq[getGameRecByPlayerReq]{req =>
+    dealPostReq[GetGameRecByPlayerReq]{req =>
       RecordDAO.queryRecByPlayer(req.playerId, req.lastRecordId, req.count).map{r =>
         val temp = r.groupBy(_._1)
-        var tempList = List.empty[gameRec]
+        var tempList = List.empty[GameRec]
         for((k, v) <- temp){
           if(v.head._2.nonEmpty)
-            tempList = tempList :+ gameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
-          else tempList = tempList :+ gameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
+            tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
+          else tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
         }
-        complete(getGameRecRsp(Some(tempList.sortBy(_.recordId))))
+        complete(GetGameRecRsp(Some(tempList.sortBy(_.recordId))))
       }.recover{
         case e:Exception =>
           log.debug(s"获取游戏录像失败，recover error:$e")
@@ -86,25 +93,33 @@ trait RecordApiService extends ServiceUtils{
 
   private val downloadRecord = (path("downloadRecord")){
     parameter('token){token =>
-      dealPostReq[downloadRecordReq]{req =>
-        RecordDAO.getFilePath(req.recordId).map{r =>
-          val fileName = r.head
-          val f = new File(fileName)
-          if(f.exists()){
-            val responseEntity = HttpEntity(
-              ContentTypes.`application/octet-stream`,
-              f.length,
-              FileIO.fromPath(f.toPath, chunkSize = 262144))
-            complete(responseEntity)
-          } else complete(getGameRecErrorRsp("file not exist"))
-        }.recover{
-          case e:Exception =>
-            log.debug(s"获取游戏录像失败，recover error:$e")
-            complete(getGameRecErrorRsp(s"获取游戏录像失败，recover error:$e"))
+      val verifyTokenFutureRst: Future[EsheepProtocol.GameServerKey2TokenRsp] = esheepSyncClient ? (e => EsheepSyncClient.VerifyToken(e))
+      dealFutureResult(verifyTokenFutureRst.map{rsp =>
+        if(rsp.data.get.token == token){
+          dealPostReq[DownloadRecordReq]{req =>
+            RecordDAO.getFilePath(req.recordId).map{r =>
+              val fileName = r.head
+              val f = new File(fileName)
+              if(f.exists()){
+                val responseEntity = HttpEntity(
+                  ContentTypes.`application/octet-stream`,
+                  f.length,
+                  FileIO.fromPath(f.toPath, chunkSize = 262144))
+                complete(responseEntity)
+              } else complete(getGameRecErrorRsp("file not exist"))
+            }.recover{
+              case e:Exception =>
+                log.debug(s"获取游戏录像失败，recover error:$e")
+                complete(getGameRecErrorRsp(s"获取游戏录像失败，recover error:$e"))
+            }
+          }
+        }else{
+          complete(getGameRecErrorRsp(s"token验证失败"))
         }
+      })
       }
     }
-  }
+
 
 
   val GameRecRoutes: Route =

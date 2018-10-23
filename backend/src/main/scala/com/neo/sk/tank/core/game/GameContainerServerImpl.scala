@@ -103,7 +103,7 @@ case class GameContainerServerImpl(
 
   override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
     val tankState = tank.getTankState()
-    dispatchTo(tank.userId,TankGameEvent.YouAreKilled(bulletTankId,bulletTankName, tankState.lives > 1), getUserActor4WatchGameList(tank.userId))
+    dispatchTo(tank.userId,TankGameEvent.YouAreKilled(bulletTankId,bulletTankName, tankState.lives > 1,tank.killTankNum,tank.lives,tank.damageStatistics), getUserActor4WatchGameList(tank.userId))
     val curTankState = TankState(tankState.userId,tankState.tankId,tankState.direction,tankState.gunDirection,tankState.blood,tankState.bloodLevel,tankState.speedLevel,tankState.curBulletNum,
       tankState.position,tankState.bulletPowerLevel,tankState.tankColorType,tankState.name,tankState.lives-1,None,tankState.killTankNum,tankState.damageTank,tankState.invincible,
       tankState.shotgunState,tankState.speed,tankState.isMove)
@@ -294,9 +294,10 @@ case class GameContainerServerImpl(
 
   def leftGame(userId:String,name:String,tankId:Int) = {
     val event = TankGameEvent.UserLeftRoom(userId,name,tankId,systemFrame)
+    val tank= tankMap.filter(_._2.userId == userId).head._2
     addGameEvent(event)
     dispatch(event)
-    dispatchTo(userId,TankGameEvent.PlayerLeftRoom(userId,name,tankId,systemFrame),getUserActor4WatchGameList(userId))
+    dispatchTo(userId,TankGameEvent.PlayerLeftRoom(userId,name,tankId,systemFrame,tank.killTankNum,tank.lives,tank.damageStatistics),getUserActor4WatchGameList(userId))
     userMapObserver.remove(userId)
   }
 
