@@ -11,6 +11,7 @@ import com.neo.sk.tank.shared.game.GameContainerState
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.front.model.ReplayInfo
+import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.model.Constants.GameState
 import mhtml.Var
 import org.scalajs.dom
@@ -74,7 +75,6 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
   private var eKeyBoardState4AddBlood = true
 
 
-  var testHolfer=""
 
 
   private val watchKeys = Set(
@@ -117,6 +117,12 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
     startReplay(Some(info))
   }
 
+  def closeHolder={
+    dom.window.cancelAnimationFrame(nextFrame)
+    Shortcut.cancelSchedule(timer)
+    Shortcut.cancelSchedule(reStartTimer)
+//    webSocketClient.closeWs
+  }
 
   def gameRender():Double => Unit = {d =>
     val curTime = System.currentTimeMillis()
@@ -385,6 +391,17 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
     println()
   }
 
+  private def drawReplayMsg(m:String):Unit = {
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.fillStyle = "rgb(250, 250, 250)"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    ctx.font = "36px Helvetica"
+    ctx.fillText(m, 150, 180)
+    println()
+  }
+
   private def drawGameRestart() = {
     ctx.fillStyle = Color.Black.toString()
     ctx.globalAlpha = 1
@@ -505,15 +522,21 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
 
       case e:TankGameEvent.SyncGameAllState =>
         if(firstCome){
-          if (e.gState.tanks.exists(_.tankId==gameContainerOpt.get.myTankId)){
+          /*if (e.gState.tanks.exists(_.tankId==gameContainerOpt.get.myTankId)){
             firstCome=false
-            setGameState(GameState.play)
+            setGameState(Constants.GameState.play)
             //fixme 此处需要调整（立即同步数据，此处等待周期过长）
             gameContainerOpt.foreach(_.update())
             timer = Shortcut.schedule(gameLoop, gameContainerOpt.get.config.frameDuration)
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             nextFrame = dom.window.requestAnimationFrame(gameRender())
-          }
+          }*/
+          firstCome=false
+          setGameState(GameState.play)
+          //fixme 此处需要调整（立即同步数据，此处等待周期过长）
+          timer = Shortcut.schedule(gameLoop, gameContainerOpt.get.config.frameDuration)
+          gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
+          nextFrame = dom.window.requestAnimationFrame(gameRender())
         }else{
           //fixme 此处存在重复操作
           //remind here allState change into state
@@ -530,6 +553,15 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
 
       case e:TankGameEvent.GameEvent =>
         gameContainerOpt.foreach(_.receiveGameEvent(e))
+        //remind 此处判断是否为用户进入，更新userMap
+        e match {
+          case t: TankGameEvent.UserJoinRoom =>
+            gameContainerOpt.foreach(_.update())
+            if (t.tankState.tankId == gameContainerOpt.get.tankId) {
+              setGameState(GameState.play)
+            }
+          case _ =>
+        }
 
       case e:TankGameEvent.EventData =>
         e.list.foreach(r=>replayMessageHandler(r))
@@ -539,6 +571,11 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
 
       case e:TankGameEvent.DecodeError=>
 
+      case e:TankGameEvent.InitReplayError=>
+        drawReplayMsg(e.msg)
+
+      case e:TankGameEvent.ReplayFinish=>
+        drawReplayMsg("游戏回放完毕。。。")
 
       case _ => println(s"unknow msg={sss}")
     }
