@@ -37,7 +37,7 @@ object RoomActor {
 
   case class WebSocketMsg(uid:String,tankId:Int,req:TankGameEvent.UserActionEvent) extends Command with RoomManager.Command
 
-  case class LeftRoom(uid:String,tankId:Int,name:String,uidSet:List[(String,String,Boolean)],roomId:Long) extends Command with RoomManager.Command
+  case class LeftRoom(uid:String,tankId:Int,name:String,uidSet:List[(String,String)],roomId:Long) extends Command with RoomManager.Command
   case class LeftRoomByKilled(uid:String,tankId:Int,name:String) extends Command with RoomManager.Command
   case class LeftRoom4Watch(uid:String,playerId:String) extends Command with RoomManager.Command
   case class JoinRoom4Watch(uid:String,roomId:Long,playerId:String,userActor4Watch: ActorRef[UserActor.Command]) extends Command with  RoomManager.Command
