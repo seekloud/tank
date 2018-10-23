@@ -13,7 +13,7 @@ import org.scalajs.dom
 import org.scalajs.dom.KeyboardEvent
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.Input
-import com.neo.sk.tank.shared.ptcl.GameRecPtcl.{gameRec, getGameRecByIdReq, getGameRecByPlayerReq, getGameRecByRoomReq, getGameRecReq, getGameRecRsp}
+import com.neo.sk.tank.shared.ptcl.GameRecPtcl.{GameRec, GetGameRecByIdReq, GetGameRecByPlayerReq, GetGameRecByRoomReq, GetGameRecReq, GetGameRecRsp}
 import org.scalajs.dom.raw.MouseEvent
 
 /**
@@ -23,15 +23,15 @@ object GameListModal extends Component{
 
   private val selectOpt = Var("用户ID")
   private var selectState = 0
-  private val recordTable = Var(List.empty[gameRec])
+  private val recordTable = Var(List.empty[GameRec])
   private var currentPage = Var(1)
   private var currentPageState = 1
 
   def getRecordById():Unit = {
     val id = dom.window.document.getElementById("inputContent").asInstanceOf[Input].value
     if(selectState == 0 && id != ""){
-      val data = getGameRecByPlayerReq(id, currentPageState * 10, 10).asJson.noSpaces
-      Http.postJsonAndParse[getGameRecRsp](Routes.getRecordListByPlayerUrl, data).map{rsp =>
+      val data = GetGameRecByPlayerReq(id, currentPageState * 10, 10).asJson.noSpaces
+      Http.postJsonAndParse[GetGameRecRsp](Routes.getRecordListByPlayerUrl, data).map{rsp =>
         if(rsp.errCode == 0){
           recordTable := rsp.data.get
         } else {
@@ -40,8 +40,8 @@ object GameListModal extends Component{
         }
       }
     }else if(selectState == 1 && id != ""){
-      val data = getGameRecByIdReq(id.toLong).asJson.noSpaces
-      Http.postJsonAndParse[getGameRecRsp](Routes.getRecordListByIdUrl, data).map{rsp =>
+      val data = GetGameRecByIdReq(id.toLong).asJson.noSpaces
+      Http.postJsonAndParse[GetGameRecRsp](Routes.getRecordListByIdUrl, data).map{rsp =>
         if(rsp.errCode == 0){
           recordTable := rsp.data.get
         } else {
@@ -50,8 +50,8 @@ object GameListModal extends Component{
         }
       }
     }else if(selectState == 2 && id != ""){
-      val data = getGameRecByRoomReq(id.toLong, currentPageState * 10, 10).asJson.noSpaces
-      Http.postJsonAndParse[getGameRecRsp](Routes.getRecordListByRoomUrl, data).map{rsp =>
+      val data = GetGameRecByRoomReq(id.toLong, currentPageState * 10, 10).asJson.noSpaces
+      Http.postJsonAndParse[GetGameRecRsp](Routes.getRecordListByRoomUrl, data).map{rsp =>
         if(rsp.errCode == 0){
           recordTable := rsp.data.get
         } else {
@@ -60,8 +60,8 @@ object GameListModal extends Component{
         }
       }
     }else{
-      val data = getGameRecReq(currentPageState * 10, 10).asJson.noSpaces
-      Http.postJsonAndParse[getGameRecRsp](Routes.getRecordListUrl, data).map{rsp =>
+      val data = GetGameRecReq(currentPageState * 10, 10).asJson.noSpaces
+      Http.postJsonAndParse[GetGameRecRsp](Routes.getRecordListUrl, data).map{rsp =>
         if(rsp.errCode == 0){
           recordTable := rsp.data.get
         } else {
