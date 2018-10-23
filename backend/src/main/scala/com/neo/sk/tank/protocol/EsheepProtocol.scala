@@ -13,7 +13,7 @@ object EsheepProtocol {
                                 )
 
   case class GameServerKey2TokenInfo(
-                                      gsToken:String,
+                                      token:String,
                                       expireTime:Long
                                     )
 

@@ -141,7 +141,7 @@ object EsheepSyncClient {
       msg match {
         case VerifyAccessCode(accessCode, rsp) =>
 
-          EsheepClient.verifyAccessCode(accessCode, tokenInfo.gsToken).onComplete{
+          EsheepClient.verifyAccessCode(accessCode, tokenInfo.token).onComplete{
             case Success(rst) =>
               rst match {
                 case Right(value) => rsp ! EsheepProtocol.VerifyAccessCodeRsp(Some(value))
@@ -162,7 +162,7 @@ object EsheepSyncClient {
           switchBehavior(ctx,"init",init(),InitTime,TimeOut("init"))
 
         case r:InputRecord =>
-          EsheepClient.inputBatRecoder(tokenInfo.gsToken,r.playerId.toString,r.nickname,r.killing,r.killed,r.score,"",r.startTime,r.endTime).onComplete{
+          EsheepClient.inputBatRecoder(tokenInfo.token,r.playerId.toString,r.nickname,r.killing,r.killed,r.score,"",r.startTime,r.endTime).onComplete{
             case Success(rst) =>
               rst match {
                 case Right(value) =>
