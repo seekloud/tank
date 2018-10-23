@@ -78,7 +78,6 @@ object GameListModal extends Component{
 
   def toOneRecord(recordId:Long) ={
     val op=dom.document.getElementById(recordId.toString).asInstanceOf[Input].value
-    println(op)
     if(op==""){
       JsFunc.alert("请选择视角")
     }else{

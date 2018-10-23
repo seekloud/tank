@@ -10,6 +10,7 @@ import org.scalajs.dom.{Event, KeyboardEvent}
 import org.scalajs.dom.raw.MouseEvent
 
 import scala.xml.Elem
+import com.neo.sk.tank.front.utils.Shortcut
 
 /**
   * Created by hongruying on 2018/7/9
@@ -43,6 +44,8 @@ class StartGameModal(gameState:Var[Int],startGame:(String) => Unit, playerInfoOp
 
   private val inputElem = <input id ="TankGameNameInput" onkeydown ={e:KeyboardEvent => clickEnter(e)} disabled={inputDisabled} value ={inputValue}></input>
   private val button = <button id="start_button" class ="btn btn-info" onclick ={() => clickEnter()}>进入</button>
+  private val watchButton = <button id="watch_button" class ="btn btn-info" onclick ={() => Shortcut.redirect("#/getGameRec")}>进入观看列表</button>
+
 
 
   def clickEnter(e:KeyboardEvent):Unit = {
@@ -72,6 +75,7 @@ class StartGameModal(gameState:Var[Int],startGame:(String) => Unit, playerInfoOp
         <div class ="input_title">{title}</div>
         <div class ="input_elem">{inputElem}</div>
         <div class ="input_button">{button}</div>
+        <div class ="input_button">{watchButton}</div>
       </div>
     </div>
 
