@@ -70,9 +70,9 @@ object GamePlayer {
       Behaviors.withTimers[Command] { implicit timer =>
         RecordDAO.getRecordById(recordId).map {
           case Some(r)=>
-            val replay=initFileReader(r.filePath)
-            val info=replay.init()
             try{
+              val replay=initFileReader(r.filePath)
+              val info=replay.init()
               ctx.self ! SwitchBehavior("work",
                 work(
                   replay,
