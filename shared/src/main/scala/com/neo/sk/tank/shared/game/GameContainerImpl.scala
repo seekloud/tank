@@ -16,7 +16,7 @@ import scala.collection.mutable
   */
 class GameContainerImpl(
                          override val config: TankGameConfig,
-                         myId:Long,
+                         myId:String,
                          myTankId:Int,
                          myName:String
                        ) extends GameContainer with EsRecover {

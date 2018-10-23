@@ -33,14 +33,14 @@ object RoomActor {
 
   sealed trait Command
 
-  case class JoinRoom(uid:Long,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command],roomId:Long) extends Command
+  case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command],roomId:Long) extends Command
 
-  case class WebSocketMsg(uid:Long,tankId:Int,req:TankGameEvent.UserActionEvent) extends Command with RoomManager.Command
+  case class WebSocketMsg(uid:String,tankId:Int,req:TankGameEvent.UserActionEvent) extends Command with RoomManager.Command
 
-  case class LeftRoom(uid:Long,tankId:Int,name:String,uidSet:List[(Long,String,Boolean)],roomId:Long) extends Command with RoomManager.Command
-  case class LeftRoomByKilled(uid:Long,tankId:Int,name:String) extends Command with RoomManager.Command
-  case class LeftRoom4Watch(uid:Long,playerId:Long) extends Command with RoomManager.Command
-  case class JoinRoom4Watch(uid:Long,roomId:Long,playerId:Long,userActor4Watch: ActorRef[UserActor.Command]) extends Command with  RoomManager.Command
+  case class LeftRoom(uid:String,tankId:Int,name:String,uidSet:List[(String,String,Boolean)],roomId:Long) extends Command with RoomManager.Command
+  case class LeftRoomByKilled(uid:String,tankId:Int,name:String) extends Command with RoomManager.Command
+  case class LeftRoom4Watch(uid:String,playerId:String) extends Command with RoomManager.Command
+  case class JoinRoom4Watch(uid:String,roomId:Long,playerId:String,userActor4Watch: ActorRef[UserActor.Command]) extends Command with  RoomManager.Command
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command with RoomManager.Command
   case object GameLoop extends Command
   case class ShotgunExpire(tId:Int) extends Command
@@ -73,8 +73,8 @@ object RoomActor {
       ctx =>
         Behaviors.withTimers[Command]{
           implicit timer =>
-            val subscribersMap = mutable.HashMap[Long,ActorRef[UserActor.Command]]()
-            val observersMap = mutable.HashMap[Long,ActorRef[UserActor.Command]]()
+            val subscribersMap = mutable.HashMap[String,ActorRef[UserActor.Command]]()
+            val observersMap = mutable.HashMap[String,ActorRef[UserActor.Command]]()
             implicit val sendBuffer = new MiddleBufferInJvm(81920)
             val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer, log,
               dispatch(subscribersMap,observersMap),
@@ -91,9 +91,9 @@ object RoomActor {
 
   def idle(
             roomId:Long,
-            justJoinUser:List[(Long,Option[Int],ActorRef[UserActor.Command])],
-            subscribersMap:mutable.HashMap[Long,ActorRef[UserActor.Command]],
-            observersMap:mutable.HashMap[Long,ActorRef[UserActor.Command]],
+            justJoinUser:List[(String,Option[Int],ActorRef[UserActor.Command])],
+            subscribersMap:mutable.HashMap[String,ActorRef[UserActor.Command]],
+            observersMap:mutable.HashMap[String,ActorRef[UserActor.Command]],
             gameContainer:GameContainerServerImpl,
             tickCount:Long
           )(
@@ -211,14 +211,14 @@ object RoomActor {
   import scala.language.implicitConversions
   import org.seekloud.byteobject.ByteObject._
 
-  def dispatch(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]],observers:mutable.HashMap[Long,ActorRef[UserActor.Command]])( msg:TankGameEvent.WsMsgServer)(implicit sendBuffer:MiddleBufferInJvm) = {
+  def dispatch(subscribers:mutable.HashMap[String,ActorRef[UserActor.Command]],observers:mutable.HashMap[String,ActorRef[UserActor.Command]])( msg:TankGameEvent.WsMsgServer)(implicit sendBuffer:MiddleBufferInJvm) = {
 //    println(s"+++++++++++++++++$msg")
     val isKillMsg = msg.isInstanceOf[TankGameEvent.YouAreKilled]
     subscribers.values.foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
     observers.values.foreach(_ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
   }
 
-  def dispatchTo(subscribers:mutable.HashMap[Long,ActorRef[UserActor.Command]],observers:mutable.HashMap[Long,ActorRef[UserActor.Command]])( id:Long,msg:TankGameEvent.WsMsgServer,observersByUserId:Option[mutable.HashMap[Long,ActorRef[UserActor.Command]]])(implicit sendBuffer:MiddleBufferInJvm) = {
+  def dispatchTo(subscribers:mutable.HashMap[String,ActorRef[UserActor.Command]],observers:mutable.HashMap[String,ActorRef[UserActor.Command]])( id:String,msg:TankGameEvent.WsMsgServer,observersByUserId:Option[mutable.HashMap[String,ActorRef[UserActor.Command]]])(implicit sendBuffer:MiddleBufferInJvm) = {
 //    println(s"$id--------------$msg")
     val isKillMsg = msg.isInstanceOf[TankGameEvent.YouAreKilled]
     subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))

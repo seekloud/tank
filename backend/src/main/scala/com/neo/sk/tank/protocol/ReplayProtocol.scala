@@ -13,7 +13,7 @@ import scala.collection.mutable
 object ReplayProtocol {
   final case class EssfMapKey(
                                tankId: Int,
-                               userId: Long,
+                               userId: String,
                                name:String
                              )
   final case class EssfMapJoinLeftInfo(
@@ -23,6 +23,6 @@ object ReplayProtocol {
   final case class EssfMapInfo(m:List[(EssfMapKey,EssfMapJoinLeftInfo)])
 
   /**Actor间查询信息*/
-  final case class GetUserInRecordMsg(recordId:Long, watchId:Long, replyTo:ActorRef[GetUserInRecordRsp]) extends UserManager.Command with UserActor.Command with GamePlayer.Command
-  final case class GetRecordFrameMsg(recordId:Long, watchId:Long, replyTo:ActorRef[GetRecordFrameRsp]) extends UserManager.Command with UserActor.Command with GamePlayer.Command
+  final case class GetUserInRecordMsg(recordId:Long, watchId:String, replyTo:ActorRef[GetUserInRecordRsp]) extends UserManager.Command with UserActor.Command with GamePlayer.Command
+  final case class GetRecordFrameMsg(recordId:Long, watchId:String, replyTo:ActorRef[GetRecordFrameRsp]) extends UserManager.Command with UserActor.Command with GamePlayer.Command
 }

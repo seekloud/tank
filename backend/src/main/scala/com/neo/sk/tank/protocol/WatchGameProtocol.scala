@@ -5,8 +5,8 @@ import com.neo.sk.tank.core.RoomManager
 
 object WatchGameProtocol {
   //esheep请求房间号
-  case class GetRoomIdReq(playerId:Long)
-  case class GetRoomId(playerId:Long,replyTo:ActorRef[RoomIdRsp]) extends RoomManager.Command
+  case class GetRoomIdReq(playerId:String)
+  case class GetRoomId(playerId:String,replyTo:ActorRef[RoomIdRsp]) extends RoomManager.Command
   case class RoomInfo(roomId:Long)
   case class RoomIdRsp(
                         data:RoomInfo,
@@ -17,7 +17,7 @@ object WatchGameProtocol {
   case class GetUserInfoListReq(roomId:Long)
   case class GetUserInfoList(roomId:Long,replyTo:ActorRef[UserInfoListByRoomIdRsp]) extends RoomManager.Command
   case class UserInfo(
-                       playerId:Long,
+                       playerId:String,
                        nickname:String
                      )
   case class UserInfoList(playerList:List[UserInfo])

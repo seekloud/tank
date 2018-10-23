@@ -54,11 +54,11 @@ trait SlickTables {
     *  @param userId Database column user_id SqlType(int8)
     *  @param recordId Database column record_id SqlType(int8)
     *  @param roomId Database column room_id SqlType(int8) */
-  case class rUserRecordMap(userId: Long, recordId: Long, roomId: Long)
+  case class rUserRecordMap(userId: String, recordId: Long, roomId: Long)
   /** GetResult implicit for fetching rUserRecordMap objects using plain SQL queries */
   implicit def GetResultrUserRecordMap(implicit e0: GR[Long]): GR[rUserRecordMap] = GR{
     prs => import prs._
-      rUserRecordMap.tupled((<<[Long], <<[Long], <<[Long]))
+      rUserRecordMap.tupled((<<[String], <<[Long], <<[Long]))
   }
   /** Table description of table user_record_map. Objects of this class serve as prototypes for rows in queries. */
   class tUserRecordMap(_tableTag: Tag) extends profile.api.Table[rUserRecordMap](_tableTag, "user_record_map") {
@@ -67,7 +67,7 @@ trait SlickTables {
     def ? = (Rep.Some(userId), Rep.Some(recordId), Rep.Some(roomId)).shaped.<>({r=>import r._; _1.map(_=> rUserRecordMap.tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column user_id SqlType(int8) */
-    val userId: Rep[Long] = column[Long]("user_id")
+    val userId: Rep[String] = column[String]("user_id")
     /** Database column record_id SqlType(int8) */
     val recordId: Rep[Long] = column[Long]("record_id")
     /** Database column room_id SqlType(int8) */

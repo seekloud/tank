@@ -6,7 +6,7 @@ package com.neo.sk.tank
 package object models {
 
   case class TankGameUserInfo(
-                     userId:Long,
+                     userId:String,
                      nickName:String,
                      name:String,
                      isFlatUser:Boolean

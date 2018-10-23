@@ -22,7 +22,7 @@ import scala.collection.mutable
 case class GameContainerClientImpl(
                                     ctx:dom.CanvasRenderingContext2D,
                                     override val config:TankGameConfig,
-                                    myId:Long,
+                                    myId:String,
                                     myTankId:Int,
                                     myName:String,
                                     canvasBoundary:Point,

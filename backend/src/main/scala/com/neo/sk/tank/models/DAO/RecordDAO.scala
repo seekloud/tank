@@ -35,37 +35,71 @@ object RecordDAO {
 
   //选择所有的录像
   def queryAllRec(lastId: Long, count: Int) = {
-    val q = for {
-      rst <- tGameRecord.filter(r => r.recordId > lastId).sortBy(_.recordId).take(count).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
-    } yield rst
-    db.run(q)
+    if(lastId == 0L){
+      val q = for {
+        rst <- tGameRecord.sortBy(_.recordId.desc).take(count).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
+      } yield rst
+      db.run(q)
+    }else{
+      val q = for {
+        rst <- tGameRecord.filter(r => r.recordId < lastId).sortBy(_.recordId.desc).take(count).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
+      } yield rst
+      db.run(q)
+    }
   }
 
   //根据时间选择录像
   def queryRecByTime(startTime: Long, endTime: Long, lastId: Long, count: Int) = {
-    val q = for {
-      rst <- tGameRecord.filter(r => r.recordId > lastId && r.startTime >= startTime && r.endTime <= endTime).sortBy(_.recordId).take(count).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
-    } yield rst
-    db.run(q)
+    if(lastId == 0L){
+      val q = for {
+        rst <- tGameRecord.filter(r => r.startTime >= startTime && r.endTime <= endTime).sortBy(_.recordId.desc).take(count).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
+      } yield rst
+      db.run(q)
+    }else{
+      val q = for {
+        rst <- tGameRecord.filter(r => r.recordId < lastId && r.startTime >= startTime && r.endTime <= endTime).sortBy(_.recordId.desc).take(count).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
+      } yield rst
+      db.run(q)
+    }
+
   }
 
   //根据用户选择录像
-  def queryRecByPlayer(userId: Long, lastId: Long, count: Int) = {
-    val action = for{
-      recordIds <- tUserRecordMap.filter(t => t.userId === userId && t.recordId > lastId).sortBy(_.recordId).map(_.recordId).take(count).result
-      rst <- tGameRecord.filter(_.recordId.inSet(recordIds)).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
-    } yield {
-      rst
+  def queryRecByPlayer(userId: String, lastId: Long, count: Int) = {
+    if(lastId == 0L){
+      val action = for{
+        recordIds <- tUserRecordMap.filter(t => t.userId === userId).sortBy(_.recordId.desc).map(_.recordId).take(count).result
+        rst <- tGameRecord.filter(_.recordId.inSet(recordIds)).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
+      } yield {
+        rst
+      }
+      db.run(action.transactionally)
+    }else{
+      val action = for{
+        recordIds <- tUserRecordMap.filter(t => t.userId === userId && t.recordId < lastId).sortBy(_.recordId.desc).map(_.recordId).take(count).result
+        rst <- tGameRecord.filter(_.recordId.inSet(recordIds)).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
+      } yield {
+        rst
+      }
+      db.run(action.transactionally)
     }
-    db.run(action.transactionally)
+
   }
 
   //根据房间号选择ID
   def queryRecByRoom(roomId:Long, lastId: Long, count: Int) = {
-    val q = for {
-      rst <- tGameRecord.filter(r => r.recordId > lastId && r.roomId === roomId).sortBy(_.recordId).take(count).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
-    } yield rst
-    db.run(q)
+    if(lastId == 0L){
+      val q = for {
+        rst <- tGameRecord.filter(r => r.roomId === roomId).sortBy(_.recordId.desc).take(count).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
+      } yield rst
+      db.run(q)
+    }else{
+      val q = for {
+        rst <- tGameRecord.filter(r => r.recordId < lastId && r.roomId === roomId).sortBy(_.recordId.desc).take(count).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
+      } yield rst
+      db.run(q)
+    }
+
   }
 
   //根据录像Id选择录像

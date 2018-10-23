@@ -21,11 +21,11 @@ object Routes {
 
   def wsJoinGameUrl(name:String) = base + s"/game/join?name=${name}"
 
-  def wsWatchGameUrl(roomId:Long, accessCode:String, playerId:Option[Long]) = base + s"/game/watchGame?roomId=$roomId&accessCode=${accessCode}" + playerId.map(t => s"&playerId=$t").getOrElse("")
+  def wsWatchGameUrl(roomId:Long, accessCode:String, playerId:Option[String]) = base + s"/game/watchGame?roomId=$roomId&accessCode=${accessCode}" + playerId.map(t => s"&playerId=$t").getOrElse("")
 
 
 
-  def wsJoinGameUrl(name:String, userId:Long, userName:String, accessCode:String, roomIdOpt:Option[Long]): String = {
+  def wsJoinGameUrl(name:String, userId:String, userName:String, accessCode:String, roomIdOpt:Option[Long]): String = {
     base + s"/game/userJoin?name=$name&userId=$userId&userName=$userName&accessCode=$accessCode" +
       (roomIdOpt match {
         case Some(roomId) =>
@@ -36,6 +36,7 @@ object Routes {
   }
 
   def wsReplayGameUrl(info:ReplayInfo) = base + s"/game/replay?rid=${info.recordId}&wid=${info.playerId}&f=${info.frame}&accessCode=${info.accessCode}"
+  def wsReplayGameUrl(name:String,uid:String,rid:Long,wid:String,f:Int) = base + s"/game/replay?name=$name&uid=$uid&rid=$rid&wid=$wid&f=$f"
 
 
 
@@ -55,7 +56,7 @@ object Routes {
     s"$wsProtocol://${dom.document.location.host}${Routes.wsReplayGameUrl(info)}"
   }
 
-  def getWsSocketUri(roomId:Long, accessCode:String, playerId:Option[Long]): String = {
+  def getWsSocketUri(roomId:Long, accessCode:String, playerId:Option[String]): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
     s"$wsProtocol://${dom.document.location.host}${Routes.wsWatchGameUrl(roomId, accessCode, playerId)}"
   }

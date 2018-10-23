@@ -28,7 +28,7 @@ case class GameContainerServerImpl(
                                     timer:TimerScheduler[RoomActor.Command],
                                     log:Logger,
                                     dispatch:TankGameEvent.WsMsgServer => Unit,
-                                    dispatchTo:(Long,TankGameEvent.WsMsgServer,Option[mutable.HashMap[Long,ActorRef[UserActor.Command]]]) => Unit
+                                    dispatchTo:(String,TankGameEvent.WsMsgServer,Option[mutable.HashMap[String,ActorRef[UserActor.Command]]]) => Unit
                                   ) extends GameContainer{
 
   import scala.language.implicitConversions
@@ -38,8 +38,8 @@ case class GameContainerServerImpl(
   private val obstacleIdGenerator = new AtomicInteger(100)
   private val propIdGenerator = new AtomicInteger(100)
 
-  private var justJoinUser:List[(Long,Option[Int],String,ActorRef[UserActor.Command])] = Nil // tankIdOpt
-  private val userMapObserver:mutable.HashMap[Long,mutable.HashMap[Long,ActorRef[UserActor.Command]]] = mutable.HashMap.empty
+  private var justJoinUser:List[(String,Option[Int],String,ActorRef[UserActor.Command])] = Nil // tankIdOpt
+  private val userMapObserver:mutable.HashMap[String,mutable.HashMap[String,ActorRef[UserActor.Command]]] = mutable.HashMap.empty
   private val random = new Random(System.currentTimeMillis())
 
   init()
@@ -53,7 +53,7 @@ case class GameContainerServerImpl(
     new TankServerImpl(roomActorRef,timer,config,tank)
   }
 
-  def getUserActor4WatchGameList(uId:Long) = userMapObserver.get(uId)
+  def getUserActor4WatchGameList(uId:String) = userMapObserver.get(uId)
 
   override def tankExecuteLaunchBulletAction(tankId: Int, tank: Tank): Unit = {
 
@@ -207,7 +207,7 @@ case class GameContainerServerImpl(
 
   override protected def handleUserJoinRoomEventNow() = {
 
-    def genATank(userId:Long,tankIdOpt:Option[Int],name:String) = {
+    def genATank(userId:String,tankIdOpt:Option[Int],name:String) = {
       def genTankPositionRandom():Point = {
         Point(random.nextInt(boundary.x.toInt - (2 * config.tankRadius.toInt)) + config.tankRadius.toInt,
           random.nextInt(boundary.y.toInt - (2 * config.tankRadius.toInt)) + config.tankRadius.toInt)
@@ -277,10 +277,10 @@ case class GameContainerServerImpl(
     justJoinUser = Nil
   }
 
-  def handleJoinRoom4Watch(userActor4WatchGame:ActorRef[UserActor.Command],uid:Long,playerId:Long) = {
+  def handleJoinRoom4Watch(userActor4WatchGame:ActorRef[UserActor.Command],uid:String,playerId:String) = {
     tankMap.find(_._2.userId == playerId) match {
       case Some((_, tank)) =>
-        val playerObserversMap = userMapObserver.getOrElse(playerId, mutable.HashMap[Long, ActorRef[UserActor.Command]]())
+        val playerObserversMap = userMapObserver.getOrElse(playerId, mutable.HashMap[String, ActorRef[UserActor.Command]]())
         playerObserversMap.put(uid, userActor4WatchGame)
         userMapObserver.put(playerId, playerObserversMap)
         log.debug(s"当前的userMapObservers是${userMapObserver}")
@@ -292,7 +292,7 @@ case class GameContainerServerImpl(
   }
 
 
-  def leftGame(userId:Long,name:String,tankId:Int) = {
+  def leftGame(userId:String,name:String,tankId:Int) = {
     val event = TankGameEvent.UserLeftRoom(userId,name,tankId,systemFrame)
     val tank= tankMap.filter(_._2.userId == userId).head._2
     addGameEvent(event)
@@ -301,7 +301,7 @@ case class GameContainerServerImpl(
     userMapObserver.remove(userId)
   }
 
-  def leftWatchGame(uId:Long,playerId:Long) = {
+  def leftWatchGame(uId:String,playerId:String) = {
     userMapObserver.get(playerId) match{
       case Some(maps) =>
         maps.remove(uId)
@@ -312,7 +312,7 @@ case class GameContainerServerImpl(
   }
 
 
-  def joinGame(userId:Long,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command]):Unit = {
+  def joinGame(userId:String,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command]):Unit = {
     justJoinUser = (userId,tankIdOpt,name,userActor) :: justJoinUser
   }
 
