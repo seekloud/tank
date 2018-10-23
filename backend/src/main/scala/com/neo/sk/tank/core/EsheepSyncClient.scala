@@ -44,6 +44,7 @@ object EsheepSyncClient {
 
   final case object RefreshToken extends Command
 
+  final case class VerifyToken(rsp:ActorRef[EsheepProtocol.GameServerKey2TokenRsp]) extends Command
   final case class VerifyAccessCode(accessCode:String, rsp:ActorRef[EsheepProtocol.VerifyAccessCodeRsp]) extends Command
   final case class InputRecord(playerId:String,nickname: String, killing: Int, killed:Int, score: Int, startTime: Long, endTime: Long ) extends Command
 
@@ -175,6 +176,9 @@ object EsheepSyncClient {
           }
           Behaviors.same
 
+        case VerifyToken(rsp) =>
+          rsp ! EsheepProtocol.GameServerKey2TokenRsp(Some(tokenInfo))
+          Behaviors.same
 
         case unknowMsg =>
           log.warn(s"${ctx.self.path} recv an unknow msg=${msg}")

@@ -106,6 +106,11 @@ object ESSFSupport {
 
 
   def readData(input: FrameInputStream)= {
+    val info=input.init()
+    val a=metaDataDecode(info.simulatorMetadata)
+    println(a)
+    println(input.getMutableInfo(AppSettings.essfMapKeyName))
+    println(userMapDecode(input.getMutableInfo(AppSettings.essfMapKeyName).get))
     while (input.hasMoreFrame) {
       input.readFrame() match {
         case Some(FrameData(idx, ev, stOp)) =>
@@ -148,7 +153,7 @@ object ESSFSupport {
 
 
   def main(args: Array[String]): Unit = {
-    readData(initFileReader("C:\\Users\\sky\\IdeaProjects\\tank\\backend\\gameDataDirectoryPath\\tankGame_1539309693971_5"))
+    readData(initFileReader("C:\\Users\\sky\\IdeaProjects\\tank\\backend\\gameDataDirectoryPath\\tankGame_1539941979228_0"))
   }
 
 }
