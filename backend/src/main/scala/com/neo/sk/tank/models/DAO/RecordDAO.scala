@@ -53,7 +53,7 @@ object RecordDAO {
   def queryRecByPlayer(userId: String, lastId: Long, count: Int) = {
     val action = for{
       recordIds <- tUserRecordMap.filter(t => t.userId === userId && t.recordId > lastId).sortBy(_.recordId).map(_.recordId).take(count).result
-      rst <- tGameRecord.filter(_.recordId.inSet(recordIds)).joinLeft(tUserRecordMap).on(_.recordId === _.recordId).result
+      rst <- tGameRecord.filter(_.recordId.inSet(recordIds.toSet)).joinLeft(tUserRecordMap).on((r,m)=>r.recordId===m.recordId).result
     } yield {
       rst
     }
