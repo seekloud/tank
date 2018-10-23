@@ -4,16 +4,17 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.http.scaladsl.model.ws.Message
 import akka.stream.scaladsl.Flow
-import com.neo.sk.tank.common.AppSettings
+import com.neo.sk.tank.common.{AppSettings, Constants}
 import com.neo.sk.tank.core.RoomManager.Command
 import com.neo.sk.tank.core.game.GameContainerServerImpl
+import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.slf4j.LoggerFactory
 //import com.neo.sk.tank.core.game.GameContainerServerImpl
 
 import concurrent.duration._
 import scala.collection.mutable
-import com.neo.sk.tank.Boot.roomManager
+import com.neo.sk.tank.Boot.esheepSyncClient
 import org.seekloud.byteobject.MiddleBufferInJvm
 
 /**
@@ -33,7 +34,7 @@ object RoomActor {
 
   sealed trait Command
 
-  case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,userActor:ActorRef[UserActor.Command],roomId:Long) extends Command
+  case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command],roomId:Long) extends Command
 
   case class WebSocketMsg(uid:String,tankId:Int,req:TankGameEvent.UserActionEvent) extends Command with RoomManager.Command
 
@@ -84,14 +85,15 @@ object RoomActor {
               getGameRecorder(ctx,gameContainer,roomId)
             }
             timer.startPeriodicTimer(GameLoopKey,GameLoop,gameContainer.config.frameDuration.millis)
-            idle(roomId,Nil,subscribersMap, observersMap, gameContainer,0L)
+            idle(roomId,Nil,Nil,subscribersMap, observersMap, gameContainer,0L)
         }
     }
   }
 
   def idle(
             roomId:Long,
-            justJoinUser:List[(String,Option[Int],ActorRef[UserActor.Command])],
+            justJoinUser:List[(String,Option[Int],Long,ActorRef[UserActor.Command])],
+            userMap:List[(String,Option[Int],String,Long)],
             subscribersMap:mutable.HashMap[String,ActorRef[UserActor.Command]],
             observersMap:mutable.HashMap[String,ActorRef[UserActor.Command]],
             gameContainer:GameContainerServerImpl,
@@ -102,10 +104,11 @@ object RoomActor {
           ):Behavior[Command] = {
     Behaviors.receive{(ctx,msg) =>
       msg match {
-        case JoinRoom(uid,tankIdOpt,name,userActor,roomId) =>
+        case JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId) =>
+          log.debug(s"joinRoom ${tankIdOpt}")
           gameContainer.joinGame(uid,tankIdOpt,name,userActor)
           //这一桢结束时会告诉所有新加入用户的tank信息以及地图全量数据
-          idle(roomId,(uid,tankIdOpt,userActor) :: justJoinUser, subscribersMap, observersMap, gameContainer, tickCount)
+          idle(roomId,(uid,tankIdOpt,startTime,userActor) :: justJoinUser,(uid,tankIdOpt,name,startTime)::userMap, subscribersMap, observersMap, gameContainer, tickCount)
 
         case JoinRoom4Watch(uid, _, playerId, userActor4Watch) =>
           log.debug(s"${ctx.self.path} recv a msg=${msg}")
@@ -118,16 +121,29 @@ object RoomActor {
           Behaviors.same
 
         case LeftRoom(uid,tankId,name,uidSet,roomId) =>
+          log.debug(s"roomActor left room:${uid}")
+          //上报战绩
+          log.debug(s"${userMap}")
+          val startTime = userMap.filter(_._1 == uid).head._4
+          log.debug(s"-------------------${startTime}")
+          val tank = gameContainer.tankMap.filter(_._2.userId == uid).head._2
+          log.debug(s"-------------------${tank.tankId}")
+          if(uid.contains(Constants.TankGameUserIdPrefix)){
+            val endTime = System.currentTimeMillis()
+            val killed = gameContainer.config.getTankLivesLimit - tank.lives
+            log.debug(s"input record ${EsheepSyncClient.InputRecord(uid,name,tank.killTankNum,killed,tank.damageStatistics, startTime, endTime)}")
+            esheepSyncClient ! EsheepSyncClient.InputRecord(uid,name,tank.killTankNum,killed,tank.damageStatistics, startTime, endTime)
+          }
           subscribersMap.remove(uid)
           gameContainer.leftGame(uid,name,tankId)
           if(uidSet.isEmpty){
             if(roomId > 1l) {
               Behaviors.stopped
             }else{
-              idle(roomId,justJoinUser.filter(_._1 != uid),subscribersMap, observersMap,gameContainer,tickCount)
+              idle(roomId,justJoinUser.filter(_._1 != uid),userMap.filter(_._1 != uid),subscribersMap, observersMap,gameContainer,tickCount)
             }
           }else{
-            idle(roomId,justJoinUser.filter(_._1 != uid),subscribersMap,observersMap,gameContainer,tickCount)
+            idle(roomId,justJoinUser.filter(_._1 != uid),userMap.filter(_._1 != uid),subscribersMap,observersMap,gameContainer,tickCount)
           }
 
         case LeftRoom4Watch(uid,playerId) =>
@@ -137,14 +153,13 @@ object RoomActor {
 
         case LeftRoomByKilled(uid,tankId,name) =>
 //          gameContainer.tankL
+          log.debug("LeftRoomByKilled")
           subscribersMap.remove(uid)
-          idle(roomId,justJoinUser.filter(_._1 != uid),subscribersMap, observersMap,gameContainer,tickCount)
+          idle(roomId,justJoinUser.filter(_._1 != uid),userMap.filter(_._1 != uid),subscribersMap, observersMap,gameContainer,tickCount)
 
 
         case GameLoop =>
           val startTime = System.currentTimeMillis()
-
-
           val snapshotOpt = gameContainer.getCurSnapshot()
 
           //生成坦克
@@ -165,7 +180,7 @@ object RoomActor {
             dispatch(subscribersMap,observersMap)(TankGameEvent.Ranks(gameContainer.currentRank,gameContainer.historyRank))
           }
           //分发新加入坦克的地图全量数据
-          justJoinUser.foreach(t => subscribersMap.put(t._1,t._3))
+          justJoinUser.foreach(t => subscribersMap.put(t._1,t._4))
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           justJoinUser.foreach{t =>
             val ls = gameContainer.getUserActor4WatchGameList(t._1)
@@ -175,7 +190,7 @@ object RoomActor {
           if(tickCount % 100 == 2){
 //            log.debug(s"${ctx.self.path} curFrame=${gameContainer.systemFrame} use time=${endTime-startTime}")
           }
-          idle(roomId,Nil,subscribersMap, observersMap,gameContainer,tickCount+1)
+          idle(roomId,Nil,userMap,subscribersMap, observersMap,gameContainer,tickCount+1)
 
 
         case TankFillABullet(tId) =>
@@ -220,6 +235,13 @@ object RoomActor {
 
   def dispatchTo(subscribers:mutable.HashMap[String,ActorRef[UserActor.Command]],observers:mutable.HashMap[String,ActorRef[UserActor.Command]])( id:String,msg:TankGameEvent.WsMsgServer,observersByUserId:Option[mutable.HashMap[String,ActorRef[UserActor.Command]]])(implicit sendBuffer:MiddleBufferInJvm) = {
 //    println(s"$id--------------$msg")
+    msg match {
+      case k:TankGameEvent.YouAreKilled =>
+        subscribers.get(id).foreach( _ ! UserActor.InputRecordByDead(k.killTankNum,k.lives,k.damageStatistics))
+
+      case _=>
+    }
+
     val isKillMsg = msg.isInstanceOf[TankGameEvent.YouAreKilled]
     subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
     /**
