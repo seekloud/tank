@@ -88,7 +88,7 @@ trait HttpService
           dealFutureResult{
             resFuture.map{res =>
               if(res.errCode == 0){
-                if(res.data.playerList.length > 0){
+                if(res.data.playerList.nonEmpty){
                   val random = (new Random).nextInt(res.data.playerList.length)
                   val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow4WatchGame(roomId, res.data.playerList(random).playerId, _))
                   dealFutureResult(flowFuture.map(handleWebSocketMessages))
@@ -115,7 +115,7 @@ trait HttpService
 
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath){
-    resourceRoutes ~ GameRecRoutes ~ GameRecRoutesLocal ~
+    resourceRoutes ~ GameRecRoutes ~ GameRecRoutesLocal ~roomInfoRoute~
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
