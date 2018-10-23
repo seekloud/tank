@@ -95,7 +95,6 @@ trait RecordApiService extends ServiceUtils{
     parameter('token){token =>
       val verifyTokenFutureRst: Future[EsheepProtocol.GameServerKey2TokenRsp] = esheepSyncClient ? (e => EsheepSyncClient.VerifyToken(e))
       dealFutureResult(verifyTokenFutureRst.map{rsp =>
-        println(rsp.data.get.token)
         if(rsp.data.get.token == token){
           dealPostReq[DownloadRecordReq]{req =>
             RecordDAO.getFilePath(req.recordId).map{r =>
