@@ -13,7 +13,7 @@ import scala.xml.Elem
   * Date: 2018/10/15
   * Time: 12:35
   */
-class ReplayPage(info:ReplayInfo) extends Page {
+object ReplayPage extends Page {
 
   private val cannvas = <canvas id="GameReplay" tabindex="1"></canvas>
 
@@ -22,26 +22,19 @@ class ReplayPage(info:ReplayInfo) extends Page {
   //  private var ctx:dom.CanvasRenderingContext2D = null
 
   private val modal = Var(emptyHTML)
+  private var infoOpt:Option[ReplayInfo]=None
+  private var gameHolderOpt:Option[GameHolder]=None
+  def setParam(r:ReplayInfo)={
+    infoOpt=Some(r)
+    gameHolderOpt.foreach(g=>g.closeHolder)
+  }
 
-  /*  private var name:String=""
-    private var uid:Long=0l
-    private var rid:Long=0l
-    private var f:Int=0
-    private var gameHolderOpt:Option[GameHolder]=None
-
-    def setParam(n:String, u:Long, r:Long, frame:Int)={
-      name=n
-      uid=u
-      rid=r
-      f=frame
-      gameHolderOpt.foreach(g=>g.closeWsConnect)
-    }*/
   private def init() = {
     println("-----new holder------")
     //fixme here is a bug the last holder is still exist
     val gameHolder = new GameHolder("GameReplay", replay = true)
-    gameHolder.getStartReplayModel(info)
-    //    gameHolderOpt=Some(gameHolder)
+    gameHolder.getStartReplayModel(infoOpt.get)
+    gameHolderOpt=Some(gameHolder)
     modal := <div>观看中...</div>
   }
 

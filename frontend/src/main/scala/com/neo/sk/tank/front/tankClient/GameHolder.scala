@@ -115,6 +115,12 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
     startReplay(Some(info))
   }
 
+  def closeHolder={
+    dom.window.cancelAnimationFrame(nextFrame)
+    Shortcut.cancelSchedule(timer)
+    Shortcut.cancelSchedule(reStartTimer)
+    webSocketClient.closeWs
+  }
 
   def gameRender():Double => Unit = {d =>
     val curTime = System.currentTimeMillis()
@@ -420,7 +426,6 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
     JsFunc.alert("网络连接失败，请重新刷新")
     e
   }
-
 
   private def wsConnectClose(e:Event) = {
     JsFunc.alert("网络连接失败，请重新刷新")
