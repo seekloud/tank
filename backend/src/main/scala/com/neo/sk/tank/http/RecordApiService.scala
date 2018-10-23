@@ -4,7 +4,7 @@ import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives.{complete, _}
 import akka.http.scaladsl.server.Route
 import com.neo.sk.tank.protocol.{CommonErrorCode, EsheepProtocol}
-import com.neo.sk.tank.protocol.RecordApiProtocol.{downloadRecordReq, gameRec, getGameRecByPlayerReq, getGameRecByTimeReq, getGameRecReq, getGameRecRsp}
+import com.neo.sk.tank.protocol.RecordApiProtocol.{DownloadRecordReq, GameRec, GetGameRecByPlayerReq, GetGameRecByTimeReq, GetGameRecReq, GetGameRecRsp}
 
 import scala.language.postfixOps
 import com.neo.sk.tank.models.DAO.RecordDAO
@@ -35,16 +35,16 @@ trait RecordApiService extends ServiceUtils{
   private def getGameRecErrorRsp(msg:String) = ErrorRsp(1000020,msg)
 
   private val getRecordList = (path("getRecordList") & post){
-    dealPostReq[getGameRecReq]{req =>
+    dealPostReq[GetGameRecReq]{req =>
       RecordDAO.queryAllRec(req.lastRecordId, req.count).map{r =>
         val temp = r.groupBy(_._1)
-        var tempList = List.empty[gameRec]
+        var tempList = List.empty[GameRec]
         for((k, v) <- temp){
           if(v.head._2.nonEmpty)
-            tempList = tempList :+ gameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
-          else tempList = tempList :+ gameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
+            tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
+          else tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
         }
-        complete(getGameRecRsp(Some(tempList.sortBy(_.recordId))))
+        complete(GetGameRecRsp(Some(tempList.sortBy(_.recordId))))
       }.recover{
         case e:Exception =>
           log.debug(s"获取游戏录像失败，recover error:$e")
@@ -54,16 +54,16 @@ trait RecordApiService extends ServiceUtils{
   }
 
   private val getRecordListByTime = (path("getRecordListByTime") & post){
-    dealPostReq[getGameRecByTimeReq]{req =>
+    dealPostReq[GetGameRecByTimeReq]{req =>
       RecordDAO.queryRecByTime(req.startTime, req.endTime, req.lastRecordId, req.count).map{r =>
         val temp = r.groupBy(_._1)
-        var tempList = List.empty[gameRec]
+        var tempList = List.empty[GameRec]
         for((k, v) <- temp){
           if(v.head._2.nonEmpty)
-            tempList = tempList :+ gameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
-          else tempList = tempList :+ gameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
+            tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
+          else tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
         }
-        complete(getGameRecRsp(Some(tempList.sortBy(_.recordId))))
+        complete(GetGameRecRsp(Some(tempList.sortBy(_.recordId))))
       }.recover{
         case e:Exception =>
           log.debug(s"获取游戏录像失败，recover error:$e")
@@ -73,16 +73,16 @@ trait RecordApiService extends ServiceUtils{
   }
 
   private val getRecordListByPlayer = (path("getRecordListByPlayer") & post){
-    dealPostReq[getGameRecByPlayerReq]{req =>
+    dealPostReq[GetGameRecByPlayerReq]{req =>
       RecordDAO.queryRecByPlayer(req.playerId, req.lastRecordId, req.count).map{r =>
         val temp = r.groupBy(_._1)
-        var tempList = List.empty[gameRec]
+        var tempList = List.empty[GameRec]
         for((k, v) <- temp){
           if(v.head._2.nonEmpty)
-            tempList = tempList :+ gameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
-          else tempList = tempList :+ gameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
+            tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
+          else tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
         }
-        complete(getGameRecRsp(Some(tempList.sortBy(_.recordId))))
+        complete(GetGameRecRsp(Some(tempList.sortBy(_.recordId))))
       }.recover{
         case e:Exception =>
           log.debug(s"获取游戏录像失败，recover error:$e")
@@ -95,8 +95,9 @@ trait RecordApiService extends ServiceUtils{
     parameter('token){token =>
       val verifyTokenFutureRst: Future[EsheepProtocol.GameServerKey2TokenRsp] = esheepSyncClient ? (e => EsheepSyncClient.VerifyToken(e))
       dealFutureResult(verifyTokenFutureRst.map{rsp =>
+        println(rsp.data.get.token)
         if(rsp.data.get.token == token){
-          dealPostReq[downloadRecordReq]{req =>
+          dealPostReq[DownloadRecordReq]{req =>
             RecordDAO.getFilePath(req.recordId).map{r =>
               val fileName = r.head
               val f = new File(fileName)
