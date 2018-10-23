@@ -31,7 +31,7 @@ object MainPage extends PageSwitcher {
     case Nil => TankDemo.render
     case "playGame" :: playInfoSeq => PlayPage(playInfoSeq).render
     case "watchRecord":: rid :: wid :: f :: accessCode :: Nil => {
-      ReplayPage.setParam(ReplayInfo(rid.toLong,wid.toLong, f.toInt, accessCode))
+      ReplayPage.setParam(ReplayInfo(rid.toLong,wid, f.toInt, accessCode))
       ReplayPage.render
     }
     case "watchGame" :: roomId :: playerId :: accessCode ::Nil => new TankObservation(roomId.toLong, accessCode, Some(playerId)).render

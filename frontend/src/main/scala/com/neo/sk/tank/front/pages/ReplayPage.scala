@@ -35,7 +35,7 @@ object ReplayPage extends Page {
     val gameHolder = new GameHolder("GameReplay", replay = true)
     gameHolder.getStartReplayModel(infoOpt.get)
     gameHolderOpt=Some(gameHolder)
-    modal := <div>观看中...</div>
+    modal := <div>观看回放中...</div>
   }
 
 

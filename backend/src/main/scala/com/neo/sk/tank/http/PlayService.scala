@@ -48,26 +48,16 @@ trait PlayService extends AuthService{
   }
 
   private def getRecordFrame=(path("getRecordFrame") & post){
-    entity(as[Either[Error,GetRecordFrameReq]]){
-      case Right(req)=>
-        val flowFuture:Future[GetRecordFrameRsp]=userManager ? (ReplayProtocol.GetRecordFrameMsg(req.recordId,req.playerId,_))
-        dealFutureResult(
-          flowFuture.map(r=>complete(r))
-        )
-      case Left(e)=>
-        complete(CommonErrorCode.parseJsonError)
+    dealPostReq[GetRecordFrameReq]{req=>
+      val flowFuture:Future[GetRecordFrameRsp]=userManager ? (ReplayProtocol.GetRecordFrameMsg(req.recordId,req.playerId,_))
+      flowFuture.map(r=>complete(r))
     }
   }
 
   private def getRecordPlayerList=(path("getRecordPlayerList") & post){
-    entity(as[Either[Error,GetUserInRecordReq]]){
-      case Right(req)=>
-        val flowFuture:Future[GetUserInRecordRsp]=userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId,req.playerId,_))
-        dealFutureResult(
-          flowFuture.map(r=>complete(r))
-        )
-      case Left(e)=>
-        complete(CommonErrorCode.parseJsonError)
+    dealPostReq[GetUserInRecordReq]{req=>
+      val flowFuture:Future[GetUserInRecordRsp]=userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId,req.playerId,_))
+      flowFuture.map(r=>complete(r))
     }
   }
 
