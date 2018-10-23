@@ -32,12 +32,12 @@ trait AuthService extends ServiceUtils{
 
 
   protected def authPlatUser(accessCode:String)(f: EsheepProtocol.PlayerInfo => server.Route):server.Route = {
-    if(false) {
+    if(true) {
       val verifyAccessCodeFutureRst: Future[EsheepProtocol.VerifyAccessCodeRsp] = esheepSyncClient ? (e => EsheepSyncClient.VerifyAccessCode(accessCode, e))
       dealFutureResult{
         verifyAccessCodeFutureRst.map{ rsp =>
           if(rsp.errCode == 0 && rsp.data.nonEmpty){
-            f(rsp.data.get.playerInfo)
+            f(rsp.data.get)
           } else{
             complete(AuthUserErrorRsp(rsp.msg))
           }
