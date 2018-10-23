@@ -1,12 +1,12 @@
 package com.neo.sk.tank.front.tankClient
 
-import com.neo.sk.tank.front.common.Constants.GameState
+import com.neo.sk.tank.shared.model.Constants
 import com.neo.sk.tank.front.tankClient.draw._
 import com.neo.sk.tank.front.utils.Shortcut
 import com.neo.sk.tank.shared.`object`.{Tank, TankImpl}
 import com.neo.sk.tank.shared.config.TankGameConfig
 import com.neo.sk.tank.shared.game.GameContainerImpl
-import com.neo.sk.tank.shared.model.Constants.{GameAnimation, LittleMap, PropGenerateType}
+import com.neo.sk.tank.shared.model.Constants.{GameAnimation, GameState, LittleMap, PropGenerateType}
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.ObstacleAttacked

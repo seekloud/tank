@@ -16,7 +16,7 @@ object TankGameEvent {
   /**
     * 携带原来tankId
     * */
-  final case class RestartGame(tankIdOpt:Option[Int],name:String) extends WsMsgFront
+  final case class RestartGame(tankIdOpt:Option[Int],name:String,gameState:Int) extends WsMsgFront
 
   sealed trait WsMsgSource
   case object CompleteMsgServer extends WsMsgSource
