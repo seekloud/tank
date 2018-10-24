@@ -196,7 +196,6 @@ object GameRecorder {
         val list = ListBuffer[rUserRecordMap]()
         userAllMap.foreach{
           userRecord =>
-            // todo
             list.append(rUserRecordMap(userRecord._1, recordId, roomId))
         }
         Await.result(RecordDAO.insertUserRecordList(list.toList), 2.minute)
