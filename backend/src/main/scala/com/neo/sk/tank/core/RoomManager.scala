@@ -43,7 +43,8 @@ object RoomManager {
         implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
         Behaviors.withTimers[Command]{implicit timer =>
           val roomIdGenerator = new AtomicLong(1L)
-          idle(roomIdGenerator,mutable.HashMap.empty[Long,List[(String,String)]])
+          val roomInUse = mutable.HashMap((1l,List.empty[(String,String)]))
+          idle(roomIdGenerator,roomInUse)
         }
     }
   }
@@ -60,6 +61,7 @@ object RoomManager {
               case Some(t) =>roomInUse.put(t._1,t._2.filterNot(_._1 == uid))
               case None =>log.debug(s"玩家被kill之后重新进入房间，未找到原来房间")
             }
+            log.debug(s"复活进入房间${roomInUse}")
           }
           roomIdOpt match{
             case Some(roomId) =>

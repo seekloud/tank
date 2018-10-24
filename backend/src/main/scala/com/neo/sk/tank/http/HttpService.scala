@@ -122,8 +122,11 @@ trait HttpService
         } ~ watchGamePath ~
 //          getRoomPlayerList~
         path("join"){
-          parameter('name){ name =>
-            val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_))
+          parameter(
+            'name,
+            'roomId.as[Long].?
+          ){ (name,roomIdOpt) =>
+            val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_,None,roomIdOpt))
             dealFutureResult(
               flowFuture.map(t => handleWebSocketMessages(t))
             )
