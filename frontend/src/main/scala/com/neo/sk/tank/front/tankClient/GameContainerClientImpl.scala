@@ -25,7 +25,7 @@ case class GameContainerClientImpl(
                                     myId:String,
                                     myTankId:Int,
                                     myName:String,
-                                    canvasBoundary:Point,
+                                    canvasSize:Point,
                                     canvasUnit:Int,
                                     setGameState:Int => Unit,
                                     isObserve: Boolean = false
@@ -56,6 +56,17 @@ case class GameContainerClientImpl(
   protected val obstacleAttackedAnimationMap = mutable.HashMap[Int,Int]()
   protected val tankAttackedAnimationMap = mutable.HashMap[Int,Int]()
   protected val tankDestroyAnimationMap = mutable.HashMap[Int,Int]() //prop ->
+
+  private var canvasBoundary=canvasSize
+
+  def updateClientSize(canvasSize:Point)={
+    canvasBoundary=canvasSize
+    updateBackSize(canvasBoundary)
+    updateBulletSize(canvasBoundary)
+    updateFpsSize(canvasBoundary)
+    updateObstacleSize(canvasBoundary)
+    updateTankSize(canvasBoundary)
+  }
 
 
   override protected def handleObstacleAttacked(e: ObstacleAttacked): Unit = {

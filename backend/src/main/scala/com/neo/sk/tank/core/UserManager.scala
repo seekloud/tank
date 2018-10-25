@@ -62,10 +62,8 @@ object UserManager {
 //          Behaviors.same
 
         case GetReplaySocketFlow(name, uid, rid, wid, f, replyTo) =>
-          println(msg)
           getUserActorOpt(ctx, uid) match {
             case Some(userActor) =>
-              // todo 将用户actor杀死，防止重登录问题
               //remind 进入等待状态
               userActor ! UserActor.ChangeBehaviorToInit
             case None =>
@@ -84,8 +82,7 @@ object UserManager {
           }
           getUserActorOpt(ctx, playerInfo.userId) match {
             case Some(userActor) =>
-            // todo 将用户actor杀死，防止重登录问题
-
+              userActor ! UserActor.ChangeBehaviorToInit
             case None =>
           }
           val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
@@ -102,8 +99,7 @@ object UserManager {
           }
           getUserActorOpt(ctx, playerInfo.userId) match {
             case Some(userActor) =>
-            // todo 将用户actor杀死，防止重登录问题
-
+              userActor ! UserActor.ChangeBehaviorToInit
             case None =>
           }
           val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
