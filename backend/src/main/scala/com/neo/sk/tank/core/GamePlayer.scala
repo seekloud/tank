@@ -21,9 +21,9 @@ import org.seekloud.byteobject.MiddleBufferInJvm
 
 import scala.collection.mutable
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 import com.neo.sk.utils.ESSFSupport.{initFileReader => _, metaDataDecode => _, userMapDecode => _, _}
 import com.neo.sk.tank.protocol.ReplayProtocol.{GetRecordFrameMsg, GetUserInRecordMsg}
+import com.neo.sk.tank.Boot.{executor}
 /**
   * User: sky
   * Date: 2018/10/12

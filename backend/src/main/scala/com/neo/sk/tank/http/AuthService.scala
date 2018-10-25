@@ -51,8 +51,8 @@ trait AuthService extends ServiceUtils{
         }
       }
     } else {
-      val id = uid.getAndIncrement()
-      f(EsheepProtocol.PlayerInfo(s"test_${id}",s"test_${id}"))
+//      val id = uid.getAndIncrement()
+      f(EsheepProtocol.PlayerInfo(s"test_${1}",s"test_${1}"))
     }
   }
 

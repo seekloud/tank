@@ -157,7 +157,6 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
           e.preventDefault()
         }
       }
-
     }
     canvas.onclick = { e: MouseEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
@@ -184,7 +183,6 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
             gameContainerOpt.get.addMyAction(preExecuteAction)
           }
           e.preventDefault()
-
         }
         if (gunAngleAdjust.contains(keyCode) && poKeyBoardFrame != gameContainerOpt.get.systemFrame) {
           myKeySet.remove(keyCode)
@@ -205,7 +203,6 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction) //发送鼠标位置
           e.preventDefault()
-
         }
         else if(keyCode == KeyCode.E){
           /**
@@ -552,8 +549,8 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
       case e:TankGameEvent.ReplayFinish=>
         drawReplayMsg("游戏回放完毕。。。")
 
-      case e:TankGameEvent.RebuildWebSocket=>
-        JsFunc.alert("您的账号被异地登录。")
+      case TankGameEvent.RebuildWebSocket=>
+        drawReplayMsg("存在异地登录。。")
         closeHolder
 
       case _ => println(s"unknow msg={sss}")
