@@ -25,6 +25,11 @@
     font-size: 18px;
     text-align: center;
 }
+.input_des {
+    color: white;
+    font-size: 18px;
+    text-align: center;
+}
 
 
 .input_elem {
@@ -71,7 +76,7 @@
 }
 
 #GameView {
-    cursor: url(/tank/static/img/瞄准.png),auto;
+    cursor: url("/tank/static/img/瞄准.png"),auto;
 
 }
 
