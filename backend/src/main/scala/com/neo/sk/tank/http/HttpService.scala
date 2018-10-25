@@ -112,10 +112,53 @@ trait HttpService
   }
 
 
+  def platEnterRoute: Route = path("playGame"){
+    parameter(
+      'playerId.as[String],
+      'accessCode.as[String],
+      'roomId.as[Long].?
+    ) {
+      case (playerId, accessCode, roomIdOpt) =>
+        authPlatUser(accessCode){ platUser =>
+          redirect(s"/tank/game/#/playGame/${platUser.playerId}/${platUser.nickname}" + roomIdOpt.map(s => s"/$s").getOrElse("") + s"/$accessCode",
+            StatusCodes.SeeOther
+          )
+        }
+    }
+  } ~ path("watchGame") {
+    parameter(
+      'roomId.as[Long],
+      'accessCode.as[String],
+      'playerId.as[String].?
+    ) {
+      case (roomId, accessCode, playerIdOpt) =>
+        authPlatUser(accessCode){ platUser =>
+          redirect(s"/tank/game/#/watchGame/${roomId}" + playerIdOpt.map(s => s"/$s").getOrElse("") + s"/$accessCode",
+            StatusCodes.SeeOther
+          )
+        }
+    }
+  } ~ path("watchRecord") {
+    parameter(
+      'recordId.as[Long],
+      'playerId.as[String],
+      'fram.as[Long],
+      'accessCode.as[String]
+    ) {
+      case (recordId, playerId, frame, accessCode) =>
+        authPlatUser(accessCode){ platUser =>
+          redirect(s"/tank/game/#/watchRecord/${recordId}/${playerId}/${frame}/${accessCode}",
+            StatusCodes.SeeOther
+          )
+        }
+    }
+  }
+
+
 
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath){
-    resourceRoutes ~ GameRecRoutes ~ GameRecRoutesLocal ~roomInfoRoute~
+    resourceRoutes ~ GameRecRoutes ~ GameRecRoutesLocal ~roomInfoRoute ~ platEnterRoute ~
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
