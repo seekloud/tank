@@ -115,8 +115,7 @@ object RoomManager {
         case LeftRoomByKilled(uid,tankId,tankLives,name) =>
           roomInUse.find(_._2.exists(_._1 == uid)) match{
             case Some(t) =>
-              log.debug(s"${ctx.self.path} name:${name} lives ${tankLives}")
-              if(tankLives <= 0){
+              if(tankLives <= 1){
                 roomInUse.put(t._1,t._2.filterNot(_._1 == uid))
               }
               getRoomActor(ctx,t._1) ! LeftRoomByKilled(uid,tankId,tankLives,name)
