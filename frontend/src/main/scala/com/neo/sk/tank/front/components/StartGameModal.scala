@@ -34,13 +34,13 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
 
   private val name = gameState.map{
     case GameState.firstCome => "名字"
-    case GameState.stop => "请输入名字"
+    case GameState.stop => "名字"
     case _ => ""
   }
 
   private val roomId = gameState.map{
-    case GameState.firstCome => "请输入房间id"
-    case GameState.stop => "请输入房间id"
+    case GameState.firstCome => "房间"
+    case GameState.stop => "房间"
     case _ => ""
   }
 
