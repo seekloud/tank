@@ -27,12 +27,23 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
 //  private var lives:Int = 3 // 默认第一次进入，生命值3
   private val title = gameState.map{
     case GameState.firstCome => "欢迎来到坦克大战io，请输入用户名进行游戏体验"
-    case GameState.stop =>
-//      if(lives == 0) lives = 2
-//      else lives = lives - 1
-      "重新开始"
+    case GameState.stop => "重新开始"
     case _ => ""
   }
+
+
+  private val name = gameState.map{
+    case GameState.firstCome => "名字"
+    case GameState.stop => "请输入名字"
+    case _ => ""
+  }
+
+  private val roomId = gameState.map{
+    case GameState.firstCome => "请输入房间id"
+    case GameState.stop => "请输入房间id"
+    case _ => ""
+  }
+
 
   private val divStyle = gameState.map{
     case GameState.play => "display:none;"
@@ -80,8 +91,16 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
       </div>
       <div class ="input_div">
         <div class ="input_title">{title}</div>
-        <div class ="input_elem">{inputElem}</div>
-        <div class="input_elem">{inputElem4RoomId}</div>
+        <div>
+          <div class="input_inline">
+            <div class ="input_des" style="display:inline-block">{name}</div>
+            <div class ="input_elem" style="display: inline-block;">{inputElem}</div>
+          </div>
+          <div class="input_inline">
+            <div class="input_des" style="display: inline-block;">{roomId}</div>
+            <div class="input_elem" style="display: inline-block;">{inputElem4RoomId}</div>
+          </div>
+        </div>
         <div class ="input_button">{button}</div>
         <div class ="input_button">{watchButton}</div>
       </div>
