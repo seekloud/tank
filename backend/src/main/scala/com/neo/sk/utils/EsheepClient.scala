@@ -32,11 +32,9 @@ object EsheepClient extends HttpUtil {
 
     val data = EsheepProtocol.GameServerKey2TokenReq(gameId,gameServerKey).asJson.noSpaces
 
-    val sn = appId + System.currentTimeMillis()
-    val (timestamp, noce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, data), secureKey)
-    val postData = PostEnvelope(appId,sn,timestamp,noce,data,signature).asJson.noSpaces
 
-    postJsonRequestSend(methodName,url,Nil,postData).map{
+
+    postJsonRequestSend(methodName,url,Nil,data).map{
       case Right(jsonStr) =>
         decode[EsheepProtocol.GameServerKey2TokenRsp](jsonStr) match {
           case Right(rsp) =>
@@ -96,12 +94,9 @@ object EsheepClient extends HttpUtil {
 
     val info = EsheepProtocol.BatRecordInfo(playerId,gameId,nickname,killing,killed,score,gameExtent,startTime,endTime)
     val data = EsheepProtocol.BatRecord(info).asJson.noSpaces
-    log.debug("inputBatRecoder"+data)
-    val sn = appId + System.currentTimeMillis()
-    val (timestamp, noce, signature) = SecureUtil.generateSignatureParameters(List(appId, sn, data), secureKey)
-    val postData = PostEnvelope(appId,sn,timestamp,noce,data,signature).asJson.noSpaces
 
-    postJsonRequestSend(methodName,url,Nil,postData).map{
+
+    postJsonRequestSend(methodName,url,Nil,data).map{
       case Right(jsonStr) =>
         decode[ComRsp](jsonStr) match {
           case Right(rsp) =>
