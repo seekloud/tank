@@ -19,7 +19,13 @@ object Routes {
   val getRecordListByRoomUrl = base + s"/getGameRecByRoom"
   val getRecordListByIdUrl = base + s"/getGameRecById"
 
-  def wsJoinGameUrl(name:String) = base + s"/game/join?name=${name}"
+  def wsJoinGameUrl(name:String,roomIdOpt:Option[Long]) = {
+    base + s"/game/join?name=${name}"+
+      (roomIdOpt match{
+      case Some(roomId) =>s"&roomId=$roomId"
+      case None =>""
+      })
+  }
 
   def wsWatchGameUrl(roomId:Long, accessCode:String, playerId:Option[String]) = base + s"/game/watchGame?roomId=$roomId&accessCode=${accessCode}" + playerId.map(t => s"&playerId=$t").getOrElse("")
 
@@ -40,13 +46,13 @@ object Routes {
 
 
 
-  def getJoinGameWebSocketUri(name:String, playerInfoOpt: Option[PlayerInfo]): String = {
+  def getJoinGameWebSocketUri(name:String, playerInfoOpt: Option[PlayerInfo],roomIdOpt:Option[Long]): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
     playerInfoOpt match {
       case Some(playerInfo) =>
         s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name,playerInfo.userId, playerInfo.userName, playerInfo.accessCode, playerInfo.roomIdOpt)}"
       case None =>
-        s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name)}"
+        s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name,roomIdOpt)}"
     }
   }
 

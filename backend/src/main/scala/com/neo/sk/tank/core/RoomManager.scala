@@ -9,7 +9,7 @@ import com.neo.sk.tank.core.UserActor.{JoinRoom, TimeOut}
 import com.neo.sk.tank.core.game.TankServerImpl
 import com.neo.sk.tank.shared.config.TankGameConfigImpl
 import org.slf4j.LoggerFactory
-import com.neo.sk.tank.common.AppSettings.{leftTimeLimit, personLimit}
+import com.neo.sk.tank.common.AppSettings.personLimit
 
 import scala.concurrent.duration._
 import scala.collection.immutable.HashMap
@@ -18,6 +18,7 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 import akka.actor.typed.Behavior
 import com.neo.sk.tank.protocol.WatchGameProtocol
 import com.neo.sk.tank.protocol.WatchGameProtocol._
+import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.ptcl.CommonRsp
 import com.neo.sk.utils.TimeUtil
 
@@ -26,7 +27,6 @@ import scala.util.{Failure, Success}
 
 object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
-  private final val leftTime = leftTimeLimit.minutes
   private case object LeftRoomKey
 
   trait Command
@@ -43,41 +43,45 @@ object RoomManager {
         implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
         Behaviors.withTimers[Command]{implicit timer =>
           val roomIdGenerator = new AtomicLong(1L)
-          idle(roomIdGenerator,mutable.HashMap.empty[Long,List[(String,String,Boolean)]])
+          val roomInUse = mutable.HashMap((1l,List.empty[(String,String)]))
+          idle(roomIdGenerator,roomInUse)
         }
     }
   }
 
   def idle(roomIdGenerator:AtomicLong,
-           roomInUse:mutable.HashMap[Long,List[(String,String,Boolean)]]) // roomId => List[userId, userName, isDead]
+           roomInUse:mutable.HashMap[Long,List[(String,String)]]) // roomId => List[userId, userName]
           (implicit stashBuffer: StashBuffer[Command],timer:TimerScheduler[Command]) = {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {
-        case JoinRoom(uid,tankIdOpt,name,startTime,userActor, roomIdOpt) =>
-          roomInUse.map{p =>(p._1,p._2.exists(t => t._1 == uid),p._2)}
-            .find(_._2 == true) match{
-            case Some(tuple) =>
-              //(roomId,isExist,(uid,name,isLived))
-              //该玩家存在tuple._1房间中
-
-              roomInUse.put(tuple._1,(uid,name,false) :: roomInUse(tuple._1).filterNot(_._1 == uid))
-              //              log.debug(s"enter repeatedly !!! user$uid :$name is already in ${tuple._1}")
-              getRoomActor(ctx,tuple._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,tuple._1)
-
-
-            case None =>
-              //该玩家不在任何房间中
-              roomInUse.filter(_._2.size < personLimit).toList.sortBy(_._1).headOption match{
-                case Some(v) =>
-                  //有可分发的房间
-                  roomInUse.put(v._1,(uid,name,false)::roomInUse(v._1))
-                  getRoomActor(ctx,v._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,v._1)
-                case None =>
-                  //新建房间
-                  val roomId = roomIdGenerator.getAndIncrement()
-                  roomInUse.put(roomId,List((uid,name,false)))
-                  getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
+        case JoinRoom(uid,tankIdOpt,gameStateOpt,name,startTime,userActor, roomIdOpt) =>
+          roomIdOpt match{
+            case Some(roomId) =>
+              roomInUse.get(roomId) match{
+                case Some(ls) => roomInUse.put(roomId,(uid,name) :: ls)
+                case None => roomInUse.put(roomId,List((uid,name)))
               }
+              getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
+            case None =>
+              gameStateOpt match{
+                case Some(GameState.relive) =>
+                  roomInUse.find(_._2.exists(_._1 == uid)) match{
+                    case Some(t) =>getRoomActor(ctx,t._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,t._1)
+                    case None =>log.debug(s"${ctx.self.path} error:tank relives, but find no room")
+                  }
+                case _ =>
+                  roomInUse.find(p => p._2.length < personLimit).toList.sortBy(_._1).headOption match{
+                    case Some(t) =>
+                      roomInUse.put(t._1,(uid,name) :: t._2)
+                      getRoomActor(ctx,t._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,t._1)
+                    case None =>
+                      var roomId = roomIdGenerator.getAndIncrement()
+                      while(roomInUse.exists(_._1 == roomId))roomId = roomIdGenerator.getAndIncrement()
+                      roomInUse.put(roomId,List((uid,name)))
+                      getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
+                  }
+              }
+
           }
           log.debug(s"now roomInUse:$roomInUse")
           Behaviors.same
@@ -88,7 +92,9 @@ object RoomManager {
           roomInUse.get(roomId) match {
             case Some(set) =>
               set.exists(p => p._1 == playerId) match {
-                case false => userActor4Watch ! UserActor.JoinRoomFail4Watch("您所观察的用户不在房间里")
+                case false =>
+                  log.debug(s"玩家不在房间中 ${roomId},${playerId}")
+                  userActor4Watch ! UserActor.JoinRoomFail4Watch("您所观察的用户不在房间里")
                 case _ => getRoomActor(ctx,roomId) ! RoomActor.JoinRoom4Watch(uid,roomId,playerId,userActor4Watch)
               }
             case None => userActor4Watch ! UserActor.JoinRoomFail4Watch("您所观察的房间不存在")
@@ -96,44 +102,25 @@ object RoomManager {
           Behaviors.same
 
         case LeftRoom(uid,tankId,name,userOpt) =>
-          roomInUse.map{p =>(p._1,p._2.exists(t => t._1 == uid),p._2)}
-            .find(_._2 == true) match {
-            case Some(v) =>
-              //玩家断掉websocket
-              userOpt match{
-                case Some(uid) =>
-                  roomInUse.put(v._1,v._3.filterNot(_._1 == uid))
-                  getRoomActor(ctx,v._1) ! RoomActor.LeftRoom(uid,tankId,name,roomInUse(v._1),v._1)
-                  if(roomInUse(v._1).isEmpty && v._1 > 1l)roomInUse.remove(v._1)
-                  log.debug(s"玩家：${uid}--$name remember to come back!!!$roomInUse")
-                case None =>
-                //死亡时间超过房间预留限制时间
-                  v._3.find(_._1 == uid) match{
-                    case Some((uId,nickname,isDead)) =>
-                      if(isDead){
-                        roomInUse.put(v._1,v._3.filterNot(_._1 == uid))
-                        getRoomActor(ctx,v._1) ! RoomActor.LeftRoom(uid,tankId,name,roomInUse(v._1),v._1)
-                        if(roomInUse(v._1).isEmpty && v._1 > 1l) roomInUse.remove(v._1)
-                        log.debug(s"$name $uid remember to come back!!!$roomInUse")
-                      }else{
-                        log.debug(s"$name $uid has been relive")
-                      }
-                    case None =>log.debug(s"表中没有存储该用户的信息")
-                  }
-              }
-            case None =>log.debug(s"该玩家不存在房间中")
+          roomInUse.find(_._2.exists(_._1 == uid)) match{
+            case Some(t) =>
+              roomInUse.put(t._1,t._2.filterNot(_._1 == uid))
+              getRoomActor(ctx,t._1) ! RoomActor.LeftRoom(uid,tankId,name,roomInUse(t._1),t._1)
+              if(roomInUse(t._1).isEmpty && t._1 > 1l)roomInUse.remove(t._1)
+              log.debug(s"玩家：${uid}--$name remember to come back!!!$roomInUse")
+            case None => log.debug(s"该玩家不在任何房间")
           }
           Behaviors.same
 
-        case LeftRoomByKilled(uid,tankId,name) =>
-          roomInUse.map{p =>(p._1,p._2.exists(t => t._1 == uid),p._2)}
-            .find(_._2 == true) match{
-            case Some(v) =>
-              roomInUse.put(v._1,(uid,name,true) :: v._3.filterNot(_._1 == uid))
-              getRoomActor(ctx,v._1) ! LeftRoomByKilled(uid,tankId,name)
-              log.debug(s"I am so sorry that you $name $uid are killed, the timer is beginning....")
-              timer.startSingleTimer("room_"+v._1+"uid"+uid,LeftRoom(uid,tankId,name,None),leftTime)
-            case None => log.debug(s"this user doesn't exist")
+        case LeftRoomByKilled(uid,tankId,tankLives,name) =>
+          roomInUse.find(_._2.exists(_._1 == uid)) match{
+            case Some(t) =>
+              log.debug(s"${ctx.self.path} name:${name} lives ${tankLives}")
+              if(tankLives <= 0){
+                roomInUse.put(t._1,t._2.filterNot(_._1 == uid))
+              }
+              getRoomActor(ctx,t._1) ! LeftRoomByKilled(uid,tankId,tankLives,name)
+            case None =>log.debug(s"this user doesn't exist")
           }
           Behaviors.same
 

@@ -261,14 +261,14 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
   }
 
 
-  def start(name:String):Unit = {
+  def start(name:String,roomIdOpt:Option[Long]):Unit = {
     canvas.focus()
     if(firstCome){
       firstCome = false
       addUserActionListenEvent()
       setGameState(GameState.loadingPlay)
 //      webSocketClient.setup(Routes.wsJoinGameUrl(name))
-      webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, playerInfoOpt))
+      webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, playerInfoOpt,roomIdOpt))
       gameLoop()
 
     }else if(webSocketClient.getWsState){
@@ -402,7 +402,7 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
       countDownTimes = countDownTimes - 1
     } else{
       Shortcut.cancelSchedule(reStartTimer)
-      gameContainerOpt.foreach(t => start(t.myName))
+      gameContainerOpt.foreach(t => start(t.myName,None))
       countDownTimes = countDown
     }
     if(replay){
