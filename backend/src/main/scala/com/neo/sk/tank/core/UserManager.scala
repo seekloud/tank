@@ -76,6 +76,7 @@ object UserManager {
 
 
         case GetWebSocketFlow(name,replyTo, playerInfoOpt, roomIdOpt) =>
+          println(s"ssssss${playerInfoOpt},${roomIdOpt}")
           val playerInfo = playerInfoOpt match {
             case Some(p) => TankGameUserInfo(p.playerId, p.nickname, name, true)
             case None => TankGameUserInfo(Constants.TankGameUserIdPrefix + s"-${uidGenerator.getAndIncrement()}", s"guest:${name}", name, false)

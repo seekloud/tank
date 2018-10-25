@@ -48,6 +48,23 @@
 
 }
 
+#TankGameRoomIdInput{
+    width: 307px;
+    height: 43px;
+    line-height: 38.7px;
+    font-size: 38.7px;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-left: 50px;
+    background-color: #f3ebeb;
+    font-family: 'Ubuntu';
+    padding: 0;
+    border: 0;
+    outline: none;
+    color: #332c2c;
+
+}
+
 .input_button {
     text-align: center;
     margin-top: 20px;
