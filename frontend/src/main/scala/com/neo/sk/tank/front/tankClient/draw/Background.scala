@@ -16,7 +16,9 @@ import scala.collection.mutable
   */
 trait Background{ this:GameContainerClientImpl =>
 
+  //fixme 将此处map暴露给子类
   private val cacheCanvasMap = mutable.HashMap.empty[String, html.Canvas]
+  private var canvasBoundary:Point=canvasSize
 
   private val rankWidth = 26
   private val rankHeight = 24
@@ -42,6 +44,11 @@ trait Background{ this:GameContainerClientImpl =>
   minimapCanvas.height = LittleMap.h * canvasUnit + 6
   var minimapRenderFrame = 0L
 
+
+  def updateBackSize(canvasSize:Point)={
+    cacheCanvasMap.clear()
+    canvasBoundary=canvasSize
+  }
 
 
   private def generateBackgroundCanvas():html.Canvas = {

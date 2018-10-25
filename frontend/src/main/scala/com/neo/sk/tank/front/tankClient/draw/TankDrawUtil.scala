@@ -16,7 +16,9 @@ import scala.collection.mutable
   */
 trait TankDrawUtil{ this:GameContainerClientImpl =>
 
+  //fixme 将此处map暴露给子类
   private val myTankInfoCacheMap = mutable.HashMap[(Byte,Byte,Byte),html.Canvas]()
+  private var canvasBoundary:Point=canvasSize
 
   private val fillBulletImg = dom.document.createElement("img")
   fillBulletImg.setAttribute("src", s"${Routes.base}/static/img/子弹初始重构.png")
@@ -29,6 +31,10 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   emptyMedicalImg.setAttribute("src", s"${Routes.base}/static/img/huiyiliao.png")
 
 
+  def updateTankSize(canvasSize:Point)={
+    myTankInfoCacheMap.clear()
+    canvasBoundary=canvasSize
+  }
 
 
   protected def drawTank(offset:Point, offsetTime:Long, view:Point) = {

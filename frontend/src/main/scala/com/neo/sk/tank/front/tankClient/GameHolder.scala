@@ -32,10 +32,10 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
   private[this] val canvas = dom.document.getElementById(canvasName).asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
-  private[this] val canvasWidth = dom.window.innerWidth.toFloat
-  private[this] val canvasHeight = dom.window.innerHeight.toFloat
+  private[this] var canvasWidth = dom.window.innerWidth.toFloat
+  private[this] var canvasHeight = dom.window.innerHeight.toFloat
   private[this] val canvasUnit = 10
-  private[this] val canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+  private[this] var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
 
   private[this] var firstCome = true
 
@@ -296,8 +296,6 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
       webSocketClient.setup(Routes.getReplaySocketUri(option.get))
       gameLoop()
     }else if(webSocketClient.getWsState){
-      //fixme reStart
-//      setGameState(Constants.GameState.play)
       firstCome = true
       gameLoop()
     }else{
@@ -305,7 +303,25 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
     }
   }
 
+  //todo 此处存在BUG
+  private def checkScreenSize={
+    val newWidth=dom.window.innerWidth.toFloat
+    val newHeight=dom.window.innerHeight.toFloat
+    if(newWidth!=canvasWidth||newHeight!=canvasHeight){
+      println("the screen size is change")
+      canvasWidth=newWidth
+      canvasHeight=newHeight
+      canvasBoundary=Point(canvasWidth, canvasHeight) / canvasUnit
+      canvas.width = canvasWidth.toInt
+      canvas.height = canvasHeight.toInt
+      gameContainerOpt.foreach{r=>
+        r.updateClientSize(canvasBoundary)
+      }
+    }
+  }
+
   private def gameLoop():Unit = {
+    checkScreenSize
     gameState match {
       case GameState.loadingPlay =>
         println(s"等待同步数据")
@@ -322,36 +338,6 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
         Shortcut.cancelSchedule(reStartTimer)
         drawGameStop()
         dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
-
-
-//        gameContainerOpt.foreach{t =>
-//          t.tankMap.get(t.myTankId) match {
-//            case Some(tank) =>
-//              if(tank.lives-1 > 0){
-//                /**
-//                  * 在生命值之内死亡重玩，倒计时进入
-//                  * */
-//                dom.window.cancelAnimationFrame(nextFrame)
-//                Shortcut.cancelSchedule(timer)
-//                drawGameRestart()
-//              }else{
-//                /**
-//                  * 重新生成id
-//                  * */
-//                dom.window.cancelAnimationFrame(nextFrame)
-//                Shortcut.cancelSchedule(timer)
-//                Shortcut.cancelSchedule(reStartTimer)
-//                drawGameStop()
-//                dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
-//              }
-//            case None =>
-//              dom.window.cancelAnimationFrame(nextFrame)
-//              Shortcut.cancelSchedule(timer)
-//              Shortcut.cancelSchedule(reStartTimer)
-//              drawGameStop()
-//              dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
-//          }
-//        }
 
       case GameState.relive =>
         /**
@@ -423,9 +409,8 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
       countDownTimes = countDown
     }
     if(replay){
-      // todo why?
       //remind   fake to be new here
-      gameContainerOpt.foreach(t => startReplay())
+      startReplay()
     }
 
   }
@@ -513,6 +498,7 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
 
   //fixme 此处需要重构（重建文件 or 修改参数）
   private def replayMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
+    println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
         println("----Start!!!!!")
@@ -522,25 +508,14 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
 
       case e:TankGameEvent.SyncGameAllState =>
         if(firstCome){
-          /*if (e.gState.tanks.exists(_.tankId==gameContainerOpt.get.myTankId)){
-            firstCome=false
-            setGameState(Constants.GameState.play)
-            //fixme 此处需要调整（立即同步数据，此处等待周期过长）
-            gameContainerOpt.foreach(_.update())
-            timer = Shortcut.schedule(gameLoop, gameContainerOpt.get.config.frameDuration)
-            gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
-            nextFrame = dom.window.requestAnimationFrame(gameRender())
-          }*/
           firstCome=false
           setGameState(GameState.play)
-          //fixme 此处需要调整（立即同步数据，此处等待周期过长）
           timer = Shortcut.schedule(gameLoop, gameContainerOpt.get.config.frameDuration)
           gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
           nextFrame = dom.window.requestAnimationFrame(gameRender())
         }else{
           //fixme 此处存在重复操作
           //remind here allState change into state
-//          gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
           gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks,e.gState.props,e.gState.obstacle,e.gState.tankMoveAction)))
         }
 
@@ -576,6 +551,10 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
 
       case e:TankGameEvent.ReplayFinish=>
         drawReplayMsg("游戏回放完毕。。。")
+
+      case e:TankGameEvent.RebuildWebSocket=>
+        JsFunc.alert("您的账号被异地登录。")
+        closeHolder
 
       case _ => println(s"unknow msg={sss}")
     }

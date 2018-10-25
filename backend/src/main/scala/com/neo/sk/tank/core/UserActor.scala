@@ -182,7 +182,7 @@ object UserActor {
           getGameReplay(ctx,rid) ! GamePlayer.InitReplay(frontActor,uid,f)
           Behaviors.same
 
-        case JoinRoomSuccess(tank,config,uId,roomActor) =>
+        case JoinRoomSuccess(tank,config, `uId`,roomActor) =>
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
 //          println("渲染数据")
@@ -210,8 +210,10 @@ object UserActor {
             case _ =>
               Behaviors.same
           }
-
+        /**
+          * 本消息内转换为初始状态并给前端发送异地登录消息*/
         case ChangeBehaviorToInit=>
+          frontActor ! ReplayFrameData(List(TankGameEvent.RebuildWebSocket()).fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
         case UserLeft(actor) =>

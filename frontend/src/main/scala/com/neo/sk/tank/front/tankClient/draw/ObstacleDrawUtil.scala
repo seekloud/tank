@@ -17,6 +17,7 @@ import scala.collection.mutable
   */
 trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
 
+  //fixme 将此处map暴露给子类
   private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean),html.Canvas]()
 
   private val steelImg = dom.document.createElement("img").asInstanceOf[html.Image]
@@ -28,6 +29,10 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
   private val airBoxImg = dom.document.createElement("img").asInstanceOf[html.Image]
   airBoxImg.setAttribute("src",s"${Routes.base}/static/img/道具.png")
 
+
+  def updateObstacleSize(canvasSize:Point)={
+    obstacleCanvasCacheMap.clear()
+  }
 
   protected def obstacleImgComplete: Boolean = steelImg.complete && riverImg.complete
 
