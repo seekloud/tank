@@ -9,7 +9,7 @@ import com.neo.sk.tank.core.UserActor.{JoinRoom, TimeOut}
 import com.neo.sk.tank.core.game.TankServerImpl
 import com.neo.sk.tank.shared.config.TankGameConfigImpl
 import org.slf4j.LoggerFactory
-import com.neo.sk.tank.common.AppSettings.{leftTimeLimit, personLimit}
+import com.neo.sk.tank.common.AppSettings.personLimit
 
 import scala.concurrent.duration._
 import scala.collection.immutable.HashMap
@@ -27,7 +27,6 @@ import scala.util.{Failure, Success}
 
 object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
-  private final val leftTime = leftTimeLimit.minutes
   private case object LeftRoomKey
 
   trait Command
