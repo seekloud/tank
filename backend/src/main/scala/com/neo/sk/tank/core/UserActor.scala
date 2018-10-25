@@ -349,7 +349,8 @@ object UserActor {
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
             frontActor ! m
-            roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,userInfo.name)
+            println(s"${ctx.self.path} tank 当前生命值${tank.getTankState().lives}")
+            roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
             switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
           }else{
               frontActor ! m
