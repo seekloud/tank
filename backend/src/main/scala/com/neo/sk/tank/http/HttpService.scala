@@ -133,7 +133,7 @@ trait HttpService
     ) {
       case (roomId, accessCode, playerIdOpt) =>
         authPlatUser(accessCode){ platUser =>
-          redirect(s"/tank/game/#/watchGame/${roomId}/" + playerIdOpt.map(s => s"/$s").getOrElse("") + s"/$accessCode",
+          redirect(s"/tank/game/#/watchGame/${roomId}" + playerIdOpt.map(s => s"/$s").getOrElse("") + s"/$accessCode",
             StatusCodes.SeeOther
           )
         }
