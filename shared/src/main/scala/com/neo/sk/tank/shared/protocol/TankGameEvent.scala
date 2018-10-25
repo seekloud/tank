@@ -62,7 +62,7 @@ object TankGameEvent {
 
   final case class UserJoinRoom(userId:String, name:String, tankState:TankState, override val frame: Long) extends  UserEvent with WsMsgServer
   final case class UserLeftRoom(userId:String, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer
-  final case class PlayerLeftRoom(userId:String,name:String,tankId:Int,override val frame:Long,killTankNum:Int,lives:Int,damageStatistics:Int) extends UserEvent with WsMsgServer
+  final case class PlayerLeftRoom(userId:String,name:String,tankId:Int,override val frame:Long) extends UserEvent with WsMsgServer
   final case class UserMouseMove(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
   final case class UserKeyboardMove(tankId:Int,override val frame:Long,angle:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 

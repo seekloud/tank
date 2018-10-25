@@ -56,19 +56,6 @@ object RoomManager {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {
         case JoinRoom(uid,tankIdOpt,gameStateOpt,name,startTime,userActor, roomIdOpt) =>
-          if(timer.isTimerActive("uid"+uid)){
-            timer.cancel("uid"+uid)
-            roomInUse.find(_._2.exists(_._1 == uid)) match{
-              case Some(t) =>
-                gameStateOpt match {
-                  case Some(GameState.relive) =>log.debug(s"${ctx.self.path} restart game in the same room")
-                  case Some(GameState.stop) =>roomInUse.put(t._1,t._2.filterNot(_._1 == uid))
-                  case _ =>log.debug(s"${ctx.self.path} timer has a trouble with the state")
-                }
-              case None =>log.debug(s"玩家被kill之后重新进入房间，未找到原来房间")
-            }
-            log.debug(s"复活进入房间${roomInUse}")
-          }
           roomIdOpt match{
             case Some(roomId) =>
               roomInUse.get(roomId) match{
@@ -106,7 +93,9 @@ object RoomManager {
           roomInUse.get(roomId) match {
             case Some(set) =>
               set.exists(p => p._1 == playerId) match {
-                case false => userActor4Watch ! UserActor.JoinRoomFail4Watch("您所观察的用户不在房间里")
+                case false =>
+                  log.debug(s"玩家不在房间中 ${roomId},${playerId}")
+                  userActor4Watch ! UserActor.JoinRoomFail4Watch("您所观察的用户不在房间里")
                 case _ => getRoomActor(ctx,roomId) ! RoomActor.JoinRoom4Watch(uid,roomId,playerId,userActor4Watch)
               }
             case None => userActor4Watch ! UserActor.JoinRoomFail4Watch("您所观察的房间不存在")
@@ -124,12 +113,14 @@ object RoomManager {
           }
           Behaviors.same
 
-        case LeftRoomByKilled(uid,tankId,name) =>
+        case LeftRoomByKilled(uid,tankId,tankLives,name) =>
           roomInUse.find(_._2.exists(_._1 == uid)) match{
             case Some(t) =>
-              getRoomActor(ctx,t._1) ! LeftRoomByKilled(uid,tankId,name)
-              log.debug(s"I am so sorry that you $name $uid are killed, the timer is beginning....")
-              timer.startSingleTimer("uid"+uid,LeftRoom(uid,tankId,name,None),leftTime)
+              log.debug(s"${ctx.self.path} name:${name} lives ${tankLives}")
+              if(tankLives <= 0){
+                roomInUse.put(t._1,t._2.filterNot(_._1 == uid))
+              }
+              getRoomActor(ctx,t._1) ! LeftRoomByKilled(uid,tankId,tankLives,name)
             case None =>log.debug(s"this user doesn't exist")
           }
           Behaviors.same

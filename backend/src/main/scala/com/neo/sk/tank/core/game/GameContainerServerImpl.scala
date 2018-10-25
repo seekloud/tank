@@ -294,11 +294,9 @@ case class GameContainerServerImpl(
 
   def leftGame(userId:String,name:String,tankId:Int) = {
     val event = TankGameEvent.UserLeftRoom(userId,name,tankId,systemFrame)
-    //TODO
-    val tank= tankMap.filter(_._2.userId == userId).head._2
     addGameEvent(event)
     dispatch(event)
-    dispatchTo(userId,TankGameEvent.PlayerLeftRoom(userId,name,tankId,systemFrame,tank.killTankNum,tank.lives,tank.damageStatistics),getUserActor4WatchGameList(userId))
+    dispatchTo(userId,TankGameEvent.PlayerLeftRoom(userId,name,tankId,systemFrame),getUserActor4WatchGameList(userId))
     userMapObserver.remove(userId)
   }
 
