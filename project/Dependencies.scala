@@ -68,7 +68,7 @@ object Dependencies {
   val ehcache = "net.sf.ehcache" % "ehcache" % "2.10.4"
   val essf = "org.seekloud" %% "essf" % "0.0.1-beta2"
   val byteobject = "org.seekloud" %% "byteobject" % "0.1.1"
-  val scalaFx = "org.scalafx" %% "scalafx" % "10.0.2-R15"
+//  val scalaFx = "org.scalafx" %% "scalafx" % "10.0.2-R15"
 
 
 
@@ -93,8 +93,9 @@ object Dependencies {
       Dependencies.asynchttpclient,
       Dependencies.ehcache,
       Dependencies.essf,
-      Dependencies.byteobject,
-      Dependencies.scalaFx
+      Dependencies.byteobject
+//      ,
+//      Dependencies.scalaFx
     )
 
 
