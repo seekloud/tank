@@ -35,7 +35,7 @@ trait AuthService extends ServiceUtils{
   val uid = new AtomicLong(1L)
 
   protected def authPlatUser(accessCode:String)(f: EsheepProtocol.PlayerInfo => server.Route):server.Route = {
-    if(false) {
+    if(true) {
       val verifyAccessCodeFutureRst: Future[EsheepProtocol.VerifyAccessCodeRsp] = esheepSyncClient ? (e => EsheepSyncClient.VerifyAccessCode(accessCode, e))
       dealFutureResult{
         verifyAccessCodeFutureRst.map{ rsp =>
@@ -51,8 +51,8 @@ trait AuthService extends ServiceUtils{
         }
       }
     } else {
-//      val id = uid.getAndIncrement()
-      f(EsheepProtocol.PlayerInfo(s"test_${1}",s"test_${1}"))
+      val id = uid.getAndIncrement()
+      f(EsheepProtocol.PlayerInfo(s"test_${id}",s"test_${id}"))
     }
   }
 

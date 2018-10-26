@@ -528,8 +528,8 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
         //remind 此处判断是否为用户进入，更新userMap
         e match {
           case t: TankGameEvent.UserJoinRoom =>
-            gameContainerOpt.foreach(_.update())
             if (t.tankState.tankId == gameContainerOpt.get.tankId) {
+              gameContainerOpt.foreach(_.update())
               setGameState(GameState.play)
             }
           case _ =>
@@ -548,6 +548,7 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
 
       case e:TankGameEvent.ReplayFinish=>
         drawReplayMsg("游戏回放完毕。。。")
+        closeHolder
 
       case TankGameEvent.RebuildWebSocket=>
         drawReplayMsg("存在异地登录。。")

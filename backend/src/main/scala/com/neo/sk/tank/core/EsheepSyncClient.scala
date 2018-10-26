@@ -163,7 +163,7 @@ object EsheepSyncClient {
           switchBehavior(ctx,"init",init(),InitTime,TimeOut("init"))
 
         case r:InputRecord =>
-          EsheepClient.inputBatRecoder(tokenInfo.token,r.playerId.toString,r.nickname,r.killing,r.killed,r.score,"",r.startTime,r.endTime).onComplete{
+          EsheepClient.inputBatRecorder(tokenInfo.token,r.playerId.toString,r.nickname,r.killing,r.killed,r.score,"",r.startTime,r.endTime).onComplete{
             case Success(rst) =>
               rst match {
                 case Right(value) =>

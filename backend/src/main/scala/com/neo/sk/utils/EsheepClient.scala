@@ -88,7 +88,7 @@ object EsheepClient extends HttpUtil {
   }
 
 
-  def inputBatRecoder(token:String,playerId: String, nickname: String, killing: Int, killed: Int, score: Int, gameExtent: String, startTime: Long, endTime: Long): Future[Either[String,String]]={
+  def inputBatRecorder(token:String, playerId: String, nickname: String, killing: Int, killed: Int, score: Int, gameExtent: String, startTime: Long, endTime: Long): Future[Either[String,String]]={
     val methodName = s"addPlayerRecord"
     val url = s"${baseUrl}/esheep/api/gameServer/addPlayerRecord?token=${token}"
 
