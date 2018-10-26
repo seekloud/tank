@@ -142,7 +142,7 @@ trait HttpService
     parameter(
       'recordId.as[Long],
       'playerId.as[String],
-      'fram.as[Long],
+      'frame.as[Long],
       'accessCode.as[String]
     ) {
       case (recordId, playerId, frame, accessCode) =>
