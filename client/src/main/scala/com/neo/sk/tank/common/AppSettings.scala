@@ -29,6 +29,17 @@ object AppSettings {
       else Some(config.getDuration(path, TimeUnit.SECONDS))
   }
 
+  private val esheepConfig = appConfig.getConfig("esheep")
+  val esheepAppId = esheepConfig.getString("appId")
+  val esheepSecureKey = esheepConfig.getString("secureKey")
+  val esheepProtocol = esheepConfig.getString("protocol")
+  val esheepHost = esheepConfig.getString("host")
+  val esheepPort = esheepConfig.getInt("port")
+  val esheepDomain = esheepConfig.getString("domain")
+  val esheepGameId = esheepConfig.getLong("gameId")
+  val esheepGameKey = esheepConfig.getString("gsKey")
+  val esheepAuthToken = esheepConfig.getBoolean("authToken")
+
 
 
   val config = ConfigFactory.parseResources("product.conf").withFallback(ConfigFactory.load())
