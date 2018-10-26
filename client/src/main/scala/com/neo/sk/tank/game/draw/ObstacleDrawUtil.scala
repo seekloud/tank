@@ -4,7 +4,6 @@ import com.neo.sk.tank.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.`object`.AirDropBox
 import com.neo.sk.tank.shared.model.Constants.ObstacleType
 import com.neo.sk.tank.shared.model.Point
-import org.scalajs.dom
 
 import scala.collection.mutable
 

@@ -23,7 +23,8 @@ import scala.collection.mutable
 import scala.concurrent.Future
 import com.neo.sk.utils.ESSFSupport.{initFileReader => _, metaDataDecode => _, userMapDecode => _, _}
 import com.neo.sk.tank.protocol.ReplayProtocol.{GetRecordFrameMsg, GetUserInRecordMsg}
-import com.neo.sk.tank.Boot.{executor}
+import com.neo.sk.tank.Boot.executor
+import com.neo.sk.utils.ESSFSupport
 /**
   * User: sky
   * Date: 2018/10/12
@@ -77,6 +78,8 @@ object GamePlayer {
                 work(
                   replay,
                   metaDataDecode(info.simulatorMetadata).right.get,
+                  initStateDecode(info.simulatorInitState).right.get,
+                  info.frameCount,
                   userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
                 ))
             }catch {
@@ -95,6 +98,8 @@ object GamePlayer {
 
   def work(fileReader:FrameInputStream,
            metaData:GameInformation,
+           initState:TankGameEvent.GameSnapshot,
+           frameCount:Int,
            userMap:List[(EssfMapKey,EssfMapJoinLeftInfo)],
            userOpt:Option[ActorRef[TankGameEvent.WsMsgSource]]=None
           )(
@@ -108,6 +113,7 @@ object GamePlayer {
           log.info("start new replay!")
           timer.cancel(GameLoopKey)
           timer.cancel(BehaviorWaitKey)
+          fileReader.mutableInfoIterable
           userMap.find(_._1.userId == msg.userId) match {
             case Some(u)=>
               dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,metaData.tankConfig))
@@ -116,7 +122,7 @@ object GamePlayer {
               log.info(s"replay from frame=${fileReader.getFramePosition}")
               if(fileReader.hasMoreFrame){
                 timer.startPeriodicTimer(GameLoopKey, GameLoop, 100.millis)
-                work(fileReader,metaData,userMap,Some(msg.userActor))
+                work(fileReader,metaData,initState,frameCount,userMap,Some(msg.userActor))
               }else{
                 timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
                 Behaviors.same
@@ -145,7 +151,7 @@ object GamePlayer {
           }
 
         case msg:GetRecordFrameMsg=>
-          msg.replyTo ! GetRecordFrameRsp(RecordFrameInfo(fileReader.getFramePosition))
+          msg.replyTo ! GetRecordFrameRsp(RecordFrameInfo(fileReader.getFramePosition,frameCount))
           Behaviors.same
 
         case msg:GetUserInRecordMsg=>
