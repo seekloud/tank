@@ -4,10 +4,10 @@ import java.io.File
 
 import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.protocol.ReplayProtocol.{EssfMapInfo, EssfMapJoinLeftInfo, EssfMapKey}
-import com.neo.sk.tank.shared.game.GameContainerAllState
+
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameEvent, GameInformation, SyncGameAllState, UserActionEvent}
-import org.seekloud.byteobject.encoder.BytesEncoder
+
 import org.seekloud.byteobject.{MiddleBuffer, MiddleBufferInJvm}
 import org.seekloud.essf.io.{FrameData, FrameInputStream, FrameOutputStream}
 import org.slf4j.LoggerFactory

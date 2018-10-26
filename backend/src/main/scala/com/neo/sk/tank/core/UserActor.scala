@@ -50,7 +50,7 @@ object UserActor {
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
 
   case class StartGame(roomId:Option[Long]) extends Command
-  case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None) extends Command with RoomManager.Command
+  case class JoinRoom(uid:String,tankIdOpt:Option[Int],gameStateOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None) extends Command with RoomManager.Command
 
   case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:String,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
 
@@ -139,7 +139,6 @@ object UserActor {
           switchBehavior(ctx,"idle",idle(uId, userInfo,System.currentTimeMillis(), frontActor))
 
         case UserLeft(actor) =>
-          log.info("webSocket--error in init")
           ctx.unwatch(actor)
           Behaviors.stopped
 
@@ -175,14 +174,14 @@ object UserActor {
           /**换成给roomManager发消息,告知uId,name
             * 还要给userActor发送回带roomId的数据
             * */
-          roomManager ! JoinRoom(uId,None,userInfo.name,startTime,ctx.self, roomIdOpt)
+          roomManager ! JoinRoom(uId,None,None,userInfo.name,startTime,ctx.self, roomIdOpt)
           Behaviors.same
 
         case StartReplay(rid,uid,f) =>
           getGameReplay(ctx,rid) ! GamePlayer.InitReplay(frontActor,uid,f)
           Behaviors.same
 
-        case JoinRoomSuccess(tank,config,uId,roomActor) =>
+        case JoinRoomSuccess(tank,config, `uId`,roomActor) =>
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
 //          println("渲染数据")
@@ -201,23 +200,26 @@ object UserActor {
               if(t.gameState == GameState.stop){
                 log.debug("dead 3--------------")
                 val newStartTime = System.currentTimeMillis()
-                roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,newStartTime,ctx.self)
+                roomManager ! JoinRoom(uId,t.tankIdOpt,Some(GameState.stop),t.name,newStartTime,ctx.self)
                 idle(uId,userInfo.copy(name = t.name),newStartTime,frontActor)
               }else{
-                roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,startTime,ctx.self)
+                log.debug(s"tank game state${t.gameState}")
+                roomManager ! JoinRoom(uId,t.tankIdOpt,Some(t.gameState),t.name,startTime,ctx.self)
                 idle(uId,userInfo.copy(name = t.name),startTime,frontActor)
               }
             case _ =>
               Behaviors.same
           }
-
+        /**
+          * 本消息内转换为初始状态并给前端发送异地登录消息*/
         case ChangeBehaviorToInit=>
+          dispatchTo(frontActor,TankGameEvent.RebuildWebSocket)
+          ctx.unwatch(frontActor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
         case UserLeft(actor) =>
-          log.info("webSocket--error in idle")
           ctx.unwatch(actor)
-          Behaviors.stopped
+          switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
         case msg:GetUserInRecordMsg=>
           getGameReplay(ctx,msg.recordId) ! msg
@@ -261,9 +263,14 @@ object UserActor {
           }
           Behaviors.same
 
+        case ChangeBehaviorToInit=>
+          dispatchTo(frontActor,TankGameEvent.RebuildWebSocket)
+          ctx.unwatch(frontActor)
+          switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
+
         case UserLeft(actor) =>
           ctx.unwatch(actor)
-          Behaviors.stopped
+          switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
         case unknowMsg =>
           stashBuffer.stash(unknowMsg)
@@ -302,6 +309,11 @@ object UserActor {
             case _ =>
           }
           Behaviors.same
+
+        case ChangeBehaviorToInit=>
+          dispatchTo(frontActor,TankGameEvent.RebuildWebSocket)
+          ctx.unwatch(frontActor)
+          switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
@@ -348,15 +360,20 @@ object UserActor {
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
             frontActor ! m
-            roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,userInfo.name)
+            println(s"${ctx.self.path} tank 当前生命值${tank.getTankState().lives}")
+            roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
             switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
           }else{
               frontActor ! m
               Behaviors.same
           }
 
+        case ChangeBehaviorToInit=>
+          dispatchTo(frontActor,TankGameEvent.RebuildWebSocket)
+          ctx.unwatch(frontActor)
+          switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
+
         case UserLeft(actor) =>
-          log.info("webSocket--error in play")
           ctx.unwatch(actor)
           roomManager ! RoomManager.LeftRoom(uId,tank.tankId,userInfo.name,Some(uId))
           Behaviors.stopped
@@ -375,6 +392,12 @@ object UserActor {
           Behavior.same
       }
     }
+
+  import org.seekloud.byteobject.ByteObject._
+  private def dispatchTo(subscriber: ActorRef[TankGameEvent.WsMsgSource],msg: TankGameEvent.WsMsgServer)(implicit sendBuffer: MiddleBufferInJvm)= {
+    //    subscriber ! ReplayFrameData(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+    subscriber ! ReplayFrameData(List(msg).fillMiddleBuffer(sendBuffer).result())
+  }
 
 
   private def busy()(

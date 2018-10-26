@@ -112,18 +112,61 @@ trait HttpService
   }
 
 
+  def platEnterRoute: Route = path("playGame"){
+    parameter(
+      'playerId.as[String],
+      'playerName.as[String],
+      'accessCode.as[String],
+      'roomId.as[Long].?
+    ) {
+      case (playerId, playerName, accessCode, roomIdOpt) =>
+        redirect(s"/tank/game/#/playGame/${playerId}/${playerName}" + roomIdOpt.map(s => s"/$s").getOrElse("") + s"/$accessCode",
+          StatusCodes.SeeOther
+        )
+
+    }
+  } ~ path("watchGame") {
+    parameter(
+      'roomId.as[Long],
+      'accessCode.as[String],
+      'playerId.as[String].?
+    ) {
+      case (roomId, accessCode, playerIdOpt) =>
+        redirect(s"/tank/game/#/watchGame/${roomId}" + playerIdOpt.map(s => s"/$s").getOrElse("") + s"/$accessCode",
+          StatusCodes.SeeOther
+        )
+
+    }
+  } ~ path("watchRecord") {
+    parameter(
+      'recordId.as[Long],
+      'playerId.as[String],
+      'frame.as[Long],
+      'accessCode.as[String]
+    ) {
+      case (recordId, playerId, frame, accessCode) =>
+        redirect(s"/tank/game/#/watchRecord/${recordId}/${playerId}/${frame}/${accessCode}",
+          StatusCodes.SeeOther
+        )
+    }
+  }
+
+
 
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath){
-    resourceRoutes ~ GameRecRoutes ~ GameRecRoutesLocal ~roomInfoRoute~
+    resourceRoutes ~ GameRecRoutes ~ GameRecRoutesLocal ~roomInfoRoute ~ platEnterRoute ~
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
         } ~ watchGamePath ~
 //          getRoomPlayerList~
         path("join"){
-          parameter('name){ name =>
-            val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_))
+          parameter(
+            'name,
+            'roomId.as[Long].?
+          ){ (name,roomIdOpt) =>
+            val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_,None,roomIdOpt))
             dealFutureResult(
               flowFuture.map(t => handleWebSocketMessages(t))
             )

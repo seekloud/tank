@@ -2,6 +2,7 @@ package com.neo.sk.tank.front.tankClient.draw
 
 import com.neo.sk.tank.front.tankClient.{GameContainerClientImpl, NetworkLatency}
 import com.neo.sk.tank.shared.model.Constants.LittleMap
+import com.neo.sk.tank.shared.model.Point
 import org.scalajs.dom.ext.Color
 
 /**
@@ -14,6 +15,12 @@ trait FpsComponents{ this:GameContainerClientImpl =>
   private var renderTimes = 0
 
   private val isRenderFps:Boolean = true
+
+  private var canvasBoundary:Point=canvasSize
+
+  def updateFpsSize(canvasSize:Point)={
+    canvasBoundary=canvasSize
+  }
 
   private def addFps() ={
     val time = System.currentTimeMillis()
