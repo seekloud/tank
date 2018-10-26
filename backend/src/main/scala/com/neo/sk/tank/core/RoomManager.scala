@@ -92,9 +92,7 @@ object RoomManager {
           roomInUse.get(roomId) match {
             case Some(set) =>
               set.exists(p => p._1 == playerId) match {
-                case false =>
-                  log.debug(s"玩家不在房间中 ${roomId},${playerId}")
-                  userActor4Watch ! UserActor.JoinRoomFail4Watch("您所观察的用户不在房间里")
+                case false => userActor4Watch ! UserActor.JoinRoomFail4Watch("您所观察的用户不在房间里")
                 case _ => getRoomActor(ctx,roomId) ! RoomActor.JoinRoom4Watch(uid,roomId,playerId,userActor4Watch)
               }
             case None => userActor4Watch ! UserActor.JoinRoomFail4Watch("您所观察的房间不存在")

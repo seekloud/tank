@@ -8,7 +8,8 @@ import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.neo.sk.tank.common.Context
 import com.neo.sk.tank.controller.LoginScreenController
-import com.neo.sk.tank.view.LoginScreen
+import com.neo.sk.tank.model.PlayerInfo
+import com.neo.sk.tank.view.{GameHallScreen, LoginScreen}
 import javafx.animation.{Animation, AnimationTimer}
 import javafx.application.Application
 import javafx.scene.{Group, Scene}
