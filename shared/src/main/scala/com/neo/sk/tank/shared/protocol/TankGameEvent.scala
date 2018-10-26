@@ -47,6 +47,9 @@ object TankGameEvent {
     val tankId:Int
     val serialNum:Int
   }
+  /**异地登录消息
+    * WebSocket连接重新建立*/
+  final case object RebuildWebSocket extends WsMsgServer
 
   /**
     * replay-frame-msg*/
@@ -62,7 +65,7 @@ object TankGameEvent {
 
   final case class UserJoinRoom(userId:String, name:String, tankState:TankState, override val frame: Long) extends  UserEvent with WsMsgServer
   final case class UserLeftRoom(userId:String, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer
-  final case class PlayerLeftRoom(userId:String,name:String,tankId:Int,override val frame:Long,killTankNum:Int,lives:Int,damageStatistics:Int) extends UserEvent with WsMsgServer
+  final case class PlayerLeftRoom(userId:String,name:String,tankId:Int,override val frame:Long) extends UserEvent with WsMsgServer
   final case class UserMouseMove(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
   final case class UserKeyboardMove(tankId:Int,override val frame:Long,angle:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 

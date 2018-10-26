@@ -219,7 +219,7 @@ object GameListModal extends Component{
   override def render: Elem = {
     Shortcut.scheduleOnce(() => getRecordById(),500)
     <div>
-      <div id="searchGameRecord">
+      <div id="searchGameRecord" style="overflow:auto">
         <div class="input-group">
           <div class="input-group-btn">
             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">{selectOpt}
@@ -237,7 +237,7 @@ object GameListModal extends Component{
           </div>
           </div>
       </div>
-      <div id="gameRecordTable">
+      <div id="gameRecordTable" style="overflow:auto">
         {gameRecordTable}
       </div>
       <div id="pageSwitch">

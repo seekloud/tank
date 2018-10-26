@@ -40,6 +40,10 @@ trait BulletDrawUtil { this:GameContainerClientImpl =>
 
   private val canvasCacheMap = mutable.HashMap[Byte,html.Canvas]()
 
+  def updateBulletSize(canvasSize:Point)={
+    canvasCacheMap.clear()
+  }
+
   protected def drawBullet(offset:Point, offsetTime:Long, view:Point) = {
     bulletMap.values.foreach{ bullet =>
       val p = bullet.getPosition4Animation(offsetTime) + offset
