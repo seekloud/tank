@@ -115,15 +115,15 @@ trait HttpService
   def platEnterRoute: Route = path("playGame"){
     parameter(
       'playerId.as[String],
+      'playerName.as[String],
       'accessCode.as[String],
       'roomId.as[Long].?
     ) {
-      case (playerId, accessCode, roomIdOpt) =>
-        authPlatUser(accessCode){ platUser =>
-          redirect(s"/tank/game/#/playGame/${platUser.playerId}/${platUser.nickname}" + roomIdOpt.map(s => s"/$s").getOrElse("") + s"/$accessCode",
-            StatusCodes.SeeOther
-          )
-        }
+      case (playerId, playerName, accessCode, roomIdOpt) =>
+        redirect(s"/tank/game/#/playGame/${playerId}/${playerName}" + roomIdOpt.map(s => s"/$s").getOrElse("") + s"/$accessCode",
+          StatusCodes.SeeOther
+        )
+
     }
   } ~ path("watchGame") {
     parameter(
@@ -132,11 +132,10 @@ trait HttpService
       'playerId.as[String].?
     ) {
       case (roomId, accessCode, playerIdOpt) =>
-        authPlatUser(accessCode){ platUser =>
-          redirect(s"/tank/game/#/watchGame/${roomId}" + playerIdOpt.map(s => s"/$s").getOrElse("") + s"/$accessCode",
-            StatusCodes.SeeOther
-          )
-        }
+        redirect(s"/tank/game/#/watchGame/${roomId}" + playerIdOpt.map(s => s"/$s").getOrElse("") + s"/$accessCode",
+          StatusCodes.SeeOther
+        )
+
     }
   } ~ path("watchRecord") {
     parameter(
@@ -146,11 +145,9 @@ trait HttpService
       'accessCode.as[String]
     ) {
       case (recordId, playerId, frame, accessCode) =>
-        authPlatUser(accessCode){ platUser =>
-          redirect(s"/tank/game/#/watchRecord/${recordId}/${playerId}/${frame}/${accessCode}",
-            StatusCodes.SeeOther
-          )
-        }
+        redirect(s"/tank/game/#/watchRecord/${recordId}/${playerId}/${frame}/${accessCode}",
+          StatusCodes.SeeOther
+        )
     }
   }
 
