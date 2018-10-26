@@ -82,7 +82,7 @@ object RoomActor {
               dispatchTo(subscribersMap,observersMap)
             )
             if(AppSettings.gameRecordIsWork){
-              getGameRecorder(ctx,gameContainer,roomId)
+              getGameRecorder(ctx,gameContainer,roomId,gameContainer.systemFrame)
             }
             timer.startPeriodicTimer(GameLoopKey,GameLoop,gameContainer.config.frameDuration.millis)
             idle(roomId,Nil,Nil,subscribersMap, observersMap, gameContainer,0L)
@@ -166,7 +166,7 @@ object RoomActor {
 
           val gameEvents = gameContainer.getLastGameEvent()
           if(AppSettings.gameRecordIsWork){
-            getGameRecorder(ctx,gameContainer,roomId) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
+            getGameRecorder(ctx,gameContainer,roomId,gameContainer.systemFrame) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
           }
 
 
@@ -255,7 +255,7 @@ object RoomActor {
   }
 
 
-    private def getGameRecorder(ctx: ActorContext[Command],gameContainer:GameContainerServerImpl,roomId:Long):ActorRef[GameRecorder.Command] = {
+    private def getGameRecorder(ctx: ActorContext[Command],gameContainer:GameContainerServerImpl,roomId:Long,frame:Long):ActorRef[GameRecorder.Command] = {
       val childName = s"gameRecorder"
       ctx.child(childName).getOrElse{
         val curTime = System.currentTimeMillis()

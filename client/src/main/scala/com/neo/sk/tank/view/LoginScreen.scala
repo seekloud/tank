@@ -3,7 +3,6 @@ package com.neo.sk.tank.view
 import com.neo.sk.tank.common.Context
 import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.Canvas
-
 /**
   * Created by hongruying on 2018/10/23
   */

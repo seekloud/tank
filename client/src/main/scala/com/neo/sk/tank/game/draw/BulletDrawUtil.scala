@@ -3,7 +3,6 @@ package com.neo.sk.tank.game.draw
 import com.neo.sk.tank.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.`object`.Bullet
 import com.neo.sk.tank.shared.model.Point
-import org.scalajs.dom
 
 import scala.collection.mutable
 
