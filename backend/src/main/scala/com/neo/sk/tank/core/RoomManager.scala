@@ -81,7 +81,6 @@ object RoomManager {
                       getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
                   }
               }
-
           }
           log.debug(s"now roomInUse:$roomInUse")
           Behaviors.same

@@ -65,7 +65,7 @@ object EsheepProtocol {
                               msg: String = "ok"
                               ) extends CommonRsp
 
-  case class RecordFrameInfo(frame:Int)
+  case class RecordFrameInfo(frame:Int,frameNum:Long)
 
 //战绩信息
   case class BatRecordInfo(

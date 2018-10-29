@@ -293,7 +293,7 @@ object GameRecorder {
           val startTime = System.currentTimeMillis()
           val newInitStateOpt =t.event._2
           val newRecorder = initFileRecorder(fileName,fileIndex + 1, gameInformation, newInitStateOpt)
-          val newGameInformation = GameInformation(startTime, gameInformation.tankConfig)
+          val newGameInformation = GameInformation(startTime,gameInformation.tankConfig)
           val newGameRecorderData = GameRecorderData(roomId, fileName, fileIndex + 1, newGameInformation, newInitStateOpt, newRecorder, gameRecordBuffer = List[GameRecord]())
           val newEssfMap = mutable.HashMap.empty[EssfMapKey, EssfMapJoinLeftInfo]
           val newUserAllMap = mutable.HashMap.empty[String,(Int,String)]

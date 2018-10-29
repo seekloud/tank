@@ -137,7 +137,7 @@ object EsheepSyncClient {
                     implicit stashBuffer:StashBuffer[Command],
                     timer:TimerScheduler[Command]
                   ): Behavior[Command] = {
-    timer.startSingleTimer(RefreshTokenKey, RefreshToken, (tokenInfo.expireTime - System.currentTimeMillis()).millis)
+    timer.startSingleTimer(RefreshTokenKey, RefreshToken, tokenInfo.expireTime.seconds)
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case VerifyAccessCode(accessCode, rsp) =>
