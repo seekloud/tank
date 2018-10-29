@@ -1,5 +1,7 @@
 package com.neo.sk.tank.front.pages
 
+import java.net.URLDecoder
+
 import com.neo.sk.tank.front.common.Page
 import com.neo.sk.tank.front.model.PlayerInfo
 import com.neo.sk.tank.front.tankClient.GameHolder
@@ -17,8 +19,8 @@ case class PlayPage(
 
 
   private def parsePlayerInfoSeq: Option[PlayerInfo] = playerInfoSeq match {
-    case userId :: userName :: roomId :: accessCode :: Nil => Some(PlayerInfo(userId, userName, accessCode, Some(roomId.toLong)))
-    case userId :: userName  :: accessCode :: Nil => Some(PlayerInfo(userId, userName, accessCode, None))
+    case userId :: userName :: roomId :: accessCode :: Nil => Some(PlayerInfo(userId, URLDecoder.decode(userName, "utf-8"), accessCode, Some(roomId.toLong)))
+    case userId :: userName  :: accessCode :: Nil => Some(PlayerInfo(userId, URLDecoder.decode(userName, "utf-8"), accessCode, None))
     case _ => None
   }
 
