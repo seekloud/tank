@@ -1,7 +1,7 @@
 package com.neo.sk.tank.front.pages
 
 import com.neo.sk.tank.front.common.Page
-import com.neo.sk.tank.front.tankClient.GameHolder
+import com.neo.sk.tank.front.tankClient.GamePlayHolder
 import com.neo.sk.tank.front.utils.Shortcut
 import mhtml.Var
 import org.scalajs.dom
@@ -24,8 +24,8 @@ object TankDemo extends Page{
   private val modal = Var(emptyHTML)
 
   def init() = {
-
-    val gameHolder = new GameHolder("GameView")
+    println("-----2")
+    val gameHolder = new GamePlayHolder("GameView")
     val startGameModal = gameHolder.getStartGameModal()
     modal := startGameModal
     //    val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]

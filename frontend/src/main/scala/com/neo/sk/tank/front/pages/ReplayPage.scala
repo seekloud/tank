@@ -1,7 +1,7 @@
 package com.neo.sk.tank.front.pages
 
 import com.neo.sk.tank.front.common.Page
-import com.neo.sk.tank.front.tankClient.GameHolder
+import com.neo.sk.tank.front.tankClient.GameReplayHolder
 import com.neo.sk.tank.front.utils.Shortcut
 import com.neo.sk.tank.front.model.ReplayInfo
 import mhtml.{Var, emptyHTML}
@@ -23,7 +23,7 @@ object ReplayPage extends Page {
 
   private val modal = Var(emptyHTML)
   private var infoOpt:Option[ReplayInfo]=None
-  private var gameHolderOpt:Option[GameHolder]=None
+  private var gameHolderOpt:Option[GameReplayHolder]=None
   def setParam(r:ReplayInfo)={
     infoOpt=Some(r)
     gameHolderOpt.foreach(g=>g.closeHolder)
@@ -31,8 +31,8 @@ object ReplayPage extends Page {
 
   private def init() = {
     println("-----new holder------")
-    val gameHolder = new GameHolder("GameReplay", replay = true)
-    gameHolder.getStartReplayModel(infoOpt.get)
+    val gameHolder = new GameReplayHolder("GameReplay")
+    gameHolder.startReplay(Some(infoOpt.get))
     gameHolderOpt=Some(gameHolder)
     modal := <div>观看回放中...</div>
   }

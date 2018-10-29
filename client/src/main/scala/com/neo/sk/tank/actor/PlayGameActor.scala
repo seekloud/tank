@@ -178,8 +178,50 @@ object PlayGameActor {
 
   /**
     * 此处处理消息*/
-  def wsMessageHandler(m:TankGameEvent.WsMsgServer)={
+  def wsMessageHandler(data:TankGameEvent.WsMsgServer)={
+    data match {
+      case e:TankGameEvent.YourInfo =>
+        /**
+          * 更新游戏数据
+          * */
+      case e:TankGameEvent.YouAreKilled =>
+        /**
+          * 死亡重玩
+          * */
+        log.info(s"you are killed")
 
+      case e:TankGameEvent.Ranks =>
+        /**
+          * 游戏排行榜
+          * */
+
+      case e:TankGameEvent.SyncGameState =>
+
+
+      case e:TankGameEvent.SyncGameAllState =>
+
+
+
+      case e:TankGameEvent.UserActionEvent =>
+
+
+
+      case e:TankGameEvent.GameEvent =>
+        e match {
+          case ee:TankGameEvent.GenerateBullet =>
+
+          case _ =>
+        }
+
+      case e:TankGameEvent.PingPackage =>
+
+
+      case TankGameEvent.RebuildWebSocket=>
+
+
+      case _ =>
+        log.info(s"unknow msg={sss}")
+    }
   }
 
   def getWebSocketUri(name: String): String = {

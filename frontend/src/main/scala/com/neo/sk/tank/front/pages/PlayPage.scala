@@ -2,7 +2,7 @@ package com.neo.sk.tank.front.pages
 
 import com.neo.sk.tank.front.common.Page
 import com.neo.sk.tank.front.model.PlayerInfo
-import com.neo.sk.tank.front.tankClient.GameHolder
+import com.neo.sk.tank.front.tankClient.GamePlayHolder
 import com.neo.sk.tank.front.utils.Shortcut
 import mhtml.{Var, emptyHTML}
 
@@ -31,7 +31,7 @@ case class PlayPage(
   private val modal = Var(emptyHTML)
 
   def init(playerInfo: PlayerInfo) = {
-    val gameHolder = new GameHolder("GameView", Some(playerInfo))
+    val gameHolder = new GamePlayHolder("GameView", Some(playerInfo))
     val startGameModal = gameHolder.getStartGameModal()
     modal := startGameModal
   }
