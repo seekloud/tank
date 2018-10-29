@@ -10,6 +10,7 @@ import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
+import org.scalajs.dom.html.Canvas
 import org.scalajs.dom.raw.MouseEvent
 
 import scala.collection.mutable
@@ -21,7 +22,10 @@ import scala.xml.Elem
   * Time: 13:00
   */
 class GamePlayHolder(name:String,playerInfoOpt: Option[PlayerInfo] = None) extends GameHolderImpl {
-  override protected val canvasName: String = name
+  override protected val canvas = dom.document.getElementById(name).asInstanceOf[Canvas]
+  override protected val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  canvas.width = canvasWidth.toInt
+  canvas.height = canvasHeight.toInt
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
   private var spaceKeyUpState = true
   private var lastMouseMoveTheta:Float = 0
