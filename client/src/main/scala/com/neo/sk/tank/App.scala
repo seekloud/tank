@@ -7,7 +7,7 @@ import akka.event.{Logging, LoggingAdapter}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.neo.sk.tank.common.Context
-import com.neo.sk.tank.controller.LoginScreenController
+import com.neo.sk.tank.controller.{HallScreenController, LoginScreenController}
 import com.neo.sk.tank.model.PlayerInfo
 import com.neo.sk.tank.view.{GameHallScreen, LoginScreen}
 import javafx.animation.{Animation, AnimationTimer}
@@ -35,9 +35,13 @@ class App extends Application{
 
   override def start(primaryStage: Stage): Unit = {
     val context = new Context(primaryStage)
-    val loginScreen = new LoginScreen(context)
-    context.switchScene(loginScreen.sence)
-    new LoginScreenController(context, loginScreen)
+    val playerInfo = PlayerInfo("aaa","tank-guest--1","1")
+    val gameHall = new GameHallScreen(context,playerInfo)
+    context.switchScene(gameHall.getScene())
+    new HallScreenController(context,gameHall)
+//    val loginScreen = new LoginScreen(context)
+//    context.switchScene(loginScreen.sence)
+//    new LoginScreenController(context, loginScreen)
   }
 
 }
