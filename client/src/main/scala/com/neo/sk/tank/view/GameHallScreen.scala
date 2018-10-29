@@ -21,7 +21,10 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   private val confirmBtn = new Button("确定")
   private val randomBtn = new Button("随机进入")
 
-  private val roomList = List(1,2,6,7)
+  private var roomList:List[Long] = List.empty[Long]
+  def getRoomListView(rsp:model.RoomListRsp) = {
+    rsp.data.roomList
+  }
 
   private val observableList:ObservableList[String] = FXCollections.observableArrayList("")
   roomList.map(_.toString) foreach observableList.add
@@ -47,6 +50,10 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   randomBtn.setOnAction(e => listener.randomBtnListener(playerInfo,gameServerInfo))
   def setListener(gameHallListener:GameHallListener) = {
     this.listener = gameHallListener
+  }
+
+  def updateRoomList(roomList:List[Long]) = {
+    this.roomList = roomList
   }
 
 
