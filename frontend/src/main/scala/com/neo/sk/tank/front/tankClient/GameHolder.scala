@@ -16,7 +16,7 @@ import com.neo.sk.tank.shared.model.Constants.GameState
 import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
-import org.scalajs.dom.html.Canvas
+import org.scalajs.dom.html.{Canvas, Div, Paragraph}
 import org.scalajs.dom.raw.{Event, HTMLElement, MouseEvent}
 import org.scalajs.dom
 
@@ -44,6 +44,9 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
   private val startGameModal = new StartGameModal(gameStateVar,start, playerInfoOpt)
 
   private var killerName:String = ""
+  private var killNum:Int = 0
+  private var damageNum:Int = 0
+  var killerList = List.empty[String] //（击杀者）
 
   private[this] var gameContainerOpt : Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
   private[this] val webSocketClient = WebSocketClient(wsConnectSuccess,wsConnectError, getWsMessageHandler, wsConnectClose, replay)
@@ -157,6 +160,7 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
           e.preventDefault()
         }
       }
+
     }
     canvas.onclick = { e: MouseEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
@@ -385,6 +389,19 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
     println()
   }
 
+  private def drawCombatGains():Unit = {
+    val combatGians = dom.document.getElementById("combat_gains").asInstanceOf[Div]
+    val combatP_1 = dom.document.createElement("p").asInstanceOf[Paragraph]
+    combatP_1.innerHTML = s"击杀数:<span>${killNum}</span>"
+    val combatP_2 =  dom.document.createElement("p").asInstanceOf[Paragraph]
+    combatP_2.innerHTML = s"伤害量:<span>${damageNum}</span>"
+    val combatP_3 =  dom.document.createElement("p").asInstanceOf[Paragraph]
+    combatP_3.innerHTML = s"击杀者ID:<span>${killerList.head}</span>、<span>${killerList(1)}</span>、<span>${killerList(2)}</span>"
+    combatGians.appendChild(combatP_1)
+    combatGians.appendChild(combatP_2)
+    combatGians.appendChild(combatP_3)
+  }
+
   private def drawGameRestart() = {
     ctx.fillStyle = Color.Black.toString()
     ctx.globalAlpha = 1
@@ -446,6 +463,9 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
           * */
         println(s"you are killed")
         killerName = e.name
+        killNum = e.killTankNum
+        damageNum = e.damageStatistics
+        killerList = killerList :+ e.name
         if(e.hasLife){
           reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
           setGameState(GameState.relive)
