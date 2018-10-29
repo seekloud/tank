@@ -21,15 +21,18 @@ import scala.xml.Elem
   * User: sky
   * Date: 2018/10/29
   * Time: 12:47
+  * 需要构造参数，所以重构为抽象类
   */
-trait GameHolder extends NetworkInfo{
-  protected val canvas:Canvas
-  protected val ctx:dom.CanvasRenderingContext2D
+abstract class GameHolder(name:String) extends NetworkInfo{
+  protected val canvas = dom.document.getElementById(name).asInstanceOf[Canvas]
+  protected val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
   protected var canvasWidth = dom.window.innerWidth.toFloat
   protected var canvasHeight = dom.window.innerHeight.toFloat
   protected val canvasUnit = 10
   protected var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+  canvas.width = canvasWidth.toInt
+  canvas.height = canvasHeight.toInt
 
   protected var firstCome = true
 
