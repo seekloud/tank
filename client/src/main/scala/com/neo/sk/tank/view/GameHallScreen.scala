@@ -1,6 +1,7 @@
 package com.neo.sk.tank.view
 
 import com.neo.sk.tank.common.Context
+import com.neo.sk.tank.model
 import com.neo.sk.tank.model.PlayerInfo
 import javafx.collections.{FXCollections, ObservableArray, ObservableList}
 import javafx.scene.{Group, Scene}
@@ -15,7 +16,7 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   private val scene = new Scene(group)
 //  private val playerInfo = PlayerInfo("tank--1","aa","11")
   private val nicknameLabel = new Label(s"昵称：${playerInfo.nickName}")
-  private val playerIdLabel = new Label(s"uid:${playerInfo.nickName}")
+  private val playerIdLabel = new Label(s"uid:${playerInfo.playerId}")
 
   private val confirmBtn = new Button("确定")
   private val randomBtn = new Button("随机进入")
@@ -39,10 +40,11 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   }
 
   def getScene() = this.scene
-  private var listener = new GameHallListener{}
+  private var listener:GameHallListener = _
+  private val gameServerInfo = model.GameServerInfo("localhost","30369","tank/game")
 
-  confirmBtn.setOnAction(e => listener.confirmBtnListener)
-  randomBtn.setOnAction(e => listener.randomBtnListener)
+  confirmBtn.setOnAction(e => listener.confirmBtnListener(playerInfo,listView,gameServerInfo,group))
+  randomBtn.setOnAction(e => listener.randomBtnListener(playerInfo,gameServerInfo))
   def setListener(gameHallListener:GameHallListener) = {
     this.listener = gameHallListener
   }
@@ -50,12 +52,8 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
 
 }
 
-class GameHallListener{
-  def confirmBtnListener = {
+abstract class GameHallListener{
+  def confirmBtnListener(playerInfo:PlayerInfo,select:ListView[String],gameServerInfo:model.GameServerInfo,root:Group)
 
-  }
-
-  def randomBtnListener = {
-
-  }
+  def randomBtnListener(playerInfo: PlayerInfo,gameServerInfo:model.GameServerInfo)
 }
