@@ -24,6 +24,7 @@ import scala.concurrent.Future
   */
 object PlayGameActor {
   private val log = LoggerFactory.getLogger(this.getClass)
+  private final val InitTime = Some(5.minutes)
   sealed trait Command
   final case class ConnectGame(name:String) extends Command
   final case object ConnectTimerKey
@@ -55,7 +56,6 @@ object PlayGameActor {
       Behaviors.withTimers[Command]{timer=>
         init
       }
-
     }
   }
 
@@ -78,6 +78,7 @@ object PlayGameActor {
           val connected = response.flatMap { upgrade =>
             if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
               ctx.schedule(10.seconds, stream, TankGameEvent.PingPackage(System.currentTimeMillis()))
+              ctx.self ! SwitchBehavior("play",play(stream))
               Future.successful(s"${ctx.self.path} connect success.")
             } else {
               throw new RuntimeException(s"${ctx.self.path} connection failed: ${upgrade.response.status}")
@@ -88,8 +89,7 @@ object PlayGameActor {
             log.error(s"${ctx.self.path} connect closed! try again 1 minutes later")
             timer.startSingleTimer(ConnectTimerKey,msg,1 minute)
           } //链接断开时
-          busy()
-
+          switchBehavior(ctx,"busy",busy(),InitTime)
         case x=>
           log.info(s"get unKnow msg $x")
           Behaviors.unhandled

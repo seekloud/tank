@@ -21,11 +21,7 @@ import scala.xml.Elem
   * Date: 2018/10/29
   * Time: 13:00
   */
-class GamePlayHolder(name:String,playerInfoOpt: Option[PlayerInfo] = None) extends GameHolderImpl {
-  override protected val canvas = dom.document.getElementById(name).asInstanceOf[Canvas]
-  override protected val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  canvas.width = canvasWidth.toInt
-  canvas.height = canvasHeight.toInt
+class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) extends GameHolder(name) {
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
   private var spaceKeyUpState = true
   private var lastMouseMoveTheta:Float = 0

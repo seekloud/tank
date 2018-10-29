@@ -21,13 +21,8 @@ import scala.collection.mutable
   * Date: 2018/10/29
   * Time: 13:00
   */
-class GameReplayHolder(name:String, playerInfoOpt: Option[PlayerInfo] = None) extends GameHolderImpl {
+class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) extends GameHolder(name) {
   webSocketClient.setWsReplay(true)
-
-  override protected val canvas = dom.document.getElementById(name).asInstanceOf[Canvas]
-  override protected val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  canvas.width = canvasWidth.toInt
-  canvas.height = canvasHeight.toInt
 
   override protected def drawGameRestart(): Unit = {
     ctx.fillStyle = Color.Black.toString()
