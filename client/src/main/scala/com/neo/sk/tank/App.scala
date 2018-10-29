@@ -44,6 +44,7 @@ class App extends Application{
 object App{
 
   import concurrent.duration._
+  import scala.language.postfixOps
 
   implicit val system = ActorSystem("tankDemoSystem")
   // the executor should not be the default dispatcher.
