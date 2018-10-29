@@ -489,6 +489,10 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
       case e:TankGameEvent.PingPackage =>
         receivePingPackage(e)
 
+      case TankGameEvent.RebuildWebSocket=>
+        drawReplayMsg("存在异地登录。。")
+        closeHolder
+
       case _ => println(s"unknow msg={sss}")
     }
   }
