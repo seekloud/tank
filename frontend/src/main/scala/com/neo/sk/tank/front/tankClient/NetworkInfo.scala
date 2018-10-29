@@ -9,7 +9,7 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
   */
 final case class NetworkLatency(latency: Long)
 
-trait NetworkInfo { this:GameHolder =>
+trait NetworkInfo { this:GameHolderImpl =>
 
   private var lastPingTime = System.currentTimeMillis()
   private val PingTimes = 10
