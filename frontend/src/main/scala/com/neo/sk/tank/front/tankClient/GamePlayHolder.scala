@@ -92,11 +92,10 @@ class GamePlayHolder(name:String,playerInfoOpt: Option[PlayerInfo] = None) exten
   }
 
   def getStartGameModal():Elem = {
-    println("----1")
     startGameModal.render
   }
 
-  def start(name:String,roomIdOpt:Option[Long]):Unit = {
+  private def start(name:String,roomIdOpt:Option[Long]):Unit = {
     canvas.focus()
     if(firstCome){
       firstCome = false

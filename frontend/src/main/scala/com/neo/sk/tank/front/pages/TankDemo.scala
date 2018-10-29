@@ -24,7 +24,6 @@ object TankDemo extends Page{
   private val modal = Var(emptyHTML)
 
   def init() = {
-    println("-----2")
     val gameHolder = new GamePlayHolder("GameView")
     val startGameModal = gameHolder.getStartGameModal()
     modal := startGameModal
