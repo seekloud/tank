@@ -5,8 +5,11 @@ import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
 import akka.http.javadsl.model.ws.WebSocketRequest
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
-import akka.stream.scaladsl.Flow
-import akka.stream.typed.scaladsl.ActorSink
+import akka.stream.OverflowStrategy
+import akka.stream.scaladsl.{Flow, Sink}
+import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
+import akka.util.ByteString
+import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, FailMsgServer, WsMsgSource}
 import org.seekloud.byteobject.ByteObject.bytesDecode
 import org.seekloud.byteobject.MiddleBufferInJvm
@@ -57,22 +60,61 @@ object PlayGameActor {
     }
   }
 
-  def getSink =
-    Flow[Message].collect {
-      case TextMessage.Strict(msg) =>
-        log.debug(s"msg from webSocket: $msg")
+  import org.seekloud.byteobject.ByteObject._
+  def getSink ={
+    import scala.language.implicitConversions
 
-      case BinaryMessage.Strict(bMsg) =>
-        //decode process.
-        val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
-        val msg =
-          bytesDecode[](buffer) match {
-            case Right(v) => v
-            case Left(e) =>
-              println(s"decode error: ${e.message}")
-          }
-        msg
-    }.to(ActorSink.actorRef[WsMsgSource](actor, CompleteMsgServer, FailMsgServer))
+    implicit def parseJsonString2WsMsgFront(s: String): TankGameEvent.WsMsgServer = {
+      import io.circe.generic.auto._
+      import io.circe.parser._
+      try {
+        val wsMsg = decode[TankGameEvent.WsMsgServer](s).right.get
+        wsMsg
+      } catch {
+        case e: Exception =>
+          log.warn(s"parse front msg failed when json parse,s=${s}")
+          TankGameEvent.DecodeError()
+      }
+    }
+
+    Sink.foreach[Message] {
+      case TextMessage.Strict(m) =>
+        wsMessageHandler(m)
+
+      case BinaryMessage.Strict(m) =>
+        val buffer = new MiddleBufferInJvm(m.asByteBuffer)
+        bytesDecode[TankGameEvent.WsMsgServer](buffer) match {
+          case Right(req) =>
+            wsMessageHandler(req)
+          case Left(e) =>
+            log.error(s"decode binaryMessage failed,error:${e.message}")
+            wsMessageHandler(TankGameEvent.DecodeError())
+        }
+    }
+  }
+
+  def getSource = ActorSource.actorRef[TankGameEvent.WsMsgFrontSource](
+    completionMatcher = {
+      case TankGameEvent.CompleteMsgFrontServer =>
+    }, failureMatcher = {
+      case TankGameEvent.FailMsgFrontServer(ex) ⇒ ex
+    },
+    bufferSize = 8,
+    overflowStrategy = OverflowStrategy.fail
+  ).collect {
+    case message: TankGameEvent.WsMsgFront =>
+      val sendBuffer = new MiddleBufferInJvm(409600)
+      BinaryMessage.Strict(ByteString(
+        message.fillMiddleBuffer(sendBuffer).result()
+      ))
+  }
+
+
+  /**
+    * 此处处理消息*/
+  def wsMessageHandler(m:TankGameEvent.WsMsgServer)={
+
+  }
 
   def getWebSocketUri(name: String): String = {
     val wsProtocol = "ws"

@@ -11,13 +11,18 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent.UserEvent
   */
 object TankGameEvent {
 
+  /**前端建立WebSocket*/
+  sealed trait WsMsgFrontSource
+  case object CompleteMsgFrontServer extends WsMsgFrontSource
+  case class FailMsgFrontServer(ex: Exception) extends WsMsgFrontSource
 
-  sealed trait WsMsgFront
+  sealed trait WsMsgFront extends WsMsgFrontSource
   /**
     * 携带原来tankId
     * */
   final case class RestartGame(tankIdOpt:Option[Int],name:String,gameState:Int) extends WsMsgFront
 
+  /**后台建立WebSocket*/
   sealed trait WsMsgSource
   case object CompleteMsgServer extends WsMsgSource
   case class FailMsgServer(ex: Exception) extends WsMsgSource
