@@ -338,6 +338,7 @@ case class GameHolder(canvasName:String, playerInfoOpt: Option[PlayerInfo] = Non
         Shortcut.cancelSchedule(timer)
         Shortcut.cancelSchedule(reStartTimer)
         drawGameStop()
+        Shortcut.scheduleOnce(() => drawCombatGains(), 1000)
         dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
 
       case GameState.relive =>
