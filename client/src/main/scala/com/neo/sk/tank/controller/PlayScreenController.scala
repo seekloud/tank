@@ -18,5 +18,4 @@ class PlayScreenController(
                             playGameScreen: PlayGameScreen
                           ) extends NetworkInfo {
 
-
 }
