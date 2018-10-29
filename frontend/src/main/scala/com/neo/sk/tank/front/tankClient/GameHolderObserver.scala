@@ -130,6 +130,8 @@ class GameHolderObserver(canvasObserver:String,roomId:Long, accessCode:String, p
         dom.window.cancelAnimationFrame(nextFrame)
         Shortcut.cancelSchedule(timer)
 
+      case TankGameEvent.RebuildWebSocket=>
+        JsFunc.alert("存在异地登录。。")
 
 
       case _ =>
