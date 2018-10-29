@@ -29,6 +29,11 @@ object AppSettings {
       else Some(config.getDuration(path, TimeUnit.SECONDS))
   }
 
+  val config = ConfigFactory.parseResources("product.conf").withFallback(ConfigFactory.load())
+
+
+  val appConfig = config.getConfig("app")
+
   private val esheepConfig = appConfig.getConfig("esheep")
   val esheepAppId = esheepConfig.getString("appId")
   val esheepSecureKey = esheepConfig.getString("secureKey")
@@ -42,12 +47,11 @@ object AppSettings {
 
 
 
-  val config = ConfigFactory.parseResources("product.conf").withFallback(ConfigFactory.load())
 
 
 
 
-  val appConfig = config.getConfig("app")
+
 
 
 
