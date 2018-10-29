@@ -28,13 +28,13 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
 
   private val observableList:ObservableList[String] = FXCollections.observableArrayList("")
   roomList.map(_.toString) foreach observableList.add
-  private val listView = new ListView[String](observableList)
+  private var listView = new ListView[String](observableList)
 
   private val grid = new GridPane()
 
   add()
   def add() = {
-    grid.add(nicknameLabel,0,0,0,0)
+    grid.add(nicknameLabel,0,0,2,2)
     grid.add(playerIdLabel,1,1,1,1)
     grid.add(listView,2,2,2,2)
     grid.add(confirmBtn,3,3,3,3)
@@ -54,6 +54,8 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
 
   def updateRoomList(roomList:List[Long]) = {
     this.roomList = roomList
+    roomList.map(_.toString) foreach observableList.add
+    listView = new ListView[String](observableList)
   }
 
 
