@@ -8,6 +8,7 @@ import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
+import org.scalajs.dom.html.Canvas
 
 /**
   * User: sky
@@ -16,7 +17,10 @@ import org.scalajs.dom.ext.Color
   */
 class GameObserverHolder(canvasObserver:String,roomId:Long, accessCode:String, playerId:Option[String]) extends GameHolderImpl {
 
-  override protected val canvasName: String = canvasObserver
+  override protected val canvas = dom.document.getElementById(canvasObserver).asInstanceOf[Canvas]
+  override protected val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  canvas.width = canvasWidth.toInt
+  canvas.height = canvasHeight.toInt
 
   override protected def drawGameRestart(): Unit = {
     ctx.fillStyle = Color.Black.toString()

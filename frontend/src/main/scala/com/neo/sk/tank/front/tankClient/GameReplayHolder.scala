@@ -11,6 +11,7 @@ import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
+import org.scalajs.dom.html.Canvas
 import org.scalajs.dom.raw.MouseEvent
 
 import scala.collection.mutable
@@ -23,7 +24,10 @@ import scala.collection.mutable
 class GameReplayHolder(name:String, playerInfoOpt: Option[PlayerInfo] = None) extends GameHolderImpl {
   webSocketClient.setWsReplay(true)
 
-  override protected val canvasName: String = name
+  override protected val canvas = dom.document.getElementById(name).asInstanceOf[Canvas]
+  override protected val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  canvas.width = canvasWidth.toInt
+  canvas.height = canvasHeight.toInt
 
   override protected def drawGameRestart(): Unit = {
     ctx.fillStyle = Color.Black.toString()

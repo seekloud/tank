@@ -23,12 +23,11 @@ import scala.xml.Elem
   * Time: 12:47
   */
 trait GameHolderImpl extends NetworkInfo{
-  protected val canvasName:String
-  protected val canvas = dom.document.getElementById(canvasName).asInstanceOf[Canvas]
-  protected val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  protected val canvas:Canvas
+  protected val ctx:dom.CanvasRenderingContext2D
 
-  private[this] var canvasWidth = dom.window.innerWidth.toFloat
-  private[this] var canvasHeight = dom.window.innerHeight.toFloat
+  protected var canvasWidth = dom.window.innerWidth.toFloat
+  protected var canvasHeight = dom.window.innerHeight.toFloat
   protected val canvasUnit = 10
   protected var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
 
@@ -54,9 +53,6 @@ trait GameHolderImpl extends NetworkInfo{
   protected var countDownTimes = countDown
   protected var nextFrame = 0
   protected var logicFrameTime = System.currentTimeMillis()
-
-  canvas.width = canvasWidth.toInt
-  canvas.height = canvasHeight.toInt
 
 
   def closeHolder={
