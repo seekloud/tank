@@ -22,7 +22,7 @@ import scala.xml.Elem
   * Date: 2018/10/29
   * Time: 12:47
   */
-trait GameHolderImpl extends NetworkInfo{
+trait GameHolder extends NetworkInfo{
   protected val canvas:Canvas
   protected val ctx:dom.CanvasRenderingContext2D
 

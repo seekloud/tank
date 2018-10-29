@@ -15,7 +15,7 @@ import org.scalajs.dom.html.Canvas
   * Date: 2018/10/29
   * Time: 13:00
   */
-class GameObserverHolder(canvasObserver:String,roomId:Long, accessCode:String, playerId:Option[String]) extends GameHolderImpl {
+class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:String, playerId:Option[String]) extends GameHolder {
 
   override protected val canvas = dom.document.getElementById(canvasObserver).asInstanceOf[Canvas]
   override protected val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
