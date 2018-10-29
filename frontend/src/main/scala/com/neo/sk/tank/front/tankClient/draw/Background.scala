@@ -48,6 +48,15 @@ trait Background{ this:GameContainerClientImpl =>
   def updateBackSize(canvasSize:Point)={
     cacheCanvasMap.clear()
     canvasBoundary=canvasSize
+
+    rankUpdated = true
+    minimapRenderFrame = systemFrame - 1
+    currentRankCanvas.width = rankWidth * canvasUnit
+    currentRankCanvas.height = rankHeight * canvasUnit
+    historyRankCanvas.width = rankWidth * canvasUnit
+    historyRankCanvas.height = rankHeight * canvasUnit
+    minimapCanvas.width = LittleMap.w * canvasUnit + 6
+    minimapCanvas.height = LittleMap.h * canvasUnit + 6
   }
 
 
@@ -117,7 +126,7 @@ trait Background{ this:GameContainerClientImpl =>
     def refreshCacheCanvas(context:dom.CanvasRenderingContext2D, header: String, rank: List[Score],historyRank:Boolean): Unit ={
       //绘制当前排行榜
       val leftBegin = 4 * canvasUnit
-      context.font = "bold 12px Arial"
+      context.font = s"bold ${1.2 * canvasUnit}px Arial"
       context.clearRect(0,0,rankWidth * canvasUnit, rankHeight * canvasUnit)
 
       var index = 0
@@ -144,7 +153,7 @@ trait Background{ this:GameContainerClientImpl =>
           context.drawImage(img, leftBegin - 4 * canvasUnit, (2 * index) * canvasUnit, 2 * canvasUnit, 2 * canvasUnit)
         }
         context.strokeStyle = drawColor
-        context.lineWidth = 18
+        context.lineWidth = 1.8 * canvasUnit
         context.beginPath()
         context.moveTo(leftBegin,(2 * index + 1) * canvasUnit)
         context.lineTo((rankWidth - 2) * canvasUnit,(2 * index + 1) * canvasUnit)
@@ -229,7 +238,7 @@ trait Background{ this:GameContainerClientImpl =>
       ctx.beginPath()
       ctx.strokeStyle = Color.Black.toString()
       ctx.textAlign = "start"
-      ctx.font="bold 25px 微软雅黑"
+      ctx.font=s"bold ${2.5 * canvasUnit}px 微软雅黑"
       ctx.lineWidth = 1
 
       killInfoList.foreach{
@@ -247,7 +256,7 @@ trait Background{ this:GameContainerClientImpl =>
     ctx.beginPath()
     ctx.strokeStyle = Color.Black.toString()
     ctx.textAlign = "left"
-    ctx.font=" 30px Arial"
+    ctx.font=s" ${3 * canvasUnit}px Arial"
     ctx.lineWidth = 1
     val offsetX = canvasBoundary.x - 20
 
