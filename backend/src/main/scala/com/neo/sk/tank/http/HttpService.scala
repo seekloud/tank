@@ -1,5 +1,7 @@
 package com.neo.sk.tank.http
 
+import java.net.URLEncoder
+
 import akka.actor.{ActorSystem, Scheduler}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.ws.Message
@@ -120,7 +122,7 @@ trait HttpService
       'roomId.as[Long].?
     ) {
       case (playerId, playerName, accessCode, roomIdOpt) =>
-        redirect(s"/tank/game/#/playGame/${playerId}/${playerName}" + roomIdOpt.map(s => s"/$s").getOrElse("") + s"/$accessCode",
+        redirect(s"/tank/game/#/playGame/${playerId}/${URLEncoder.encode(playerName, "utf-8")}" + roomIdOpt.map(s => s"/$s").getOrElse("") + s"/$accessCode",
           StatusCodes.SeeOther
         )
 

@@ -2,7 +2,7 @@ package com.neo.sk.tank.actor
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
-import akka.http.javadsl.model.ws.WebSocketRequest
+import akka.http.scaladsl.model.ws.WebSocketRequest
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
@@ -17,6 +17,7 @@ import org.seekloud.byteobject.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
 import scala.concurrent.duration._
 import scala.concurrent.Future
+import com.neo.sk.tank.App.{system, executor, materializer}
 /**
   * Created by hongruying on 2018/10/23
   * 连接游戏服务器的websocket Actor
@@ -30,7 +31,7 @@ object PlayGameActor {
   def create()={
     Behaviors.setup[Command]{ctx=>
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
-      Behaviors.withTimers[Command]{timer=>
+      Behaviors.withTimers[Command]{implicit timer=>
         init()
       }
 
@@ -55,7 +56,7 @@ object PlayGameActor {
 
           val connected = response.flatMap { upgrade =>
             if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
-              ctx.schedule(10.seconds, stream, NetTest(id, System.currentTimeMillis()))
+//              ctx.schedule(10.seconds, stream, NetTest(id, System.currentTimeMillis()))
 //              val gameScene = new GameScene()
 //              val gameController = new GameController(id, name, accessCode, stageCtx, gameScene, stream)
 //              gameController.connectToGameServer
