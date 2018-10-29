@@ -30,6 +30,17 @@ package object model {
                           errCode: Int = 0,
                           msg: String = "ok"
                           )extends CommonRsp
+  case class UserInfo(
+                     userId:Long,
+                     nickname: String,
+                     token: String,
+                     tokenExpireTime: Long
+                     )
+  case class WSLoginInfo(
+                        data: UserInfo,
+                        errCode: Int = 0,
+                        msg: String = "ok"
+                        ) extends CommonRsp
 
   sealed trait WsMsgSource
   case object CompleteMsgServer extends WsMsgSource
