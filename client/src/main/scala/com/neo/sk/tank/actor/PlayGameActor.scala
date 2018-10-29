@@ -4,9 +4,10 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
 import akka.http.javadsl.model.ws.WebSocketRequest
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.stream.OverflowStrategy
-import akka.stream.scaladsl.{Flow, Sink}
+import akka.stream.scaladsl.{Flow, Keep, Sink}
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import akka.util.ByteString
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -14,6 +15,8 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, FailMsg
 import org.seekloud.byteobject.ByteObject.bytesDecode
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
+import scala.concurrent.duration._
+import scala.concurrent.Future
 /**
   * Created by hongruying on 2018/10/23
   * 连接游戏服务器的websocket Actor
@@ -42,6 +45,29 @@ object PlayGameActor {
         case msg:ConnectGame=>
           val url=getWebSocketUri(msg.name)
           val webSocketFlow=Http().webSocketClientFlow(WebSocketRequest(url))
+          val source = getSource
+          val sink = getSink
+          val ((stream, response), _) =
+            source
+              .viaMat(webSocketFlow)(Keep.both)
+              .toMat(sink)(Keep.both)
+              .run()
+
+          val connected = response.flatMap { upgrade =>
+            if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
+              ctx.schedule(10.seconds, stream, NetTest(id, System.currentTimeMillis()))
+//              val gameScene = new GameScene()
+//              val gameController = new GameController(id, name, accessCode, stageCtx, gameScene, stream)
+//              gameController.connectToGameServer
+              Future.successful(s"WebSocket connect success.")
+            } else {
+              throw new RuntimeException(s"WSClient connection failed: ${upgrade.response.status}")
+            }
+          } //链接建立时
+          connected.map(i => log.info(i.toString))
+          //					closed.onComplete { i =>
+          //						log.error(s"$logPrefix connection closed!")
+          //					} //链接断开时
 
           Behaviors.same
         case x=>
