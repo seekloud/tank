@@ -16,6 +16,7 @@ import org.scalajs.dom.raw.{Event, HTMLElement}
 
 import scala.collection.mutable
 import scala.xml.Elem
+import com.neo.sk.tank.shared.model.Constants
 
 /**
   * User: sky
@@ -28,8 +29,13 @@ trait GameHolderImpl extends NetworkInfo{
 
   protected var canvasWidth = dom.window.innerWidth.toFloat
   protected var canvasHeight = dom.window.innerHeight.toFloat
-  protected val canvasUnit = 10
+
+
+  protected var canvasUnit = getCanvasUnit(canvasWidth)
   protected var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+
+
+  println(s"test111111111111=${canvasUnit},=${canvasWidth}")
 
   protected var firstCome = true
 
@@ -87,11 +93,13 @@ trait GameHolderImpl extends NetworkInfo{
       println("the screen size is change")
       canvasWidth=newWidth
       canvasHeight=newHeight
+      canvasUnit = getCanvasUnit(canvasWidth)
       canvasBoundary=Point(canvasWidth, canvasHeight) / canvasUnit
+      println(s"update screen=${canvasUnit},=${canvasWidth}")
       canvas.width = canvasWidth.toInt
       canvas.height = canvasHeight.toInt
       gameContainerOpt.foreach{r=>
-        r.updateClientSize(canvasBoundary)
+        r.updateClientSize(canvasBoundary, canvasUnit)
       }
     }
   }
@@ -182,4 +190,7 @@ trait GameHolderImpl extends NetworkInfo{
   }
 
   protected def wsMessageHandler(data:TankGameEvent.WsMsgServer)
+
+
+  protected def getCanvasUnit(canvasWidth:Float):Int = (canvasWidth / Constants.WindowView.x).toInt
 }
