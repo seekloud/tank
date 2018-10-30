@@ -89,7 +89,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         val namePosition = (p + Point(0, 5)) * canvasUnit
         ctx.fillStyle = "#006699"
         ctx.textAlign = "center"
-        ctx.font = "normal normal 20px 楷体"
+        ctx.font = s"normal normal ${2 * canvasUnit}px 楷体"
         ctx.lineWidth = 2
         ctx.fillText(s"${tank.name}", namePosition.x, namePosition.y, 20 * canvasUnit)
         ctx.closePath()
@@ -192,14 +192,14 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   def drawLevel(level:Byte,maxLevel:Byte,name:String,start:Point,length:Float,color:String, context:dom.CanvasRenderingContext2D = ctx) = {
     context.strokeStyle = "#4D4D4D"
     context.lineCap = "round"
-    context.lineWidth = 30
+    context.lineWidth = 3 * canvasUnit
     context.beginPath()
     context.moveTo(start.x,start.y)
     context.lineTo(start.x+length,start.y)
     context.stroke()
     context.closePath()
 
-    context.lineWidth = 22
+    context.lineWidth = 2.2 * canvasUnit
     context.strokeStyle = color
     if(level == maxLevel){
       context.beginPath()
@@ -230,7 +230,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
 
 
-    context.font = "bold 18px Arial"
+    context.font = s"bold ${1.8 * canvasUnit}px Arial"
     context.textAlign = "center"
     context.textBaseline = "middle"
     context.fillStyle = "#FCFCFC"
@@ -242,7 +242,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     ctx.beginPath()
     ctx.fillStyle = Color.Black.toString()
     ctx.textAlign = "left"
-    ctx.font="bold 18px 隶书"
+    ctx.font=s"bold ${1.8 * canvasUnit}px 隶书"
     ctx.lineWidth = 1
     ctx.fillText(s"血包${("                       ").take(30)}(按E键使用)", 4.5*canvasUnit,(canvasBoundary.y - 22.5)  * canvasUnit , 30 * canvasUnit)
     val medicalNum = tank.medicalNumOpt match{
