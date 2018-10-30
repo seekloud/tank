@@ -56,7 +56,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         ctx.fillStyle = "#7A7A7A"
         ctx.strokeStyle = "#636363"
         ctx.fill()
-        ctx.lineWidth = 4
+        ctx.lineWidth = 0.4 * canvasUnit
         ctx.stroke()
         ctx.closePath()
         //----------------------------绘制坦克---------------------#
@@ -68,7 +68,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
           ctx.closePath()
         }
         ctx.beginPath()
-        ctx.lineWidth = 4
+        ctx.lineWidth = 0.4 * canvasUnit
         ctx.strokeStyle = "#636363"
         ctx.arc(p.x * canvasUnit, p.y * canvasUnit, tank.getRadius * canvasUnit, 0, 360)
         val tankColor = tank.getTankColor()
@@ -108,7 +108,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     ctx.beginPath()
     ctx.lineCap = "butt"
     ctx.lineJoin = "miter"
-    ctx.lineWidth = 5
+    ctx.lineWidth = 0.5 * canvasUnit
     ctx.strokeStyle = "#BEBEBE"
     ctx.moveTo(sliderPositions.last.x,sliderPositions.last.y)
     ctx.lineTo(sliderPositions.head.x,sliderPositions.head.y)
@@ -116,7 +116,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     ctx.closePath()
     for(i <- Range(1 ,sliderPositions.length,2)){
       ctx.beginPath()
-      ctx.lineWidth = 5
+      ctx.lineWidth = 0.5 * canvasUnit
       if((i+1) / 2 <= 1f * tank.getCurBlood / 20){
         ctx.strokeStyle = "red"
         ctx.moveTo(sliderPositions(i-1).x,sliderPositions(i-1).y)
