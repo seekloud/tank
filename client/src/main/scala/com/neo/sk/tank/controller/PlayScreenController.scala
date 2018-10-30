@@ -84,6 +84,7 @@ class PlayScreenController(
   def getActionSerialNum: Int = actionSerialNumGenerator.getAndIncrement()
 
   def start = {
+    println("start!!!!!!!")
     playGameActor ! PlayGameActor.ConnectGame(playerInfo.playerId)
     addUserActionListenEvent
     setGameLoop
@@ -111,7 +112,7 @@ class PlayScreenController(
   private def logicLoop() = {
     gameState match {
       case GameState.loadingPlay =>
-        log.info(s"等待同步数据")
+//        println(s"等待同步数据")
         playGameScreen.drawGameLoading()
       case GameState.play =>
 
@@ -240,6 +241,7 @@ class PlayScreenController(
   /**
     * 此处处理消息*/
   def wsMessageHandler(data: TankGameEvent.WsMsgServer) = {
+    println(data.getClass)
     data match {
       case e: TankGameEvent.YourInfo =>
       /**
@@ -249,6 +251,7 @@ class PlayScreenController(
         timeline.play()
         gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
+
       case e: TankGameEvent.YouAreKilled =>
 
         /**
