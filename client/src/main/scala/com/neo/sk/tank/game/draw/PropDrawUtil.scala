@@ -9,12 +9,12 @@ import javafx.scene.image.Image
   * Created by hongruying on 2018/8/29
   */
 trait PropDrawUtil { this: GameContainerClientImpl =>
-  private val bloodPropImg = new Image(s"/tank/static/img/xueliang.png")
-  private val speedPropImg = new Image(s"/tank/static/img/sudu.png")
-  private val bulletPowerPropImg = new Image(s"/tank/static/img/qiang.png")
-  private val medicalPropImg = new Image(s"/tank/static/img/yiliao.png")
-  private val shotgunPropImg = new Image(s"/tank/static/img/sandan.png")
-  private val boomImg = new Image(s"/tank//static/img/boom.png")
+  private val bloodPropImg = new Image(s"file:client/src/main/resources/img/xueliang.png")
+  private val speedPropImg = new Image(s"file:client/src/main/resources/img/sudu.png")
+  private val bulletPowerPropImg = new Image(s"file:client/src/main/resources/img/qiang.png")
+  private val medicalPropImg = new Image(s"file:client/src/main/resources/img/yiliao.png")
+  private val shotgunPropImg = new Image(s"file:client/src/main/resources/img/sandan.png")
+  private val boomImg = new Image(s"file:client/src/main/resources/img/boom.png")
 
   protected def drawProps(offset: Point, view: Point) = {
     propMap.values.foreach { prop =>

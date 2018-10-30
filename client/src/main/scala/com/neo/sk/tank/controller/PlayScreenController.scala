@@ -36,7 +36,7 @@ class PlayScreenController(
                             playGameScreen: PlayGameScreen
                           ) extends NetworkInfo {
   private val log = LoggerFactory.getLogger(this.getClass)
-  private val playGameActor = system.spawn(PlayGameActor.create(this), "PlayGameActor")
+  val playGameActor = system.spawn(PlayGameActor.create(this), "PlayGameActor")
 
   protected var firstCome = true
   protected var killerName:String = ""
@@ -241,16 +241,21 @@ class PlayScreenController(
   /**
     * 此处处理消息*/
   def wsMessageHandler(data: TankGameEvent.WsMsgServer) = {
-    println(data.getClass)
     data match {
       case e: TankGameEvent.YourInfo =>
       /**
         * 更新游戏数据
         **/
         println("start------------")
-        timeline.play()
-        gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
-        gameContainerOpt.get.getTankId(e.tankId)
+        try {
+          timeline.play()
+          gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
+          gameContainerOpt.get.getTankId(e.tankId)
+        }catch {
+          case e:Exception=>
+            println(e.getMessage)
+        }
+
 
       case e: TankGameEvent.YouAreKilled =>
 
