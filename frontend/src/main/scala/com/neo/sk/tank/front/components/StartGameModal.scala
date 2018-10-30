@@ -50,7 +50,6 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
     case GameState.loadingPlay => "display:none;"
     case GameState.relive => "display:none;"
 //    case Constants.GameState.stop if lives != 1 => "display:none"
-
     case _ => "display:block;"
   }
 
@@ -90,6 +89,7 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
       <div class ="input_mask" onkeydown ={e:KeyboardEvent => clickEnter(e)}>
       </div>
       <div class ="input_div">
+        <div id="combat_gains"></div>
         <div class ="input_title">{title}</div>
         <div>
           <div class="input_inline">

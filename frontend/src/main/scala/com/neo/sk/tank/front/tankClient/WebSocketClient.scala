@@ -21,17 +21,19 @@ case class WebSocketClient(
                        connectErrorCallback:Event => Unit,
                        messageHandler:TankGameEvent.WsMsgServer => Unit,
                        closeCallback:Event => Unit,
-                       replay:Boolean = false
                      ) {
 
 
 
   private var wsSetup = false
 
+  private var replay:Boolean = false
+
   private var websocketStreamOpt : Option[WebSocket] = None
 
   def getWsState = wsSetup
 
+  def setWsReplay(r:Boolean)={replay=r}
 
   private val sendBuffer:MiddleBufferInJs = new MiddleBufferInJs(4096)
 

@@ -150,8 +150,8 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
     obstacleMap.values.filter(_.isInstanceOf[AirDropBox]).foreach{ obstacle =>
       if(obstacle.bloodPercent() < 0.99999999){
         val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
-        drawLine(p.x * canvasUnit, (p.y - 2) * canvasUnit, 10, obstacle.getWidth * canvasUnit, "#4D4D4D")
-        drawLine(p.x * canvasUnit, (p.y - 2) * canvasUnit, 5, obstacle.getWidth * canvasUnit * obstacle.bloodPercent(), "#98FB98")
+        drawLine(p.x * canvasUnit, (p.y - 2) * canvasUnit, 1 * canvasUnit, obstacle.getWidth * canvasUnit, "#4D4D4D")
+        drawLine(p.x * canvasUnit, (p.y - 2) * canvasUnit, (0.5 * canvasUnit).toInt, obstacle.getWidth * canvasUnit * obstacle.bloodPercent(), "#98FB98")
       }
     }
   }

@@ -82,4 +82,7 @@ object Constants {
     val relive = 5
   }
 
+
+  final val WindowView = Point(192,108)
+
 }

@@ -1,7 +1,7 @@
 package com.neo.sk.tank.front.pages
 
 import com.neo.sk.tank.front.common.Page
-import com.neo.sk.tank.front.tankClient.GameHolderObserver
+import com.neo.sk.tank.front.tankClient.GameObserverHolderImpl
 import com.neo.sk.tank.front.utils.Shortcut
 import org.scalajs.dom
 
@@ -11,7 +11,7 @@ class TankObservation(roomId:Long, accessCode:String, playerIdOpt: Option[String
 //  dom.window.location.hash = s"#/watchGame/${roomId}/${playerId}"
   private val canvas = <canvas id="GameWatch" tabindex="1"></canvas>
   def init() = {
-    val gameObservation = new GameHolderObserver("GameWatch",roomId, accessCode, playerIdOpt)
+    val gameObservation = new GameObserverHolderImpl("GameWatch",roomId, accessCode, playerIdOpt)
     gameObservation.watchGame()
   }
 
