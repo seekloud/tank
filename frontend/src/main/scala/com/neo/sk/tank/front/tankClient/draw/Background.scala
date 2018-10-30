@@ -24,12 +24,12 @@ trait Background{ this:GameContainerClientImpl =>
   private val rankHeight = 24
   private val currentRankCanvas = dom.document.createElement("canvas").asInstanceOf[html.Canvas]
   private val currentRankCanvasCtx = currentRankCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  currentRankCanvas.width = rankWidth * canvasUnit
-  currentRankCanvas.height = rankHeight * canvasUnit
+  currentRankCanvas.width = math.max(rankWidth * canvasUnit, 26 * 10)
+  currentRankCanvas.height = math.max(rankHeight * canvasUnit, 24 * 10)
   private val historyRankCanvas = dom.document.createElement("canvas").asInstanceOf[html.Canvas]
   private val historyRankCanvasCtx = historyRankCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-  historyRankCanvas.width = rankWidth * canvasUnit
-  historyRankCanvas.height = rankHeight * canvasUnit
+  historyRankCanvas.width = math.max(rankWidth * canvasUnit, 26 * 10)
+  historyRankCanvas.height = math.max(rankHeight * canvasUnit, 24 * 10)
   var rankUpdated: Boolean = true
   private val goldImg = dom.document.createElement("img").asInstanceOf[html.Image]
   goldImg.setAttribute("src", s"${Routes.base}/static/img/金牌.png")
@@ -51,10 +51,10 @@ trait Background{ this:GameContainerClientImpl =>
 
     rankUpdated = true
     minimapRenderFrame = systemFrame - 1
-    currentRankCanvas.width = rankWidth * canvasUnit
-    currentRankCanvas.height = rankHeight * canvasUnit
-    historyRankCanvas.width = rankWidth * canvasUnit
-    historyRankCanvas.height = rankHeight * canvasUnit
+    currentRankCanvas.width = math.max(rankWidth * canvasUnit, 26 * 10)
+    currentRankCanvas.height = math.max(rankHeight * canvasUnit, 24 * 10)
+    historyRankCanvas.width = math.max(rankWidth * canvasUnit, 26 * 10)
+    historyRankCanvas.height = math.max(rankHeight * canvasUnit, 24 * 10)
     minimapCanvas.width = LittleMap.w * canvasUnit + 6
     minimapCanvas.height = LittleMap.h * canvasUnit + 6
   }
@@ -125,16 +125,20 @@ trait Background{ this:GameContainerClientImpl =>
 
     def refreshCacheCanvas(context:dom.CanvasRenderingContext2D, header: String, rank: List[Score],historyRank:Boolean): Unit ={
       //绘制当前排行榜
-      val leftBegin = 4 * canvasUnit
-      context.font = s"bold ${1.2 * canvasUnit}px Arial"
-      context.clearRect(0,0,rankWidth * canvasUnit, rankHeight * canvasUnit)
+      val unit = currentRankCanvas.width / rankWidth
+
+      println(s"rank =${historyRankCanvas.width}, canvasUnit=${canvasUnit}, unit=${unit}")
+
+      val leftBegin = 4 * unit
+      context.font = s"bold ${12}px Arial"
+      context.clearRect(0,0,currentRankCanvas.width, currentRankCanvas.height)
 
       var index = 0
       context.fillStyle = Color.Black.toString()
       context.textAlign = "center"
       context.textBaseline = "middle"
       context.lineCap = "round"
-      drawTextLine(header, rankWidth / 2 * canvasUnit, 1 * canvasUnit, context)
+      drawTextLine(header, currentRankCanvas.width / 2 , 1 * unit, context)
       rank.foreach{ score =>
         index += 1
         val drawColor = index match {
@@ -150,18 +154,18 @@ trait Background{ this:GameContainerClientImpl =>
           case _ => None
         }
         imgOpt.foreach{ img =>
-          context.drawImage(img, leftBegin - 4 * canvasUnit, (2 * index) * canvasUnit, 2 * canvasUnit, 2 * canvasUnit)
+          context.drawImage(img, leftBegin - 4 * unit, (2 * index) * unit, 2 * unit, 2 * unit)
         }
         context.strokeStyle = drawColor
-        context.lineWidth = 1.8 * canvasUnit
+        context.lineWidth = 1.8 * unit
         context.beginPath()
-        context.moveTo(leftBegin,(2 * index + 1) * canvasUnit)
-        context.lineTo((rankWidth - 2) * canvasUnit,(2 * index + 1) * canvasUnit)
+        context.moveTo(leftBegin,(2 * index + 1) * unit)
+        context.lineTo((rankWidth - 2) * unit,(2 * index + 1) * unit)
         context.stroke()
         context.closePath()
         context.textAlign = "start"
-        if(historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, (2 * index + 1) * canvasUnit, context)
-        else drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d} lives=${score.l}", leftBegin, (2 * index + 1) * canvasUnit, context)
+        if(historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, (2 * index + 1) * unit, context)
+        else drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d} lives=${score.l}", leftBegin, (2 * index + 1) * unit, context)
       }
 //      drawTextLine(s"当前房间人数 ${index}", 28*canvasUnit, (2 * index + 1) * canvasUnit, context)
 
@@ -181,7 +185,7 @@ trait Background{ this:GameContainerClientImpl =>
     }
     ctx.globalAlpha = 0.8
     ctx.drawImage(currentRankCanvas,0,0)
-    ctx.drawImage(historyRankCanvas, (canvasBoundary.x - rankWidth) * canvasUnit,0)
+    ctx.drawImage(historyRankCanvas, canvasBoundary.x * canvasUnit - historyRankCanvas.width,0)
     ctx.globalAlpha = 1
   }
 
