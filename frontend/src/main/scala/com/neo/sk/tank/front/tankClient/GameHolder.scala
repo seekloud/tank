@@ -11,7 +11,7 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
 import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
-import org.scalajs.dom.html.Canvas
+import org.scalajs.dom.html.{Canvas, Div, Paragraph}
 import org.scalajs.dom.raw.{Event, HTMLElement}
 
 import scala.collection.mutable
@@ -46,6 +46,9 @@ abstract class GameHolder(name:String) extends NetworkInfo{
   protected var gameState:Int = GameState.firstCome
 
   protected var killerName:String = ""
+  private var killNum:Int = 0
+  private var damageNum:Int = 0
+  var killerList = List.empty[String] //（击杀者）
 
   protected var gameContainerOpt : Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
 
@@ -124,6 +127,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
         Shortcut.cancelSchedule(timer)
         Shortcut.cancelSchedule(reStartTimer)
         drawGameStop()
+        Shortcut.scheduleOnce(() => drawCombatGains(), 1000)
         dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
 
       case GameState.relive =>
@@ -174,6 +178,20 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     ctx.fillText(m, 150, 180)
     println()
   }
+
+  protected def drawCombatGains():Unit = {
+    val combatGians = dom.document.getElementById("combat_gains").asInstanceOf[Div]
+    val combatP_1 = dom.document.createElement("p").asInstanceOf[Paragraph]
+    combatP_1.innerHTML = s"击杀数:<span>${killNum}</span>"
+    val combatP_2 =  dom.document.createElement("p").asInstanceOf[Paragraph]
+    combatP_2.innerHTML = s"伤害量:<span>${damageNum}</span>"
+    val combatP_3 =  dom.document.createElement("p").asInstanceOf[Paragraph]
+    combatP_3.innerHTML = s"击杀者ID:<span>${killerList.head}</span>、<span>${killerList(1)}</span>、<span>${killerList(2)}</span>"
+    combatGians.appendChild(combatP_1)
+    combatGians.appendChild(combatP_2)
+    combatGians.appendChild(combatP_3)
+  }
+
 
   protected def drawGameRestart()
 
