@@ -1,10 +1,11 @@
 package com.neo.sk.tank.view
 
 import com.neo.sk.tank.common.Context
-import javafx.scene.Scene
+import com.neo.sk.tank.shared.model.Point
+import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.canvas.Canvas
-
+import com.neo.sk.utils.JavaFxUtil.getCanvasUnit
 /**
   * Created by hongruying on 2018/10/23
   * 玩游戏的view
@@ -12,13 +13,40 @@ import javafx.scene.canvas.Canvas
   */
 class PlayGameScreen(context: Context) {
 
-  val canvas=new Canvas(500, 500)
+  //todo 此处目前为固定视野，之后修改为可放大
+  protected var canvasWidth = 300
+  protected var canvasHeight = 300
+  var canvasUnit = getCanvasUnit(canvasWidth)
+  var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+  val group = new Group()
+  val canvas=new Canvas()
+  canvas.setHeight(canvasHeight)
+  canvas.setWidth(canvasWidth)
 
-  def getCanvasContext: GraphicsContext = null
+  def getScene():Scene = new Scene(group)
 
+  def getCanvasContext: GraphicsContext = canvas.getGraphicsContext2D
 
-  def getScene():Scene = null
+  group.getChildren.add(canvas)
 
+  def drawGameLoading():Unit = {
+    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    getCanvasContext.fillText("请稍等，正在连接服务器", 150, 180)
+  }
+
+  def drawGameStop(killerName:String):Unit = {
+    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    getCanvasContext.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
+  }
+
+  def drawReplayMsg(m:String):Unit = {
+    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    getCanvasContext.fillText(m, 150, 180)
+  }
+
+  def draw()={
+
+  }
 
 
 

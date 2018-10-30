@@ -1,6 +1,7 @@
 package com.neo.sk.tank.view
 
 import com.neo.sk.tank.common.Context
+import com.neo.sk.tank.shared.model.Point
 import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.Canvas
 /**
@@ -19,7 +20,7 @@ class LoginScreen(context: Context) {
   var lastRenders = 0
   var renders = 0
 
-  def draw(offsetTime:Long):Unit = {
+  def draw():Unit = {
     renders += 1
     val curTime = System.currentTimeMillis()
     if(curTime - startTime > 1000){

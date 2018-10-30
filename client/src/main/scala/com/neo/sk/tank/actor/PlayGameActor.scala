@@ -76,6 +76,7 @@ object PlayGameActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case msg: ConnectGame =>
+          println(msg)
           val url = getWebSocketUri(msg.name)
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(url))
           val source = getSource
@@ -192,6 +193,9 @@ object PlayGameActor {
       ))
   }
 
+  /**
+    * 链接由从平台获得IP和端口后拼接*/
+  @deprecated
   def getWebSocketUri(name: String): String = {
     val wsProtocol = "ws"
     //todo 更改为目标端口
