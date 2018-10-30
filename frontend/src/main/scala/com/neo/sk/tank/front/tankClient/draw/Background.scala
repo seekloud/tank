@@ -70,7 +70,6 @@ trait Background{ this:GameContainerClientImpl =>
     clearScreen("#E8E8E8",1, boundary.x, boundary.y, ctxCache, canvasBoundary / 2)
 
     ctxCache.lineWidth = 1
-//    ctxCache.fillStyle = blackBackground
     ctxCache.strokeStyle = blackBackground
     for(i <- 0  to((boundary.x + canvasBoundary.x).toInt,2)){
       drawLine(Point(i,0), Point(i, boundary.y + canvasBoundary.y), ctxCache)
