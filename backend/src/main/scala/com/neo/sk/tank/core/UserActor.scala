@@ -146,6 +146,10 @@ object UserActor {
           getGameReplay(ctx,msg.recordId) ! msg
           Behaviors.same
 
+
+        case ChangeBehaviorToInit=>
+          Behaviors.same
+
         case msg:GetRecordFrameMsg=>
           getGameReplay(ctx,msg.recordId) ! msg
           Behaviors.same
