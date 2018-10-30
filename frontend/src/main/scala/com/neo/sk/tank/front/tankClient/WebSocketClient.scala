@@ -20,7 +20,7 @@ case class WebSocketClient(
                        connectSuccessCallback: Event => Unit,
                        connectErrorCallback:Event => Unit,
                        messageHandler:TankGameEvent.WsMsgServer => Unit,
-                       closeCallback:Event => Unit
+                       closeCallback:Event => Unit,
                      ) {
 
 
