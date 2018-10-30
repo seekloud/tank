@@ -99,3 +99,23 @@
     left: 40%;
     bottom: 10px;
 }
+
+#combat_gains{
+    color: white;
+    font-size: 30px;
+    font-family: 'Helvetica';
+    text-align: left;
+    margin-bottom: 30px;
+}
+
+#combat_gains p{
+    margin-left: 50px;
+    margin-bottom: 5px;
+}
+
+#combat_gains span{
+    color: red;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
