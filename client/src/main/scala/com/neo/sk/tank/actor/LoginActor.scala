@@ -1,5 +1,6 @@
 package com.neo.sk.tank.actor
 
+import akka.actor.ActorSystem
 import akka.actor.typed._
 import akka.actor.typed.scaladsl.{Behaviors, TimerScheduler}
 import akka.http.scaladsl.Http
@@ -7,16 +8,15 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.ws.{WebSocketRequest, _}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
-import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
-import akka.util.{ByteString, ByteStringBuilder}
 import com.neo.sk.tank.controller.LoginScreenController
 import com.neo.sk.tank.model._
-import org.seekloud.byteobject.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
 import utils.EsheepClient
-
+import io.circe.parser.decode
+import io.circe.generic.auto._
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import com.neo.sk.tank.App.{executor,system,materializer}
 import scala.util.{Failure, Success}
 
 /**
@@ -36,6 +36,7 @@ object LoginActor {
     Behaviors.receive[Command]{ (ctx, msg) =>
       msg match {
         case Login =>
+          println("--------------------")
           EsheepClient.getLoginInfo().onComplete{
             case Success(rst) =>
               rst match {
@@ -58,13 +59,15 @@ object LoginActor {
     }
   }
 
-  def idle(controller: LoginScreenController): Behavior[Command] = {
+  def idle(controller: LoginScreenController)(
+  ): Behavior[Command] = {
     Behaviors.receive[Command]{ (ctx, msg) =>
+      println("idle")
       msg match {
         case WSLogin(url) =>
+          println(s"i got msg ${url}")
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(url))
-          //val source = getSource
-          //val sink = getSink(controller)
+          val incoming = getSink(controller)
           val ((stream, response), closed) =
             Source.actorRef(10,OverflowStrategy.dropHead)
               .viaMat(webSocketFlow)(Keep.both) // keep the materialized Future[WebSocketUpgradeResponse]
@@ -72,23 +75,21 @@ object LoginActor {
               .run()
 
           val connected = response.flatMap { upgrade =>
+
             if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
-              // ctx.schedule(10.seconds, stream, TextMessage.Strict("hello"))
-              //ctx.system.scheduler.schedule(1 seconds,30 minutes,stream,TextMessage.Strict("hello")
-              Future.successful(s"$log connect success.")
+             // heartBeat = Some(ctx.system.scheduler.schedule(1 seconds,30 minutes,stream,TextMessage.Strict("hello")))
+              Future.successful(s"${ctx.self.path} connect success.")
             } else {
-              throw new RuntimeException(s"WSClient connection failed: ${upgrade.response.status}")
+              throw new RuntimeException(s"${ctx.self.path} connection failed: ${upgrade.response.status}")
             }
           } //链接建立时
           connected.onComplete(i => log.info(i.toString))
-          //					closed.onComplete { i =>
-          //						log.error(s"$logPrefix connection closed!")
-          //					} //链接断开时
-          Behaviors.same
+          closed.onComplete { i =>
 
-
+          } //链接断开时
 
           Behaviors.same
+
 
 
         case _ =>
@@ -101,15 +102,35 @@ object LoginActor {
 
 
 
-  val incoming =
+  def getSink(controller: LoginScreenController) =
     Sink.foreach[Message] {
-      case msg: WSLoginInfo =>
-        if(msg.errCode == 0){
-          log.debug(s" ws receive userInfo msg: ${msg}")
-          msg.data
-        }else{
-          log.debug(s" ws receive userInfo error")
+      case TextMessage.Strict(msg) =>
+        decode[Ws4AgentRsp](msg) match {
+          case Right(rsp) =>
+            println(rsp)
+            val data = rsp.Ws4AgentRsp.data
+            EsheepClient.linkGameAgent(data.token,s"user${data.userId}").onComplete{
+              case Success(rst) =>
+                rst match {
+                  case Right(value) =>
+                    val playerInfo= PlayerInfo(s"user${data.userId}", data.nickname, data.token)
+                    val gameServerInfo = GameServerInfo(value.ip, value.port, value.domain)
+                    controller.joinGame(playerInfo, gameServerInfo)
+                  case Left(error) =>
+                    //异常
+                    println(error)
+                }
+              case Failure(exception) =>
+                //异常
+                log.warn(s" linkGameAgent failed, error:${exception.getMessage}")
+            }
+
+          case Left(error) =>
+            println("decode error")
+           // TextMsg("decode error")
         }
+
+
       case unknown =>
         log.error(s"wsclient receive unknown message:$unknown")
     }
