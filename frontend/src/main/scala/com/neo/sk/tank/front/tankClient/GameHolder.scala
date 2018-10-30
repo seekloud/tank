@@ -3,7 +3,6 @@ package com.neo.sk.tank.front.tankClient
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.tank.front.common.{Constants, Routes}
-import com.neo.sk.tank.shared.model.Constants
 import com.neo.sk.tank.front.components.StartGameModal
 import com.neo.sk.tank.front.model.PlayerInfo
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
@@ -23,6 +22,7 @@ import org.scalajs.dom
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.xml.Elem
+
 
 /**
   * Created by hongruying on 2018/8/26
