@@ -76,7 +76,6 @@ object PlayGameActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case msg: ConnectGame =>
-          println(msg)
           val url = getWebSocketUri(msg.name)
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(url))
           val source = getSource
@@ -89,7 +88,6 @@ object PlayGameActor {
 
           val connected = response.flatMap { upgrade =>
             if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
-              ctx.schedule(10.seconds, stream, TankGameEvent.PingPackage(System.currentTimeMillis()))
               ctx.self ! SwitchBehavior("play", play(stream))
               Future.successful(s"${ctx.self.path} connect success.")
             } else {

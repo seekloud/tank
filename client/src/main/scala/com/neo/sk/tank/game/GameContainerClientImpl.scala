@@ -97,7 +97,7 @@ case class GameContainerClientImpl(
   /**
     * 游戏画面绘制
     * */
-  /*def drawGame(time:Long,networkLatency: Long):Unit = {
+  def drawGame(time:Long,networkLatency: Long):Unit = {
     val offsetTime = math.min(time,config.frameDuration)
     val bounds = Screen.getPrimary.getVisualBounds
     val h = bounds.getMaxY.toFloat
@@ -133,9 +133,7 @@ case class GameContainerClientImpl(
         case None =>
       }
     }
-  }*/
-
-  def drawGame(time:Long,networkLatency: Long):Unit = {}
+  }
 
   def drawDeadImg(s:String) = {
     ctx.setFill(Color.BLACK)
