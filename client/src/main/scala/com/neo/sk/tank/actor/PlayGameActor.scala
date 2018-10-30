@@ -54,7 +54,7 @@ object PlayGameActor {
                                    behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None, timeOut: TimeOut = TimeOut("busy time error"))
                                   (implicit stashBuffer: StashBuffer[Command],
                                    timer: TimerScheduler[Command]) = {
-    log.debug(s"${ctx.self.path} becomes $behaviorName behavior.")
+    println(s"${ctx.self.path} becomes $behaviorName behavior.")
     timer.cancel(BehaviorChangeKey)
     durationOpt.foreach(timer.startSingleTimer(BehaviorChangeKey, timeOut, _))
     stashBuffer.unstashAll(ctx, behavior)
@@ -72,7 +72,7 @@ object PlayGameActor {
 
   def init(control: PlayScreenController)(
     implicit stashBuffer: StashBuffer[Command],
-    timer: TimerScheduler[Command]) = {
+    timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case msg: ConnectGame =>
@@ -98,9 +98,11 @@ object PlayGameActor {
           closed.onComplete { i =>
             println(s"${ctx.self.path} connect closed! try again 1 minutes later")
             //remind 此处存在失败重试
+            switchBehavior(ctx, "init", init(control), InitTime)
             timer.startSingleTimer(ConnectTimerKey, msg, 1.minutes)
           } //链接断开时
           switchBehavior(ctx, "busy", busy(), InitTime)
+
         case x =>
           println(s"get unKnow msg $x")
           Behaviors.unhandled
@@ -197,8 +199,8 @@ object PlayGameActor {
   def getWebSocketUri(name: String): String = {
     val wsProtocol = "ws"
     //todo 更改为目标端口
-//    val host = "10.1.29.250:30369"
-    val host = "localhost:30369"
+    val host = "10.1.29.250:30369"
+//    val host = "localhost:30369"
     s"$wsProtocol://$host/tank/game/join?name=$name"
   }
 }
