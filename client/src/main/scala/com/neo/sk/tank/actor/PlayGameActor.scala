@@ -96,15 +96,15 @@ object PlayGameActor {
               throw new RuntimeException(s"${ctx.self.path} connection failed: ${upgrade.response.status}")
             }
           } //链接建立时
-          connected.onComplete { i => log.info(i.toString) }
+          connected.onComplete { i => println(i.toString) }
           closed.onComplete { i =>
-            log.error(s"${ctx.self.path} connect closed! try again 1 minutes later")
+            println(s"${ctx.self.path} connect closed! try again 1 minutes later")
             //remind 此处存在失败重试
             timer.startSingleTimer(ConnectTimerKey, msg, 1.minutes)
           } //链接断开时
           switchBehavior(ctx, "busy", busy(), InitTime)
         case x =>
-          log.info(s"get unKnow msg $x")
+          println(s"get unKnow msg $x")
           Behaviors.unhandled
       }
     }
@@ -134,7 +134,7 @@ object PlayGameActor {
           switchBehavior(ctx, name, behavior, durationOpt, timeOut)
 
         case TimeOut(m) =>
-          log.debug(s"${ctx.self.path} is time out when busy,msg=${m}")
+          println(s"${ctx.self.path} is time out when busy,msg=${m}")
           Behaviors.stopped
 
         case unknowMsg =>
@@ -156,7 +156,7 @@ object PlayGameActor {
         wsMsg
       } catch {
         case e: Exception =>
-          log.warn(s"parse front msg failed when json parse,s=${s}")
+          println(s"parse front msg failed when json parse,s=${s}")
           TankGameEvent.DecodeError()
       }
     }
@@ -171,7 +171,7 @@ object PlayGameActor {
           case Right(req) =>
             control.wsMessageHandler(req)
           case Left(e) =>
-            log.error(s"decode binaryMessage failed,error:${e.message}")
+            println(s"decode binaryMessage failed,error:${e.message}")
             control.wsMessageHandler(TankGameEvent.DecodeError())
         }
     }
@@ -199,7 +199,8 @@ object PlayGameActor {
   def getWebSocketUri(name: String): String = {
     val wsProtocol = "ws"
     //todo 更改为目标端口
-    val host = "10.1.29.250:30369"
+//    val host = "10.1.29.250:30369"
+    val host = "localhost:30369"
     s"$wsProtocol://$host/tank/game/join?name=$name"
   }
 }
