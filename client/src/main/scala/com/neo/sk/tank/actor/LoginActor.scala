@@ -2,7 +2,7 @@ package com.neo.sk.tank.actor
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
-import com.neo.sk.tank.App
+import com.neo.sk.tank.App.{system,materializer,executor}
 import com.neo.sk.tank.controller.LoginScreenController
 
 /**
