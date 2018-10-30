@@ -141,6 +141,7 @@ class PlayScreenController(
   }
 
   private def addUserActionListenEvent: Unit = {
+    playGameScreen.canvas.requestFocus()
     /**
       * 增加鼠标移动操作
       **/
@@ -169,7 +170,7 @@ class PlayScreenController(
     /**
       * 增加按下按键操作
       **/
-    playGameScreen.canvas.setOnKeyPressed { e =>
+    playGameScreen.canvas.setOnKeyPressed{ e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
