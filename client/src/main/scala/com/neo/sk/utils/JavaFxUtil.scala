@@ -31,6 +31,7 @@ object JavaFxUtil {
       case KeyCode.DOWN => KeyEvent.VK_DOWN
       case KeyCode.K => KeyEvent.VK_K
       case KeyCode.L => KeyEvent.VK_L
+      case KeyCode.E => KeyEvent.VK_E
       case _ => KeyEvent.VK_F2
     }
   }
