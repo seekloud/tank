@@ -65,7 +65,7 @@ object ESSFSupport {
 
   def initStateDecode(a:Array[Byte]) ={
     val buffer = new MiddleBufferInJvm(a)
-    bytesDecode[TankGameEvent.TankGameSnapshot](buffer)
+    bytesDecode[TankGameEvent.GameSnapshot](buffer)
   }
 
   def userMapDecode(a:Array[Byte])={

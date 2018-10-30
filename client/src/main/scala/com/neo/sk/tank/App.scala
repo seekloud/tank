@@ -15,7 +15,7 @@ import javafx.application.Application
 import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.Canvas
 import javafx.stage.Stage
-
+import com.neo.sk.tank.controller.LoginScreenController
 import concurrent.duration._
 import javafx.application.Platform
 
@@ -39,8 +39,8 @@ class App extends Application{
     val context = new Context(primaryStage)
     val loginScreen = new LoginScreen(context)
     context.switchScene(loginScreen.sence)
-    new LoginScreenController(context, loginScreen)
-
+    val l=new LoginScreenController(context, loginScreen)
+    l.start
   }
 
 }
@@ -48,6 +48,7 @@ class App extends Application{
 object App{
 
   import concurrent.duration._
+  import scala.language.postfixOps
 
   implicit val system = ActorSystem("tankDemoSystem")
   // the executor should not be the default dispatcher.
@@ -65,7 +66,6 @@ object App{
   def pushStack2AppThread(fun: => Unit) = {
     Platform.runLater(() => fun)
   }
-
 
 
 }

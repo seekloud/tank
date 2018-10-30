@@ -1,9 +1,11 @@
 package com.neo.sk.tank.front.pages
 
+import java.net.URLDecoder
+
 import com.neo.sk.tank.front.common.Page
 import com.neo.sk.tank.front.model.PlayerInfo
-import com.neo.sk.tank.front.tankClient.GameHolder
-import com.neo.sk.tank.front.utils.Shortcut
+import com.neo.sk.tank.front.tankClient.GamePlayHolderImpl
+import com.neo.sk.tank.front.utils.{Shortcut,JsFunc}
 import mhtml.{Var, emptyHTML}
 
 import scala.xml.Elem
@@ -17,8 +19,8 @@ case class PlayPage(
 
 
   private def parsePlayerInfoSeq: Option[PlayerInfo] = playerInfoSeq match {
-    case userId :: userName :: roomId :: accessCode :: Nil => Some(PlayerInfo(userId, userName, accessCode, Some(roomId.toLong)))
-    case userId :: userName  :: accessCode :: Nil => Some(PlayerInfo(userId, userName, accessCode, None))
+    case userId :: userName :: roomId :: accessCode :: Nil => Some(PlayerInfo(userId, JsFunc.decodeURI(userName), accessCode, Some(roomId.toLong)))
+    case userId :: userName  :: accessCode :: Nil => Some(PlayerInfo(userId, JsFunc.decodeURI(userName), accessCode, None))
     case _ => None
   }
 
@@ -31,7 +33,7 @@ case class PlayPage(
   private val modal = Var(emptyHTML)
 
   def init(playerInfo: PlayerInfo) = {
-    val gameHolder = new GameHolder("GameView", Some(playerInfo))
+    val gameHolder = new GamePlayHolderImpl("GameView", Some(playerInfo))
     val startGameModal = gameHolder.getStartGameModal()
     modal := startGameModal
   }

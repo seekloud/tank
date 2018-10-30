@@ -15,9 +15,11 @@ import utils.EsheepClient
 import io.circe.parser.decode
 import io.circe.generic.auto._
 import scala.concurrent.Future
-import scala.concurrent.duration._
-import com.neo.sk.tank.App.{executor,system,materializer}
 import scala.util.{Failure, Success}
+import akka.actor.typed.{ActorRef, Behavior}
+import akka.actor.typed.scaladsl.Behaviors
+import com.neo.sk.tank.App.{system,materializer,executor}
+import com.neo.sk.tank.controller.LoginScreenController
 
 /**
   * Created by hongruying on 2018/10/23

@@ -1,7 +1,7 @@
 package com.neo.sk.tank.view
 
-
 import com.neo.sk.tank.common.Context
+import com.neo.sk.tank.shared.model.Point
 import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.Canvas
 import javafx.scene.image.{Image, ImageView}
