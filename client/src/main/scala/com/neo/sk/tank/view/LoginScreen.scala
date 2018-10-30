@@ -1,8 +1,14 @@
 package com.neo.sk.tank.view
 
+
 import com.neo.sk.tank.common.Context
 import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.Canvas
+import javafx.scene.image.{Image, ImageView}
+import javafx.scene.web.WebEngine
+import javafx.scene.web.WebView
+import javafx.scene.control.ScrollPane
+import javafx.scene.text.Text
 
 /**
   * Created by hongruying on 2018/10/23
@@ -20,22 +26,20 @@ class LoginScreen(context: Context) {
   var lastRenders = 0
   var renders = 0
 
-  def draw(offsetTime:Long):Unit = {
-    renders += 1
-    val curTime = System.currentTimeMillis()
-    if(curTime - startTime > 1000){
-      lastRenders = renders
-      renders = 0
-      startTime = curTime
-      println(s"rendessssssssssr=${lastRenders}")
-    }
-    gc.clearRect(0,0, 1000, 800)
-    gc.fillText(s"render=${lastRenders}", 100, 100)
-  }
 
 
   def showScanUrl(scanUrl:String) = {
+    val url = scanUrl
+    val browser = new WebView()
+    val webEngine = browser.getEngine
+    webEngine.load(scanUrl)
+    val text = new Text(500, 500, "请扫码登录")
 
+    val groupNew = new Group()
+    groupNew.getChildren.add(text)
+    //groupNew.getChildren.add(browser)
+    val senceNew = new Scene(groupNew)
+    context.switchScene(senceNew)
   }
 
 

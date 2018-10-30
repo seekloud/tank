@@ -20,7 +20,7 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
 
   private val loginActor: ActorRef[LoginActor.Command] = system.spawn(LoginActor.create(this),"LoginManager")
 
-
+  loginActor ! LoginActor.Login
 
 
   /**
@@ -36,6 +36,7 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
     * 切换到游戏页面
     * */
   def joinGame(playerInfo:PlayerInfo, gameServerInfo: GameServerInfo) = {
+    println("joinGame----------")
     App.pushStack2AppThread{
       val playGameScreen = new PlayGameScreen(context)
       context.switchScene(playGameScreen.getScene())

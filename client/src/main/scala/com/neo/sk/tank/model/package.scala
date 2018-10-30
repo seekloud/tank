@@ -16,7 +16,7 @@ package object model {
 
   case class GameServerInfo(
                            ip:String,
-                           port:String,
+                           port:Long,
                            domain:String
                            )
 // esheep登录
@@ -36,11 +36,14 @@ package object model {
                      token: String,
                      tokenExpireTime: Long
                      )
-  case class WSLoginInfo(
+  case class UserInfoResponse(
                         data: UserInfo,
                         errCode: Int = 0,
                         msg: String = "ok"
-                        ) extends CommonRsp
+                        )
+  case class Ws4AgentRsp(
+                          Ws4AgentRsp:UserInfoResponse
+                        )
 
   sealed trait WsMsgSource
   case object CompleteMsgServer extends WsMsgSource
@@ -49,6 +52,21 @@ package object model {
   sealed trait WsSendMsg
   case object WsSendComplete extends WsSendMsg
   case class WsSendFailed(ex: Throwable) extends WsSendMsg
+
+  //esheep连接游戏
+  case class GameServerData(
+                             accessCode: String,
+                             gsPrimaryInfo: GameServerInfo
+                           )
+  case class JoinGameRsp(
+                        data: GameServerData,
+                        errCode: Int = 0,
+                        msg: String = "ok"
+                        ) extends CommonRsp
+  case class JoinGameReq(
+                          gameId: Long,
+                          playerId: String
+                        )
 
 
 }

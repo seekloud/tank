@@ -9,6 +9,7 @@ import akka.util.Timeout
 import com.neo.sk.tank.common.Context
 import com.neo.sk.tank.controller.LoginScreenController
 import com.neo.sk.tank.view.LoginScreen
+import akka.actor.typed.scaladsl.adapter._
 import javafx.animation.{Animation, AnimationTimer}
 import javafx.application.Application
 import javafx.scene.{Group, Scene}
@@ -17,6 +18,8 @@ import javafx.stage.Stage
 
 import concurrent.duration._
 import javafx.application.Platform
+
+import com.neo.sk.tank.actor.LoginActor
 /**
   * Created by hongruying on 2018/10/22
   */
@@ -37,6 +40,7 @@ class App extends Application{
     val loginScreen = new LoginScreen(context)
     context.switchScene(loginScreen.sence)
     new LoginScreenController(context, loginScreen)
+
   }
 
 }
@@ -61,6 +65,7 @@ object App{
   def pushStack2AppThread(fun: => Unit) = {
     Platform.runLater(() => fun)
   }
+
 
 
 }
