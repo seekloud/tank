@@ -12,7 +12,25 @@
     <!--<link rel="stylesheet" href="/tank/static/css/postManagePage.css" />-->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
-    <title>Galaxy</title>
+    <meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" id="viewport" name="viewport">
+    <script language="javascript">
+        var scrollFunc=function(e){
+            e=e || window.event;
+            if(e.wheelDelta && event.ctrlKey){//IE/Opera/Chrome
+                event.returnValue=false;
+            }else if(e.detail){//Firefox
+                event.returnValue=false;
+            }
+        }
+
+        /*注册事件*/
+        if(document.addEventListener){
+            document.addEventListener('DOMMouseScroll',scrollFunc,false);
+        }//W3C
+        window.onmousewheel=document.onmousewheel=scrollFunc;//IE/Opera/Chrome/Safari
+
+    </script>
+    <title>Tank</title>
 </head>
 <body style="height: 100%;overflow: hidden;">
 <script src="/tank/static/js/jquery-3.3.1.min.js"></script>

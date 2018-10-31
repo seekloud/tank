@@ -15,3 +15,6 @@
 ```$xslt
 localhost:30369/tank/game#/watchrecord/1234/1243/124/12
 ```
+
+### 2018/10/29
+ * 重构前端Holder文件

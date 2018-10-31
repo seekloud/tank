@@ -35,7 +35,7 @@ trait FpsComponents{ this:GameContainerClientImpl =>
   protected def renderFps(networkLatency: Long) = {
     addFps()
     if(isRenderFps){
-      ctx.font = "14px Helvetica"
+      ctx.font = s"${1.4 * canvasUnit}px Helvetica"
       ctx.textAlign = "start"
       ctx.fillStyle = Color.Black.toString()
       val fpsString = s"fps : $lastRenderTimes,  ping : ${networkLatency}ms"
