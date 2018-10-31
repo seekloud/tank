@@ -1,6 +1,5 @@
 package com.neo.sk.tank.game
 
-
 import com.neo.sk.tank.game.draw._
 import com.neo.sk.tank.shared.`object`.{Tank, TankImpl}
 import com.neo.sk.tank.shared.config.TankGameConfig
