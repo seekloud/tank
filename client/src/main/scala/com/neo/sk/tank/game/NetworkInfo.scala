@@ -1,5 +1,6 @@
 package com.neo.sk.tank.game
 
+import com.neo.sk.tank.actor.PlayGameActor
 import com.neo.sk.tank.controller.PlayScreenController
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 
@@ -25,7 +26,7 @@ trait NetworkInfo { this:PlayScreenController =>
   }
 
   private def startPing():Unit = {
-//    this.sendMsg2Server(TankGameEvent.PingPackage(System.currentTimeMillis()))
+    this.playGameActor ! PlayGameActor.DispatchMsg(TankGameEvent.PingPackage(System.currentTimeMillis()))
   }
 
   protected def receivePingPackage(p:TankGameEvent.PingPackage):Unit = {

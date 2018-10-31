@@ -4,8 +4,8 @@ import java.net.URLDecoder
 
 import com.neo.sk.tank.front.common.Page
 import com.neo.sk.tank.front.model.PlayerInfo
-import com.neo.sk.tank.front.tankClient.GameHolder
-import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
+import com.neo.sk.tank.front.tankClient.GamePlayHolderImpl
+import com.neo.sk.tank.front.utils.{Shortcut,JsFunc}
 import mhtml.{Var, emptyHTML}
 
 import scala.xml.Elem
@@ -33,7 +33,7 @@ case class PlayPage(
   private val modal = Var(emptyHTML)
 
   def init(playerInfo: PlayerInfo) = {
-    val gameHolder = new GameHolder("GameView", Some(playerInfo))
+    val gameHolder = new GamePlayHolderImpl("GameView", Some(playerInfo))
     val startGameModal = gameHolder.getStartGameModal()
     modal := startGameModal
   }
