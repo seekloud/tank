@@ -20,15 +20,16 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
   //fixme 将此处map暴露给子类
   private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Canvas]()
 
-  private val steelImg = new Image(s"/tank/static/img/钢铁.png")
-  private val riverImg = new Image(s"/tank/static/img/river.png")
-  private val airBoxImg = new Image(s"/tank/static/img/道具.png")
+  private val steelImg = new Image(s"file:client/src/main/resources/img/钢铁.png")
+  private val riverImg = new Image(s"file:client/src/main/resources/img/river.png")
+  private val airBoxImg = new Image(s"file:client/src/main/resources/img/道具.png")
 
   def updateObstacleSize(canvasSize:Point)={
     obstacleCanvasCacheMap.clear()
   }
 
-  protected def obstacleImgComplete: Boolean = true
+  //todo  此处需要调研图片complete
+  protected def obstacleImgComplete: Boolean = steelImg.isBackgroundLoading && riverImg.isBackgroundLoading
 
   private def generateObstacleCacheCanvas(width: Float, height: Float, color: String): Canvas = {
     val cacheCanvas = new Canvas((width * canvasUnit).toInt, (height * canvasUnit).toInt)

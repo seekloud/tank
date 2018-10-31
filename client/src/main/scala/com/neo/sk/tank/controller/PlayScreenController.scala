@@ -36,7 +36,7 @@ class PlayScreenController(
                             playGameScreen: PlayGameScreen
                           ) extends NetworkInfo {
   private val log = LoggerFactory.getLogger(this.getClass)
-  private val playGameActor = system.spawn(PlayGameActor.create(this), "PlayGameActor")
+  val playGameActor = system.spawn(PlayGameActor.create(this), "PlayGameActor")
 
   protected var firstCome = true
   protected var killerName:String = ""
@@ -84,6 +84,7 @@ class PlayScreenController(
   def getActionSerialNum: Int = actionSerialNumGenerator.getAndIncrement()
 
   def start = {
+    println("start!!!!!!!")
     playGameActor ! PlayGameActor.ConnectGame(playerInfo.playerId)
     addUserActionListenEvent
     setGameLoop
@@ -111,7 +112,7 @@ class PlayScreenController(
   private def logicLoop() = {
     gameState match {
       case GameState.loadingPlay =>
-        log.info(s"等待同步数据")
+//        println(s"等待同步数据")
         playGameScreen.drawGameLoading()
       case GameState.play =>
 
@@ -246,9 +247,16 @@ class PlayScreenController(
         * 更新游戏数据
         **/
         println("start------------")
-        timeline.play()
-        gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
-        gameContainerOpt.get.getTankId(e.tankId)
+        try {
+          timeline.play()
+          gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
+          gameContainerOpt.get.getTankId(e.tankId)
+        }catch {
+          case e:Exception=>
+            println(e.getMessage)
+        }
+
+
       case e: TankGameEvent.YouAreKilled =>
 
         /**

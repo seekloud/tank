@@ -25,10 +25,10 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   private val myTankInfoCacheMap = mutable.HashMap[(Byte,Byte,Byte), Canvas]()
   private var canvasBoundary:Point=canvasSize
 
-  private val fillBulletImg = new Image(s"/tank/static/img/子弹初始重构.png")
-  private val emptyBulletImg = new Image(s"/tank/static/img/子弹消失重构.png")
-  private val fillMedicalImg = new Image(s"/tank/static/img/yiliao.png")
-  private val emptyMedicalImg = new Image(s"/tank/static/img/huiyiliao.png")
+  private val fillBulletImg = new Image(s"file:client/src/main/resources/img/子弹初始重构.png")
+  private val emptyBulletImg = new Image(s"file:client/src/main/resources/img/子弹消失重构.png")
+  private val fillMedicalImg = new Image(s"file:client/src/main/resources/img/yiliao.png")
+  private val emptyMedicalImg = new Image(s"file:client/src/main/resources/img/huiyiliao.png")
 
 
   def updateTankSize(canvasSize:Point)={
