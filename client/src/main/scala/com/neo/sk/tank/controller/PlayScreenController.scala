@@ -253,7 +253,9 @@ class PlayScreenController(
           gameContainerOpt.get.getTankId(e.tankId)
         }catch {
           case e:Exception=>
+            closeHolder
             println(e.getMessage)
+            print("client is stop!!!")
         }
 
 
@@ -277,7 +279,7 @@ class PlayScreenController(
         gameContainerOpt.foreach{ t =>
           t.currentRank = e.currentRank
           t.historyRank = e.historyRank
-//          t.rankUpdated = true
+          t.rankUpdated = true
         }
 
       case e: TankGameEvent.SyncGameState =>
