@@ -23,16 +23,18 @@ class LoginScreen(context: Context) {
   def showScanUrl(scanUrl:String) = {
     println(scanUrl)
     val url = scanUrl
+
+    val textBox = new HBox()
+    val text = new Text(350, 300, "请扫码登录")
+    textBox.getChildren.add(text)
+
     val browser = new WebView()
     val webEngine = browser.getEngine
     webEngine.load(scanUrl)
-    val hbox = new HBox()
-    val text = new Text(350, 300, "请扫码登录")
-    hbox.getChildren.add(text)
 
     val groupNew = new Group()
     groupNew.getChildren.add(browser)
-    groupNew.getChildren.add(hbox)
+    //groupNew.getChildren.add(hbox)
     val senceNew = new Scene(groupNew)
     context.switchScene(senceNew)
   }
