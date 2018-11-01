@@ -62,6 +62,18 @@ trait RoomInfoService extends ServiceUtils{
       }
     }
   }
-  val roomInfoRoute :Route = getRoomList ~ getRoomId ~ getRoomPlayerList
+
+  private val getRoomList4App = (path("getRoomList4App") & get & pathEndOrSingleSlash){
+    val resFuture:Future[RoomListRsp] = roomManager ? (GetRoomListReq(_))
+    dealFutureResult{
+      resFuture.map{res =>
+        complete(res)
+      }.recover{
+        case e:Exception =>
+          complete(getRoomListErrorRsp(s"获取进行中房间列表失败,error:$e"))
+      }
+    }
+  }
+  val roomInfoRoute :Route = getRoomList4App ~ getRoomList ~ getRoomId ~ getRoomPlayerList
 
 }
