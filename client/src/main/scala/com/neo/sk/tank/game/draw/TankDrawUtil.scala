@@ -23,7 +23,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
 
   //fixme 将此处map暴露给子类
-  private val myTankInfoCacheMap = mutable.HashMap[(Byte,Byte,Byte), Canvas]()
+  private val myTankInfoCacheMap = mutable.HashMap[(Byte,Byte,Byte), Image]()
   private var canvasBoundary:Point=canvasSize
 
   private val fillBulletImg = new Image(App.getClass.getResourceAsStream("/img/子弹初始重构.png"))
@@ -170,7 +170,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
   }
 
-  private def generateMyTankInfoCanvas(tank:TankImpl):Canvas = {
+  private def generateMyTankInfoCanvas(tank:TankImpl):Image = {
     myTankInfoCacheMap.clear()
     val canvasCache = new Canvas(30 * canvasUnit, 20 * canvasUnit)
     val ctxCache = canvasCache.getGraphicsContext2D
@@ -178,12 +178,12 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     drawLevel(tank.getSpeedLevel,config.getTankSpeedMaxLevel(),"速度等级",Point(5,20 - 8) * canvasUnit,20 * canvasUnit,"#66CD00",ctxCache)
     drawLevel(tank.getBulletLevel,config.getBulletMaxLevel(),"炮弹等级",Point(5,20 - 4) * canvasUnit,20 * canvasUnit,"#1C86EE",ctxCache)
     drawLevel(tank.lives.toByte,config.getTankLivesLimit.toByte,s"生命值",Point(5,20-16) * canvasUnit,20 * canvasUnit,"#FFA500",ctxCache)
-    canvasCache
+    canvasCache.snapshot(new SnapshotParameters(), null)
   }
 
   protected def drawMyTankInfo(tank:TankImpl) = {
     val cache = myTankInfoCacheMap.getOrElseUpdate((tank.getBloodLevel,tank.getSpeedLevel,tank.getBulletLevel),generateMyTankInfoCanvas(tank))
-    ctx.drawImage(cache.snapshot(new SnapshotParameters(), null),0,(canvasBoundary.y - 20) * canvasUnit)
+    ctx.drawImage(cache,0,(canvasBoundary.y - 20) * canvasUnit)
   }
 
   def drawLevel(level:Byte,maxLevel:Byte,name:String,start:Point,length:Float,color:String, context:GraphicsContext) = {
@@ -224,8 +224,8 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     }
     context.setFont(Font.font("Arial", FontWeight.BOLD, 1.8 * canvasUnit))
     context.setTextAlign(TextAlignment.CENTER)
-    context.setTextBaseline(VPos.BASELINE)
-    context.setStroke(Color.web("#FCFCFC"))
+//    context.setTextBaseline(VPos.TOP)
+    context.setFill(Color.web("#FCFCFC"))
     context.fillText(name, start.x + length / 2, start.y)
   }
 
