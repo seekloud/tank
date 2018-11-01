@@ -39,8 +39,8 @@ class App extends Application{
     val context = new Context(primaryStage)
     val loginScreen = new LoginScreen(context)
     context.switchScene(loginScreen.sence)
-    val l=new LoginScreenController(context, loginScreen)
-    l.start
+    new LoginScreenController(context, loginScreen)
+    //l.start
   }
 
 }
