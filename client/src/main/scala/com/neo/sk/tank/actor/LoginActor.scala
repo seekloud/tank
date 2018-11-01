@@ -38,7 +38,6 @@ object LoginActor {
     Behaviors.receive[Command]{ (ctx, msg) =>
       msg match {
         case Login =>
-          println("--------------------")
           EsheepClient.getLoginInfo().onComplete{
             case Success(rst) =>
               rst match {

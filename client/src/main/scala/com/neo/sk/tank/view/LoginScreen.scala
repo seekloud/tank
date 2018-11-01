@@ -8,6 +8,7 @@ import javafx.scene.image.{Image, ImageView}
 import javafx.scene.web.WebEngine
 import javafx.scene.web.WebView
 import javafx.scene.control.ScrollPane
+import javafx.scene.layout.HBox
 import javafx.scene.text.Text
 
 /**
@@ -16,6 +17,7 @@ import javafx.scene.text.Text
 class LoginScreen(context: Context) {
 
   val group = new Group()
+  val sence = new Scene(group)
 
 
   def showScanUrl(scanUrl:String) = {
@@ -24,11 +26,13 @@ class LoginScreen(context: Context) {
     val browser = new WebView()
     val webEngine = browser.getEngine
     webEngine.load(scanUrl)
-    val text = new Text(100, 100, "请扫码登录")
+    val hbox = new HBox()
+    val text = new Text(350, 300, "请扫码登录")
+    hbox.getChildren.add(text)
 
     val groupNew = new Group()
     groupNew.getChildren.add(browser)
-    groupNew.getChildren.add(text)
+    groupNew.getChildren.add(hbox)
     val senceNew = new Scene(groupNew)
     context.switchScene(senceNew)
   }
