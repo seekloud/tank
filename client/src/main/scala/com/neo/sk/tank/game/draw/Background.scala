@@ -64,7 +64,8 @@ trait Background{ this:GameContainerClientImpl =>
   protected def drawBackground(offset:Point) = {
     clearScreen("#FCFCFC",1)
     val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background",generateBackgroundCanvas())
-    ctx.drawImage(cacheCanvas.snapshot(new SnapshotParameters(), null), (-offset.x + canvasBoundary.x/2) * canvasUnit, ( -offset.y+canvasBoundary.y/2 )* canvasUnit, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit, 0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    val snap=cacheCanvas.snapshot(new SnapshotParameters(), null)
+    ctx.drawImage(snap, (-offset.x + canvasBoundary.x/2) * canvasUnit, ( -offset.y+canvasBoundary.y/2 )* canvasUnit, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit, 0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
   }
 
   protected def drawLine(start:Point,end:Point, context:GraphicsContext = ctx):Unit = {
