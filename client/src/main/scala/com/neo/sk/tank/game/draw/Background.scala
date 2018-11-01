@@ -14,6 +14,7 @@ import javafx.scene.shape.StrokeLineCap
 import javafx.scene.text.{Font, FontWeight, TextAlignment}
 
 import scala.collection.mutable
+import com.neo.sk.tank.App
 
 /**
   * Created by hongruying on 2018/8/29
@@ -23,14 +24,14 @@ trait Background{ this:GameContainerClientImpl =>
   private val cacheCanvasMap = mutable.HashMap.empty[String, Canvas]
   private val rankWidth = 26
   private val rankHeight = 24
-  private val currentRankCanvas = new Canvas(rankWidth * canvasUnit, rankHeight * canvasUnit)
+  private val currentRankCanvas = new Canvas(math.max(rankWidth * canvasUnit, 26 * 4), math.max(rankHeight * canvasUnit, 24 * 4))
   private val currentRankCanvasCtx = currentRankCanvas.getGraphicsContext2D
-  private val historyRankCanvas = new Canvas(rankWidth * canvasUnit, rankHeight * canvasUnit)
+  private val historyRankCanvas = new Canvas(math.max(rankWidth * canvasUnit, 26 * 4), math.max(rankHeight * canvasUnit, 24 * 4))
   private val historyRankCanvasCtx = historyRankCanvas.getGraphicsContext2D
   var rankUpdated: Boolean = true
-  private val goldImg = new Image(s"file:client/src/main/resources/img/金牌.png")
-  private val silverImg = new Image(s"file:client/src/main/resources/img/银牌.png")
-  private val bronzeImg = new Image(s"file:client/src/main/resources/img/铜牌.png")
+  private val goldImg = new Image(App.getClass.getResourceAsStream("/img/金牌.png"))
+  private val silverImg = new Image(App.getClass.getResourceAsStream("/img/银牌.png"))
+  private val bronzeImg = new Image(App.getClass.getResourceAsStream("/img/铜牌.png"))
   private val minimapCanvas = new Canvas(LittleMap.w * canvasUnit + 6, LittleMap.h * canvasUnit + 6)
   private val minimapCanvasCtx = minimapCanvas.getGraphicsContext2D
   var minimapRenderFrame = 0L
@@ -75,21 +76,24 @@ trait Background{ this:GameContainerClientImpl =>
   }
 
   protected def drawRank():Unit = {
+
     def drawTextLine(str: String, x: Float, y: Float, context: GraphicsContext):Unit = {
       context.fillText(str, x, y)
 
       def refreshCacheCanvas(context: GraphicsContext, header: String, rank: List[Score], historyRank: Boolean): Unit = {
         //绘制当前排行榜
-        val leftBegin = 4 * canvasUnit
-        context.setFont(Font.font("Arial", FontWeight.BOLD, 12))
-        context.clearRect(0, 0, rankWidth * canvasUnit, rankHeight * canvasUnit)
+        val unit = currentRankCanvas.getWidth / rankWidth
+        println(s"rank =${historyRankCanvas.getWidth}, canvasUnit=${canvasUnit}, unit=${unit}")
+        val leftBegin = 4 * unit
+        context.setFont(Font.font("Arial", FontWeight.BOLD, 1.2 * canvasUnit))
+        context.clearRect(0, 0, currentRankCanvas.getWidth, currentRankCanvas.getHeight)
 
         var index = 0
         context.setFill(Color.BLACK)
         context.setTextAlign(TextAlignment.CENTER)
         context.setTextBaseline(VPos.CENTER)
         context.setLineCap(StrokeLineCap.ROUND)
-        drawTextLine(header, rankWidth / 2 * canvasUnit, 1 * canvasUnit, context)
+        drawTextLine(header, (currentRankCanvas.getWidth/2).toFloat, unit.toFloat, context)
         rank.foreach { score =>
           index += 1
           val drawColor = index match {
@@ -105,17 +109,17 @@ trait Background{ this:GameContainerClientImpl =>
             case _ => None
           }
           imgOpt.foreach { img =>
-            context.drawImage(img, leftBegin - 4 * canvasUnit, (2 * index) * canvasUnit, 2 * canvasUnit, 2 * canvasUnit)
+            context.drawImage(img, leftBegin - 4 * unit, (2 * index) * unit, 2 * unit, 2 * unit)
           }
           context.setStroke(Color.web(drawColor))
-          context.setLineWidth(18)
+          context.setLineWidth(1.8 * unit)
           context.beginPath()
-          context.moveTo(leftBegin, (2 * index + 1) * canvasUnit)
-          context.lineTo((rankWidth - 2) * canvasUnit, (2 * index + 1) * canvasUnit)
+          context.moveTo(leftBegin,(2 * index + 1) * unit)
+          context.lineTo((rankWidth - 2) * unit,(2 * index + 1) * unit)
           context.stroke()
           context.closePath()
-          if (historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, (2 * index + 1) * canvasUnit, context)
-          else drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d} lives=${score.l}", leftBegin, (2 * index + 1) * canvasUnit, context)
+          if(historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin.toFloat, (2 * index + 1) * unit.toFloat, context)
+          else drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d} lives=${score.l}", leftBegin.toFloat, (2 * index + 1) * unit.toFloat, context)
         }
         //      drawTextLine(s"当前房间人数 ${index}", 28*canvasUnit, (2 * index + 1) * canvasUnit, context)
 
@@ -156,18 +160,17 @@ trait Background{ this:GameContainerClientImpl =>
 
 
       def refreshMinimap():Unit = {
-        val mapColor = "rgba(255,245,238,0.5)"
         val myself = "#000080"
         val otherTankColor = "#CD5C5C"
         val bolderColor = "#8F8F8F"
 
         minimapCanvasCtx.clearRect(0, 0, minimapCanvas.getWidth, minimapCanvas.getHeight)
-        minimapCanvasCtx.setFill(Color.web(mapColor))
+        minimapCanvasCtx.setFill(Color.rgb(255, 245, 238, 0.5))
         minimapCanvasCtx.fillRect(3, 3, LittleMap.w * canvasUnit ,LittleMap.h * canvasUnit)
         minimapCanvasCtx.setStroke(Color.web(bolderColor))
         minimapCanvasCtx.setLineWidth(6)
         minimapCanvasCtx.beginPath()
-        minimapCanvasCtx.setFill(Color.web(mapColor))
+        minimapCanvasCtx.setFill(Color.rgb(255, 245, 238, 0.5))
         minimapCanvasCtx.rect(3, 3 ,LittleMap.w * canvasUnit ,LittleMap.h * canvasUnit)
         minimapCanvasCtx.fill()
         minimapCanvasCtx.stroke()
@@ -212,7 +215,7 @@ trait Background{ this:GameContainerClientImpl =>
     ctx.beginPath()
     ctx.setStroke(Color.BLACK)
     ctx.setTextAlign(TextAlignment.LEFT)
-    ctx.setFont(Font.font("Arial",30))
+    ctx.setFont(Font.font("Arial",3 * canvasUnit))
     ctx.setLineWidth(1)
     val offsetX = canvasBoundary.x - 20
     ctx.strokeText(s"当前在线人数： ${tankMap.size}", offsetX*canvasUnit,(canvasBoundary.y - LittleMap.h -6) * canvasUnit , 20 * canvasUnit)

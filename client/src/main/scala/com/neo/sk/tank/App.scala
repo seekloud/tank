@@ -7,15 +7,16 @@ import akka.event.{Logging, LoggingAdapter}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.neo.sk.tank.common.Context
-import com.neo.sk.tank.view.LoginScreen
+import com.neo.sk.tank.view.PlayGameScreen
 import javafx.animation.{Animation, AnimationTimer}
 import javafx.application.Application
 import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.Canvas
 import javafx.stage.Stage
-import com.neo.sk.tank.controller.LoginScreenController
+import com.neo.sk.tank.controller.PlayScreenController
 import concurrent.duration._
 import javafx.application.Platform
+import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
 /**
   * Created by hongruying on 2018/10/22
   */
@@ -27,15 +28,17 @@ class App extends Application{
     println("s")
   }
 
+  val playerInfo = PlayerInfo("1", "1", "hahhahahha")
+  val gameServerInfo = GameServerInfo("1", "1", "1")
 
 
 
 
   override def start(primaryStage: Stage): Unit = {
     val context = new Context(primaryStage)
-    val loginScreen = new LoginScreen(context)
-    context.switchScene(loginScreen.sence)
-    val l=new LoginScreenController(context, loginScreen)
+    val playScreen = new PlayGameScreen(context)
+    context.switchScene(playScreen.getScene())
+    val l = new PlayScreenController(playerInfo, gameServerInfo, context, playScreen)
     l.start
   }
 
