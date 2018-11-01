@@ -35,10 +35,10 @@ trait FpsComponents{ this:GameContainerClientImpl =>
     addFps()
     if(isRenderFps){
       ctx.setFont(Font.font("Helvetica", 1.4 * canvasUnit))
-      ctx.setTextAlign(TextAlignment.JUSTIFY)
+//      ctx.setTextAlign(TextAlignment.JUSTIFY)
       ctx.setFill(Color.BLACK)
       val fpsString = s"fps : $lastRenderTimes,  ping : ${networkLatency}ms"
-      ctx.fillText(fpsString,canvasBoundary.x * canvasUnit - fpsString.length * 1.4 * canvasUnit - 10,(canvasBoundary.y - LittleMap.h - 2) * canvasUnit)
+      ctx.fillText(fpsString,canvasBoundary.x * canvasUnit - fpsString.length * 1.4 * canvasUnit,(canvasBoundary.y - LittleMap.h - 2) * canvasUnit)
       //      ctx.fillText(s"ping: ${networkLatency}ms",canvasBoundary.x * canvasUnit - ctx.measureText(),(canvasBoundary.y - LittleMap.h - 2) * canvasUnit,10 * canvasUnit)
     }
 
