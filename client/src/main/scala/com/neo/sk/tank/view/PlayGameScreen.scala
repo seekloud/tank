@@ -11,10 +11,11 @@ import com.neo.sk.utils.JavaFxUtil.getCanvasUnit
   * 玩游戏的view
   *
   */
+
 class PlayGameScreen(context: Context) {
 
   //todo 此处目前为固定视野，之后修改为可放大
-  protected var canvasWidth = 800
+  protected var canvasWidth = 1200
   protected var canvasHeight = 800
   var canvasUnit = getCanvasUnit(canvasWidth)
   var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
