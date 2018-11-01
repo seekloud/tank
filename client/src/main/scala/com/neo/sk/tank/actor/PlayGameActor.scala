@@ -174,6 +174,9 @@ object PlayGameActor {
             println(s"decode binaryMessage failed,error:${e.message}")
             control.wsMessageHandler(TankGameEvent.DecodeError())
         }
+
+      case _ =>
+
     }
   }
 
@@ -199,8 +202,8 @@ object PlayGameActor {
   def getWebSocketUri(name: String): String = {
     val wsProtocol = "ws"
     //todo 更改为目标端口
-    val host = "10.1.29.250:30369"
-//    val host = "localhost:30369"
+//    val host = "10.1.29.250:30369"
+    val host = "localhost:30369"
     s"$wsProtocol://$host/tank/game/join?name=$name"
   }
 }
