@@ -7,15 +7,18 @@ import akka.event.{Logging, LoggingAdapter}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.neo.sk.tank.common.Context
-import com.neo.sk.tank.controller.LoginScreenController
 import com.neo.sk.tank.view.LoginScreen
+import com.neo.sk.tank.view.{GameHallScreen, LoginScreen}
 import akka.actor.typed.scaladsl.adapter._
+import com.neo.sk.tank.controller.LoginScreenController
 import javafx.animation.{Animation, AnimationTimer}
 import javafx.application.Application
 import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.Canvas
 import javafx.stage.Stage
-import com.neo.sk.tank.controller.LoginScreenController
+import com.neo.sk.tank.controller.{HallScreenController, LoginScreenController}
+import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
+
 import concurrent.duration._
 import javafx.application.Platform
 
