@@ -16,28 +16,19 @@ import javafx.scene.text.Text
 class LoginScreen(context: Context) {
 
   val group = new Group()
-  val canvas = new Canvas(1000, 800)
-  val gc = canvas.getGraphicsContext2D
-
-  group.getChildren.add(canvas)
-  val sence = new Scene(group)
-
-  var startTime = System.currentTimeMillis()
-  var lastRenders = 0
-  var renders = 0
-
 
 
   def showScanUrl(scanUrl:String) = {
+    println(scanUrl)
     val url = scanUrl
     val browser = new WebView()
     val webEngine = browser.getEngine
     webEngine.load(scanUrl)
-    val text = new Text(500, 500, "请扫码登录")
+    val text = new Text(100, 100, "请扫码登录")
 
     val groupNew = new Group()
+    groupNew.getChildren.add(browser)
     groupNew.getChildren.add(text)
-    //groupNew.getChildren.add(browser)
     val senceNew = new Scene(groupNew)
     context.switchScene(senceNew)
   }
