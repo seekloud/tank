@@ -88,13 +88,13 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
       App.pushStack2AppThread{
         val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
         context.switchScene(playGameScreen.getScene())
-        new PlayScreenController(playerInfo,gameServerInfo,context,playGameScreen)
+        new PlayScreenController(playerInfo,gameServerInfo,context,playGameScreen).start
         close()
       }
 
     }
 
-    override def confirmBtnListener(roomIdListView: String, roomIdTextField:String,group:Group): Unit = {
+    override def confirmBtnListener(roomIdListView: String, roomIdTextField:String): Unit = {
       App.pushStack2AppThread{
         println(roomIdListView)
         if(roomIdListView != null || roomIdTextField != ""){
@@ -105,7 +105,8 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
           val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
           context.switchScene(playGameScreen.getScene())
           //        playGameScreen.requestFocus()
-          new PlayScreenController(playerInfo,gameServerInfo,context,playGameScreen)
+//          new PlayScreenController(playerInfo,gameServerInfo,context,playGameScreen)
+          new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen).start
           close()
         }else{
           val warn = new Alert(Alert.AlertType.WARNING,"还没有选择房间哦",new ButtonType("确定",ButtonBar.ButtonData.YES))

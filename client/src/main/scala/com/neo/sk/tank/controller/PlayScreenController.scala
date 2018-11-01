@@ -19,8 +19,9 @@ import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
 import javafx.util.Duration
 import org.slf4j.LoggerFactory
-
+import com.neo.sk.tank.App
 import scala.collection.mutable
+
 
 /**
   * Created by hongruying on 2018/10/23
@@ -247,14 +248,18 @@ class PlayScreenController(
         * 更新游戏数据
         **/
         println("start------------")
-        try {
-          timeline.play()
-          gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
-          gameContainerOpt.get.getTankId(e.tankId)
-        }catch {
-          case e:Exception=>
-            println(e.getMessage)
-        }
+        App.pushStack2AppThread(
+          try {
+            timeline.play()
+            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
+            gameContainerOpt.get.getTankId(e.tankId)
+          }catch {
+            case e:Exception=>
+              closeHolder
+              println(e.getMessage)
+              print("client is stop!!!")
+          }
+        )
 
 
       case e: TankGameEvent.YouAreKilled =>
@@ -262,49 +267,69 @@ class PlayScreenController(
         /**
           * 死亡重玩
           **/
-        println(s"you are killed")
-        killerName = e.name
-        if(e.hasLife){
-//          reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
-          setGameState(GameState.relive)
-        } else setGameState(GameState.stop)
+        App.pushStack2AppThread{
+          println(s"you are killed")
+          killerName = e.name
+          if(e.hasLife){
+            //          reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
+            setGameState(GameState.relive)
+          } else setGameState(GameState.stop)
+        }
 
       case e: TankGameEvent.Ranks =>
 
       /**
         * 游戏排行榜
         **/
-        gameContainerOpt.foreach{ t =>
-          t.currentRank = e.currentRank
-          t.historyRank = e.historyRank
-//          t.rankUpdated = true
-        }
+        App.pushStack2AppThread(
+          gameContainerOpt.foreach{ t =>
+            t.currentRank = e.currentRank
+            t.historyRank = e.historyRank
+            t.rankUpdated = true
+          }
+        )
+
 
       case e: TankGameEvent.SyncGameState =>
-        gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
+        App.pushStack2AppThread(
+          gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
+        )
 
       case e: TankGameEvent.SyncGameAllState =>
-        gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
-        logicFrameTime = System.currentTimeMillis()
-        animationTimer.start()
-        setGameState(GameState.play)
-
-      case e: TankGameEvent.UserActionEvent =>
-        gameContainerOpt.foreach(_.receiveUserEvent(e))
-
-      case e: TankGameEvent.GameEvent =>
-        e match {
-          case ee:TankGameEvent.GenerateBullet =>
-            gameContainerOpt.foreach(_.receiveGameEvent(e))
-          case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
+        App.pushStack2AppThread{
+          gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
+          logicFrameTime = System.currentTimeMillis()
+          animationTimer.start()
+          setGameState(GameState.play)
         }
 
+
+      case e: TankGameEvent.UserActionEvent =>
+        App.pushStack2AppThread(
+          gameContainerOpt.foreach(_.receiveUserEvent(e))
+        )
+
+
+      case e: TankGameEvent.GameEvent =>
+        App.pushStack2AppThread(
+          e match {
+            case ee:TankGameEvent.GenerateBullet =>
+              gameContainerOpt.foreach(_.receiveGameEvent(e))
+            case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
+          }
+        )
+
       case e: TankGameEvent.PingPackage =>
-        receivePingPackage(e)
+        App.pushStack2AppThread(
+          receivePingPackage(e)
+        )
+
 
       case TankGameEvent.RebuildWebSocket =>
-        playGameScreen.drawReplayMsg("存在异地登录。。")
-        closeHolder
+        App.pushStack2AppThread{
+          playGameScreen.drawReplayMsg("存在异地登录。。")
+          closeHolder
+        }
 
       case _ =>
         log.info(s"unknow msg={sss}")
