@@ -86,7 +86,7 @@ class PlayScreenController(
 
   def start = {
     println("start!!!!!!!")
-    playGameActor ! PlayGameActor.ConnectGame(playerInfo.playerId)
+    playGameActor ! PlayGameActor.ConnectGame(playerInfo)
     addUserActionListenEvent
     setGameLoop
   }

@@ -25,8 +25,7 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
 
 
   def start={
-    println("-----12")
-    //joinGame(PlayerInfo("test","test","sgadga"),GameServerInfo("","",""))
+   // joinGame(PlayerInfo("test","test","sgadga"),GameServerInfo("","",""))
   }
 
   /**
