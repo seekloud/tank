@@ -19,7 +19,8 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
-import com.neo.sk.tank.App.{system, materializer, executor, timeout, scheduler}
+import com.neo.sk.tank.App.{executor, materializer, scheduler, system, timeout}
+import com.neo.sk.tank.model.PlayerInfo
 
 /**
   * Created by hongruying on 2018/10/23
@@ -33,7 +34,7 @@ object PlayGameActor {
 
   sealed trait Command
 
-  final case class ConnectGame(name: String) extends Command
+  final case class ConnectGame(playInfo:PlayerInfo) extends Command
 
   final case object ConnectTimerKey
 
@@ -76,7 +77,7 @@ object PlayGameActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case msg: ConnectGame =>
-          val url = getWebSocketUri(msg.name)
+          val url = getWebSocketUri(msg.playInfo.nickName)
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(url))
           val source = getSource
           val sink = getSink(control)

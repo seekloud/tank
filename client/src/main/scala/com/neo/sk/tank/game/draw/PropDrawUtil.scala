@@ -1,5 +1,6 @@
 package com.neo.sk.tank.game.draw
 
+import com.neo.sk.tank.App
 import com.neo.sk.tank.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.{GameAnimation, PropAnimation}
 import com.neo.sk.tank.shared.model.Point
@@ -9,12 +10,12 @@ import javafx.scene.image.Image
   * Created by hongruying on 2018/8/29
   */
 trait PropDrawUtil { this: GameContainerClientImpl =>
-  private val bloodPropImg = new Image(s"file:client/src/main/resources/img/xueliang.png")
-  private val speedPropImg = new Image(s"file:client/src/main/resources/img/sudu.png")
-  private val bulletPowerPropImg = new Image(s"file:client/src/main/resources/img/qiang.png")
-  private val medicalPropImg = new Image(s"file:client/src/main/resources/img/yiliao.png")
-  private val shotgunPropImg = new Image(s"file:client/src/main/resources/img/sandan.png")
-  private val boomImg = new Image(s"file:client/src/main/resources/img/boom.png")
+  private val bloodPropImg = new Image(App.getClass.getResourceAsStream("/img/xueliang.png"))
+  private val speedPropImg = new Image(App.getClass.getResourceAsStream("/img/sudu.png"))
+  private val bulletPowerPropImg = new Image(App.getClass.getResourceAsStream("/img/qiang.png"))
+  private val medicalPropImg = new Image(App.getClass.getResourceAsStream("/img/yiliao.png"))
+  private val shotgunPropImg = new Image(App.getClass.getResourceAsStream("/img/sandan.png"))
+  private val boomImg = new Image(App.getClass.getResourceAsStream("/img/boom.png"))
 
   protected def drawProps(offset: Point, view: Point) = {
     propMap.values.foreach { prop =>
