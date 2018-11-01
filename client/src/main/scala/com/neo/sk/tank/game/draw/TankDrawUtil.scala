@@ -186,9 +186,9 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     ctx.drawImage(cache.snapshot(new SnapshotParameters(), null),0,(canvasBoundary.y - 20) * canvasUnit)
   }
 
-  def drawLevel(level:Byte,maxLevel:Byte,name:String,start:Point,length:Float,color:String, context:GraphicsContext = ctx) = {
-    ctx.setStroke(Color.web("#4D4D4D"))
-    ctx.setLineCap(StrokeLineCap.ROUND)
+  def drawLevel(level:Byte,maxLevel:Byte,name:String,start:Point,length:Float,color:String, context:GraphicsContext) = {
+    context.setStroke(Color.web("#4D4D4D"))
+    context.setLineCap(StrokeLineCap.ROUND)
     context.setLineWidth(3 * canvasUnit)
     context.beginPath()
     context.moveTo(start.x,start.y)
@@ -197,7 +197,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     context.closePath()
 
     context.setLineWidth(2.2 * canvasUnit)
-    ctx.setStroke(Color.web(color))
+    context.setStroke(Color.web(color))
     if(level == maxLevel){
       context.beginPath()
       context.moveTo(start.x + length,start.y)
@@ -213,7 +213,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
       context.stroke()
       context.closePath()
 
-      ctx.setLineCap(StrokeLineCap.BUTT)
+      context.setLineCap(StrokeLineCap.BUTT)
       (0 until level).foreach{ index =>
         context.beginPath()
         context.moveTo(start.x + index * (length / maxLevel) + 2,start.y)
@@ -222,10 +222,10 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         context.closePath()
       }
     }
-    ctx.setFont(Font.font("Arial", FontWeight.BOLD, 1.8 * canvasUnit))
+    context.setFont(Font.font("Arial", FontWeight.BOLD, 1.8 * canvasUnit))
     context.setTextAlign(TextAlignment.CENTER)
-    context.setTextBaseline(VPos.CENTER)
-    ctx.setStroke(Color.web("#FCFCFC"))
+    context.setTextBaseline(VPos.BASELINE)
+    context.setStroke(Color.web("#FCFCFC"))
     context.fillText(name, start.x + length / 2, start.y)
   }
 
