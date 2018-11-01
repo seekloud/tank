@@ -23,6 +23,7 @@ import akka.actor.typed.scaladsl.AskPattern._
 /**
   *
   * 提供获取游戏录像列表的接口
+  * 提供code接口
   * 提供游戏下载接口
   */
 
