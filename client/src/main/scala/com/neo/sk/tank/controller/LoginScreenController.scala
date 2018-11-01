@@ -43,8 +43,6 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
   def joinGame(playerInfo:PlayerInfo, gameServerInfo: GameServerInfo) = {
     println("joinGame----------")
     App.pushStack2AppThread{
-      val playGameScreen = new PlayGameScreen(context)
-      //new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen).start
       val gameHallScreen = new GameHallScreen(context, playerInfo)
       context.switchScene(gameHallScreen.getScene())
       new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)

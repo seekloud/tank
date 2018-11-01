@@ -30,14 +30,6 @@ class App extends Application{
 
   import App._
 
-  scheduler.scheduleOnce(1000.millis){
-    println("s")
-  }
-
-
-
-
-
   override def start(primaryStage: Stage): Unit = {
     val context = new Context(primaryStage)
 //    val playerInfo = PlayerInfo("aaa","fddf","df")
