@@ -174,6 +174,9 @@ object PlayGameActor {
             println(s"decode binaryMessage failed,error:${e.message}")
             control.wsMessageHandler(TankGameEvent.DecodeError())
         }
+
+      case _ =>
+
     }
   }
 
