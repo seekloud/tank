@@ -11,6 +11,7 @@ import com.neo.sk.utils.JavaFxUtil.getCanvasUnit
   * 玩游戏的view
   *
   */
+
 class PlayGameScreen(context: Context) {
 
   //todo 此处目前为固定视野，之后修改为可放大

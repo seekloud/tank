@@ -78,64 +78,63 @@ trait Background {
   protected def drawRank(): Unit = {
     def drawTextLine(str: String, x: Float, y: Float, context: GraphicsContext): Unit = {
       context.fillText(str, x, y)
-
-      def refreshCacheCanvas(context: GraphicsContext, header: String, rank: List[Score], historyRank: Boolean): Unit = {
-        //绘制当前排行榜
-        val leftBegin = 4 * canvasUnit
-        context.setFont(Font.font("Arial", FontWeight.BOLD, 12))
-        context.clearRect(0, 0, rankWidth * canvasUnit, rankHeight * canvasUnit)
-
-        var index = 0
-        context.setFill(Color.BLACK)
-        context.setTextAlign(TextAlignment.CENTER)
-        context.setTextBaseline(VPos.CENTER)
-        context.setLineCap(StrokeLineCap.ROUND)
-        drawTextLine(header, rankWidth / 2 * canvasUnit, 1 * canvasUnit, context)
-        rank.foreach { score =>
-          index += 1
-          val drawColor = index match {
-            case 1 => "#FFD700"
-            case 2 => "#D1D1D1"
-            case 3 => "#8B5A00"
-            case _ => "#CAE1FF"
-          }
-          val imgOpt = index match {
-            case 1 => Some(goldImg)
-            case 2 => Some(silverImg)
-            case 3 => Some(bronzeImg)
-            case _ => None
-          }
-          imgOpt.foreach { img =>
-            context.drawImage(img, leftBegin - 4 * canvasUnit, (2 * index) * canvasUnit, 2 * canvasUnit, 2 * canvasUnit)
-          }
-          context.setStroke(Color.web(drawColor))
-          context.setLineWidth(18)
-          context.beginPath()
-          context.moveTo(leftBegin, (2 * index + 1) * canvasUnit)
-          context.lineTo((rankWidth - 2) * canvasUnit, (2 * index + 1) * canvasUnit)
-          context.stroke()
-          context.closePath()
-          if (historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, (2 * index + 1) * canvasUnit, context)
-          else drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d} lives=${score.l}", leftBegin, (2 * index + 1) * canvasUnit, context)
-        }
-        drawTextLine(s"当前房间人数 ${index}", 28 * canvasUnit, (2 * index + 1) * canvasUnit, context)
-      }
-
-      def refresh(): Unit = {
-        refreshCacheCanvas(currentRankCanvasCtx, " --- Current Rank --- ", currentRank, false)
-        refreshCacheCanvas(historyRankCanvasCtx, " --- History Rank --- ", historyRank, true)
-      }
-
-
-      if (rankUpdated) {
-        refresh()
-        rankUpdated = false
-      }
-      ctx.setGlobalAlpha(0.8)
-      ctx.drawImage(currentRankCanvas.snapshot(new SnapshotParameters(), null), 0, 0)
-      ctx.drawImage(historyRankCanvas.snapshot(new SnapshotParameters(), null), (canvasBoundary.x - rankWidth) * canvasUnit, 0)
-      ctx.setGlobalAlpha(1)
     }
+    def refreshCacheCanvas(context: GraphicsContext, header: String, rank: List[Score], historyRank: Boolean): Unit = {
+      //绘制当前排行榜
+      val leftBegin = 4 * canvasUnit
+      context.setFont(Font.font("Arial", FontWeight.BOLD, 12))
+      context.clearRect(0, 0, rankWidth * canvasUnit, rankHeight * canvasUnit)
+
+      var index = 0
+      context.setFill(Color.BLACK)
+      context.setTextAlign(TextAlignment.CENTER)
+      context.setTextBaseline(VPos.CENTER)
+      context.setLineCap(StrokeLineCap.ROUND)
+      drawTextLine(header, rankWidth / 2 * canvasUnit, 1 * canvasUnit, context)
+      rank.foreach { score =>
+        index += 1
+        val drawColor = index match {
+          case 1 => "#FFD700"
+          case 2 => "#D1D1D1"
+          case 3 => "#8B5A00"
+          case _ => "#CAE1FF"
+        }
+        val imgOpt = index match {
+          case 1 => Some(goldImg)
+          case 2 => Some(silverImg)
+          case 3 => Some(bronzeImg)
+          case _ => None
+        }
+        imgOpt.foreach { img =>
+          context.drawImage(img, leftBegin - 4 * canvasUnit, (2 * index) * canvasUnit, 2 * canvasUnit, 2 * canvasUnit)
+        }
+        context.setStroke(Color.web(drawColor))
+        context.setLineWidth(18)
+        context.beginPath()
+        context.moveTo(leftBegin, (2 * index + 1) * canvasUnit)
+        context.lineTo((rankWidth - 2) * canvasUnit, (2 * index + 1) * canvasUnit)
+        context.stroke()
+        context.closePath()
+        if (historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, (2 * index + 1) * canvasUnit, context)
+        else drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d} lives=${score.l}", leftBegin, (2 * index + 1) * canvasUnit, context)
+      }
+      drawTextLine(s"当前房间人数 ${index}", 28 * canvasUnit, (2 * index + 1) * canvasUnit, context)
+    }
+
+    def refresh(): Unit = {
+      refreshCacheCanvas(currentRankCanvasCtx, " --- Current Rank --- ", currentRank, false)
+      refreshCacheCanvas(historyRankCanvasCtx, " --- History Rank --- ", historyRank, true)
+    }
+
+
+    if (rankUpdated) {
+      refresh()
+      rankUpdated = false
+    }
+    ctx.setGlobalAlpha(0.8)
+    ctx.drawImage(currentRankCanvas.snapshot(new SnapshotParameters(), null), 0, 0)
+    ctx.drawImage(historyRankCanvas.snapshot(new SnapshotParameters(), null), (canvasBoundary.x - rankWidth) * canvasUnit, 0)
+    ctx.setGlobalAlpha(1)
   }
 
   protected def drawMinimap(tank: Tank): Unit = {
