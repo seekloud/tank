@@ -68,5 +68,10 @@ package object model {
                           playerId: String
                         )
 
+  case class RoomList(roomList:List[Long])
+  case class RoomListRsp(data:RoomList,
+                         errCode:Int = 0,
+                         msg:String = "ok")
+
 
 }
