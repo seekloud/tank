@@ -35,7 +35,7 @@ class App extends Application{
 //    val playerInfo = PlayerInfo("aaa","fddf","df")
 //    val gameHallScreen = new GameHallScreen(context,playerInfo)
 //    context.switchScene(gameHallScreen.getScene())
-//    val gameServerInfo = GameServerInfo("","","")
+//    val gameServerInfo = GameServerInfo("",30369,"flowdev.neoap.com")
 //    new HallScreenController(context,gameHallScreen,gameServerInfo,playerInfo)
     val loginScreen = new LoginScreen(context)
     context.switchScene(loginScreen.sence)
