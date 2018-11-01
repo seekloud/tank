@@ -21,7 +21,7 @@ import com.neo.sk.tank.App
   */
 trait Background{ this:GameContainerClientImpl =>
 
-  private val cacheCanvasMap = mutable.HashMap.empty[String, Canvas]
+  private val cacheCanvasMap = mutable.HashMap.empty[String, Image]
   private val rankWidth = 26
   private val rankHeight = 24
   private val currentRankCanvas = new Canvas(math.max(rankWidth * canvasUnit, 26 * 4), math.max(rankHeight * canvasUnit, 24 * 4))
@@ -37,7 +37,7 @@ trait Background{ this:GameContainerClientImpl =>
   var minimapRenderFrame = 0L
   private var canvasBoundary:Point=canvasSize
 
-  private def generateBackgroundCanvas():Canvas = {
+  private def generateBackgroundCanvas():Image = {
     val cacheCanvas = new Canvas(((boundary.x + canvasBoundary.x) * canvasUnit).toInt, ((boundary.y + canvasBoundary.y) * canvasUnit).toInt)
     val ctxCache = cacheCanvas.getGraphicsContext2D
     clearScreen("#BEBEBE", 1, boundary.x + canvasBoundary.x, boundary.y + canvasBoundary.y, ctxCache)
@@ -51,7 +51,7 @@ trait Background{ this:GameContainerClientImpl =>
     for(i <- 0  to((boundary.y + canvasBoundary.y).toInt,2)){
       drawLine(Point(0 ,i), Point(boundary.x + canvasBoundary.x, i), ctxCache)
     }
-    cacheCanvas
+    cacheCanvas.snapshot(new SnapshotParameters(), null)
   }
 
   private def clearScreen(color:String, alpha:Double, width:Float = canvasBoundary.x, height:Float = canvasBoundary.y, context:GraphicsContext = ctx , start:Point = Point(0,0)):Unit = {
@@ -64,8 +64,7 @@ trait Background{ this:GameContainerClientImpl =>
   protected def drawBackground(offset:Point) = {
     clearScreen("#FCFCFC",1)
     val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background",generateBackgroundCanvas())
-    val snap=cacheCanvas.snapshot(new SnapshotParameters(), null)
-    ctx.drawImage(snap, (-offset.x + canvasBoundary.x/2) * canvasUnit, ( -offset.y+canvasBoundary.y/2 )* canvasUnit, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit, 0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.drawImage(cacheCanvas, (-offset.x + canvasBoundary.x/2) * canvasUnit, ( -offset.y+canvasBoundary.y/2 )* canvasUnit, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit, 0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
   }
 
   protected def drawLine(start:Point,end:Point, context:GraphicsContext = ctx):Unit = {
@@ -93,7 +92,7 @@ trait Background{ this:GameContainerClientImpl =>
         var index = 0
         context.setFill(Color.BLACK)
         context.setTextAlign(TextAlignment.CENTER)
-        context.setTextBaseline(VPos.BASELINE)
+        context.setTextBaseline(VPos.TOP)
         context.setLineCap(StrokeLineCap.ROUND)
         drawTextLine(header, (currentRankCanvas.getWidth/2).toFloat, unit.toFloat, context)
         rank.foreach { score =>
