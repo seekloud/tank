@@ -95,7 +95,7 @@ object EsheepSyncClient {
             }
             switchBehavior(ctx, "busy", busy(), GetTokenTime, TimeOut("Get Token"))
           } else{
-            switchBehavior(ctx, "work", work(EsheepProtocol.GameServerKey2TokenInfo("",72000)))
+            switchBehavior(ctx, "work", work(EsheepProtocol.GameServerKey2TokenInfo("",2.days.toSeconds)))
           }
 
 
