@@ -21,7 +21,7 @@ import scala.collection.mutable
 trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
 
   //fixme 将此处map暴露给子类
-  private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Canvas]()
+  private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Image]()
 
   private val steelImg = new Image(App.getClass.getResourceAsStream("/img/钢铁.png"))
   private val riverImg = new Image(App.getClass.getResourceAsStream("/img/river.png"))
@@ -34,11 +34,11 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
   //todo  此处需要调研图片complete
   protected def obstacleImgComplete: Boolean = true
 
-  private def generateObstacleCacheCanvas(width: Float, height: Float, color: Color): Canvas = {
+  private def generateObstacleCacheCanvas(width: Float, height: Float, color: Color): Image = {
     val cacheCanvas = new Canvas((width * canvasUnit).toInt, (height * canvasUnit).toInt)
     val ctxCache = cacheCanvas.getGraphicsContext2D
     drawObstacle(Point(width / 2, height / 2), width, height, 1, color, ctxCache)
-    cacheCanvas
+    cacheCanvas.snapshot(new SnapshotParameters(), null)
   }
 
   private def drawObstacle(centerPosition:Point, width:Float, height:Float, bloodPercent:Float, color:Color, context:GraphicsContext = ctx):Unit = {
@@ -93,7 +93,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
           if (obstacle.bloodPercent() > 0.9999999) {
             val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
             val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false), generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
-            ctx.drawImage(cache.snapshot(new SnapshotParameters(), null), p.x * canvasUnit, p.y * canvasUnit)
+            ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
           } else {
             drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color)
           }
@@ -131,7 +131,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
 
 
 
-  private def generateEnvironmentCacheCanvas(obstacleType:Byte, obstacleWidth:Float, obstacleHeight:Float,isAttacked:Boolean):Canvas = {
+  private def generateEnvironmentCacheCanvas(obstacleType:Byte, obstacleWidth:Float, obstacleHeight:Float,isAttacked:Boolean):Image = {
     val canvasCache = new Canvas(math.ceil(obstacleWidth * canvasUnit).toInt, math.ceil(obstacleHeight * canvasUnit).toInt)
     val ctxCache = canvasCache.getGraphicsContext2D
     val img = obstacleType match {
@@ -147,7 +147,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
         obstacleWidth * canvasUnit,obstacleHeight * canvasUnit)
       ctxCache.setGlobalAlpha(1)
     }
-    canvasCache
+    canvasCache.snapshot(new SnapshotParameters(), null)
   }
 
   protected def drawEnvironment(offset:Point,view:Point) = {
@@ -162,7 +162,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
           val isAttacked = obstacle.obstacleType == ObstacleType.steel && obstacleAttackedAnimationMap.contains(obstacle.oId)
           val cacheCanvas = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, isAttacked),
             generateEnvironmentCacheCanvas(obstacle.obstacleType, obstacle.getWidth, obstacle.getHeight, isAttacked))
-          ctx.drawImage(cacheCanvas.snapshot(new SnapshotParameters(), null), p.x * canvasUnit, p.y * canvasUnit)
+          ctx.drawImage(cacheCanvas, p.x * canvasUnit, p.y * canvasUnit)
         } else {
           ctx.beginPath()
           ctx.drawImage(img, p.x * canvasUnit, p.y * canvasUnit,
