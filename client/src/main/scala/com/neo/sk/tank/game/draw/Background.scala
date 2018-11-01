@@ -77,8 +77,9 @@ trait Background{ this:GameContainerClientImpl =>
 
   protected def drawRank():Unit = {
 
-    def drawTextLine(str: String, x: Float, y: Float, context: GraphicsContext):Unit = {
-      context.fillText(str, x, y)
+      def drawTextLine(str: String, x: Float, y: Float, context: GraphicsContext):Unit = {
+        context.fillText(str, x, y)
+      }
 
       def refreshCacheCanvas(context: GraphicsContext, header: String, rank: List[Score], historyRank: Boolean): Unit = {
         //绘制当前排行榜
@@ -91,7 +92,7 @@ trait Background{ this:GameContainerClientImpl =>
         var index = 0
         context.setFill(Color.BLACK)
         context.setTextAlign(TextAlignment.CENTER)
-        context.setTextBaseline(VPos.CENTER)
+        context.setTextBaseline(VPos.BASELINE)
         context.setLineCap(StrokeLineCap.ROUND)
         drawTextLine(header, (currentRankCanvas.getWidth/2).toFloat, unit.toFloat, context)
         rank.foreach { score =>
@@ -108,7 +109,7 @@ trait Background{ this:GameContainerClientImpl =>
             case 3 => Some(bronzeImg)
             case _ => None
           }
-          imgOpt.foreach { img =>
+          imgOpt.foreach{ img =>
             context.drawImage(img, leftBegin - 4 * unit, (2 * index) * unit, 2 * unit, 2 * unit)
           }
           context.setStroke(Color.web(drawColor))
@@ -139,10 +140,11 @@ trait Background{ this:GameContainerClientImpl =>
       ctx.drawImage(currentRankCanvas.snapshot(new SnapshotParameters(), null), 0, 0)
       ctx.drawImage(historyRankCanvas.snapshot(new SnapshotParameters(), null), (canvasBoundary.x - rankWidth) * canvasUnit, 0)
       ctx.setGlobalAlpha(1)
-    }
+
   }
 
   protected def drawMinimap(tank:Tank):Unit = {
+
       def drawTankMinimap(position:Point, color:String, context:GraphicsContext) = {
         val offset = Point(position.x / boundary.x * LittleMap.w, position.y / boundary.y * LittleMap.h)
         context.beginPath()
@@ -152,7 +154,7 @@ trait Background{ this:GameContainerClientImpl =>
         val radiusX =  0.5 * canvasUnit
         val radiusY =  0.5 * canvasUnit
         val startAngle = 0
-        val lengthAngle = 2*Math.PI
+        val lengthAngle = 360
         context.arc(centerX.toFloat, centerY.toFloat, radiusX.toFloat, radiusY.toFloat, startAngle.toFloat, lengthAngle.toFloat)
         context.fill()
         context.closePath()
