@@ -39,6 +39,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
   }
 
   override protected def gameLoop(): Unit = {
+    checkScreenSize
     gameContainerOpt.foreach(_.update())
     logicFrameTime = System.currentTimeMillis()
   }
