@@ -61,3 +61,5 @@ project/project/
 project/target/
 shared/.js/
 shared/.jvm/
+nohup.out
+gameDataDirectoryPath/
