@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
 import com.neo.sk.tank.App.executor
+import com.neo.sk.utils.HttpUtil
 /**
   * Created by hongruying on 2018/10/16
   */
