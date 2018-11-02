@@ -182,6 +182,7 @@ object RoomActor {
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           justJoinUser.foreach{t =>
             val ls = gameContainer.getUserActor4WatchGameList(t._1)
+            println(s"-----sysGameAllState--${t._1}")
             dispatchTo(subscribersMap,observersMap)(t._1,TankGameEvent.SyncGameAllState(gameContainerAllState),ls)
           }
           val endTime = System.currentTimeMillis()
