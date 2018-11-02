@@ -234,6 +234,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
+    println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
