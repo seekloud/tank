@@ -1,11 +1,14 @@
 package com.neo.sk.tank.view
 
+import com.neo.sk.tank.App
 import com.neo.sk.tank.common.Context
 import com.neo.sk.tank.shared.model.Point
 import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.canvas.Canvas
 import com.neo.sk.utils.JavaFxUtil.getCanvasUnit
+
+
 /**
   * Created by hongruying on 2018/10/23
   * 玩游戏的view
@@ -25,6 +28,7 @@ class PlayGameScreen(context: Context) {
   val canvas=new Canvas()
   canvas.setHeight(canvasHeight)
   canvas.setWidth(canvasWidth)
+
 
   def getScene():Scene = new Scene(group)
 
