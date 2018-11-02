@@ -159,7 +159,7 @@ object GamePlayer {
             val fList=r._2.map(f=>ExistTimeInfo(f._2.joinF-initState.state.f,f._2.leftF-initState.state.f))
             PlayerInRecordInfo(r._1._1,r._1._2,fList)
           }.toList
-          msg.replyTo ! GetUserInRecordRsp(PlayerList(data))
+          msg.replyTo ! GetUserInRecordRsp(PlayerList(frameCount,data))
           Behaviors.same
 
         case msg:TimeOut=>

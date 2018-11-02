@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import com.neo.sk.tank.App.{executor, materializer, scheduler, system, timeout}
+import com.neo.sk.tank.common.Route
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
 
 /**
@@ -201,13 +202,9 @@ object PlayGameActor {
   /**
     * 链接由从平台获得IP和端口后拼接*/
   def getWebSocketUri(info:ConnectGame): String = {
-    val wsProtocol = "ws"
     //todo 更改为目标端口
-    val host = "10.1.29.250:30369"
+//    val host = "10.1.29.250:30369"
 //    val host = info.gameInfo.domain
-    s"$wsProtocol://$host/tank/game/join?name=${info.playInfo.nickName}" + {info.roomInfo match {
-      case Some(r)=>s"&roomId=$r"
-      case None=>""
-    }}
+    Route.getJoinGameWebSocketUri(info.playInfo.nickName,info.gameInfo.domain,info.playInfo,info.roomInfo)
   }
 }

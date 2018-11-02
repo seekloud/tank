@@ -63,7 +63,8 @@ object EsheepProtocol {
                           endFrame:Long
                           )
 
-  case class PlayerList(playerList:List[PlayerInRecordInfo])
+  case class PlayerList(totalFrame:Int,
+                        playerList:List[PlayerInRecordInfo])
 
   /**获取录像播放进度}*/
   case class GetRecordFrameReq(
