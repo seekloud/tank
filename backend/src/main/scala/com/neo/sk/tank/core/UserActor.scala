@@ -254,6 +254,7 @@ object UserActor {
           switchBehavior(ctx, "observe", observe(uId, userInfo, tank, frontActor, roomActor))
 
         case JoinRoomFail4Watch(error) =>
+          log.debug(s"${ctx.self.path} recv a msg=${msg}")
           frontActor ! TankGameEvent.Wrap(TankGameEvent.WsMsgErrorRsp(1, error).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           frontActor ! TankGameEvent.CompleteMsgServer
           Behaviors.stopped
@@ -374,6 +375,7 @@ object UserActor {
 
         case ChangeBehaviorToInit=>
           dispatchTo(frontActor,TankGameEvent.RebuildWebSocket)
+          roomManager ! RoomManager.LeftRoom(uId,tank.tankId,userInfo.name,Some(uId))
           ctx.unwatch(frontActor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
