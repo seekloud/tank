@@ -24,6 +24,11 @@ class GameContainerImpl(
   import scala.language.implicitConversions
 
 
+  protected var tId : Int = myTankId
+
+  def changeTankId(id: Int) = tId = id
+
+
 
   override def debug(msg: String): Unit = {}
 
@@ -61,7 +66,7 @@ class GameContainerImpl(
 
   //接受服务器的用户事件
   def receiveUserEvent(e:UserActionEvent) = {
-    if(e.tankId == myTankId){
+    if(e.tankId == tId){
       uncheckedActionMap.get(e.serialNum) match {
         case Some(preFrame) =>
           if(e.frame != preFrame) {
@@ -105,7 +110,7 @@ class GameContainerImpl(
   }
 
   final def addMyAction(action:UserActionEvent):Unit = {
-    if(action.tankId == myTankId) {
+    if(action.tankId == tId) {
       myTankAction.get(action.frame - preExecuteFrameOffset) match {
         case Some(actionEvents) => myTankAction.put(action.frame - preExecuteFrameOffset, action :: actionEvents)
         case None => myTankAction.put(action.frame - preExecuteFrameOffset, List(action))
@@ -227,7 +232,7 @@ class GameContainerImpl(
     if(gameContainerState.f > systemFrame){
       gameContainerStateOpt = Some(gameContainerState)
     }else if(gameContainerState.f == systemFrame){
-      info(s"收到同步数据，但未同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
+      info(s"收到同步数据，立即同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
       gameContainerStateOpt = None
       handleGameContainerState(gameContainerState)
     }else{

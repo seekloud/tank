@@ -113,15 +113,26 @@ object GamePlayer {
           log.info("start new replay!")
           timer.cancel(GameLoopKey)
           timer.cancel(BehaviorWaitKey)
-          fileReader.mutableInfoIterable
-          userMap.find(_._1.userId == msg.userId) match {
+//          fileReader.mutableInfoIterable
+          userMap.filter(t => t._1.userId == msg.userId && t._2.leftF >= msg.f).sortBy(_._2.joinF).headOption match {
             case Some(u)=>
               dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,metaData.tankConfig))
               log.info(s" set replay from frame=${msg.f}")
               fileReader.gotoSnapshot(msg.f)
               log.info(s"replay from frame=${fileReader.getFramePosition}")
+              //快速播放
+              for(_ <- 0 until (msg.f - fileReader.getFramePosition)){
+                if(fileReader.hasMoreFrame){
+                  fileReader.readFrame().foreach { f => dispatchByteTo(msg.userActor, f)}
+                }else{
+                  log.debug(s"${ctx.self.path} file reader has no frame, reply finish")
+                  dispatchTo(msg.userActor,TankGameEvent.ReplayFinish())
+                }
+              }
+              dispatchTo(msg.userActor, TankGameEvent.StartReplay)
+
               if(fileReader.hasMoreFrame){
-                timer.startPeriodicTimer(GameLoopKey, GameLoop, 100.millis)
+                timer.startPeriodicTimer(GameLoopKey, GameLoop, metaData.tankConfig.frameDuration.millis)
                 work(fileReader,metaData,initState,frameCount,userMap,Some(msg.userActor))
               }else{
                 timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
@@ -193,10 +204,11 @@ object GamePlayer {
   private def dispatchByteTo(subscriber: ActorRef[TankGameEvent.WsMsgSource], msg:FrameData)(implicit sendBuffer: MiddleBufferInJvm) = {
 //    subscriber ! ReplayFrameData(replayEventDecode(msg.eventsData).fillMiddleBuffer(sendBuffer).result())
 //    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(replayStateDecode(s).fillMiddleBuffer(sendBuffer).result()))
+    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(s))
     if(msg.eventsData.length>0){
       subscriber ! ReplayFrameData(msg.eventsData)
     }
-    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(s))
+
   }
 
   private def busy()(

@@ -189,7 +189,7 @@ object PlayGameActor {
     }, failureMatcher = {
       case TankGameEvent.FailMsgFrontServer(ex) ⇒ ex
     },
-    bufferSize = 8,
+    bufferSize = 128,
     overflowStrategy = OverflowStrategy.fail
   ).collect {
     case message: TankGameEvent.WsMsgFront =>
