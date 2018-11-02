@@ -190,7 +190,9 @@ object GamePlayer {
   private def dispatchByteTo(subscriber: ActorRef[TankGameEvent.WsMsgSource], msg:FrameData)(implicit sendBuffer: MiddleBufferInJvm) = {
 //    subscriber ! ReplayFrameData(replayEventDecode(msg.eventsData).fillMiddleBuffer(sendBuffer).result())
 //    msg.stateData.foreach(s=>subscriber ! ReplayFrameData(replayStateDecode(s).fillMiddleBuffer(sendBuffer).result()))
-    subscriber ! ReplayFrameData(msg.eventsData)
+    if(msg.eventsData.length>0){
+      subscriber ! ReplayFrameData(msg.eventsData)
+    }
     msg.stateData.foreach(s=>subscriber ! ReplayFrameData(s))
   }
 

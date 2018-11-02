@@ -19,8 +19,9 @@ import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
 import javafx.util.Duration
 import org.slf4j.LoggerFactory
-
+import com.neo.sk.tank.App
 import scala.collection.mutable
+
 
 /**
   * Created by hongruying on 2018/10/23
@@ -33,7 +34,8 @@ class PlayScreenController(
                             playerInfo: PlayerInfo,
                             gameServerInfo: GameServerInfo,
                             context: Context,
-                            playGameScreen: PlayGameScreen
+                            playGameScreen: PlayGameScreen,
+                            roomInfo:Option[String]=None
                           ) extends NetworkInfo {
   private val log = LoggerFactory.getLogger(this.getClass)
   val playGameActor = system.spawn(PlayGameActor.create(this), "PlayGameActor")
@@ -85,7 +87,7 @@ class PlayScreenController(
 
   def start = {
     println("start!!!!!!!")
-    playGameActor ! PlayGameActor.ConnectGame(playerInfo.playerId)
+    playGameActor ! PlayGameActor.ConnectGame(playerInfo,gameServerInfo,roomInfo)
     addUserActionListenEvent
     setGameLoop
   }
@@ -241,73 +243,80 @@ class PlayScreenController(
   /**
     * 此处处理消息*/
   def wsMessageHandler(data: TankGameEvent.WsMsgServer) = {
-    data match {
-      case e: TankGameEvent.YourInfo =>
-      /**
-        * 更新游戏数据
-        **/
-        println("start------------")
-        try {
-          timeline.play()
-          gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
-          gameContainerOpt.get.getTankId(e.tankId)
-        }catch {
-          case e:Exception=>
-            println(e.getMessage)
-        }
+    println(data.getClass)
+    App.pushStack2AppThread{
+      data match {
+        case e: TankGameEvent.YourInfo =>
+          /**
+            * 更新游戏数据
+            **/
+          println("start------------")
+          try {
+            timeline.play()
+            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
+            gameContainerOpt.get.getTankId(e.tankId)
+          }catch {
+            case e:Exception=>
+              closeHolder
+              println(e.getMessage)
+              print("client is stop!!!")
+          }
 
 
-      case e: TankGameEvent.YouAreKilled =>
+        case e: TankGameEvent.YouAreKilled =>
 
-        /**
-          * 死亡重玩
-          **/
-        println(s"you are killed")
-        killerName = e.name
-        if(e.hasLife){
-//          reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
-          setGameState(GameState.relive)
-        } else setGameState(GameState.stop)
+          /**
+            * 死亡重玩
+            **/
+          println(s"you are killed")
+          killerName = e.name
+          if(e.hasLife){
+            //          reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
+            setGameState(GameState.relive)
+          } else setGameState(GameState.stop)
 
-      case e: TankGameEvent.Ranks =>
+        case e: TankGameEvent.Ranks =>
 
-      /**
-        * 游戏排行榜
-        **/
-        gameContainerOpt.foreach{ t =>
-          t.currentRank = e.currentRank
-          t.historyRank = e.historyRank
-//          t.rankUpdated = true
-        }
+          /**
+            * 游戏排行榜
+            **/
+          gameContainerOpt.foreach{ t =>
+            t.currentRank = e.currentRank
+            t.historyRank = e.historyRank
+            t.rankUpdated = true
+          }
 
-      case e: TankGameEvent.SyncGameState =>
-        gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
 
-      case e: TankGameEvent.SyncGameAllState =>
-        gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
-        logicFrameTime = System.currentTimeMillis()
-        animationTimer.start()
-        setGameState(GameState.play)
+        case e: TankGameEvent.SyncGameState =>
+          gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
 
-      case e: TankGameEvent.UserActionEvent =>
-        gameContainerOpt.foreach(_.receiveUserEvent(e))
+        case e: TankGameEvent.SyncGameAllState =>
+          gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
+          logicFrameTime = System.currentTimeMillis()
+          animationTimer.start()
+          setGameState(GameState.play)
+        case e: TankGameEvent.UserActionEvent =>
+          gameContainerOpt.foreach(_.receiveUserEvent(e))
 
-      case e: TankGameEvent.GameEvent =>
-        e match {
-          case ee:TankGameEvent.GenerateBullet =>
-            gameContainerOpt.foreach(_.receiveGameEvent(e))
-          case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
-        }
 
-      case e: TankGameEvent.PingPackage =>
-        receivePingPackage(e)
+        case e: TankGameEvent.GameEvent =>
+          e match {
+            case ee:TankGameEvent.GenerateBullet =>
+              gameContainerOpt.foreach(_.receiveGameEvent(e))
+            case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
+          }
 
-      case TankGameEvent.RebuildWebSocket =>
-        playGameScreen.drawReplayMsg("存在异地登录。。")
-        closeHolder
+        case e: TankGameEvent.PingPackage =>
+          receivePingPackage(e)
 
-      case _ =>
-        log.info(s"unknow msg={sss}")
+
+        case TankGameEvent.RebuildWebSocket =>
+          playGameScreen.drawReplayMsg("存在异地登录。。")
+          closeHolder
+
+        case _ =>
+          log.info(s"unknow msg={sss}")
+      }
     }
   }
 

@@ -111,21 +111,41 @@ case class GameContainerClientImpl(
       tankMap.get(myTankId) match {
         case Some(tank) =>
           val offset = canvasBoundary / 2 - tank.asInstanceOf[TankImpl].getPosition4Animation(boundary, quadTree, offsetTime)
+//          val t1=System.currentTimeMillis()
           drawBackground(offset)
+//          val t2=System.currentTimeMillis()
           drawObstacles(offset,Point(w,h))
+//          val t3=System.currentTimeMillis()
           drawEnvironment(offset,Point(w,h))
+//          val t4=System.currentTimeMillis()
           drawProps(offset,Point(w,h))
+//          val t5=System.currentTimeMillis()
           drawBullet(offset,offsetTime, Point(w,h))
+//          val t6=System.currentTimeMillis()
           drawTank(offset,offsetTime,Point(w,h))
+//          val t7=System.currentTimeMillis()
           drawObstacleBloodSlider(offset)
+//          val t8=System.currentTimeMillis()
           drawMyTankInfo(tank.asInstanceOf[TankImpl])
+//          val t9=System.currentTimeMillis()
           drawMinimap(tank)
+//          val t10=System.currentTimeMillis()
           drawRank()
+//          val t11=System.currentTimeMillis()
           renderFps(networkLatency)
+//          val t12=System.currentTimeMillis()
           drawKillInformation()
+//          val t13=System.currentTimeMillis()
           drawRoomNumber()
+//          val t14=System.currentTimeMillis()
           drawCurMedicalNum(tank.asInstanceOf[TankImpl])
-
+//          val t15=System.currentTimeMillis()
+      /*    val l=List(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15)
+          l.reduceLeft{(a,b)=> {
+            print(s"---time--${b-a} ")
+            b
+          }}
+          print("==============")*/
           if(tank.cavasFrame >=1) {
             tank.cavasFrame += 1
           }

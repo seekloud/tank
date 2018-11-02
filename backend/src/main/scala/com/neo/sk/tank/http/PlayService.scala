@@ -39,7 +39,7 @@ trait PlayService extends AuthService{
     ){ case (name, userId, nickName, accessCode, roomIdOpt) =>
       authPlatUser(accessCode){ user =>
 //        complete("error")
-        val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_, Some(user)))
+        val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_, Some(user),roomIdOpt))
         dealFutureResult(
           flowFuture.map(t => handleWebSocketMessages(t))
         )

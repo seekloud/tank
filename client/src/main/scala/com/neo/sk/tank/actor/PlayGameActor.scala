@@ -19,7 +19,8 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
-import com.neo.sk.tank.App.{system, materializer, executor, timeout, scheduler}
+import com.neo.sk.tank.App.{executor, materializer, scheduler, system, timeout}
+import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
 
 /**
   * Created by hongruying on 2018/10/23
@@ -33,7 +34,7 @@ object PlayGameActor {
 
   sealed trait Command
 
-  final case class ConnectGame(name: String) extends Command
+  final case class ConnectGame(playInfo:PlayerInfo,gameInfo:GameServerInfo,roomInfo:Option[String]) extends Command
 
   final case object ConnectTimerKey
 
@@ -76,7 +77,8 @@ object PlayGameActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case msg: ConnectGame =>
-          val url = getWebSocketUri(msg.name)
+          val url = getWebSocketUri(msg)
+          println(s"url---$url")
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(url))
           val source = getSource
           val sink = getSink(control)
@@ -174,6 +176,9 @@ object PlayGameActor {
             println(s"decode binaryMessage failed,error:${e.message}")
             control.wsMessageHandler(TankGameEvent.DecodeError())
         }
+
+      case _ =>
+
     }
   }
 
@@ -195,12 +200,14 @@ object PlayGameActor {
 
   /**
     * 链接由从平台获得IP和端口后拼接*/
-  @deprecated
-  def getWebSocketUri(name: String): String = {
+  def getWebSocketUri(info:ConnectGame): String = {
     val wsProtocol = "ws"
     //todo 更改为目标端口
-//    val host = "10.1.29.250:30369"
-    val host = "localhost:30369"
-    s"$wsProtocol://$host/tank/game/join?name=$name"
+    val host = "10.1.29.250:30369"
+//    val host = info.gameInfo.domain
+    s"$wsProtocol://$host/tank/game/join?name=${info.playInfo.nickName}" + {info.roomInfo match {
+      case Some(r)=>s"&roomId=$r"
+      case None=>""
+    }}
   }
 }
