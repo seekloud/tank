@@ -31,7 +31,7 @@ object LoginActor {
 
   final case object Login extends Command
   final case class WSLogin(url:String) extends Command
-
+  final case object GetImage extends Command
   final case class Request(m: String) extends Command
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -39,33 +39,40 @@ object LoginActor {
     Behaviors.receive[Command]{ (ctx, msg) =>
       msg match {
         case Login =>
-          EsheepClient.getLoginInfo().onComplete{
-            case Success(rst) =>
-              rst match {
-                case Right(value) =>
-                  controller.showScanUrl(value.scanUrl)
-                  ctx.self ! WSLogin(value.wsUrl)
-                  idle(controller)
-                case Left(error) =>
-                  //异常
-                  println(error)
-              }
-            case Failure(exception) =>
-              //异常
-              log.warn(s"${ctx.self.path} VerifyAccessCode failed, error:${exception.getMessage}")
-          }
-          idle(controller)
+           ctx.self ! GetImage
+           idle(controller)
         case _=>
           Behaviors.same
       }
     }
   }
 
+
   def idle(controller: LoginScreenController)(
   ): Behavior[Command] = {
     Behaviors.receive[Command]{ (ctx, msg) =>
       println("idle")
       msg match {
+        case GetImage =>
+          EsheepClient.getLoginInfo().onComplete{
+            case Success(rst) =>
+              rst match {
+                case Right(value) =>
+                  controller.showScanUrl(value.scanUrl)
+                  //controller.showLoginError("获取二维码失败")
+                  ctx.self ! WSLogin(value.wsUrl)
+                case Left(error) =>
+                  //异常
+                  println(error)
+                  controller.showLoginError("获取二维码失败")
+              }
+            case Failure(exception) =>
+              //异常
+              log.warn(s"${ctx.self.path} VerifyAccessCode failed, error:${exception.getMessage}")
+              controller.showLoginError("获取二维码失败")
+          }
+          Behaviors.same
+
         case WSLogin(url) =>
           println(s"i got msg ${url}")
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(url))
@@ -117,19 +124,22 @@ object LoginActor {
                   case Right(value) =>
                     val playerInfo= PlayerInfo(s"user${data.userId}", data.nickname,value.accessCode)
                     val gameServerInfo = GameServerInfo(value.gsPrimaryInfo.ip, value.gsPrimaryInfo.port, value.gsPrimaryInfo.domain)
+                    controller.showSuccess()
                     controller.joinGame(playerInfo, gameServerInfo)
                   case Left(error) =>
                     //异常
+                    controller.showLoginError("登录失败")
                     println(error)
                 }
               case Failure(exception) =>
                 //异常
                 log.warn(s" linkGameAgent failed, error:${exception.getMessage}")
+                controller.showLoginError("登录失败")
             }
 
           case Left(error) =>
-            println("decode error")
-           // TextMsg("decode error")
+            //controller.showLoginError(error.getMessage)
+            println(s"not Ws4AgentRsp msg ,msg : ${msg}")
         }
 
 

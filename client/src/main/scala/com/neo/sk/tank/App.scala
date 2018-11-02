@@ -16,12 +16,14 @@ import javafx.application.Application
 import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.Canvas
 import javafx.stage.Stage
+
 import com.neo.sk.tank.controller.{HallScreenController, LoginScreenController}
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
 
 import concurrent.duration._
 import javafx.application.Platform
 
+import akka.actor.typed.ActorRef
 import com.neo.sk.tank.actor.LoginActor
 /**
   * Created by hongruying on 2018/10/22
@@ -66,6 +68,7 @@ object App{
   def pushStack2AppThread(fun: => Unit) = {
     Platform.runLater(() => fun)
   }
+
 
 
 }
