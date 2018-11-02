@@ -51,7 +51,7 @@ object EsheepClient extends HttpUtil {
   }
 
 
-  def linkGameAgent(token:String, playerId: String): Future[Either[ErrorRsp,GameServerInfo]] = {
+  def linkGameAgent(token:String, playerId: String): Future[Either[ErrorRsp,GameServerData]] = {
     val methodName = s"joinGame"
     val url = s"${baseUrl}/esheep/api/gameAgent/joinGame?token=$token"
 
@@ -64,7 +64,7 @@ object EsheepClient extends HttpUtil {
         decode[JoinGameRsp](jsonStr) match {
           case Right(rsp) =>
             if(rsp.errCode == 0){
-              Right(rsp.data.gsPrimaryInfo)
+              Right(rsp.data)
             }else{
               log.debug(s"${methodName} failed,error:${rsp.msg}")
               Left(ErrorRsp(rsp.errCode, rsp.msg))
