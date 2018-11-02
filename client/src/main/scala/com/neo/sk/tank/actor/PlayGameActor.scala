@@ -203,7 +203,8 @@ object PlayGameActor {
   def getWebSocketUri(info:ConnectGame): String = {
     val wsProtocol = "ws"
     //todo 更改为目标端口
-    val host = "10.1.29.250:30369"
+//    val host = "10.1.29.250:30369"
+    val host = "localhost:30369"
 //    val host = info.gameInfo.domain
     s"$wsProtocol://$host/tank/game/join?name=${info.playInfo.nickName}" + {info.roomInfo match {
       case Some(r)=>s"&roomId=$r"
