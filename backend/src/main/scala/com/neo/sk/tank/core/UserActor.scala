@@ -235,6 +235,7 @@ object UserActor {
           Behaviors.same
 
         case unknowMsg =>
+          stashBuffer.stash(unknowMsg)
 //          log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
       }
