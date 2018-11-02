@@ -132,11 +132,11 @@ trait RecordApiService extends ServiceUtils{
   }
 
   private val getRecordPlayerList=(path("getRecordPlayerList") & post){
-    dealPostReq[GetUserInRecordReq]{req=>
+  /*  dealPostReq[GetUserInRecordReq]{req=>
       val flowFuture:Future[GetUserInRecordRsp]=userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId,req.playerId,_))
       flowFuture.map(r=>complete(r))
-    }
-     /* entity(as[Either[Error,GetUserInRecordReq]]){
+    }*/
+      entity(as[Either[Error,GetUserInRecordReq]]){
         case Right(req)=>
           val flowFuture:Future[GetUserInRecordRsp]=userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId,req.playerId,_))
           dealFutureResult(
@@ -144,7 +144,7 @@ trait RecordApiService extends ServiceUtils{
           )
         case Left(e)=>
           complete(CommonErrorCode.parseJsonError)
-      }*/
+      }
   }
 
 
