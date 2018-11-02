@@ -3,8 +3,8 @@ package com.neo.sk.tank.http
 import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives.{complete, _}
 import akka.http.scaladsl.server.Route
-import com.neo.sk.tank.protocol.{CommonErrorCode, EsheepProtocol}
-import com.neo.sk.tank.protocol.RecordApiProtocol.{DownloadRecordReq, GameRec, GetGameRecByPlayerReq, GetGameRecByTimeReq, GetGameRecReq, GetGameRecRsp}
+import com.neo.sk.tank.protocol.{CommonErrorCode, EsheepProtocol, ReplayProtocol}
+import com.neo.sk.tank.protocol.RecordApiProtocol._
 
 import scala.language.postfixOps
 import com.neo.sk.tank.models.DAO.RecordDAO
@@ -13,11 +13,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.stream.scaladsl.{FileIO, Source}
 import java.io.File
-import com.neo.sk.tank.Boot.{esheepSyncClient, executor, scheduler, timeout}
+
+import com.neo.sk.tank.Boot.{esheepSyncClient, executor, scheduler, timeout, userManager}
 import com.neo.sk.tank.core.EsheepSyncClient
 import com.neo.sk.tank.shared.ptcl.ErrorRsp
+
 import scala.concurrent.Future
 import akka.actor.typed.scaladsl.AskPattern._
+import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameReq, GetRecordFrameRsp, GetUserInRecordReq, GetUserInRecordRsp}
 
 
 /**
@@ -121,8 +124,31 @@ trait RecordApiService extends ServiceUtils{
       }
     }
 
+  private val getRecordFrame=(path("getRecordFrame") & post){
+    dealPostReq[GetRecordFrameReq]{req=>
+      val flowFuture:Future[GetRecordFrameRsp]=userManager ? (ReplayProtocol.GetRecordFrameMsg(req.recordId,req.playerId,_))
+      flowFuture.map(r=>complete(r))
+    }
+  }
+
+  private val getRecordPlayerList=(path("getRecordPlayerList") & post){
+    dealPostReq[GetUserInRecordReq]{req=>
+      val flowFuture:Future[GetUserInRecordRsp]=userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId,req.playerId,_))
+      flowFuture.map(r=>complete(r))
+    }
+  /*    entity(as[Either[Error,GetUserInRecordReq]]){
+        case Right(req)=>
+          val flowFuture:Future[GetUserInRecordRsp]=userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId,req.playerId,_))
+          dealFutureResult(
+          flowFuture.map(r=>complete(r))
+          )
+        case Left(e)=>
+          complete(CommonErrorCode.parseJsonError)
+      }*/
+  }
+
 
 
   val GameRecRoutes: Route =
-    getRecordList ~ getRecordListByTime ~ getRecordListByPlayer ~ downloadRecord
+    getRecordList ~ getRecordListByTime ~ getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList
 }

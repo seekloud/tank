@@ -183,7 +183,8 @@ object UserActor {
 
         case StartReplay(rid,uid,f) =>
           getGameReplay(ctx,rid) ! GamePlayer.InitReplay(frontActor,uid,f)
-          Behaviors.same
+          switchBehavior(ctx, "replay", replay(uid, userInfo, startTime, frontActor))
+//          Behaviors.same
 
         case JoinRoomSuccess(tank,config, `uId`,roomActor) =>
           //获取坦克数据和当前游戏桢数据
@@ -239,6 +240,40 @@ object UserActor {
       }
     }
 
+  private def replay(uId:String,
+                     userInfo: TankGameUserInfo,
+                     startTime:Long,
+                     frontActor:ActorRef[TankGameEvent.WsMsgSource])(
+    implicit stashBuffer:StashBuffer[Command],
+    timer:TimerScheduler[Command],
+    sendBuffer:MiddleBufferInJvm
+  ): Behavior[Command] =
+    Behaviors.receive[Command] { (ctx, msg) =>
+      msg match {
+        /**
+          * 本消息内转换为初始状态并给前端发送异地登录消息*/
+        case ChangeBehaviorToInit=>
+          dispatchTo(frontActor,TankGameEvent.RebuildWebSocket)
+          ctx.unwatch(frontActor)
+          switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
+
+        case UserLeft(actor) =>
+          ctx.unwatch(actor)
+          switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
+
+        case msg:GetUserInRecordMsg=>
+          getGameReplay(ctx,msg.recordId) ! msg
+          Behaviors.same
+
+        case msg:GetRecordFrameMsg=>
+          getGameReplay(ctx,msg.recordId) ! msg
+          Behaviors.same
+
+        case unknowMsg =>
+          Behavior.same
+      }
+    }
+
 
   private def observeInit(uId:String, userInfo: TankGameUserInfo, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
@@ -254,6 +289,7 @@ object UserActor {
           switchBehavior(ctx, "observe", observe(uId, userInfo, tank, frontActor, roomActor))
 
         case JoinRoomFail4Watch(error) =>
+          log.debug(s"${ctx.self.path} recv a msg=${msg}")
           frontActor ! TankGameEvent.Wrap(TankGameEvent.WsMsgErrorRsp(1, error).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           frontActor ! TankGameEvent.CompleteMsgServer
           Behaviors.stopped
@@ -268,7 +304,7 @@ object UserActor {
           Behaviors.same
 
         case ChangeBehaviorToInit=>
-          dispatchTo(frontActor,TankGameEvent.RebuildWebSocket)
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.RebuildWebSocket.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           ctx.unwatch(frontActor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
@@ -315,7 +351,8 @@ object UserActor {
           Behaviors.same
 
         case ChangeBehaviorToInit=>
-          dispatchTo(frontActor,TankGameEvent.RebuildWebSocket)
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.RebuildWebSocket.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          roomActor ! RoomActor.LeftRoom4Watch(uId, tank.userId)
           ctx.unwatch(frontActor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
@@ -365,15 +402,22 @@ object UserActor {
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
             frontActor ! m
             println(s"${ctx.self.path} tank 当前生命值${tank.getTankState().lives}")
-            roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
-            switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
+            if (tank.lives > 1){
+              //玩家进入复活状态
+              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
+              switchBehavior(ctx,"waitRestartWhenPlay",waitRestartWhenPlay(uId,userInfo,startTime,frontActor, tank))
+            } else {
+              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
+              switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
+            }
           }else{
               frontActor ! m
               Behaviors.same
           }
 
         case ChangeBehaviorToInit=>
-          dispatchTo(frontActor,TankGameEvent.RebuildWebSocket)
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.RebuildWebSocket.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          roomManager ! RoomManager.LeftRoom(uId,tank.tankId,userInfo.name,Some(uId))
           ctx.unwatch(frontActor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
@@ -393,6 +437,55 @@ object UserActor {
 
         case unknowMsg =>
 //          log.warn(s"got unknown msg: $unknowMsg")
+          Behavior.same
+      }
+    }
+
+
+  /**
+    * 死亡重玩状态
+    * */
+  private def waitRestartWhenPlay(uId:String,
+                                  userInfo: TankGameUserInfo,
+                                  startTime:Long,
+                                  frontActor:ActorRef[TankGameEvent.WsMsgSource],
+                                  tank:TankServerImpl)(
+    implicit stashBuffer:StashBuffer[Command],
+    timer:TimerScheduler[Command],
+    sendBuffer:MiddleBufferInJvm
+  ): Behavior[Command] =
+    Behaviors.receive[Command] { (ctx, msg) =>
+      msg match {
+        case WebSocketMsg(reqOpt) =>
+          reqOpt match {
+            case Some(t:TankGameEvent.RestartGame) =>
+              roomManager ! JoinRoom(uId,t.tankIdOpt,Some(t.gameState),t.name,startTime,ctx.self)
+              Behaviors.same
+//              idle(uId,userInfo.copy(name = t.name),startTime,frontActor)
+            case _ =>
+              Behaviors.same
+          }
+        /**
+          * 本消息内转换为初始状态并给前端发送异地登录消息*/
+        case ChangeBehaviorToInit=>
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.RebuildWebSocket.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          roomManager ! RoomManager.LeftRoom(uId,tank.tankId,userInfo.name,Some(uId))
+          ctx.unwatch(frontActor)
+          switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
+
+        case UserLeft(actor) =>
+          ctx.unwatch(actor)
+          roomManager ! RoomManager.LeftRoom(uId,tank.tankId,userInfo.name,Some(uId))
+          switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
+
+        case JoinRoomSuccess(t,config, `uId`,roomActor) =>
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,t.tankId, userInfo.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          switchBehavior(ctx,"play",play(uId, userInfo,t,startTime,frontActor,roomActor))
+
+
+
+        case unknowMsg =>
+          log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
       }
     }

@@ -71,7 +71,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     dom.window.cancelAnimationFrame(nextFrame)
     Shortcut.cancelSchedule(timer)
     Shortcut.cancelSchedule(reStartTimer)
-    //    webSocketClient.closeWs
+    webSocketClient.closeWs
   }
 
   protected def gameRender():Double => Unit = {d =>
@@ -92,7 +92,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       webSocketClient.sendMsg(msg)
   }
 
-  private def checkScreenSize={
+  protected def checkScreenSize={
     val newWidth=dom.window.innerWidth.toFloat
     val newHeight=dom.window.innerHeight.toFloat
     if(newWidth!=canvasWidth||newHeight!=canvasHeight){
