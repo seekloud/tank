@@ -1,5 +1,7 @@
 package com.neo.sk.tank.view
 
+import java.io.ByteArrayInputStream
+
 import com.neo.sk.tank.common.Context
 import com.neo.sk.tank.shared.model.Point
 import javafx.scene.{Group, Scene}
@@ -7,9 +9,10 @@ import javafx.scene.canvas.Canvas
 import javafx.scene.image.{Image, ImageView}
 import javafx.scene.web.WebEngine
 import javafx.scene.web.WebView
-import javafx.scene.control.ScrollPane
-import javafx.scene.layout.HBox
+import javafx.scene.control.{Label, ScrollPane}
+import javafx.scene.layout.{BorderPane, HBox}
 import javafx.scene.text.Text
+import sun.misc.BASE64Decoder
 
 /**
   * Created by hongruying on 2018/10/23
@@ -23,19 +26,22 @@ class LoginScreen(context: Context) {
   def showScanUrl(scanUrl:String) = {
     println(scanUrl)
     val url = scanUrl
+    val decoder = new BASE64Decoder()
+    val bytes = decoder.decodeBuffer(scanUrl.split(",")(1))
+    val root = new BorderPane
 
-    val textBox = new HBox()
-    val text = new Text(350, 300, "请扫码登录")
-    textBox.getChildren.add(text)
 
-    val browser = new WebView()
-    val webEngine = browser.getEngine
-    webEngine.load(scanUrl)
+    val out = new ByteArrayInputStream(bytes)
+    val image = new Image(out)
+    println(image.getHeight)
+    val imageView = new ImageView()
+    imageView.setImage(image)
+    val label = new Label("testsssssssssssssss")
 
-    val groupNew = new Group()
-    groupNew.getChildren.add(browser)
-    //groupNew.getChildren.add(hbox)
-    val senceNew = new Scene(groupNew)
+    root.setCenter(imageView)
+    root.setBottom(label)
+
+    val senceNew = new Scene(root,400,400)
     context.switchScene(senceNew)
   }
 
