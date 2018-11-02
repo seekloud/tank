@@ -24,9 +24,9 @@ trait Background{ this:GameContainerClientImpl =>
   private val cacheCanvasMap = mutable.HashMap.empty[String, Image]
   private val rankWidth = 26
   private val rankHeight = 24
-  private val currentRankCanvas = new Canvas(math.max(rankWidth * canvasUnit, 26 * 4), math.max(rankHeight * canvasUnit, 24 * 4))
+  private val currentRankCanvas = new Canvas(math.max(rankWidth * 10, rankWidth * canvasUnit), math.max(rankHeight * 10, rankHeight * canvasUnit))
   private val currentRankCanvasCtx = currentRankCanvas.getGraphicsContext2D
-  private val historyRankCanvas = new Canvas(math.max(rankWidth * canvasUnit, 26 * 4), math.max(rankHeight * canvasUnit, 24 * 4))
+  private val historyRankCanvas = new Canvas(rankWidth * 10, rankHeight * 10)
   private val historyRankCanvasCtx = historyRankCanvas.getGraphicsContext2D
   var rankUpdated: Boolean = true
   private val goldImg = new Image(App.getClass.getResourceAsStream("/img/金牌.png"))
@@ -86,13 +86,13 @@ trait Background{ this:GameContainerClientImpl =>
         val unit = currentRankCanvas.getWidth / rankWidth
         println(s"rank =${historyRankCanvas.getWidth}, canvasUnit=${canvasUnit}, unit=${unit}")
         val leftBegin = 4 * unit
-        context.setFont(Font.font("Arial", FontWeight.BOLD, 1.2 * canvasUnit))
+        context.setFont(Font.font("Arial", FontWeight.BOLD, 1.4 * canvasUnit))
         context.clearRect(0, 0, currentRankCanvas.getWidth, currentRankCanvas.getHeight)
 
         var index = 0
         context.setFill(Color.BLACK)
         context.setTextAlign(TextAlignment.CENTER)
-        context.setTextBaseline(VPos.TOP)
+        context.setTextBaseline(VPos.CENTER)
         context.setLineCap(StrokeLineCap.ROUND)
         drawTextLine(header, (currentRankCanvas.getWidth/2).toFloat, unit.toFloat, context)
         rank.foreach { score =>
@@ -119,6 +119,7 @@ trait Background{ this:GameContainerClientImpl =>
           context.lineTo((rankWidth - 2) * unit,(2 * index + 1) * unit)
           context.stroke()
           context.closePath()
+          context.setTextAlign(TextAlignment.LEFT)
           if(historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin.toFloat, (2 * index + 1) * unit.toFloat, context)
           else drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d} lives=${score.l}", leftBegin.toFloat, (2 * index + 1) * unit.toFloat, context)
         }
@@ -137,8 +138,12 @@ trait Background{ this:GameContainerClientImpl =>
         rankUpdated = false
       }
       ctx.setGlobalAlpha(0.8)
-      ctx.drawImage(currentRankCanvas.snapshot(new SnapshotParameters(), null), 0, 0)
-      ctx.drawImage(historyRankCanvas.snapshot(new SnapshotParameters(), null), (canvasBoundary.x - rankWidth) * canvasUnit, 0)
+      val params = new SnapshotParameters
+      params.setFill(Color.TRANSPARENT)
+      ctx.drawImage(currentRankCanvas.snapshot(params, null), 0, 0)
+      val params1 = new SnapshotParameters
+      params1.setFill(Color.TRANSPARENT)
+      ctx.drawImage(historyRankCanvas.snapshot(params1, null), canvasBoundary.x * canvasUnit - rankWidth * 10, 0)
       ctx.setGlobalAlpha(1)
 
   }
