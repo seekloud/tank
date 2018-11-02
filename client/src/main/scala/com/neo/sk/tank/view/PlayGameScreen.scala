@@ -14,8 +14,11 @@ import com.neo.sk.utils.JavaFxUtil.getCanvasUnit
 class PlayGameScreen(context: Context) {
 
   //todo 此处目前为固定视野，之后修改为可放大
-  protected var canvasWidth = 800
-  protected var canvasHeight = 800
+  import javafx.stage.Screen
+
+  val screen= Screen.getPrimary.getVisualBounds
+  protected var canvasWidth = screen.getMaxX.toFloat
+  protected var canvasHeight = screen.getMaxY.toFloat
   var canvasUnit = getCanvasUnit(canvasWidth)
   var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
   val group = new Group()
