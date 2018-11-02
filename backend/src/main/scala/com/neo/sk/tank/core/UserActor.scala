@@ -269,7 +269,7 @@ object UserActor {
           Behaviors.same
 
         case ChangeBehaviorToInit=>
-          dispatchTo(frontActor,TankGameEvent.RebuildWebSocket)
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.RebuildWebSocket.fillMiddleBuffer(sendBuffer).result())
           ctx.unwatch(frontActor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
@@ -316,7 +316,8 @@ object UserActor {
           Behaviors.same
 
         case ChangeBehaviorToInit=>
-          dispatchTo(frontActor,TankGameEvent.RebuildWebSocket)
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.RebuildWebSocket.fillMiddleBuffer(sendBuffer).result())
+          roomActor ! RoomActor.LeftRoom4Watch(uId, tank.userId)
           ctx.unwatch(frontActor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
@@ -374,7 +375,7 @@ object UserActor {
           }
 
         case ChangeBehaviorToInit=>
-          dispatchTo(frontActor,TankGameEvent.RebuildWebSocket)
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.RebuildWebSocket.fillMiddleBuffer(sendBuffer).result())
           roomManager ! RoomManager.LeftRoom(uId,tank.tankId,userInfo.name,Some(uId))
           ctx.unwatch(frontActor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
