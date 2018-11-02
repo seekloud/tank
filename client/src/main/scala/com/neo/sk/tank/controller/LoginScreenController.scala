@@ -3,7 +3,7 @@ package com.neo.sk.tank.controller
 import akka.actor.typed.ActorRef
 import com.neo.sk.tank.actor.LoginActor
 import com.neo.sk.tank.common.Context
-import com.neo.sk.tank.view.{GameHallScreen, LoginScreen, PlayGameScreen}
+import com.neo.sk.tank.view.{GameHallScreen, LoginScene, LoginScreen, PlayGameScreen}
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.tank.App
 import com.neo.sk.tank.actor.LoginActor.Request
@@ -19,7 +19,7 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
 
   import com.neo.sk.tank.App._
 
-  private val loginActor: ActorRef[LoginActor.Command] = system.spawn(LoginActor.create(this),"LoginManager")
+  val loginActor: ActorRef[LoginActor.Command] = system.spawn(LoginActor.create(this),"LoginManager")
 
   loginActor ! LoginActor.Login
 
@@ -28,11 +28,27 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
    // joinGame(PlayerInfo("test","test","sgadga"),GameServerInfo("","",""))
   }
 
+  loginScreen.setLoginSceneListener(new LoginScene.LoginSceneListener {
+    override def onButtonConnect(): Unit = {
+      loginActor ! LoginActor.GetImage
+    }
+
+  })
+
   /**
     * 显示扫码图片
     * */
   def showScanUrl(scanUrl:String):Unit = {
     App.pushStack2AppThread(loginScreen.showScanUrl(scanUrl))
+  }
+
+  def showSuccess()={
+    App.pushStack2AppThread(loginScreen.loginSuccess())
+  }
+
+
+  def showLoginError(error: String)={
+    App.pushStack2AppThread(loginScreen.getImgError(error))
   }
 
 
