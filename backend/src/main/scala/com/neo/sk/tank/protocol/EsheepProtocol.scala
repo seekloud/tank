@@ -29,6 +29,7 @@ object EsheepProtocol {
                          nickname:String
                        )
 
+
   case class VerifyAccessCodeInfo(
                                    playerInfo:PlayerInfo
                                  )
@@ -51,7 +52,18 @@ object EsheepProtocol {
                                msg: String = "ok"
                                ) extends CommonRsp
 
-  case class PlayerList(playerList:List[PlayerInfo])
+  case class PlayerInRecordInfo(
+                                 playerId:String,
+                                 nickname:String,
+                                 existTime:List[ExistTimeInfo]
+                               )
+
+  case class ExistTimeInfo(
+                          startFrame:Long,
+                          endFrame:Long
+                          )
+
+  case class PlayerList(playerList:List[PlayerInRecordInfo])
 
   /**获取录像播放进度}*/
   case class GetRecordFrameReq(
