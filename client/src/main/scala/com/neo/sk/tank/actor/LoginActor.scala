@@ -11,15 +11,16 @@ import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import com.neo.sk.tank.controller.LoginScreenController
 import com.neo.sk.tank.model._
 import org.slf4j.LoggerFactory
-import utils.EsheepClient
 import io.circe.parser.decode
 import io.circe.generic.auto._
+
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
-import com.neo.sk.tank.App.{system,materializer,executor}
+import com.neo.sk.tank.App.{executor, materializer, system}
 import com.neo.sk.tank.controller.LoginScreenController
+import com.neo.sk.utils.EsheepClient
 
 /**
   * Created by hongruying on 2018/10/23

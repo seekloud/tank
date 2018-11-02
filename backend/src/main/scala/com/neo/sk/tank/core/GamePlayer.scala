@@ -78,7 +78,7 @@ object GamePlayer {
                 work(
                   replay,
                   metaDataDecode(info.simulatorMetadata).right.get,
-                  initStateDecode(info.simulatorInitState).right.get,
+                  initStateDecode(info.simulatorInitState).right.get.asInstanceOf[TankGameEvent.TankGameSnapshot],
                   info.frameCount,
                   userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
                 ))
@@ -98,7 +98,7 @@ object GamePlayer {
 
   def work(fileReader:FrameInputStream,
            metaData:GameInformation,
-           initState:TankGameEvent.GameSnapshot,
+           initState:TankGameEvent.TankGameSnapshot,
            frameCount:Int,
            userMap:List[(EssfMapKey,EssfMapJoinLeftInfo)],
            userOpt:Option[ActorRef[TankGameEvent.WsMsgSource]]=None
@@ -155,8 +155,11 @@ object GamePlayer {
           Behaviors.same
 
         case msg:GetUserInRecordMsg=>
-          val data=userMap.map{r=>PlayerInfo(r._1.userId,r._1.name)}
-          msg.replyTo ! GetUserInRecordRsp(PlayerList(data))
+          val data=userMap.groupBy(r=>(r._1.userId,r._1.name)).map{r=>
+            val fList=r._2.map(f=>ExistTimeInfo(f._2.joinF-initState.state.f,f._2.leftF-initState.state.f))
+            PlayerInRecordInfo(r._1._1,r._1._2,fList)
+          }.toList
+          msg.replyTo ! GetUserInRecordRsp(PlayerList(frameCount,data))
           Behaviors.same
 
         case msg:TimeOut=>

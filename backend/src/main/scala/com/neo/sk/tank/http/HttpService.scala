@@ -109,7 +109,6 @@ trait HttpService
             }
           }
         }
-
     }
   }
 
