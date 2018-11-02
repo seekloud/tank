@@ -106,7 +106,9 @@ class PlayScreenController(
     logicFrameTime = System.currentTimeMillis()
     timeline.setCycleCount(Animation.INDEFINITE)
     val keyFrame = new KeyFrame(Duration.millis(100), { _ =>
-      logicLoop()
+      App.pushStack2AppThread{
+        logicLoop()
+      }
     })
     timeline.getKeyFrames.add(keyFrame)
   }
