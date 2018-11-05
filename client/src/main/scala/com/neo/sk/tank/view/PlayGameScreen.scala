@@ -9,6 +9,7 @@ import javafx.scene.canvas.Canvas
 import javafx.scene.image.Image
 import com.neo.sk.utils.JavaFxUtil.getCanvasUnit
 import javafx.scene.ImageCursor
+import javafx.scene.layout.HBox
 /**
   * Created by hongruying on 2018/10/23
   * 玩游戏的view
@@ -29,7 +30,10 @@ class PlayGameScreen(context: Context) {
   canvas.setHeight(canvasHeight)
   canvas.setWidth(canvasWidth)
   val scene = new Scene(group)
-
+//  val box = new HBox()
+//  box.getChildren.addAll(canvas)
+//  canvas.setLayoutX((screen.getMinX+screen.getMaxX).toFloat/2)
+//  canvas.setLayoutY((screen.getMaxY+screen.getMinY).toFloat/2)
 
   val image = new Image(App.getClass.getResourceAsStream("/img/瞄准.png"))
   scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))

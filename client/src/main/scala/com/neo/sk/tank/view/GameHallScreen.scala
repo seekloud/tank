@@ -6,7 +6,7 @@ import com.neo.sk.tank.common.{Constants, Context}
 import com.neo.sk.tank.model
 import com.neo.sk.tank.model.PlayerInfo
 import javafx.collections.{FXCollections, ObservableArray, ObservableList}
-import javafx.geometry.{Insets, Pos}
+import javafx.geometry.{HPos, Insets, Pos, VPos}
 import javafx.scene.{Group, Scene}
 import javafx.scene.control._
 import javafx.scene.layout._
@@ -56,21 +56,29 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
 
     confirmBtn.setPrefSize(100,20)
     randomBtn.setPrefSize(100,20)
+
     vBox4Info.setPadding(new Insets(15,12,15,12))
-    vBox4Btn.setPadding(new Insets(120,20,15,20))
+    vBox4Btn.setPadding(new Insets(150,20,15,20))
+
     vBox4Info.setSpacing(10)
     vBox4Info.setStyle("-fx-background-color:#336699;")
 
     vBox4Btn.setSpacing(10)
-    listView.setMaxWidth(200)
-    listView.setPrefWidth(150)
-    listView.setPrefHeight(200)
+    vBox4Center.setMaxWidth(300)
+    vBox4Center.setMaxHeight(500)
+    vBox4Center.setPrefWidth(200)
+    vBox4Center.setPrefHeight(200)
 
     vBox4Center.setPadding(new Insets(30,30,30,30))
     VBox.setMargin(roomListLabel,new Insets(0,0,5,8))
     VBox.setMargin(listView,new Insets(0,0,5,8))
     VBox.setMargin(roomIdTextField,new Insets(0,0,5,8))
-    hBox.setPadding(new Insets(20,20,20,100))
+//    hBox.setPadding(new Insets(20,20,20,100))
+    hBox.setAlignment(Pos.CENTER)
+
+    HBox.setHgrow(vBox4Center,Priority.ALWAYS)
+    borderPane.prefHeightProperty().bind(scene.heightProperty())
+    borderPane.prefWidthProperty().bind(scene.widthProperty())
   }
 
   def add():Unit = {
@@ -83,8 +91,6 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     borderPane.setCenter(hBox)
     group.getChildren.addAll(borderPane)
 
-//    group.setAutoSizeChildren(true)
-//    group.autoSizeChildrenProperty()
     setListenerFunc()
   }
 

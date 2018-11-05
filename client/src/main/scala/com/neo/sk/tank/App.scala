@@ -34,9 +34,14 @@ class App extends Application{
 
   override def start(primaryStage: Stage): Unit = {
     val context = new Context(primaryStage)
-    val loginScreen = new LoginScreen(context)
-    val l=new LoginScreenController(context, loginScreen)
-    l.start
+    val playerInfo = new PlayerInfo("dd","dd","dd")
+    val gameServerInfo = new GameServerInfo("dd",111,"ff")
+    val gameHallScreen = new GameHallScreen(context,playerInfo)
+    new HallScreenController(context,gameHallScreen,gameServerInfo,playerInfo)
+    context.switchScene(gameHallScreen.getScene,resize = true)
+//    val loginScreen = new LoginScreen(context)
+//    val l=new LoginScreenController(context, loginScreen)
+//    l.start
   }
 
 }
