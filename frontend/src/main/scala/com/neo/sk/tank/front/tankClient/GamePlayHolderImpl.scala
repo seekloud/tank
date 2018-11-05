@@ -249,6 +249,9 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           * 死亡重玩
           * */
         println(s"you are killed")
+        killNum = e.killTankNum
+        killerList = killerList :+ e.name
+        damageNum = e.damageStatistics
         killerName = e.name
         if(e.hasLife){
           reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
