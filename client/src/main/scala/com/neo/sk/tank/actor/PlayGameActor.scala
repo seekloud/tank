@@ -223,6 +223,6 @@ object PlayGameActor {
     //todo 更改为目标端口
     val host = "10.1.29.250:30369"
 //    val host = info.gameInfo.domain
-    Route.getJoinGameWebSocketUri(info.playInfo.nickName,host,info.roomInfo)
+    Route.getUserJoinGameWebSocketUri(info.playInfo.nickName,info.gameInfo.domain,info.playInfo,info.roomInfo)
   }
 }
