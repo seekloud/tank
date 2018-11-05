@@ -51,6 +51,8 @@ class LoginScreen(context: Context) {
     label.setFont(Font.font("Cambria", 32))
     label.setLayoutX(170)
     label.setLayoutY(330)
+//    imageView.prefWidth()
+//    label.prefHeightProperty()
 
     root.getChildren.add(imageView)
     root.getChildren.add(label)
