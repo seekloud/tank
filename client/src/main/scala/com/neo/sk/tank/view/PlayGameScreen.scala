@@ -19,9 +19,14 @@ class PlayGameScreen(context: Context) {
   //todo 此处目前为固定视野，之后修改为可放大
   import javafx.stage.Screen
 
+  //todo 此处涉及到显卡的最大纹理尺寸
   val screen= Screen.getPrimary.getVisualBounds
+  println(s"----width--${screen.getMaxX.toFloat}")
+  println(s"----width--${screen.getMaxY.toFloat}")
   protected var canvasWidth = screen.getMaxX.toFloat
   protected var canvasHeight = screen.getMaxY.toFloat
+//  protected var canvasWidth = 1440
+//  protected var canvasHeight = 818
   var canvasUnit = getCanvasUnit(canvasWidth)
   var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
   val group = new Group()

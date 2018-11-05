@@ -9,7 +9,7 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.stream.scaladsl.{Flow, Keep, Sink}
 import akka.stream.OverflowStrategy
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource, _}
-import akka.util.ByteString
+import akka.util.{ByteString, ByteStringBuilder}
 import com.neo.sk.tank.controller.PlayScreenController
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, FailMsgServer, WsMsgSource}
@@ -178,7 +178,25 @@ object PlayGameActor {
             control.wsMessageHandler(TankGameEvent.DecodeError())
         }
 
+        //akka http 分片流
+      case msg: BinaryMessage.Streamed =>
+        println(s"ssssssssssss${msg}")
+        val f = msg.dataStream.runFold(new ByteStringBuilder().result()) {
+          case (s, str) => s.++(str)
+        }
+        f.map { m =>
+          val buffer = new MiddleBufferInJvm(m.asByteBuffer)
+          bytesDecode[TankGameEvent.WsMsgServer](buffer) match {
+            case Right(req) =>
+              control.wsMessageHandler(req)
+            case Left(e) =>
+              println(s"decode binaryMessage failed,error:${e.message}")
+              control.wsMessageHandler(TankGameEvent.DecodeError())
+          }
+        }
+
       case _ =>
+
 
     }
   }
@@ -203,10 +221,8 @@ object PlayGameActor {
     * 链接由从平台获得IP和端口后拼接*/
   def getWebSocketUri(info:ConnectGame): String = {
     //todo 更改为目标端口
-    val host = "localhost"
+    val host = "10.1.29.250:30369"
 //    val host = info.gameInfo.domain
-//    Route.getJoinGameWebSocketUri(info.playInfo.nickName,"10.1.29.250"+":"+info.gameInfo.port,info.playInfo,info.roomInfo)
-//    s"ws://flowdev.neoap.com/tank/game/join&name=${info.playInfo.nickName}"
-    Route.getJoinGameWebSocketUri(info.playInfo.nickName,host+":"+info.gameInfo.port,info.roomInfo)
+    Route.getJoinGameWebSocketUri(info.playInfo.nickName,host,info.roomInfo)
   }
 }
