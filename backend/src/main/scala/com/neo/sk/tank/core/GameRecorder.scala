@@ -122,14 +122,20 @@ object GameRecorder {
           val wsMsg = t.event._1
           wsMsg.foreach{
                  case UserJoinRoom(userId, name, tankState,frame) =>
-                   userAllMap.put(userId, (tankState.tankId,name))
-                   userMap.put(userId, (tankState.tankId,name))
-                   essfMap.put(EssfMapKey(tankState.tankId, userId, name), EssfMapJoinLeftInfo(frame, -1l))
+                   if(tankState.lives >= gameRecordData.gameInformation.tankConfig.getTankLivesLimit){
+                     userAllMap.put(userId, (tankState.tankId,name))
+                     userMap.put(userId, (tankState.tankId,name))
+                     essfMap.put(EssfMapKey(tankState.tankId, userId, name), EssfMapJoinLeftInfo(frame, -1l))
+                   }
+
 
                  case UserLeftRoom(userId, name, tankId,frame) =>
                    userMap.remove(userId)
-                   val startF = essfMap(EssfMapKey(tankId, userId, name)).joinF
-                   essfMap.put(EssfMapKey(tankId, userId,name), EssfMapJoinLeftInfo(startF,frame))
+                   if(essfMap.get(EssfMapKey(tankId, userId, name)).isDefined){
+                     val startF = essfMap(EssfMapKey(tankId, userId, name)).joinF
+                     essfMap.put(EssfMapKey(tankId, userId,name), EssfMapJoinLeftInfo(startF,frame))
+                   }
+
 
                  case _ =>
 
