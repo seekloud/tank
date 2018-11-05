@@ -101,7 +101,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       canvasHeight=newHeight
       canvasUnit = getCanvasUnit(canvasWidth)
       canvasBoundary=Point(canvasWidth, canvasHeight) / canvasUnit
-      println(s"update screen=${canvasUnit},=${canvasWidth}")
+      println(s"update screen=${canvasUnit},=${(canvasWidth,canvasHeight)}")
       canvas.width = canvasWidth.toInt
       canvas.height = canvasHeight.toInt
       gameContainerOpt.foreach{r=>
