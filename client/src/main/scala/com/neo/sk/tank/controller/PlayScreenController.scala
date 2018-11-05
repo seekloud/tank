@@ -54,6 +54,9 @@ class PlayScreenController(
   private var eKeyBoardState4AddBlood = true
   private val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
 
+  private var recvYourInfo: Boolean = false
+  private var recvSyncGameAllState: Option[TankGameEvent.SyncGameAllState] = None
+
 
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
   private var gameState = GameState.loadingPlay
@@ -244,9 +247,9 @@ class PlayScreenController(
 
   /**
     * 此处处理消息*/
-  def wsMessageHandler(data: TankGameEvent.WsMsgServer) = {
+  def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
     println(data.getClass)
-    App.pushStack2AppThread{
+//    App.pushStack2AppThread{
       data match {
         case e: TankGameEvent.YourInfo =>
           /**
@@ -254,9 +257,11 @@ class PlayScreenController(
             **/
           println("start------------")
           try {
-            timeline.play()
             gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
             gameContainerOpt.get.getTankId(e.tankId)
+            recvYourInfo = true
+
+            recvSyncGameAllState.foreach(t => wsMessageHandler(t))
           }catch {
             case e:Exception=>
               closeHolder
@@ -293,10 +298,17 @@ class PlayScreenController(
           gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
 
         case e: TankGameEvent.SyncGameAllState =>
-          gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
-          logicFrameTime = System.currentTimeMillis()
-          animationTimer.start()
-          setGameState(GameState.play)
+          if(!recvYourInfo){
+            println("----发生预料事件")
+            recvSyncGameAllState = Some(e)
+          } else {
+            gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
+            logicFrameTime = System.currentTimeMillis()
+            animationTimer.start()
+            timeline.play()
+            setGameState(GameState.play)
+          }
+
         case e: TankGameEvent.UserActionEvent =>
           gameContainerOpt.foreach(_.receiveUserEvent(e))
 
@@ -320,7 +332,7 @@ class PlayScreenController(
           log.info(s"unknow msg={sss}")
       }
     }
-  }
+//  }
 
 
 

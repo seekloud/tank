@@ -40,15 +40,17 @@ abstract class GameHolder(name:String) extends NetworkInfo{
 
   println(s"test111111111111=${canvasUnit},=${canvasWidth}")
 
+  protected var killNum:Int = 0
+  protected var damageNum:Int = 0
+  var killerList = List.empty[String] //（击杀者）
+
   protected var firstCome = true
 
   protected val gameStateVar:Var[Int] = Var(GameState.firstCome)
   protected var gameState:Int = GameState.firstCome
 
   protected var killerName:String = ""
-  private var killNum:Int = 0
-  private var damageNum:Int = 0
-  var killerList = List.empty[String] //（击杀者）
+
 
   protected var gameContainerOpt : Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
 
@@ -101,7 +103,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       canvasHeight=newHeight
       canvasUnit = getCanvasUnit(canvasWidth)
       canvasBoundary=Point(canvasWidth, canvasHeight) / canvasUnit
-      println(s"update screen=${canvasUnit},=${canvasWidth}")
+      println(s"update screen=${canvasUnit},=${(canvasWidth,canvasHeight)}")
       canvas.width = canvasWidth.toInt
       canvas.height = canvasHeight.toInt
       gameContainerOpt.foreach{r=>
@@ -127,7 +129,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
         Shortcut.cancelSchedule(timer)
         Shortcut.cancelSchedule(reStartTimer)
         drawGameStop()
-        Shortcut.scheduleOnce(() => drawCombatGains(), 1000)
+        drawCombatGains()
         dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
 
       case GameState.relive =>
@@ -179,18 +181,21 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     println()
   }
 
-  protected def drawCombatGains():Unit = {
+  protected def drawCombatGains(): Unit = {
     val combatGians = dom.document.getElementById("combat_gains").asInstanceOf[Div]
     val combatP_1 = dom.document.createElement("p").asInstanceOf[Paragraph]
     combatP_1.innerHTML = s"击杀数:<span>${killNum}</span>"
     val combatP_2 =  dom.document.createElement("p").asInstanceOf[Paragraph]
     combatP_2.innerHTML = s"伤害量:<span>${damageNum}</span>"
     val combatP_3 =  dom.document.createElement("p").asInstanceOf[Paragraph]
-    combatP_3.innerHTML = s"击杀者ID:<span>${killerList.head}</span>、<span>${killerList(1)}</span>、<span>${killerList(2)}</span>"
+    var temp = ""
+    killerList.foreach{r => temp += s"<span>${r}</span>"}
+    combatP_3.innerHTML = s"击杀者ID:" + temp
     combatGians.appendChild(combatP_1)
     combatGians.appendChild(combatP_2)
     combatGians.appendChild(combatP_3)
   }
+
 
 
   protected def drawGameRestart()

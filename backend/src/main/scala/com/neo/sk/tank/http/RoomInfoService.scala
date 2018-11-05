@@ -5,14 +5,15 @@ import akka.http.scaladsl.server.Directives._
 import akka.actor.typed.scaladsl.AskPattern._
 
 import scala.concurrent.Future
-import com.neo.sk.tank.Boot.{roomManager, scheduler, executor, timeout}
+import com.neo.sk.tank.Boot.{executor, roomManager, scheduler, timeout}
 import com.neo.sk.tank.protocol.WatchGameProtocol._
 import com.neo.sk.tank.shared.ptcl.ErrorRsp
 import org.slf4j.LoggerFactory
 import akka.util.Timeout
+import com.neo.sk.utils.HttpUtil
 
 
-trait RoomInfoService extends ServiceUtils{
+trait RoomInfoService extends ServiceUtils with HttpUtil{
   import io.circe._
   import io.circe.generic.auto._
 
