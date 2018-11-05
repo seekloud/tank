@@ -8,14 +8,30 @@ import com.neo.sk.tank.model.PlayerInfo
   * Time at 上午11:25
   */
 object Route {
-  def getJoinGameWebSocketUri(name:String, domain:String, playerInfo:PlayerInfo,roomIdOpt:Option[String]): String = {
+  def getUserJoinGameWebSocketUri(name:String, domain:String, playerInfo:PlayerInfo, roomIdOpt:Option[String]): String = {
     val wsProtocol = "ws"
-//    s"$wsProtocol://${domain}/tank${wsJoinGameUrl(name,playerInfo.playerId, playerInfo.nickName, playerInfo.accessCode, roomIdOpt)}"
-    s"$wsProtocol://localhost:30369/tank${wsJoinGameUrl(name,playerInfo.playerId, playerInfo.nickName, playerInfo.accessCode, roomIdOpt)}"
+    s"$wsProtocol://${domain}/tank${wsUserJoinGameUrl(name,playerInfo.playerId, playerInfo.nickName, playerInfo.accessCode, roomIdOpt)}"
+    //    s"$wsProtocol://localhost:30369/tank${wsJoinGameUrl(name,playerInfo.playerId, playerInfo.nickName, playerInfo.accessCode, roomIdOpt)}"
   }
 
-  def wsJoinGameUrl(name:String, userId:String, userName:String, accessCode:String, roomIdOpt:Option[String]): String = {
+  def getJoinGameWebSocketUri(name:String, domain:String, roomIdOpt:Option[String]): String = {
+    val wsProtocol = "ws"
+    s"$wsProtocol://${domain}/tank${wsJoinGameUrl(name, roomIdOpt)}"
+    //    s"$wsProtocol://localhost:30369/tank${wsJoinGameUrl(name,playerInfo.playerId, playerInfo.nickName, playerInfo.accessCode, roomIdOpt)}"
+  }
+
+  def wsUserJoinGameUrl(name:String, userId:String, userName:String, accessCode:String, roomIdOpt:Option[String]): String = {
     s"/game/userJoin?name=$name&userId=$userId&userName=$userName&accessCode=$accessCode" +
+      (roomIdOpt match {
+        case Some(roomId) =>
+          s"&roomId=$roomId"
+        case None =>
+          ""
+      })
+  }
+
+  def wsJoinGameUrl(name:String, roomIdOpt:Option[String]): String = {
+    s"/game/join?name=$name" +
       (roomIdOpt match {
         case Some(roomId) =>
           s"&roomId=$roomId"
