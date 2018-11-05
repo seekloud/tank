@@ -182,7 +182,6 @@ object RoomActor {
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           justJoinUser.foreach{t =>
             val ls = gameContainer.getUserActor4WatchGameList(t._1)
-            println(s"-----sysGameAllState--${t._1}")
             dispatchTo(subscribersMap,observersMap)(t._1,TankGameEvent.SyncGameAllState(gameContainerAllState),ls)
           }
           val endTime = System.currentTimeMillis()
@@ -226,14 +225,14 @@ object RoomActor {
   import org.seekloud.byteobject.ByteObject._
 
   def dispatch(subscribers:mutable.HashMap[String,ActorRef[UserActor.Command]],observers:mutable.HashMap[String,ActorRef[UserActor.Command]])( msg:TankGameEvent.WsMsgServer)(implicit sendBuffer:MiddleBufferInJvm) = {
-    println(s"+++++++++++++++++${msg.getClass}")
+//    println(s"+++++++++++++++++${msg.getClass}")
     val isKillMsg = msg.isInstanceOf[TankGameEvent.YouAreKilled]
     subscribers.values.foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
     observers.values.foreach(_ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
   }
 
   def dispatchTo(subscribers:mutable.HashMap[String,ActorRef[UserActor.Command]],observers:mutable.HashMap[String,ActorRef[UserActor.Command]])( id:String,msg:TankGameEvent.WsMsgServer,observersByUserId:Option[mutable.HashMap[String,ActorRef[UserActor.Command]]])(implicit sendBuffer:MiddleBufferInJvm) = {
-    println(s"$id--------------${msg.getClass}")
+//    println(s"$id--------------${msg.getClass}")
     msg match {
       case k:TankGameEvent.YouAreKilled =>
         subscribers.get(id).foreach( _ ! UserActor.InputRecordByDead(k.killTankNum,k.lives,k.damageStatistics))
