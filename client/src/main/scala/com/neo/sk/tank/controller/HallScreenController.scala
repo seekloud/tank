@@ -82,7 +82,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
     override def randomBtnListener(): Unit = {
       App.pushStack2AppThread{
         val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
-        context.switchScene(playGameScreen.getScene(),resize = true)
+        context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
         new PlayScreenController(playerInfo,gameServerInfo,context,playGameScreen).start
         close()
       }
@@ -97,7 +97,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
             case _ => roomIdTextField
           }
           val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
-          context.switchScene(playGameScreen.getScene(),resize = true)
+          context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
           new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomId)).start
           close()
         }else{

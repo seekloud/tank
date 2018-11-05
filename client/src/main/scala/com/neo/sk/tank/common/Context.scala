@@ -8,15 +8,13 @@ import javafx.stage.Stage
   */
 class Context(stage: Stage) {
 
-  def switchScene(scene: Scene, title:String = "Tank Game",resize:Boolean = false) = {
+  def switchScene(scene: Scene, title:String = "Tank Game",resize:Boolean = false,fullScreen:Boolean = false) = {
+    stage.centerOnScreen()
     stage.setScene(scene)
     stage.sizeToScene()
     stage.setResizable(resize)
     stage.setTitle(title)
-    println(scene.getWidth)
-
-//    stage.setMaximized(true)
-//    stage.setFullScreen(true)
+    stage.setFullScreen(fullScreen)
     stage.show()
   }
 

@@ -9,7 +9,7 @@ import javafx.scene.canvas.Canvas
 import javafx.scene.image.Image
 import com.neo.sk.utils.JavaFxUtil.getCanvasUnit
 import javafx.scene.ImageCursor
-import javafx.scene.layout.HBox
+import javafx.scene.layout.{BorderPane, HBox}
 /**
   * Created by hongruying on 2018/10/23
   * 玩游戏的view
@@ -23,6 +23,12 @@ class PlayGameScreen(context: Context) {
   val screen= Screen.getPrimary.getVisualBounds
   protected var canvasWidth = screen.getMaxX.toFloat
   protected var canvasHeight = screen.getMaxY.toFloat
+//  protected var canvasWidth = 1000
+//  protected var canvasHeight = 500
+//  println(canvasWidth)//1280
+//  println(canvasHeight)//680
+//  protected var canvasWidth = 548
+//  protected var canvasHeight = 548
   var canvasUnit = getCanvasUnit(canvasWidth)
   var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
   val group = new Group()
@@ -30,8 +36,13 @@ class PlayGameScreen(context: Context) {
   canvas.setHeight(canvasHeight)
   canvas.setWidth(canvasWidth)
   val scene = new Scene(group)
-//  val box = new HBox()
-//  box.getChildren.addAll(canvas)
+//  val border = new BorderPane()
+//  border.setCenter(canvas)
+//  border.prefHeightProperty().bind(scene.heightProperty())
+//  border.prefWidthProperty().bind(scene.widthProperty())
+//  scene.xProperty()
+//  box.prefHeightProperty().bind(scene.xProperty())
+//  println(scene.xProperty())
 //  canvas.setLayoutX((screen.getMinX+screen.getMaxX).toFloat/2)
 //  canvas.setLayoutY((screen.getMaxY+screen.getMinY).toFloat/2)
 
