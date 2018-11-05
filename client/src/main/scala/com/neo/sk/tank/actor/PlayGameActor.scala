@@ -9,7 +9,7 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.stream.scaladsl.{Flow, Keep, Sink}
 import akka.stream.OverflowStrategy
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource, _}
-import akka.util.ByteString
+import akka.util.{ByteString, ByteStringBuilder}
 import com.neo.sk.tank.controller.PlayScreenController
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, FailMsgServer, WsMsgSource}
@@ -178,7 +178,22 @@ object PlayGameActor {
             control.wsMessageHandler(TankGameEvent.DecodeError())
         }
 
-      case _ =>
+      case msg: BinaryMessage.Streamed =>
+        println(s"ssssssssssss${msg}")
+        val f = msg.dataStream.runFold(new ByteStringBuilder().result()) {
+          case (s, str) => s.++(str)
+        }
+        f.map { m =>
+          val buffer = new MiddleBufferInJvm(m.asByteBuffer)
+          bytesDecode[TankGameEvent.WsMsgServer](buffer) match {
+            case Right(req) =>
+              control.wsMessageHandler(req)
+            case Left(e) =>
+              println(s"decode binaryMessage failed,error:${e.message}")
+              control.wsMessageHandler(TankGameEvent.DecodeError())
+          }
+        }
+
 
     }
   }
