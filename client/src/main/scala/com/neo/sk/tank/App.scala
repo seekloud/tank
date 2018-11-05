@@ -36,12 +36,12 @@ class App extends Application{
     val context = new Context(primaryStage)
     val playerInfo = new PlayerInfo("dd","dd","dd")
     val gameServerInfo = new GameServerInfo("dd",111,"ff")
-    val gameHallScreen = new GameHallScreen(context,playerInfo)
-    new HallScreenController(context,gameHallScreen,gameServerInfo,playerInfo)
-    context.switchScene(gameHallScreen.getScene,resize = true)
-//    val loginScreen = new LoginScreen(context)
-//    val l=new LoginScreenController(context, loginScreen)
-//    l.start
+//    val gameHallScreen = new GameHallScreen(context,playerInfo)
+//    new HallScreenController(context,gameHallScreen,gameServerInfo,playerInfo)
+//    context.switchScene(gameHallScreen.getScene,resize = true)
+    val loginScreen = new LoginScreen(context)
+    val l=new LoginScreenController(context, loginScreen)
+    l.start
   }
 
 }
