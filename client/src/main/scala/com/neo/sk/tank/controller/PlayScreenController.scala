@@ -248,8 +248,7 @@ class PlayScreenController(
   /**
     * 此处处理消息*/
   def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
-    println(data.getClass)
-//    App.pushStack2AppThread{
+    App.pushStack2AppThread{
       data match {
         case e: TankGameEvent.YourInfo =>
           /**
@@ -260,7 +259,6 @@ class PlayScreenController(
             gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
             gameContainerOpt.get.getTankId(e.tankId)
             recvYourInfo = true
-
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))
           }catch {
             case e:Exception=>
@@ -332,7 +330,7 @@ class PlayScreenController(
           log.info(s"unknow msg={sss}")
       }
     }
-//  }
+  }
 
 
 
