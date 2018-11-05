@@ -73,7 +73,7 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     hBox.setPadding(new Insets(20,20,20,100))
   }
 
-  def add() = {
+  def add():Unit = {
     setFont()
     vBox4Info.getChildren.addAll(playerIdLabel,nicknameLabel)
     vBox4Btn.getChildren.addAll(confirmBtn,randomBtn)
@@ -88,19 +88,19 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     setListenerFunc()
   }
 
-  def getScene() = this.scene
+  def getScene:Scene = this.scene
 
-  def setListener(gameHallListener:GameHallListener) = {
+  def setListener(gameHallListener:GameHallListener):Unit = {
     this.listener = gameHallListener
   }
 
-  def updateRoomList(roomList:List[Long]) = {
+  def updateRoomList(roomList:List[Long]):Unit = {
     this.roomList = roomList
     observableList.clear()
     roomList.sortBy(t => t).map(_.toString) foreach observableList.add
   }
 
-  private def setListenerFunc() = {
+  private def setListenerFunc():Unit = {
     confirmBtn.setOnAction(e => listener.confirmBtnListener(listView.getSelectionModel.selectedItemProperty().get(),roomIdTextField.getText()))
     randomBtn.setOnAction(e => listener.randomBtnListener())
   }
