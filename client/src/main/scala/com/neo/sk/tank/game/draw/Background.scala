@@ -8,7 +8,7 @@ import javafx.geometry.VPos
 import javafx.scene.SnapshotParameters
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
-import javafx.scene.image.Image
+import javafx.scene.image.{Image, WritableImage}
 import javafx.scene.paint.Color
 import javafx.scene.shape.StrokeLineCap
 import javafx.scene.text.{Font, FontWeight, TextAlignment}
@@ -51,6 +51,7 @@ trait Background{ this:GameContainerClientImpl =>
     for(i <- 0  to((boundary.y + canvasBoundary.y).toInt,2)){
       drawLine(Point(0 ,i), Point(boundary.x + canvasBoundary.x, i), ctxCache)
     }
+    println(cacheCanvas.getWidth,cacheCanvas.getHeight)
     cacheCanvas.snapshot(new SnapshotParameters(), null)
   }
 
@@ -66,6 +67,7 @@ trait Background{ this:GameContainerClientImpl =>
     val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background",generateBackgroundCanvas())
     ctx.drawImage(cacheCanvas, (-offset.x + canvasBoundary.x/2) * canvasUnit, ( -offset.y+canvasBoundary.y/2 )* canvasUnit, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit, 0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
   }
+
 
   protected def drawLine(start:Point,end:Point, context:GraphicsContext = ctx):Unit = {
     context.beginPath()
