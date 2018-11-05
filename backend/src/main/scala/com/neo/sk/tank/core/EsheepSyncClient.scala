@@ -199,6 +199,11 @@ object EsheepSyncClient {
         ctx.self ! RefreshToken
         ctx.self ! msg
 
+      case 200004 =>
+        //token过期处理
+        ctx.self ! RefreshToken
+        ctx.self ! msg
+
       case _ =>
         unknownErrorHandler()
     }
