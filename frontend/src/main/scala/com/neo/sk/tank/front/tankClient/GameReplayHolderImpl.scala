@@ -79,12 +79,24 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
         /**
           * 在生命值之内死亡重玩，倒计时进入
           * */
-        drawGameStop()
+        drawGameRestart()
 
       case GameState.replayLoading =>
         drawGameLoading()
 
       case _ => println(s"state=${gameState} failed")
+    }
+  }
+
+
+  private def setKillCallback(name:String, hasLife:Boolean, killTankNum:Int, damage:Int) = {
+    println(s"you are killed")
+    killNum = killTankNum
+    killerList = killerList :+ name
+    damageNum = damage
+    killerName = name
+    if(hasLife){
+      reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
     }
   }
 
@@ -94,7 +106,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
       case e:TankGameEvent.YourInfo =>
         println("----Start!!!!!")
         //        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
-        gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
+        gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, setKillCallback = setKillCallback))
         gameContainerOpt.get.getTankId(e.tankId)
 
       case e:TankGameEvent.SyncGameAllState =>
@@ -109,6 +121,16 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
           //fixme 此处存在重复操作
           //remind here allState change into state
           gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks,e.gState.props,e.gState.obstacle,e.gState.tankMoveAction)))
+        }
+
+      case e:TankGameEvent.Ranks =>
+        /**
+          * 游戏排行榜
+          * */
+        gameContainerOpt.foreach{ t =>
+          t.currentRank = e.currentRank
+          t.historyRank = e.historyRank
+          t.rankUpdated = true
         }
 
 
@@ -137,6 +159,12 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
 //              gameContainerOpt.foreach(_.update())
               setGameState(GameState.play)
             }
+
+          case t: TankGameEvent.UserLeftRoom =>
+            if(t.userId == gameContainerOpt.get.myId) {
+              setGameState(GameState.stop)
+            }
+
           case _ =>
         }
 
