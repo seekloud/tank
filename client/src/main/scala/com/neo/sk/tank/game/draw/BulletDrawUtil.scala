@@ -39,7 +39,9 @@ trait BulletDrawUtil { this:GameContainerClientImpl =>
     ctxCache.setLineWidth(radius * canvasUnit / 5)
     ctxCache.stroke()
     ctx.closePath()
-    canvasCache.snapshot(new SnapshotParameters(), null)
+    val params = new SnapshotParameters
+    params.setFill(Color.TRANSPARENT)
+    canvasCache.snapshot(params, null)
   }
 
   private val canvasCacheMap = mutable.HashMap[Byte, Image]()

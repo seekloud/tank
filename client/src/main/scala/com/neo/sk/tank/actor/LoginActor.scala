@@ -18,7 +18,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
-import com.neo.sk.tank.App.{system,materializer,executor}
+import com.neo.sk.tank.App.{executor, materializer, system}
 import com.neo.sk.tank.controller.LoginScreenController
 
 /**
@@ -126,8 +126,8 @@ object LoginActor {
               case Success(rst) =>
                 rst match {
                   case Right(value) =>
-                    val playerInfo= PlayerInfo(s"user${data.userId}", data.nickname, data.token)
-                    val gameServerInfo = GameServerInfo(value.ip, value.port, value.domain)
+                    val playerInfo= PlayerInfo(s"user${data.userId}", data.nickname,value.accessCode)
+                    val gameServerInfo = GameServerInfo(value.gsPrimaryInfo.ip, value.gsPrimaryInfo.port, value.gsPrimaryInfo.domain)
                     controller.showSuccess()
                     controller.joinGame(playerInfo, gameServerInfo)
                   case Left(error) =>

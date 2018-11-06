@@ -3,6 +3,8 @@ package com.neo.sk.tank.protocol
 import akka.actor.typed.ActorRef
 import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameRsp, GetUserInRecordRsp}
 import com.neo.sk.tank.core._
+import com.neo.sk.tank.shared.ptcl.CommonRsp
+
 import scala.collection.mutable
 
 /**
@@ -23,6 +25,6 @@ object ReplayProtocol {
   final case class EssfMapInfo(m:List[(EssfMapKey,EssfMapJoinLeftInfo)])
 
   /**Actor间查询信息*/
-  final case class GetUserInRecordMsg(recordId:Long, watchId:String, replyTo:ActorRef[GetUserInRecordRsp]) extends UserManager.Command with UserActor.Command with GamePlayer.Command
-  final case class GetRecordFrameMsg(recordId:Long, watchId:String, replyTo:ActorRef[GetRecordFrameRsp]) extends UserManager.Command with UserActor.Command with GamePlayer.Command
+  final case class GetUserInRecordMsg(recordId:Long, watchId:String, replyTo:ActorRef[CommonRsp]) extends UserManager.Command with UserActor.Command with GamePlayer.Command
+  final case class GetRecordFrameMsg(recordId:Long, watchId:String, replyTo:ActorRef[CommonRsp]) extends UserManager.Command with UserActor.Command with GamePlayer.Command
 }

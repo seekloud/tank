@@ -28,7 +28,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
       ctx.fillStyle = "rgb(250, 250, 250)"
       ctx.textAlign = "left"
       ctx.textBaseline = "top"
-      ctx.font = "36px Helvetica"
+      ctx.font = s"${3.6 * canvasUnit}px Helvetica"
       ctx.fillText(s"重新进入房间，倒计时：${countDownTimes}",150,100)
       ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
       countDownTimes = countDownTimes - 1
@@ -39,6 +39,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
   }
 
   override protected def gameLoop(): Unit = {
+    checkScreenSize
     gameContainerOpt.foreach(_.update())
     logicFrameTime = System.currentTimeMillis()
   }
@@ -49,7 +50,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
   }
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
-    println(data.getClass)
+//    println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
         //        setGameState(Constants.GameState.loadingPlay)

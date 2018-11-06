@@ -32,10 +32,9 @@ import scala.util.{Failure, Success}
   * */
 class HallScreenController(val context:Context, val gameHall:GameHallScreen, gameServerInfo: GameServerInfo, playerInfo:PlayerInfo){
   private val log = LoggerFactory.getLogger(this.getClass)
-
   private def getRoomListInit() = {
     //需要起一个定时器，定时刷新请求
-    val url = s"http://flowdev.neoap.com/tank/getRoomList"
+    val url = s"http://${gameServerInfo.domain}/tank/getRoomList"
 //    val url = s"http://localhost:30369/tank/getRoomList"
     val jsonData = genPostEnvelope("esheep",System.nanoTime().toString,{}.asJson.noSpaces,"").asJson.noSpaces
     postJsonRequestSend("post",url,List(),jsonData,timeOut = 60 * 1000,needLogRsp = false).map{
@@ -49,12 +48,12 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
               Left("Error")
             }
           case Left(error) =>
-            log.debug(s"444")
+            log.debug(s"获取房间列表失败，${error}")
             Left("Error")
 
         }
       case Left(error) =>
-        log.debug(s"555")
+        log.debug(s"获取房间列表失败，${error}")
         Left("Error")
     }
   }
@@ -63,9 +62,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
     scheduler.schedule(1.millis,1.minutes){
       updateRoomList()
     }
-//    updateRoomList()
   }
-
 
   private def updateRoomList() = {
     getRoomListInit().onComplete{
@@ -81,13 +78,11 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
     }
   }
 
-
-
   gameHall.setListener(new GameHallListener{
     override def randomBtnListener(): Unit = {
       App.pushStack2AppThread{
         val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
-        context.switchScene(playGameScreen.getScene())
+        context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
         new PlayScreenController(playerInfo,gameServerInfo,context,playGameScreen).start
         close()
       }
@@ -96,17 +91,14 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
 
     override def confirmBtnListener(roomIdListView: String, roomIdTextField:String): Unit = {
       App.pushStack2AppThread{
-        println(roomIdListView)
         if(roomIdListView != null || roomIdTextField != ""){
           val roomId = roomIdTextField match{
             case "" => roomIdListView
             case _ => roomIdTextField
           }
           val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
-          context.switchScene(playGameScreen.getScene())
-          //        playGameScreen.requestFocus()
-//          new PlayScreenController(playerInfo,gameServerInfo,context,playGameScreen)
-          new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen).start
+          context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
+          new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomId)).start
           close()
         }else{
           val warn = new Alert(Alert.AlertType.WARNING,"还没有选择房间哦",new ButtonType("确定",ButtonBar.ButtonData.YES))
@@ -116,15 +108,10 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
         }
       }
 
-
-
     }
 
   })
 
-  private def close() = {
-
-
-  }
+  private def close() = {}
 
 }
