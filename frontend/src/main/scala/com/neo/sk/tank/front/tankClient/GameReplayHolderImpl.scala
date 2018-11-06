@@ -167,6 +167,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
 
           case t: TankGameEvent.UserLeftRoom =>
             if(t.userId == gameContainerOpt.get.myId) {
+              println(s"recv userLeft=${t},set stop")
               setGameState(GameState.stop)
             }
 
