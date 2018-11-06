@@ -103,7 +103,8 @@ case class GameContainerServerImpl(
 
   override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
     val tankState = tank.getTankState()
-    dispatchTo(tank.userId,TankGameEvent.YouAreKilled(bulletTankId, bulletTankName, tankState.lives > 1, tank.killTankNum, tank.lives, tank.damageStatistics), getUserActor4WatchGameList(tank.userId))
+    val killEvent = TankGameEvent.YouAreKilled(bulletTankId, bulletTankName, tankState.lives > 1, tank.killTankNum, tank.lives, tank.damageStatistics)
+    dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
     //后台增加一个玩家离开消息（不传给前端）,以便录像的时候记录玩家死亡和websocket断开的情况。
     if(tankState.lives <= 1){
       val event = TankGameEvent.UserLeftRoom(tank.userId, tank.name, tank.tankId, systemFrame)
@@ -499,12 +500,12 @@ case class GameContainerServerImpl(
     Some(getCurGameSnapshot())
   }
 
-  def getGameEventAndSnapshot():(List[TankGameEvent.WsMsgServer],Option[TankGameEvent.GameSnapshot]) = {
-    ((gameEventMap.getOrElse(this.systemFrame, Nil) ::: actionEventMap.getOrElse(this.systemFrame, Nil))
-      .filter(_.isInstanceOf[TankGameEvent.WsMsgServer]).map(_.asInstanceOf[TankGameEvent.WsMsgServer]),
-      Some(getCurGameSnapshot())
-    )
-  }
+//  def getGameEventAndSnapshot():(List[TankGameEvent.WsMsgServer],Option[TankGameEvent.GameSnapshot]) = {
+//    ((gameEventMap.getOrElse(this.systemFrame, Nil) ::: actionEventMap.getOrElse(this.systemFrame, Nil))
+//      .filter(_.isInstanceOf[TankGameEvent.WsMsgServer]).map(_.asInstanceOf[TankGameEvent.WsMsgServer]),
+//      Some(getCurGameSnapshot())
+//    )
+//  }
 
 
   override protected def handleGenerateObstacle(e:TankGameEvent.GenerateObstacle) :Unit = {
