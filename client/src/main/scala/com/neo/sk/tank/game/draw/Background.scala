@@ -39,6 +39,7 @@ trait Background{ this:GameContainerClientImpl =>
 
   private def generateBackgroundCanvas():Image = {
     val cacheCanvas = new Canvas(((boundary.x + canvasBoundary.x) * canvasUnit).toInt, ((boundary.y + canvasBoundary.y) * canvasUnit).toInt)
+//    val cacheCanvas = new Canvas((boundary.x * canvasUnit).toInt, (boundary.y * canvasUnit).toInt)
     val ctxCache = cacheCanvas.getGraphicsContext2D
     clearScreen("#BEBEBE", 1, boundary.x + canvasBoundary.x, boundary.y + canvasBoundary.y, ctxCache)
     clearScreen("#E8E8E8",1, boundary.x, boundary.y, ctxCache, canvasBoundary / 2)
@@ -51,7 +52,13 @@ trait Background{ this:GameContainerClientImpl =>
     for(i <- 0  to((boundary.y + canvasBoundary.y).toInt,2)){
       drawLine(Point(0 ,i), Point(boundary.x + canvasBoundary.x, i), ctxCache)
     }
-    println(cacheCanvas.getWidth,cacheCanvas.getHeight)
+   /* for(i <- 0  to(boundary.x.toInt,2)){
+      drawLine(Point(i,0), Point(i, boundary.y + canvasBoundary.y), ctxCache)
+    }
+
+    for(i <- 0  to(boundary.y.toInt,2)){
+      drawLine(Point(0 ,i), Point(boundary.x + canvasBoundary.x, i), ctxCache)
+    }*/
     cacheCanvas.snapshot(new SnapshotParameters(), null)
   }
 
