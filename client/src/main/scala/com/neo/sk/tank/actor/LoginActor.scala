@@ -32,6 +32,7 @@ object LoginActor {
   final case class WSLogin(url:String) extends Command
   final case object GetImage extends Command
   final case class Request(m: String) extends Command
+  final case object StopWs extends Command
   private val log = LoggerFactory.getLogger(this.getClass)
 
   def create(controller: LoginScreenController): Behavior[Command] = {
@@ -97,6 +98,11 @@ object LoginActor {
           } //链接断开时
 
           Behaviors.same
+
+
+        case StopWs =>
+           println("ws stop now ")
+          Behaviors.stopped
 
 
         case _ =>
