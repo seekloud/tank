@@ -24,6 +24,7 @@ import scala.concurrent.Future
 import com.neo.sk.utils.ESSFSupport.{initFileReader => _, metaDataDecode => _, userMapDecode => _, _}
 import com.neo.sk.tank.protocol.ReplayProtocol.{GetRecordFrameMsg, GetUserInRecordMsg}
 import com.neo.sk.tank.Boot.executor
+import com.neo.sk.tank.shared.ptcl.ErrorRsp
 import com.neo.sk.utils.ESSFSupport
 /**
   * User: sky
@@ -190,6 +191,14 @@ object GamePlayer {
       msg match {
         case msg:InitReplay =>
           dispatchTo(msg.userActor,TankGameEvent.InitReplayError("游戏文件不存在或者已损坏！！"))
+          Behaviors.stopped
+
+        case msg:GetRecordFrameMsg=>
+          msg.replyTo ! ErrorRsp(10001,"init error")
+          Behaviors.stopped
+
+        case msg:GetUserInRecordMsg=>
+          msg.replyTo ! ErrorRsp(10001,"init error")
           Behaviors.stopped
       }
     }

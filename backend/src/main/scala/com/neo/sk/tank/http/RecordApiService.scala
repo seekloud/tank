@@ -16,7 +16,7 @@ import java.io.File
 
 import com.neo.sk.tank.Boot.{esheepSyncClient, executor, scheduler, timeout, userManager}
 import com.neo.sk.tank.core.EsheepSyncClient
-import com.neo.sk.tank.shared.ptcl.ErrorRsp
+import com.neo.sk.tank.shared.ptcl.{CommonRsp, ErrorRsp}
 
 import scala.concurrent.Future
 import akka.actor.typed.scaladsl.AskPattern._
@@ -126,19 +126,45 @@ trait RecordApiService extends ServiceUtils{
 
   private val getRecordFrame=(path("getRecordFrame") & post){
     dealPostReq[GetRecordFrameReq]{req=>
-      val flowFuture:Future[GetRecordFrameRsp]=userManager ? (ReplayProtocol.GetRecordFrameMsg(req.recordId,req.playerId,_))
-      flowFuture.map(r=>complete(r))
+      val flowFuture:Future[CommonRsp]=userManager ? (ReplayProtocol.GetRecordFrameMsg(req.recordId,req.playerId,_))
+      flowFuture.map {
+        case r: GetRecordFrameRsp =>
+          complete(r)
+        case _ =>
+          complete(ErrorRsp(10001, "init error"))
+      }
     }
+
+    /*entity(as[Either[Error,GetRecordFrameReq]]){
+      case Right(req)=>
+        val flowFuture:Future[CommonRsp]=userManager ? (ReplayProtocol.GetRecordFrameMsg(req.recordId,req.playerId,_))
+        dealFutureResult{
+          flowFuture.map {
+            case r: GetRecordFrameRsp =>
+              complete(r)
+            case _=>
+              complete(ErrorRsp(10001,"init error"))
+          }
+        }
+
+      case Left(e)=>
+        complete(CommonErrorCode.parseJsonError)
+    }*/
   }
 
   private val getRecordPlayerList=(path("getRecordPlayerList") & post){
     dealPostReq[GetUserInRecordReq]{req=>
-      val flowFuture:Future[GetUserInRecordRsp]=userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId,req.playerId,_))
-      flowFuture.map(r=>complete(r))
+      val flowFuture:Future[CommonRsp]=userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId,req.playerId,_))
+      flowFuture.map {
+        case r: GetUserInRecordRsp =>
+          complete(r)
+        case _=>
+          complete(ErrorRsp(10001,"init error"))
+      }
     }
   /*    entity(as[Either[Error,GetUserInRecordReq]]){
         case Right(req)=>
-          val flowFuture:Future[GetUserInRecordRsp]=userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId,req.playerId,_))
+          val flowFuture:Future[CommonRsp]=userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId,req.playerId,_))
           dealFutureResult(
           flowFuture.map(r=>complete(r))
           )
