@@ -60,10 +60,8 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
     println("joinGame----------")
     loginActor ! LoginActor.StopWs
     App.pushStack2AppThread{
-      val playGameScreen = new PlayGameScreen(context)
-      //new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen).start
       val gameHallScreen = new GameHallScreen(context, playerInfo)
-      context.switchScene(gameHallScreen.getScene())
+      context.switchScene(gameHallScreen.getScene,resize = true)
       new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)
       close()
     }

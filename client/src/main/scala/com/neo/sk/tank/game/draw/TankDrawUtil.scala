@@ -6,13 +6,13 @@ import com.neo.sk.tank.shared.`object`.TankImpl
 import com.neo.sk.tank.shared.model.Constants.{InvincibleSize, SmallBullet}
 import com.neo.sk.tank.shared.model.Point
 import javafx.geometry.VPos
-import javafx.scene.SnapshotParameters
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.scene.shape.{StrokeLineCap, StrokeLineJoin}
-import javafx.scene.text.{Font, FontPosture, FontWeight, TextAlignment}
+import javafx.scene.text.{Font, FontWeight, TextAlignment}
+import javafx.scene.SnapshotParameters
 
 import scala.collection.mutable
 
@@ -178,7 +178,9 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     drawLevel(tank.getSpeedLevel,config.getTankSpeedMaxLevel(),"速度等级",Point(5,20 - 8) * canvasUnit,20 * canvasUnit,"#66CD00",ctxCache)
     drawLevel(tank.getBulletLevel,config.getBulletMaxLevel(),"炮弹等级",Point(5,20 - 4) * canvasUnit,20 * canvasUnit,"#1C86EE",ctxCache)
     drawLevel(tank.lives.toByte,config.getTankLivesLimit.toByte,s"生命值",Point(5,20-16) * canvasUnit,20 * canvasUnit,"#FFA500",ctxCache)
-    canvasCache.snapshot(new SnapshotParameters(), null)
+    val params = new SnapshotParameters
+    params.setFill(Color.TRANSPARENT)
+    canvasCache.snapshot(params, null)
   }
 
   protected def drawMyTankInfo(tank:TankImpl) = {
@@ -224,7 +226,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     }
     context.setFont(Font.font("Arial", FontWeight.BOLD, 1.8 * canvasUnit))
     context.setTextAlign(TextAlignment.CENTER)
-//    context.setTextBaseline(VPos.TOP)
+    context.setTextBaseline(VPos.CENTER)
     context.setFill(Color.web("#FCFCFC"))
     context.fillText(name, start.x + length / 2, start.y)
   }
@@ -244,8 +246,8 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     (1 to medicalNum).foreach{ index =>
       val smallMedicalPosition = (Point(8,(canvasBoundary.y - 21)) + Point(index * config.propRadius * 3 / 2,0))
       val img = fillMedicalImg
-      ctx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit,
-        (smallMedicalPosition.y - config.propRadius) * canvasUnit,
+      ctx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
+        (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
         1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit)
     }
     ctx.setGlobalAlpha(0.5)
@@ -253,8 +255,8 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     (medicalNum + 1 to config.getTankMedicalLimit).foreach{ index =>
       val smallMedicalPosition = (Point(8,(canvasBoundary.y - 21)) + Point(index * config.propRadius * 3 / 2,0))
       val img = emptyMedicalImg
-      ctx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit,
-        (smallMedicalPosition.y - config.propRadius) * canvasUnit,
+      ctx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
+        (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
         1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit)
     }
     ctx.setGlobalAlpha(1)

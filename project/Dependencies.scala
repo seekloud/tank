@@ -108,6 +108,7 @@ object Dependencies {
         Dependencies.scalaXml,
         Dependencies.nscalaTime,
         Dependencies.codec,
+        Dependencies.logback,
         Dependencies.asynchttpclient,
         Dependencies.essf,
         Dependencies.byteobject

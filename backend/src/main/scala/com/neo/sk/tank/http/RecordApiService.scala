@@ -3,8 +3,8 @@ package com.neo.sk.tank.http
 import org.slf4j.LoggerFactory
 import akka.http.scaladsl.server.Directives.{complete, _}
 import akka.http.scaladsl.server.Route
-import com.neo.sk.tank.protocol.{CommonErrorCode, EsheepProtocol}
-import com.neo.sk.tank.protocol.RecordApiProtocol.{DownloadRecordReq, GameRec, GetGameRecByPlayerReq, GetGameRecByTimeReq, GetGameRecReq, GetGameRecRsp}
+import com.neo.sk.tank.protocol.{CommonErrorCode, EsheepProtocol, ReplayProtocol}
+import com.neo.sk.tank.protocol.RecordApiProtocol._
 
 import scala.language.postfixOps
 import com.neo.sk.tank.models.DAO.RecordDAO
@@ -13,11 +13,17 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.stream.scaladsl.{FileIO, Source}
 import java.io.File
-import com.neo.sk.tank.Boot.{esheepSyncClient, executor, scheduler, timeout}
+
+import com.neo.sk.tank.Boot.{esheepSyncClient, executor, scheduler, timeout, userManager}
 import com.neo.sk.tank.core.EsheepSyncClient
-import com.neo.sk.tank.shared.ptcl.ErrorRsp
+import com.neo.sk.tank.shared.ptcl.{CommonRsp, ErrorRsp}
+
 import scala.concurrent.Future
 import akka.actor.typed.scaladsl.AskPattern._
+import com.neo.sk.tank.core.EsheepSyncClient
+import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameReq, GetRecordFrameRsp, GetUserInRecordReq, GetUserInRecordRsp}
+import com.neo.sk.utils.SecureUtil.generateSignature
+import scala.util.{Success,Failure}
 
 
 /**
@@ -93,10 +99,9 @@ trait RecordApiService extends ServiceUtils{
   }
 
   private val downloadRecord = (path("downloadRecord")){
-    parameter('token){token =>
-      val verifyTokenFutureRst: Future[EsheepProtocol.GameServerKey2TokenRsp] = esheepSyncClient ? (e => EsheepSyncClient.VerifyToken(e))
-      dealFutureResult(verifyTokenFutureRst.map{rsp =>
-        if(rsp.data.get.token == token){
+    parameter('code){code =>
+      dealFutureResult(checkCode(code).map{rsp =>
+        if(rsp){
           dealPostReq[DownloadRecordReq]{req =>
             RecordDAO.getFilePath(req.recordId).map{r =>
               val fileName = r.head
@@ -115,14 +120,99 @@ trait RecordApiService extends ServiceUtils{
             }
           }
         }else{
-          complete(getGameRecErrorRsp(s"token验证失败"))
+          complete(getGameRecErrorRsp(s"code验证失败"))
         }
       })
       }
     }
 
+  private def generateCode(appId:String, secureKey:String) = {
+    val timeStamp = System.currentTimeMillis()
+    val tokenInfo: Future[EsheepProtocol.GameServerKey2TokenRsp] = esheepSyncClient ? (e => EsheepSyncClient.VerifyToken(e))
+    tokenInfo.flatMap{r =>
+      val sList = appId :: r.data.get.token :: timeStamp.toString :: Nil
+      val code = generateSignature(sList, secureKey)
+      val deadline = timeStamp + 1000 * 60
+      RecordDAO.insertCodeForDownload(deadline, code).map{r =>
+        if(r > 0) code
+        else ""
+      }
+    }
+  }
+
+  private def checkCode(code:String) = {
+    val nowTime = System.currentTimeMillis()
+    RecordDAO.selectCodeForDownload(nowTime).map{r =>
+      if(r.contains(code)) true else false
+    }
+  }
+
+   def deleteCode = {
+    val nowTime = System.currentTimeMillis()
+    RecordDAO.deleteCodeForDownload(nowTime).onComplete{
+      case Success(v) => println("delete successfully")
+      case Failure(ex) => println("delete not completed")
+    }
+  }
+
+  private val token2Code = (path("token2code") & get & pathEndOrSingleSlash){
+    dealFutureResult(generateCode("tank", "sjdakhjskJHK7768G76sdksdkasHU").map(r =>
+      if(r != "") complete(EsheepProtocol.CodeForDownloadRsp(r))
+      else complete(ErrorRsp(100021, "generate code error"))
+    ))
+  }
+
+  private val getRecordFrame=(path("getRecordFrame") & post){
+    dealPostReq[GetRecordFrameReq]{req=>
+      val flowFuture:Future[CommonRsp]=userManager ? (ReplayProtocol.GetRecordFrameMsg(req.recordId,req.playerId,_))
+      flowFuture.map {
+        case r: GetRecordFrameRsp =>
+          complete(r)
+        case _ =>
+          complete(ErrorRsp(10001, "init error"))
+      }
+    }
+
+    /*entity(as[Either[Error,GetRecordFrameReq]]){
+      case Right(req)=>
+        val flowFuture:Future[CommonRsp]=userManager ? (ReplayProtocol.GetRecordFrameMsg(req.recordId,req.playerId,_))
+        dealFutureResult{
+          flowFuture.map {
+            case r: GetRecordFrameRsp =>
+              complete(r)
+            case _=>
+              complete(ErrorRsp(10001,"init error"))
+          }
+        }
+
+      case Left(e)=>
+        complete(CommonErrorCode.parseJsonError)
+    }*/
+  }
+
+  private val getRecordPlayerList=(path("getRecordPlayerList") & post){
+    dealPostReq[GetUserInRecordReq]{req=>
+      val flowFuture:Future[CommonRsp]=userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId,req.playerId,_))
+      flowFuture.map {
+        case r: GetUserInRecordRsp =>
+          complete(r)
+        case _=>
+          complete(ErrorRsp(10001,"init error"))
+      }
+    }
+  /*    entity(as[Either[Error,GetUserInRecordReq]]){
+        case Right(req)=>
+          val flowFuture:Future[CommonRsp]=userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId,req.playerId,_))
+          dealFutureResult(
+          flowFuture.map(r=>complete(r))
+          )
+        case Left(e)=>
+          complete(CommonErrorCode.parseJsonError)
+      }*/
+  }
+
 
 
   val GameRecRoutes: Route =
-    getRecordList ~ getRecordListByTime ~ getRecordListByPlayer ~ downloadRecord
+    getRecordList ~ getRecordListByTime ~ getRecordListByPlayer ~ downloadRecord ~ token2Code ~ getRecordFrame ~ getRecordPlayerList
 }

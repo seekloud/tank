@@ -76,7 +76,7 @@ lazy val client = project.in(file("client")).enablePlugins(PackPlugin)
   )
   .settings(
     packMain := Map("tank" -> clientMainClass),
-    packJvmOpts := Map("tank" -> Seq("-Xmx256", "-Xms64m")),
+    packJvmOpts := Map("tank" -> Seq("-Xmx256m", "-Xms64m")),
     packExtraClasspath := Map("tank" -> Seq("."))
   )
   .settings(

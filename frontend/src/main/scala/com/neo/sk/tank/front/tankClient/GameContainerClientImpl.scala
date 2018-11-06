@@ -28,7 +28,8 @@ case class GameContainerClientImpl(
                                     canvasSize:Point,
                                     var canvasUnit:Int,
                                     setGameState:Int => Unit,
-                                    isObserve: Boolean = false
+                                    isObserve: Boolean = false,
+                                    setKillCallback: (String, Boolean, Int, Int) => Unit = {(_,_,_,_) =>} // killerName, live, killTankNum, damage
                                   ) extends GameContainerImpl(config,myId,myTankId,myName)
   with Background
   with ObstacleDrawUtil
@@ -94,7 +95,8 @@ case class GameContainerClientImpl(
 
 
   override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
-    if(tank.tankId == myTankId){
+    if(tank.tankId == tId){
+      setKillCallback(bulletTankName, tank.lives > 1, tank.killTankNum, tank.damageStatistics)
       if (tank.lives > 1) setGameState(GameState.relive)
       else setGameState(GameState.stop)
     }
@@ -109,7 +111,7 @@ case class GameContainerClientImpl(
     if(!waitSyncData){
       ctx.lineCap = "round"
       ctx.lineJoin = "round"
-      tankMap.get(myTankId) match {
+      tankMap.get(tId) match {
         case Some(tank) =>
           val offset = canvasBoundary / 2 - tank.asInstanceOf[TankImpl].getPosition4Animation(boundary, quadTree, offsetTime)
           drawBackground(offset)

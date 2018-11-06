@@ -32,25 +32,17 @@ class App extends Application{
 
   import App._
 
-  scheduler.scheduleOnce(1000.millis){
-    println("s")
-  }
-
-
-
-
-
   override def start(primaryStage: Stage): Unit = {
     val context = new Context(primaryStage)
-//    val playerInfo = PlayerInfo("aaa","fddf","df")
-//    val gameHallScreen = new GameHallScreen(context,playerInfo)
-//    context.switchScene(gameHallScreen.getScene())
-//    val gameServerInfo = GameServerInfo("","","")
-//    new HallScreenController(context,gameHallScreen,gameServerInfo,playerInfo)
-    val loginScreen = new LoginScreen(context)
-    context.switchScene(loginScreen.sence)
-    val l=new LoginScreenController(context, loginScreen)
-    l.start
+    val playerInfo = PlayerInfo("aaa","fddf","df")
+    val gameHallScreen = new GameHallScreen(context,playerInfo)
+    context.switchScene(gameHallScreen.getScene)
+    val gameServerInfo = GameServerInfo("",30369,"flowdev.neoap.com")
+    new HallScreenController(context,gameHallScreen,gameServerInfo,playerInfo)
+//    val loginScreen = new LoginScreen(context)
+//    context.switchScene(loginScreen.sence)
+//    val l=new LoginScreenController(context, loginScreen)
+//    l.start
   }
 
 }

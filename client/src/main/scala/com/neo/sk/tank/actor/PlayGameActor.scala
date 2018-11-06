@@ -9,7 +9,7 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.stream.scaladsl.{Flow, Keep, Sink}
 import akka.stream.OverflowStrategy
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource, _}
-import akka.util.ByteString
+import akka.util.{ByteString, ByteStringBuilder}
 import com.neo.sk.tank.controller.PlayScreenController
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, FailMsgServer, WsMsgSource}
@@ -20,7 +20,8 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import com.neo.sk.tank.App.{executor, materializer, scheduler, system, timeout}
-import com.neo.sk.tank.model.PlayerInfo
+import com.neo.sk.tank.common.Route
+import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
 
 /**
   * Created by hongruying on 2018/10/23
@@ -34,7 +35,7 @@ object PlayGameActor {
 
   sealed trait Command
 
-  final case class ConnectGame(playInfo:PlayerInfo) extends Command
+  final case class ConnectGame(playInfo:PlayerInfo,gameInfo:GameServerInfo,roomInfo:Option[String]) extends Command
 
   final case object ConnectTimerKey
 
@@ -50,6 +51,14 @@ object PlayGameActor {
   case class TimeOut(msg: String) extends Command
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgFront) extends Command
+
+  case object StartGameLoop extends Command
+
+  case object StopGameLoop extends Command
+
+  case object GameLoopKey
+
+  case object GameLoopTimeOut extends Command
 
   private[this] def switchBehavior(ctx: ActorContext[Command],
                                    behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None, timeOut: TimeOut = TimeOut("busy time error"))
@@ -77,7 +86,8 @@ object PlayGameActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case msg: ConnectGame =>
-          val url = getWebSocketUri(msg.playInfo.nickName)
+          val url = getWebSocketUri(msg)
+          println(s"url---$url")
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(url))
           val source = getSource
           val sink = getSink(control)
@@ -89,7 +99,7 @@ object PlayGameActor {
 
           val connected = response.flatMap { upgrade =>
             if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
-              ctx.self ! SwitchBehavior("play", play(stream))
+              ctx.self ! SwitchBehavior("play", play(stream,control))
               Future.successful(s"${ctx.self.path} connect success.")
             } else {
               throw new RuntimeException(s"${ctx.self.path} connection failed: ${upgrade.response.status}")
@@ -111,12 +121,25 @@ object PlayGameActor {
     }
   }
 
-  def play(frontActor: ActorRef[TankGameEvent.WsMsgFront])(implicit stashBuffer: StashBuffer[Command],
+  def play(frontActor: ActorRef[TankGameEvent.WsMsgFront],
+           control: PlayScreenController)(implicit stashBuffer: StashBuffer[Command],
                                                            timer: TimerScheduler[Command]) = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case msg:DispatchMsg=>
           frontActor ! msg.msg
+          Behaviors.same
+
+        case StartGameLoop=>
+          timer.startPeriodicTimer(GameLoopKey,GameLoopTimeOut,100.millis)
+          Behaviors.same
+
+        case StopGameLoop=>
+          timer.cancel(GameLoopKey)
+          Behaviors.same
+
+        case GameLoopTimeOut=>
+          control.logicLoop()
           Behaviors.same
 
         case x =>
@@ -176,7 +199,25 @@ object PlayGameActor {
             control.wsMessageHandler(TankGameEvent.DecodeError())
         }
 
+        //akka http 分片流
+      case msg: BinaryMessage.Streamed =>
+        println(s"ssssssssssss${msg}")
+        val f = msg.dataStream.runFold(new ByteStringBuilder().result()) {
+          case (s, str) => s.++(str)
+        }
+        f.map { m =>
+          val buffer = new MiddleBufferInJvm(m.asByteBuffer)
+          bytesDecode[TankGameEvent.WsMsgServer](buffer) match {
+            case Right(req) =>
+              control.wsMessageHandler(req)
+            case Left(e) =>
+              println(s"decode binaryMessage failed,error:${e.message}")
+              control.wsMessageHandler(TankGameEvent.DecodeError())
+          }
+        }
+
       case _ =>
+
 
     }
   }
@@ -187,7 +228,7 @@ object PlayGameActor {
     }, failureMatcher = {
       case TankGameEvent.FailMsgFrontServer(ex) ⇒ ex
     },
-    bufferSize = 8,
+    bufferSize = 128,
     overflowStrategy = OverflowStrategy.fail
   ).collect {
     case message: TankGameEvent.WsMsgFront =>
@@ -199,12 +240,11 @@ object PlayGameActor {
 
   /**
     * 链接由从平台获得IP和端口后拼接*/
-  @deprecated
-  def getWebSocketUri(name: String): String = {
-    val wsProtocol = "ws"
+  def getWebSocketUri(info:ConnectGame): String = {
     //todo 更改为目标端口
-//    val host = "10.1.29.250:30369"
-    val host = "localhost:30369"
-    s"$wsProtocol://$host/tank/game/join?name=$name"
+    val host = "10.1.29.250:30369"
+//    val host = info.gameInfo.domain
+    Route.getUserJoinGameWebSocketUri(info.playInfo.nickName,info.gameInfo.domain,info.playInfo,info.roomInfo)
+    Route.getJoinGameWebSocketUri(info.playInfo.nickName,info.gameInfo.domain,info.roomInfo)
   }
 }
