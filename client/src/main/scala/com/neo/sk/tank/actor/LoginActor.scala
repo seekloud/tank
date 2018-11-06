@@ -11,16 +11,15 @@ import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import com.neo.sk.tank.controller.LoginScreenController
 import com.neo.sk.tank.model._
 import org.slf4j.LoggerFactory
+import utils.EsheepClient
 import io.circe.parser.decode
 import io.circe.generic.auto._
-
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import com.neo.sk.tank.App.{executor, materializer, system}
 import com.neo.sk.tank.controller.LoginScreenController
-import com.neo.sk.utils.EsheepClient
 
 /**
   * Created by hongruying on 2018/10/23
@@ -33,6 +32,7 @@ object LoginActor {
   final case class WSLogin(url:String) extends Command
   final case object GetImage extends Command
   final case class Request(m: String) extends Command
+  final case object StopWs extends Command
   private val log = LoggerFactory.getLogger(this.getClass)
 
   def create(controller: LoginScreenController): Behavior[Command] = {
@@ -99,6 +99,10 @@ object LoginActor {
 
           Behaviors.same
 
+
+        case StopWs =>
+           println("ws stop now ")
+          Behaviors.stopped
 
 
         case _ =>
