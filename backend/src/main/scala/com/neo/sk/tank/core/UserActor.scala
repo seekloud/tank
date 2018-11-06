@@ -226,13 +226,13 @@ object UserActor {
           ctx.unwatch(actor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
-        case msg:GetUserInRecordMsg=>
-          getGameReplay(ctx,msg.recordId) ! msg
-          Behaviors.same
-
-        case msg:GetRecordFrameMsg=>
-          getGameReplay(ctx,msg.recordId) ! msg
-          Behaviors.same
+//        case msg:GetUserInRecordMsg=>
+//          getGameReplay(ctx,msg.recordId) ! msg
+//          Behaviors.same
+//
+//        case msg:GetRecordFrameMsg=>
+//          getGameReplay(ctx,msg.recordId) ! msg
+//          Behaviors.same
 
         case unknowMsg =>
 //          stashBuffer.stash(unknowMsg)
