@@ -183,6 +183,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
 
   protected def drawCombatGains(): Unit = {
     val combatGians = dom.document.getElementById("combat_gains").asInstanceOf[Div]
+    combatGians.innerHTML = ""
     val combatP_1 = dom.document.createElement("p").asInstanceOf[Paragraph]
     combatP_1.innerHTML = s"击杀数:<span>${killNum}</span>"
     val combatP_2 =  dom.document.createElement("p").asInstanceOf[Paragraph]
@@ -190,6 +191,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     val combatP_3 =  dom.document.createElement("p").asInstanceOf[Paragraph]
     var temp = ""
     killerList.foreach{r => temp += s"<span>${r}</span>"}
+    killerList = List.empty[String]
     combatP_3.innerHTML = s"击杀者ID:" + temp
     combatGians.appendChild(combatP_1)
     combatGians.appendChild(combatP_2)
