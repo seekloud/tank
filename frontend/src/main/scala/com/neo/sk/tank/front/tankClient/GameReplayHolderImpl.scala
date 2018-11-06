@@ -73,13 +73,17 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
         ping()
 
       case GameState.stop =>
+        gameContainerOpt.foreach(_.update())
+        logicFrameTime = System.currentTimeMillis()
         drawGameStop()
 
       case GameState.relive =>
         /**
           * 在生命值之内死亡重玩，倒计时进入
           * */
-        drawGameRestart()
+        gameContainerOpt.foreach(_.update())
+        logicFrameTime = System.currentTimeMillis()
+//        drawGameRestart()
 
       case GameState.replayLoading =>
         drawGameLoading()
@@ -95,13 +99,14 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
     killerList = killerList :+ name
     damageNum = damage
     killerName = name
-    if(hasLife){
+    if(hasLife) {
+      drawGameRestart()
       reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
     }
   }
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
-    println(data.getClass)
+//    println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
         println("----Start!!!!!")
