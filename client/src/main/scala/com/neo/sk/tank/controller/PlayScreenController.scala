@@ -43,6 +43,9 @@ class PlayScreenController(
 
   protected var firstCome = true
   protected var killerName:String = ""
+  protected var killNum:Int = 0
+  protected var damageNum:Int = 0
+  protected var killerList = List.empty[String]
 
 
   private val actionSerialNumGenerator = new AtomicInteger(0)
@@ -146,6 +149,8 @@ class PlayScreenController(
           animationTimer.stop()
           playGameActor ! PlayGameActor.StopGameLoop
           playGameScreen.drawGameStop(killerName)
+          playGameScreen.drawCombatGains(killNum, damageNum, killerList)
+          killerList = List.empty[String]
 
         case GameState.relive =>
 
@@ -289,6 +294,9 @@ class PlayScreenController(
             * 死亡重玩
             **/
           println(s"you are killed")
+          killNum = e.killTankNum
+          damageNum = e.damageStatistics
+          killerList = killerList :+ e.name
           killerName = e.name
           if(e.hasLife){
             setGameState(GameState.relive)
