@@ -49,18 +49,18 @@ object Http {
 
   }
 
-/*  def postJsonAndParse[T](
-    url: String,
-    bodyStr: String,
-    withCookie: Boolean = true)(implicit decoder: Decoder[T]): Future[Either[Error, T]] = {
-    import io.circe.parser._
-    postJson(url, bodyStr, withCookie).map(s => decode[T](s))
-  }*/
+  /*  def postJsonAndParse[T](
+      url: String,
+      bodyStr: String,
+      withCookie: Boolean = true)(implicit decoder: Decoder[T]): Future[Either[Error, T]] = {
+      import io.circe.parser._
+      postJson(url, bodyStr, withCookie).map(s => decode[T](s))
+    }*/
 
   def postJsonAndParse[T](
-    url: String,
-    bodyStr: String,
-    withCookie: Boolean = true)(implicit decoder: Decoder[T]): Future[T] = {
+                           url: String,
+                           bodyStr: String,
+                           withCookie: Boolean = true)(implicit decoder: Decoder[T]): Future[T] = {
     import io.circe.parser._
     postJson(url, bodyStr, withCookie).map { s =>
       decode[T](s) match {
@@ -108,8 +108,8 @@ object Http {
     }*/
 
   def getAndParse[T](
-    url: String,
-    withCookie: Boolean = true)(implicit decoder: Decoder[T]): Future[T] = {
+                      url: String,
+                      withCookie: Boolean = true)(implicit decoder: Decoder[T]): Future[T] = {
     import io.circe.parser._
     get(url, withCookie).map { s =>
       decode[T](s) match {

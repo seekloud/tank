@@ -166,7 +166,13 @@ object RoomActor {
 
           val gameEvents = gameContainer.getLastGameEvent()
           if(AppSettings.gameRecordIsWork){
-            getGameRecorder(ctx,gameContainer,roomId,gameContainer.systemFrame) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
+            if (tickCount % 20 == 1){
+              val rankEvent = TankGameEvent.Ranks(gameContainer.currentRank,gameContainer.historyRank)
+              getGameRecorder(ctx,gameContainer,roomId,gameContainer.systemFrame) ! GameRecorder.GameRecord(rankEvent :: gameEvents, snapshotOpt)
+            } else {
+              getGameRecorder(ctx,gameContainer,roomId,gameContainer.systemFrame) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
+            }
+
           }
 
           if (tickCount % 20 == 5) {
@@ -182,7 +188,6 @@ object RoomActor {
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           justJoinUser.foreach{t =>
             val ls = gameContainer.getUserActor4WatchGameList(t._1)
-            println(s"-----sysGameAllState--${t._1}")
             dispatchTo(subscribersMap,observersMap)(t._1,TankGameEvent.SyncGameAllState(gameContainerAllState),ls)
           }
           val endTime = System.currentTimeMillis()

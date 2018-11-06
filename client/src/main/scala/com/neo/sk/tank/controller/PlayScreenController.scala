@@ -248,7 +248,6 @@ class PlayScreenController(
   /**
     * 此处处理消息*/
   def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
-    println(data.getClass)
     App.pushStack2AppThread{
       data match {
         case e: TankGameEvent.YourInfo =>
@@ -257,10 +256,8 @@ class PlayScreenController(
             **/
           println("start------------")
           try {
-            timeline.play()
             gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
             gameContainerOpt.get.getTankId(e.tankId)
-
             recvYourInfo = true
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))
           }catch {
@@ -300,11 +297,13 @@ class PlayScreenController(
 
         case e: TankGameEvent.SyncGameAllState =>
           if(!recvYourInfo){
+            println("----发生预料事件")
             recvSyncGameAllState = Some(e)
           } else {
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             logicFrameTime = System.currentTimeMillis()
             animationTimer.start()
+            timeline.play()
             setGameState(GameState.play)
           }
 

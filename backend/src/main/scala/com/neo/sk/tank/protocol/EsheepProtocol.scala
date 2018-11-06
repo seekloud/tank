@@ -66,10 +66,10 @@ object EsheepProtocol {
   case class PlayerList(totalFrame:Int,
                         playerList:List[PlayerInRecordInfo])
 
-  /**获取录像播放进度}*/
+  /**获取录像播放进度*/
   case class GetRecordFrameReq(
                               recordId:Long,
-                              playerId:String
+                              playerId:String  //观看者
                               )
 
   case class GetRecordFrameRsp(
