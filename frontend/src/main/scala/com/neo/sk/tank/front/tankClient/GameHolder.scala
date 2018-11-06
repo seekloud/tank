@@ -165,7 +165,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     ctx.fillStyle = "rgb(250, 250, 250)"
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
-    ctx.font = "36px Helvetica"
+    ctx.font = s"${3.6 * canvasUnit}px Helvetica"
     ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
     println()
   }
@@ -176,26 +176,18 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     ctx.fillStyle = "rgb(250, 250, 250)"
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
-    ctx.font = "36px Helvetica"
+    ctx.font = s"${3.6 * canvasUnit}px Helvetica"
     ctx.fillText(m, 150, 180)
     println()
   }
 
   protected def drawCombatGains(): Unit = {
     val combatGians = dom.document.getElementById("combat_gains").asInstanceOf[Div]
-    combatGians.innerHTML = ""
-    val combatP_1 = dom.document.createElement("p").asInstanceOf[Paragraph]
-    combatP_1.innerHTML = s"击杀数:<span>${killNum}</span>"
-    val combatP_2 =  dom.document.createElement("p").asInstanceOf[Paragraph]
-    combatP_2.innerHTML = s"伤害量:<span>${damageNum}</span>"
-    val combatP_3 =  dom.document.createElement("p").asInstanceOf[Paragraph]
-    var temp = ""
-    killerList.foreach{r => temp += s"<span>${r}</span>"}
+    val temp = killerList.map(r => s"<span>${r}</span>")
+    combatGians.innerHTML = s"<p>击杀数:<span>${killNum}</span></p>" +
+      s"<p>伤害量:<span>${damageNum}</span></p>" +
+      s"<p>击杀者ID:" + temp.mkString("、")+ "</p>"
     killerList = List.empty[String]
-    combatP_3.innerHTML = s"击杀者ID:" + temp
-    combatGians.appendChild(combatP_1)
-    combatGians.appendChild(combatP_2)
-    combatGians.appendChild(combatP_3)
   }
 
 

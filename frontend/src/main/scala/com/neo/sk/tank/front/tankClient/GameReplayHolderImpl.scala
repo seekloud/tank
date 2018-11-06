@@ -35,7 +35,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
       ctx.fillStyle = "rgb(250, 250, 250)"
       ctx.textAlign = "left"
       ctx.textBaseline = "top"
-      ctx.font = "36px Helvetica"
+      ctx.font = s"${3.6 * canvasUnit}px Helvetica"
       ctx.fillText(s"重新进入房间，倒计时：${countDownTimes}",150,100)
       ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
       countDownTimes = countDownTimes - 1
@@ -44,6 +44,17 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
       countDownTimes = countDown
     }
 //    startReplay()
+  }
+
+  override protected def drawGameStop():Unit = {
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.fillStyle = "rgb(250, 250, 250)"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    ctx.font = s"${3.6 * canvasUnit}px Helvetica"
+    ctx.fillText(s"玩家已经死亡或离开,被玩家=${killerName}所杀", 150, 180)
+    println()
   }
 
   def startReplay(option: Option[ReplayInfo]=None)={
@@ -167,6 +178,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
 
           case t: TankGameEvent.UserLeftRoom =>
             if(t.userId == gameContainerOpt.get.myId) {
+              println(s"recv userLeft=${t},set stop")
               setGameState(GameState.stop)
             }
 
