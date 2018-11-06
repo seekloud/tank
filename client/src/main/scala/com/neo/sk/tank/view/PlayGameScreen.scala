@@ -39,8 +39,10 @@ class PlayGameScreen(context: Context) {
   canvas.setWidth(canvasWidth)
   val scene = new Scene(group)
 
-  val image = new Image(App.getClass.getResourceAsStream("/img/瞄准.png"))
-  scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))
+  def setCursor={
+    val image = new Image(App.getClass.getResourceAsStream("/img/瞄准.png"))
+    scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))
+  }
 
   def getScene():Scene = scene
 

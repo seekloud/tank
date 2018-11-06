@@ -84,6 +84,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
         val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
         context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
         new PlayScreenController(playerInfo,gameServerInfo,context,playGameScreen).start
+        playGameScreen.setCursor
         close()
       }
 
@@ -99,6 +100,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
           val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
           context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
           new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomId)).start
+          playGameScreen.setCursor
           close()
         }else{
           val warn = new Alert(Alert.AlertType.WARNING,"还没有选择房间哦",new ButtonType("确定",ButtonBar.ButtonData.YES))
