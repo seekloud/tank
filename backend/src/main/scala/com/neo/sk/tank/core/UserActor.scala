@@ -263,10 +263,12 @@ object UserActor {
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
         case msg:GetUserInRecordMsg=>
+          log.debug(s"${ctx.self.path} recv a msg=${msg}")
           getGameReplay(ctx,msg.recordId) ! msg
           Behaviors.same
 
         case msg:GetRecordFrameMsg=>
+          log.debug(s"${ctx.self.path} recv a msg=${msg}")
           getGameReplay(ctx,msg.recordId) ! msg
           Behaviors.same
 
