@@ -52,8 +52,9 @@ class PlayGameScreen(context: Context) {
     getCanvasContext.beginPath()
     getCanvasContext.setFill(Color.web("#006699"))
     getCanvasContext.setTextAlign(TextAlignment.CENTER)
-    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 2 * canvasUnit))
+    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
     getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    getCanvasContext.setFill(Color.BLACK)
     getCanvasContext.fillText("请稍等，正在连接服务器", 150, 180)
     getCanvasContext.closePath()
   }
@@ -62,9 +63,10 @@ class PlayGameScreen(context: Context) {
     getCanvasContext.beginPath()
     getCanvasContext.setFill(Color.web("#006699"))
     getCanvasContext.setTextAlign(TextAlignment.CENTER)
-    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 2 * canvasUnit))
+    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
     getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    getCanvasContext.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
+    getCanvasContext.setFill(Color.BLACK)
+    getCanvasContext.fillText(s"您已经死亡,被玩家=${killerName}所杀", 300, 180)
     getCanvasContext.closePath()
   }
 
@@ -72,8 +74,9 @@ class PlayGameScreen(context: Context) {
     getCanvasContext.beginPath()
     getCanvasContext.setFill(Color.web("#006699"))
     getCanvasContext.setTextAlign(TextAlignment.CENTER)
-    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 2 * canvasUnit))
+    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
     getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    getCanvasContext.setFill(Color.BLACK)
     getCanvasContext.fillText(m, 150, 180)
     getCanvasContext.closePath()
   }
@@ -82,11 +85,12 @@ class PlayGameScreen(context: Context) {
     getCanvasContext.beginPath()
     getCanvasContext.setFill(Color.web("#006699"))
     getCanvasContext.setTextAlign(TextAlignment.CENTER)
-    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 2 * canvasUnit))
+    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
     getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     getCanvasContext.setGlobalAlpha(0.4)
-    getCanvasContext.fillText(s"重新进入房间，倒计时：${countDownTimes}",150,100)
-    getCanvasContext.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
+    getCanvasContext.setFill(Color.BLACK)
+    getCanvasContext.fillText(s"重新进入房间，倒计时：${countDownTimes}",300,100)
+    getCanvasContext.fillText(s"您已经死亡,被玩家=${killerName}所杀", 300, 180)
     getCanvasContext.closePath()
   }
 
