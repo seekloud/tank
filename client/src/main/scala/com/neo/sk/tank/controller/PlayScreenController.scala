@@ -7,7 +7,7 @@ import com.neo.sk.tank.actor.PlayGameActor
 import com.neo.sk.tank.common.Context
 import com.neo.sk.tank.game.{GameContainerClientImpl, NetworkInfo}
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
-import com.neo.sk.tank.view.{GameHallScreen, PlayGameScreen}
+import com.neo.sk.tank.view.PlayGameScreen
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.tank.actor.PlayGameActor.{DispatchMsg, log}
 import com.neo.sk.tank.game.GameContainerClientImpl
@@ -43,6 +43,9 @@ class PlayScreenController(
 
   protected var firstCome = true
   protected var killerName:String = ""
+  protected var killNum:Int = 0
+  protected var damageNum:Int = 0
+  protected var killerList = List.empty[String]
 
 
   private val actionSerialNumGenerator = new AtomicInteger(0)
@@ -144,6 +147,8 @@ class PlayScreenController(
           val gameHallScreen = new GameHallScreen(context, playerInfo)
           context.switchScene(gameHallScreen.getScene,resize = true)
           new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)
+          playGameScreen.drawCombatGains(killNum, damageNum, killerList)
+          killerList = List.empty[String]
 
         case GameState.relive =>
 
@@ -287,6 +292,9 @@ class PlayScreenController(
             * 死亡重玩
             **/
           println(s"you are killed")
+          killNum = e.killTankNum
+          damageNum = e.damageStatistics
+          killerList = killerList :+ e.name
           killerName = e.name
           if(e.hasLife){
             setGameState(GameState.relive)
