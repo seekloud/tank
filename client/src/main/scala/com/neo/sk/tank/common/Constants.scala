@@ -13,4 +13,9 @@ object Constants {
     val relive = 5
   }
 
+  object SceneBound{
+    val weight = 500
+    val height = 500
+  }
+
 }

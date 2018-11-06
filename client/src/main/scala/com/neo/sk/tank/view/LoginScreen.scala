@@ -1,9 +1,9 @@
 package com.neo.sk.tank.view
 
 import java.io.ByteArrayInputStream
-import javafx.geometry.Insets
 
-import com.neo.sk.tank.common.Context
+import javafx.geometry.{Insets, Pos}
+import com.neo.sk.tank.common.{Constants, Context}
 import com.neo.sk.tank.shared.model.Point
 import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.Canvas
@@ -11,11 +11,11 @@ import javafx.scene.image.{Image, ImageView}
 import javafx.scene.web.WebEngine
 import javafx.scene.web.WebView
 import javafx.scene.control.{Button, Label, ScrollPane}
-import javafx.scene.layout.{BorderPane, HBox, VBox}
+import javafx.scene.layout._
 import javafx.scene.text.{Font, Text}
-
 import com.neo.sk.tank.actor.LoginActor
 import com.neo.sk.tank.view.LoginScene.LoginSceneListener
+import javafx.scene.paint.Color
 import sun.misc.BASE64Decoder
 
 /**
@@ -47,16 +47,16 @@ class LoginScreen(context: Context) {
     imageView.setFitHeight(300)
     imageView.setFitWidth(300)
     imageView.setX(100)
-    imageView.setY(100)
+    imageView.setY(60)
     val label = new Label("请扫码登录")
     label.setFont(Font.font("Cambria", 32))
     label.setLayoutX(170)
-    label.setLayoutY(430)
+    label.setLayoutY(330)
 
     root.getChildren.add(imageView)
     root.getChildren.add(label)
 
-    val senceNew = new Scene(root,500,500)
+    val senceNew = new Scene(root,Constants.SceneBound.weight,Constants.SceneBound.height)
     context.switchScene(senceNew)
   }
 
