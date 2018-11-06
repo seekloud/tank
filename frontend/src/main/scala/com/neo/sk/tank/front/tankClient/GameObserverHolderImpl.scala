@@ -50,7 +50,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
   }
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
-    println(data.getClass)
+//    println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
         //        setGameState(Constants.GameState.loadingPlay)
