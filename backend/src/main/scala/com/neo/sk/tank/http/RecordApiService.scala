@@ -23,8 +23,6 @@ import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.tank.core.EsheepSyncClient
 import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameReq, GetRecordFrameRsp, GetUserInRecordReq, GetUserInRecordRsp}
 import com.neo.sk.utils.SecureUtil.generateSignature
-
-import scala.concurrent.duration._
 import scala.util.{Success,Failure}
 
 
