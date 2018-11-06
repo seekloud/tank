@@ -17,9 +17,10 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.utils.JavaFxUtil.{changeKeys, keyCode2Int}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
-import javafx.util.Duration
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.App
+import javafx.util.Duration
+
 import scala.collection.mutable
 
 
@@ -67,6 +68,19 @@ class PlayScreenController(
     }
   }
   private val timeline = new Timeline()
+  private var countDownTimes=0
+  timeline.setCycleCount(Animation.INDEFINITE)
+  val keyFrame = new KeyFrame(Duration.millis(1000), { _ =>
+    if(countDownTimes>0){
+      playGameScreen.drawGameRestart(countDownTimes,killerName)
+      countDownTimes-=1
+    }else{
+      timeline.stop()
+      countDownTimes=3
+      start
+    }
+  })
+  timeline.getKeyFrames.add(keyFrame)
 
   private val watchKeys = Set(
     KeyCode.LEFT,
@@ -89,15 +103,26 @@ class PlayScreenController(
   def getActionSerialNum: Int = actionSerialNumGenerator.getAndIncrement()
 
   def start = {
-    println("start!!!!!!!")
-    playGameActor ! PlayGameActor.ConnectGame(playerInfo,gameServerInfo,roomInfo)
-    addUserActionListenEvent
-    setGameLoop
+    if(firstCome){
+      firstCome=false
+      println("start!!!!!!!")
+      playGameActor ! PlayGameActor.ConnectGame(playerInfo,gameServerInfo,roomInfo)
+      addUserActionListenEvent
+      logicFrameTime = System.currentTimeMillis()
+    }else{
+      gameContainerOpt.foreach{r=>
+        playGameActor ! DispatchMsg(TankGameEvent.RestartGame(Some(r.myTankId),r.myName,gameState))
+        setGameState(GameState.loadingPlay)
+        playGameActor ! PlayGameActor.StartGameLoop
+      }
+    }
+
   }
 
   def closeHolder={
     animationTimer.stop()
-    timeline.stop()
+//    timeline.stop()
+    playGameActor ! PlayGameActor.StopGameLoop
     //todo 此处关闭WebSocket
   }
 
@@ -105,46 +130,40 @@ class PlayScreenController(
     gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency))
   }
 
-  def setGameLoop = {
-    logicFrameTime = System.currentTimeMillis()
-    timeline.setCycleCount(Animation.INDEFINITE)
-    val keyFrame = new KeyFrame(Duration.millis(100), { _ =>
-      App.pushStack2AppThread{
-        logicLoop()
+//  var time2=System.currentTimeMillis()
+  def logicLoop() = {
+    App.pushStack2AppThread{
+//      println(s"logicLoop---${System.currentTimeMillis()-time2}")
+//      time2=System.currentTimeMillis()
+      gameState match {
+        case GameState.loadingPlay =>
+          //        println(s"等待同步数据")
+          playGameScreen.drawGameLoading()
+        case GameState.play =>
+
+          /** */
+          gameContainerOpt.foreach(_.update())
+          logicFrameTime = System.currentTimeMillis()
+          ping()
+
+        case GameState.stop =>
+          animationTimer.stop()
+          playGameActor ! PlayGameActor.StopGameLoop
+          playGameScreen.drawGameStop(killerName)
+
+        case GameState.relive =>
+
+          /**
+            * 在生命值之内死亡重玩，倒计时进入
+            **/
+          //        dom.window.cancelAnimationFrame(nextFrame)
+          //        Shortcut.cancelSchedule(timer)
+          animationTimer.stop()
+          playGameActor ! PlayGameActor.StopGameLoop
+          timeline.play()
+
+        case _ => log.info(s"state=${gameState} failed")
       }
-    })
-    timeline.getKeyFrames.add(keyFrame)
-  }
-
-  private def logicLoop() = {
-    gameState match {
-      case GameState.loadingPlay =>
-//        println(s"等待同步数据")
-        playGameScreen.drawGameLoading()
-      case GameState.play =>
-
-        /** */
-        gameContainerOpt.foreach(_.update())
-        logicFrameTime = System.currentTimeMillis()
-        ping()
-
-      case GameState.stop =>
-        animationTimer.stop()
-        timeline.stop()
-        playGameScreen.drawGameStop(killerName)
-
-      case GameState.relive =>
-
-        /**
-          * 在生命值之内死亡重玩，倒计时进入
-          **/
-        //        dom.window.cancelAnimationFrame(nextFrame)
-        //        Shortcut.cancelSchedule(timer)
-        animationTimer.stop()
-        timeline.stop()
-      //        drawGameRestart()
-
-      case _ => log.info(s"state=${gameState} failed")
     }
   }
 
@@ -247,6 +266,7 @@ class PlayScreenController(
 
   /**
     * 此处处理消息*/
+//  var time1=System.currentTimeMillis()
   def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
     App.pushStack2AppThread{
       data match {
@@ -293,6 +313,8 @@ class PlayScreenController(
 
 
         case e: TankGameEvent.SyncGameState =>
+//          println(s"synGameState---${System.currentTimeMillis()-time1}")
+//          time1=System.currentTimeMillis()
           gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
 
         case e: TankGameEvent.SyncGameAllState =>
@@ -303,7 +325,9 @@ class PlayScreenController(
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             logicFrameTime = System.currentTimeMillis()
             animationTimer.start()
-            timeline.play()
+            //todo 替换逻辑循环
+//            timeline.play()
+            playGameActor ! PlayGameActor.StartGameLoop
             setGameState(GameState.play)
           }
 
