@@ -7,7 +7,7 @@ import com.neo.sk.tank.actor.PlayGameActor
 import com.neo.sk.tank.common.Context
 import com.neo.sk.tank.game.{GameContainerClientImpl, NetworkInfo}
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
-import com.neo.sk.tank.view.PlayGameScreen
+import com.neo.sk.tank.view.{GameHallScreen, PlayGameScreen}
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.tank.actor.PlayGameActor.{DispatchMsg, log}
 import com.neo.sk.tank.game.GameContainerClientImpl
@@ -146,6 +146,10 @@ class PlayScreenController(
           animationTimer.stop()
           playGameActor ! PlayGameActor.StopGameLoop
           playGameScreen.drawGameStop(killerName)
+          //todo 死亡结算
+          val gameHallScreen = new GameHallScreen(context, playerInfo)
+          context.switchScene(gameHallScreen.getScene,resize = true)
+          new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)
 
         case GameState.relive =>
 
