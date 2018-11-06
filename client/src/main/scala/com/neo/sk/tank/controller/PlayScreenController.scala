@@ -68,7 +68,7 @@ class PlayScreenController(
     }
   }
   private val timeline = new Timeline()
-  private var countDownTimes=0
+  private var countDownTimes=3
   timeline.setCycleCount(Animation.INDEFINITE)
   val keyFrame = new KeyFrame(Duration.millis(1000), { _ =>
     if(countDownTimes>0){
@@ -121,7 +121,6 @@ class PlayScreenController(
 
   def closeHolder={
     animationTimer.stop()
-//    timeline.stop()
     playGameActor ! PlayGameActor.StopGameLoop
     //todo 此处关闭WebSocket
   }
@@ -130,11 +129,8 @@ class PlayScreenController(
     gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency))
   }
 
-//  var time2=System.currentTimeMillis()
   def logicLoop() = {
     App.pushStack2AppThread{
-//      println(s"logicLoop---${System.currentTimeMillis()-time2}")
-//      time2=System.currentTimeMillis()
       gameState match {
         case GameState.loadingPlay =>
           //        println(s"等待同步数据")
@@ -266,7 +262,6 @@ class PlayScreenController(
 
   /**
     * 此处处理消息*/
-//  var time1=System.currentTimeMillis()
   def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
     App.pushStack2AppThread{
       data match {
@@ -296,7 +291,6 @@ class PlayScreenController(
           println(s"you are killed")
           killerName = e.name
           if(e.hasLife){
-            //          reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
             setGameState(GameState.relive)
           } else setGameState(GameState.stop)
 
@@ -313,8 +307,6 @@ class PlayScreenController(
 
 
         case e: TankGameEvent.SyncGameState =>
-//          println(s"synGameState---${System.currentTimeMillis()-time1}")
-//          time1=System.currentTimeMillis()
           gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
 
         case e: TankGameEvent.SyncGameAllState =>
@@ -325,8 +317,6 @@ class PlayScreenController(
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             logicFrameTime = System.currentTimeMillis()
             animationTimer.start()
-            //todo 替换逻辑循环
-//            timeline.play()
             playGameActor ! PlayGameActor.StartGameLoop
             setGameState(GameState.play)
           }

@@ -46,6 +46,17 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
 //    startReplay()
   }
 
+  override protected def drawGameStop():Unit = {
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.fillStyle = "rgb(250, 250, 250)"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    ctx.font = s"${3.6 * canvasUnit}px Helvetica"
+    ctx.fillText(s"玩家已经死亡或离开,被玩家=${killerName}所杀", 150, 180)
+    println()
+  }
+
   def startReplay(option: Option[ReplayInfo]=None)={
     canvas.focus()
     if(firstCome){

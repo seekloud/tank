@@ -170,6 +170,10 @@ trait RecordApiService extends ServiceUtils{
           complete(r)
         case _ =>
           complete(ErrorRsp(10001, "init error"))
+      }.recover{
+        case e:Exception =>
+          log.debug(s"获取游戏录像失败，recover error:$e")
+          complete(ErrorRsp(10001,"init error"))
       }
     }
 
@@ -197,6 +201,10 @@ trait RecordApiService extends ServiceUtils{
         case r: GetUserInRecordRsp =>
           complete(r)
         case _=>
+          complete(ErrorRsp(10001,"init error"))
+      }.recover{
+        case e:Exception =>
+          log.debug(s"获取游戏录像失败，recover error:$e")
           complete(ErrorRsp(10001,"init error"))
       }
     }
