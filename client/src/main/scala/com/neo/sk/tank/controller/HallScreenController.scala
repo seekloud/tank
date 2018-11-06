@@ -1,5 +1,6 @@
 package com.neo.sk.tank.controller
 
+import akka.actor.Cancellable
 import akka.actor.typed.ActorRef
 import akka.http.scaladsl.Http
 import akka.actor.typed.scaladsl.adapter._
@@ -32,6 +33,8 @@ import scala.util.{Failure, Success}
   * */
 class HallScreenController(val context:Context, val gameHall:GameHallScreen, gameServerInfo: GameServerInfo, playerInfo:PlayerInfo){
   private val log = LoggerFactory.getLogger(this.getClass)
+
+  private var timer:Cancellable = _
   private def getRoomListInit() = {
     //需要起一个定时器，定时刷新请求
     val url = s"http://${gameServerInfo.domain}/tank/getRoomList"
@@ -59,7 +62,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
   }
 
   App.pushStack2AppThread{
-    scheduler.schedule(1.millis,1.minutes){
+    timer = scheduler.schedule(1.millis,1.minutes){
       updateRoomList()
     }
   }
@@ -114,6 +117,8 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
 
   })
 
-  private def close() = {}
+  private def close() = {
+    timer.cancel()
+  }
 
 }
