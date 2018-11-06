@@ -27,10 +27,10 @@ class PlayGameScreen(context: Context) {
   val screen= Screen.getPrimary.getVisualBounds
   println(s"----width--${screen.getMaxX.toFloat}")
   println(s"----width--${screen.getMaxY.toFloat}")
-//  protected var canvasWidth = screen.getMaxX.toFloat
-//  protected var canvasHeight = screen.getMaxY.toFloat
-  protected var canvasWidth = 1440
-  protected var canvasHeight = 900
+  protected var canvasWidth = screen.getMaxX.toFloat
+  protected var canvasHeight = screen.getMaxY.toFloat
+//  protected var canvasWidth = 1440
+//  protected var canvasHeight = 900
   var canvasUnit = getCanvasUnit(canvasWidth)
   var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
   val group = new Group()
