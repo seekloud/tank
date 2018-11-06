@@ -96,5 +96,10 @@ object EsheepProtocol {
                        playerRecord: BatRecordInfo
                        )
 
+  //code for download
+  case class CodeForDownloadRsp(
+                               code: String
+                               )
+
 
 }
