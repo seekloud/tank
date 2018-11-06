@@ -52,6 +52,8 @@ object PlayGameActor {
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgFront) extends Command
 
+  case object StopGameActor extends Command
+
   case object StartGameLoop extends Command
 
   case object StopGameLoop extends Command
@@ -141,6 +143,9 @@ object PlayGameActor {
         case GameLoopTimeOut=>
           control.logicLoop()
           Behaviors.same
+
+        case StopGameActor=>
+          Behaviors.stopped
 
         case x =>
           Behaviors.unhandled
