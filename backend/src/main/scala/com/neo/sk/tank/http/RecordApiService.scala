@@ -20,7 +20,12 @@ import com.neo.sk.tank.shared.ptcl.{CommonRsp, ErrorRsp}
 
 import scala.concurrent.Future
 import akka.actor.typed.scaladsl.AskPattern._
+import com.neo.sk.tank.core.EsheepSyncClient
 import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameReq, GetRecordFrameRsp, GetUserInRecordReq, GetUserInRecordRsp}
+import com.neo.sk.utils.SecureUtil.generateSignature
+
+import scala.concurrent.duration._
+import scala.util.{Success,Failure}
 
 
 /**
@@ -96,10 +101,9 @@ trait RecordApiService extends ServiceUtils{
   }
 
   private val downloadRecord = (path("downloadRecord")){
-    parameter('token){token =>
-      val verifyTokenFutureRst: Future[EsheepProtocol.GameServerKey2TokenRsp] = esheepSyncClient ? (e => EsheepSyncClient.VerifyToken(e))
-      dealFutureResult(verifyTokenFutureRst.map{rsp =>
-        if(rsp.data.get.token == token){
+    parameter('code){code =>
+      dealFutureResult(checkCode(code).map{rsp =>
+        if(rsp){
           dealPostReq[DownloadRecordReq]{req =>
             RecordDAO.getFilePath(req.recordId).map{r =>
               val fileName = r.head
@@ -118,11 +122,47 @@ trait RecordApiService extends ServiceUtils{
             }
           }
         }else{
-          complete(getGameRecErrorRsp(s"token验证失败"))
+          complete(getGameRecErrorRsp(s"code验证失败"))
         }
       })
       }
     }
+
+  private def generateCode(appId:String, secureKey:String) = {
+    val timeStamp = System.currentTimeMillis()
+    val tokenInfo: Future[EsheepProtocol.GameServerKey2TokenRsp] = esheepSyncClient ? (e => EsheepSyncClient.VerifyToken(e))
+    tokenInfo.flatMap{r =>
+      val sList = appId :: r.data.get.token :: timeStamp.toString :: Nil
+      val code = generateSignature(sList, secureKey)
+      val deadline = timeStamp + 1000 * 60
+      RecordDAO.insertCodeForDownload(deadline, code).map{r =>
+        if(r > 0) code
+        else ""
+      }
+    }
+  }
+
+  private def checkCode(code:String) = {
+    val nowTime = System.currentTimeMillis()
+    RecordDAO.selectCodeForDownload(nowTime).map{r =>
+      if(r.contains(code)) true else false
+    }
+  }
+
+   def deleteCode = {
+    val nowTime = System.currentTimeMillis()
+    RecordDAO.deleteCodeForDownload(nowTime).onComplete{
+      case Success(v) => println("delete successfully")
+      case Failure(ex) => println("delete not completed")
+    }
+  }
+
+  private val token2Code = (path("token2code") & get & pathEndOrSingleSlash){
+    dealFutureResult(generateCode("tank", "sjdakhjskJHK7768G76sdksdkasHU").map(r =>
+      if(r != "") complete(EsheepProtocol.CodeForDownloadRsp(r))
+      else complete(ErrorRsp(100021, "generate code error"))
+    ))
+  }
 
   private val getRecordFrame=(path("getRecordFrame") & post){
     dealPostReq[GetRecordFrameReq]{req=>
@@ -176,5 +216,5 @@ trait RecordApiService extends ServiceUtils{
 
 
   val GameRecRoutes: Route =
-    getRecordList ~ getRecordListByTime ~ getRecordListByPlayer ~ downloadRecord ~ getRecordFrame ~ getRecordPlayerList
+    getRecordList ~ getRecordListByTime ~ getRecordListByPlayer ~ downloadRecord ~ token2Code ~ getRecordFrame ~ getRecordPlayerList
 }
