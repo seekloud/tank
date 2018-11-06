@@ -6,7 +6,7 @@ import com.neo.sk.tank.common.Context
 import com.neo.sk.tank.view.{GameHallScreen, LoginScene, LoginScreen, PlayGameScreen}
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.tank.App
-import com.neo.sk.tank.actor.LoginActor.Request
+import com.neo.sk.tank.actor.LoginActor.{Request}
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
 import javafx.animation.{AnimationTimer, KeyFrame, Timeline}
 import javafx.application.Platform
@@ -58,6 +58,7 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
     * */
   def joinGame(playerInfo:PlayerInfo, gameServerInfo: GameServerInfo) = {
     println("joinGame----------")
+    loginActor ! LoginActor.StopWs
     App.pushStack2AppThread{
       val playGameScreen = new PlayGameScreen(context)
       //new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen).start
