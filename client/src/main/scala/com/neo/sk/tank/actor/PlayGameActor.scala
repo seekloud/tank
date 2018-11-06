@@ -52,6 +52,14 @@ object PlayGameActor {
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgFront) extends Command
 
+  case object StartGameLoop extends Command
+
+  case object StopGameLoop extends Command
+
+  case object GameLoopKey
+
+  case object GameLoopTimeOut extends Command
+
   private[this] def switchBehavior(ctx: ActorContext[Command],
                                    behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None, timeOut: TimeOut = TimeOut("busy time error"))
                                   (implicit stashBuffer: StashBuffer[Command],
@@ -91,7 +99,7 @@ object PlayGameActor {
 
           val connected = response.flatMap { upgrade =>
             if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
-              ctx.self ! SwitchBehavior("play", play(stream))
+              ctx.self ! SwitchBehavior("play", play(stream,control))
               Future.successful(s"${ctx.self.path} connect success.")
             } else {
               throw new RuntimeException(s"${ctx.self.path} connection failed: ${upgrade.response.status}")
@@ -113,12 +121,25 @@ object PlayGameActor {
     }
   }
 
-  def play(frontActor: ActorRef[TankGameEvent.WsMsgFront])(implicit stashBuffer: StashBuffer[Command],
+  def play(frontActor: ActorRef[TankGameEvent.WsMsgFront],
+           control: PlayScreenController)(implicit stashBuffer: StashBuffer[Command],
                                                            timer: TimerScheduler[Command]) = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case msg:DispatchMsg=>
           frontActor ! msg.msg
+          Behaviors.same
+
+        case StartGameLoop=>
+          timer.startPeriodicTimer(GameLoopKey,GameLoopTimeOut,100.millis)
+          Behaviors.same
+
+        case StopGameLoop=>
+          timer.cancel(GameLoopKey)
+          Behaviors.same
+
+        case GameLoopTimeOut=>
+          control.logicLoop()
           Behaviors.same
 
         case x =>

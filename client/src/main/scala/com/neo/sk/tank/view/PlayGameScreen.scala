@@ -8,7 +8,11 @@ import javafx.scene.canvas.GraphicsContext
 import javafx.scene.canvas.Canvas
 import javafx.scene.image.Image
 import com.neo.sk.utils.JavaFxUtil.getCanvasUnit
+import javafx.animation.{Animation, KeyFrame, Timeline}
 import javafx.scene.ImageCursor
+import javafx.scene.paint.Color
+import javafx.scene.text.{Font, FontWeight, TextAlignment}
+import javafx.util.Duration
 /**
   * Created by hongruying on 2018/10/23
   * 玩游戏的view
@@ -23,8 +27,10 @@ class PlayGameScreen(context: Context) {
   val screen= Screen.getPrimary.getVisualBounds
   println(s"----width--${screen.getMaxX.toFloat}")
   println(s"----width--${screen.getMaxY.toFloat}")
-  protected var canvasWidth = screen.getMaxX.toFloat
-  protected var canvasHeight = screen.getMaxY.toFloat
+//  protected var canvasWidth = screen.getMaxX.toFloat
+//  protected var canvasHeight = screen.getMaxY.toFloat
+  protected var canvasWidth = 1440
+  protected var canvasHeight = 900
   var canvasUnit = getCanvasUnit(canvasWidth)
   var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
   val group = new Group()
@@ -32,7 +38,6 @@ class PlayGameScreen(context: Context) {
   canvas.setHeight(canvasHeight)
   canvas.setWidth(canvasWidth)
   val scene = new Scene(group)
-
 
   val image = new Image(App.getClass.getResourceAsStream("/img/瞄准.png"))
   scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))
@@ -44,24 +49,46 @@ class PlayGameScreen(context: Context) {
   group.getChildren.add(canvas)
 
   def drawGameLoading():Unit = {
+    getCanvasContext.beginPath()
+    getCanvasContext.setFill(Color.web("#006699"))
+    getCanvasContext.setTextAlign(TextAlignment.CENTER)
+    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 2 * canvasUnit))
     getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     getCanvasContext.fillText("请稍等，正在连接服务器", 150, 180)
+    getCanvasContext.closePath()
   }
 
   def drawGameStop(killerName:String):Unit = {
+    getCanvasContext.beginPath()
+    getCanvasContext.setFill(Color.web("#006699"))
+    getCanvasContext.setTextAlign(TextAlignment.CENTER)
+    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 2 * canvasUnit))
     getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     getCanvasContext.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
+    getCanvasContext.closePath()
   }
 
   def drawReplayMsg(m:String):Unit = {
+    getCanvasContext.beginPath()
+    getCanvasContext.setFill(Color.web("#006699"))
+    getCanvasContext.setTextAlign(TextAlignment.CENTER)
+    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 2 * canvasUnit))
     getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     getCanvasContext.fillText(m, 150, 180)
+    getCanvasContext.closePath()
   }
 
-  def draw()={
-
+  def drawGameRestart(countDownTimes:Int,killerName:String): Unit = {
+    getCanvasContext.beginPath()
+    getCanvasContext.setFill(Color.web("#006699"))
+    getCanvasContext.setTextAlign(TextAlignment.CENTER)
+    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 2 * canvasUnit))
+    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    getCanvasContext.setGlobalAlpha(0.4)
+    getCanvasContext.fillText(s"重新进入房间，倒计时：${countDownTimes}",150,100)
+    getCanvasContext.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
+    getCanvasContext.closePath()
   }
-
 
 
 }
