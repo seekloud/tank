@@ -44,6 +44,8 @@ class PlayGameScreen(context: Context) {
     scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))
   }
 
+  setCursor
+
   def getScene():Scene = scene
 
   def getCanvasContext: GraphicsContext = canvas.getGraphicsContext2D
