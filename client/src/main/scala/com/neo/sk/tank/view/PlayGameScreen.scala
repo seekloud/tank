@@ -49,49 +49,56 @@ class PlayGameScreen(context: Context) {
   group.getChildren.add(canvas)
 
   def drawGameLoading():Unit = {
-    getCanvasContext.beginPath()
     getCanvasContext.setFill(Color.web("#006699"))
+    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     getCanvasContext.setTextAlign(TextAlignment.CENTER)
     getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
-    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     getCanvasContext.setFill(Color.BLACK)
-    getCanvasContext.fillText("请稍等，正在连接服务器", 150, 180)
-    getCanvasContext.closePath()
+    getCanvasContext.fillText("请稍等，正在连接服务器", 300, 180)
   }
 
   def drawGameStop(killerName:String):Unit = {
-    getCanvasContext.beginPath()
     getCanvasContext.setFill(Color.web("#006699"))
+    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     getCanvasContext.setTextAlign(TextAlignment.CENTER)
     getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
-    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     getCanvasContext.setFill(Color.BLACK)
     getCanvasContext.fillText(s"您已经死亡,被玩家=${killerName}所杀", 300, 180)
-    getCanvasContext.closePath()
   }
 
   def drawReplayMsg(m:String):Unit = {
-    getCanvasContext.beginPath()
     getCanvasContext.setFill(Color.web("#006699"))
+    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     getCanvasContext.setTextAlign(TextAlignment.CENTER)
     getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
-    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     getCanvasContext.setFill(Color.BLACK)
-    getCanvasContext.fillText(m, 150, 180)
-    getCanvasContext.closePath()
+    getCanvasContext.fillText(m, 300, 180)
   }
 
   def drawGameRestart(countDownTimes:Int,killerName:String): Unit = {
-    getCanvasContext.beginPath()
     getCanvasContext.setFill(Color.web("#006699"))
     getCanvasContext.setTextAlign(TextAlignment.CENTER)
     getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
     getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    getCanvasContext.setGlobalAlpha(0.4)
     getCanvasContext.setFill(Color.BLACK)
-    getCanvasContext.fillText(s"重新进入房间，倒计时：${countDownTimes}",300,100)
+    getCanvasContext.fillText(s"重新进入房间，倒计时：${countDownTimes}", 300, 100)
     getCanvasContext.fillText(s"您已经死亡,被玩家=${killerName}所杀", 300, 180)
-    getCanvasContext.closePath()
+  }
+
+  def drawCombatGains(killNum:Int, damageNum:Int, killerList:List[String]):Unit = {
+    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
+    getCanvasContext.setFill(Color.BLACK)
+    getCanvasContext.setTextAlign(TextAlignment.LEFT)
+    getCanvasContext.fillText(s"击杀者：", 500, 300)
+    getCanvasContext.fillText(s"伤害量：", 500, 350)
+    getCanvasContext.fillText(s"击杀者ID：", 500, 400)
+    getCanvasContext.setFill(Color.RED)
+    getCanvasContext.fillText(s"${killNum}", 650, 300)
+    getCanvasContext.fillText(s"${damageNum}", 650, 350)
+    var pos = 700
+    killerList.foreach{r =>
+      getCanvasContext.fillText(s"${r}", pos, 400)
+      pos = pos + 4 * canvasUnit * r.length}
   }
 
 
