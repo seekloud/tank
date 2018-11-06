@@ -75,4 +75,30 @@ trait SlickTables {
   }
   /** Collection-like TableQuery object for table tUserRecordMap */
   lazy val tUserRecordMap = new TableQuery(tag => new tUserRecordMap(tag))
+
+  /** Entity class storing rows of table tCodeForDownload
+    *  @param codeId Database column code_id SqlType(bigserial), AutoInc, PrimaryKey
+    *  @param deadline Database column deadline SqlType(int8)
+    *  @param code Database column code SqlType(varchar), Length(64,true) */
+  case class rCodeForDownload(codeId: Long, deadline: Long, code: String)
+  /** GetResult implicit for fetching rCodeForDownload objects using plain SQL queries */
+  implicit def GetResultrCodeForDownload(implicit e0: GR[Long], e1: GR[String]): GR[rCodeForDownload] = GR{
+    prs => import prs._
+      rCodeForDownload.tupled((<<[Long], <<[Long], <<[String]))
+  }
+  /** Table description of table code_for_download. Objects of this class serve as prototypes for rows in queries. */
+  class tCodeForDownload(_tableTag: Tag) extends profile.api.Table[rCodeForDownload](_tableTag, "code_for_download") {
+    def * = (codeId, deadline, code) <> (rCodeForDownload.tupled, rCodeForDownload.unapply)
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? = (Rep.Some(codeId), Rep.Some(deadline), Rep.Some(code)).shaped.<>({r=>import r._; _1.map(_=> rCodeForDownload.tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+
+    /** Database column code_id SqlType(bigserial), AutoInc, PrimaryKey */
+    val codeId: Rep[Long] = column[Long]("code_id", O.AutoInc, O.PrimaryKey)
+    /** Database column deadline SqlType(int8) */
+    val deadline: Rep[Long] = column[Long]("deadline")
+    /** Database column code SqlType(varchar), Length(64,true) */
+    val code: Rep[String] = column[String]("code", O.Length(64,varying=true))
+  }
+  /** Collection-like TableQuery object for table tCodeForDownload */
+  lazy val tCodeForDownload = new TableQuery(tag => new tCodeForDownload(tag))
 }
