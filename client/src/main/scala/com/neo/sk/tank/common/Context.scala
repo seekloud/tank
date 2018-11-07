@@ -1,5 +1,14 @@
 package com.neo.sk.tank.common
 
+import java.awt.event.{ActionEvent, ActionListener}
+
+import javafx.event.EventHandler
+import javafx.scene.input.{KeyCode, KeyEvent}
+//import java.beans.EventHandler
+
+import javafx.beans.Observable
+//import java.util.Observable
+
 import javafx.scene.Scene
 import javafx.stage.Stage
 
@@ -15,7 +24,22 @@ class Context(stage: Stage) {
     stage.setResizable(resize)
     stage.setTitle(title)
     stage.setFullScreen(fullScreen)
+//    stage.fullScreenProperty().addListener(e => fun())
     stage.show()
+    scene.setOnKeyPressed(    new EventHandler[KeyEvent] {
+      override def handle(event: KeyEvent): Unit = {
+        if(event.getCode == KeyCode.Z) stage.setFullScreen(fullScreen)
+//        else  false
+      }
+    })
+//    def fun() = {
+//      scene.setOnKeyPressed(    new EventHandler[KeyEvent] {
+//        override def handle(event: KeyEvent): Unit = {
+//          if(event.getCode == KeyCode.Z) true
+//          else  false
+//        }
+//      })
+//    }
   }
 
 

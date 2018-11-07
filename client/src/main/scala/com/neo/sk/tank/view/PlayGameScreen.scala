@@ -38,7 +38,15 @@ class PlayGameScreen(context: Context) {
   canvas.setHeight(canvasHeight)
   canvas.setWidth(canvasWidth)
   val scene = new Scene(group)
-
+//  var listener : CanvasListener = _
+//  canvas.widthProperty().bind(scene.widthProperty())
+//  canvas.heightProperty()bind(scene.heightProperty())
+//  canvas.widthProperty().addListener(e => listener.updateCanvasBoundary())
+//  canvas.heightProperty().addListener(e => listener.updateCanvasBoundary())
+//  protected var canvasWidth = canvas.getWidth.toFloat
+//  protected var canvasHeight = canvas.getHeight.toFloat
+//  var canvasUnit = getCanvasUnit(canvas.getWidth.toFloat)
+//  var canvasBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat) / canvasUnit
   def setCursor={
     val image = new Image(App.getClass.getResourceAsStream("/img/瞄准.png"))
     scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))
@@ -106,4 +114,8 @@ class PlayGameScreen(context: Context) {
   }
 
 
+}
+
+abstract class CanvasListener{
+  def updateCanvasBoundary()
 }
