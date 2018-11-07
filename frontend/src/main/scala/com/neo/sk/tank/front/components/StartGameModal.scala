@@ -54,6 +54,12 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
   }
 
 
+  private val watchButtonDivStyle = inputDisabled.map{
+    case true => "display:none;"
+    case false => "display:block;"
+  }
+
+
   private val inputElem = <input id ="TankGameNameInput" onkeydown ={e:KeyboardEvent => clickEnter(e)} disabled={inputDisabled} value ={inputValue}></input>
   private val inputElem4RoomId = <input id="TankGameRoomIdInput" onkeydown={e:KeyboardEvent => clickEnter(e)} disabled={inputDisabled}></input>
   private val button = <button id="start_button" class ="btn btn-info" onclick ={() => clickEnter()}>进入</button>
@@ -103,7 +109,7 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
           </div>
         </div>
         <div class ="input_button">{button}</div>
-        <div class ="input_button">{watchButton}</div>
+        <div class ="input_button" style={watchButtonDivStyle}>{watchButton}</div>
       </div>
     </div>
 

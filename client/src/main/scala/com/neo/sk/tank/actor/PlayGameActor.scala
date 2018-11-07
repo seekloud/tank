@@ -52,6 +52,8 @@ object PlayGameActor {
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgFront) extends Command
 
+  case object StopGameActor extends Command
+
   case object StartGameLoop extends Command
 
   case object StopGameLoop extends Command
@@ -141,6 +143,9 @@ object PlayGameActor {
         case GameLoopTimeOut=>
           control.logicLoop()
           Behaviors.same
+
+        case StopGameActor=>
+          Behaviors.stopped
 
         case x =>
           Behaviors.unhandled
@@ -245,6 +250,6 @@ object PlayGameActor {
     val host = "10.1.29.250:30369"
 //    val host = info.gameInfo.domain
     Route.getUserJoinGameWebSocketUri(info.playInfo.nickName,info.gameInfo.domain,info.playInfo,info.roomInfo)
-    Route.getJoinGameWebSocketUri(info.playInfo.nickName,info.gameInfo.domain,info.roomInfo)
+//    Route.getJoinGameWebSocketUri(info.playInfo.nickName,info.gameInfo.domain,info.roomInfo)
   }
 }

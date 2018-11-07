@@ -34,12 +34,13 @@ class App extends Application{
 
   override def start(primaryStage: Stage): Unit = {
     val context = new Context(primaryStage)
-//    val playerInfo = PlayerInfo("aaa","fddf","df")
+//    val playerInfo = PlayerInfo("啊啊啊啊啊啊","啊啊啊啊啊啊","df")
 //    val gameHallScreen = new GameHallScreen(context,playerInfo)
 //    context.switchScene(gameHallScreen.getScene)
 //    val gameServerInfo = GameServerInfo("",30369,"flowdev.neoap.com")
 //    new HallScreenController(context,gameHallScreen,gameServerInfo,playerInfo)
     val loginScreen = new LoginScreen(context)
+    context.switchScene(loginScreen.sence)
     val l=new LoginScreenController(context, loginScreen)
     l.start
   }
