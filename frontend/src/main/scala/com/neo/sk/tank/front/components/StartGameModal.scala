@@ -6,9 +6,7 @@ import com.neo.sk.tank.shared.model.Constants.GameState
 import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
-import org.scalajs.dom.{Event, KeyboardEvent}
-import org.scalajs.dom.raw.MouseEvent
-
+import org.scalajs.dom.KeyboardEvent
 import scala.xml.Elem
 import com.neo.sk.tank.front.utils.Shortcut
 
@@ -31,20 +29,6 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
     case _ => ""
   }
 
-
-  private val name = gameState.map{
-    case GameState.firstCome => "名字"
-    case GameState.stop => "名字"
-    case _ => ""
-  }
-
-  private val roomId = gameState.map{
-    case GameState.firstCome => "房间"
-    case GameState.stop => "房间"
-    case _ => ""
-  }
-
-
   private val divStyle = gameState.map{
     case GameState.play => "display:none;"
     case GameState.loadingPlay => "display:none;"
@@ -56,8 +40,8 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
 
   private val inputElem = <input id ="TankGameNameInput" onkeydown ={e:KeyboardEvent => clickEnter(e)} disabled={inputDisabled} value ={inputValue}></input>
   private val inputElem4RoomId = <input id="TankGameRoomIdInput" onkeydown={e:KeyboardEvent => clickEnter(e)} disabled={inputDisabled}></input>
-  private val button = <button id="start_button" class ="btn btn-info" onclick ={() => clickEnter()}>进入</button>
-  private val watchButton = <button id="watch_button" class ="btn btn-info" onclick ={() => Shortcut.redirect("#/getGameRec")}>进入观看列表</button>
+  private val button = <button id="start_button" class ="btn btn-info" onclick ={() => clickEnter()}>进入游戏</button>
+  private val watchButton = <button id="watch_button" class ="btn btn-info" onclick ={() => Shortcut.redirect("#/getGameRec")}>观看列表</button>
 
 
 
@@ -93,17 +77,13 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
         </div>
         <div class ="input_title">{title}</div>
         <div>
-          <div class="input_inline">
-            <div class ="input_des" style="display:inline-block">{name}</div>
-            <div class ="input_elem" style="display: inline-block;">{inputElem}</div>
-          </div>
-          <div class="input_inline">
-            <div class="input_des" style="display: inline-block;">{roomId}</div>
-            <div class="input_elem" style="display: inline-block;">{inputElem4RoomId}</div>
-          </div>
+          <p class="input_inline"><span class="input_des">名字</span>{inputElem}</p>
+          <p class="input_inline"><span class="input_des">房间</span>{inputElem4RoomId}</p>
         </div>
-        <div class ="input_button">{button}</div>
-        <div class ="input_button">{watchButton}</div>
+        <div class ="input_button">
+          <span>{button}</span>
+          <span>{watchButton}</span>
+        </div>
       </div>
     </div>
 
