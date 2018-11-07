@@ -2,11 +2,11 @@ package com.neo.sk.tank.view
 
 //import java.awt.TextField
 
-import com.neo.sk.tank.common.Context
+import com.neo.sk.tank.common.{Constants, Context}
 import com.neo.sk.tank.model
 import com.neo.sk.tank.model.PlayerInfo
 import javafx.collections.{FXCollections, ObservableArray, ObservableList}
-import javafx.geometry.{Insets, Pos}
+import javafx.geometry.{HPos, Insets, Pos, VPos}
 import javafx.scene.{Group, Scene}
 import javafx.scene.control._
 import javafx.scene.layout._
@@ -19,12 +19,13 @@ import javafx.scene.text.{Font, FontWeight, Text}
   * */
 class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   private val group = new Group()
-  private val scene = new Scene(group)
+  private val scene = new Scene(group,Constants.SceneBound.weight,Constants.SceneBound.height)
   private val borderPane = new BorderPane()
 
   private val vBox4Info = new VBox(10)//放个人信息的两个label
   private val vBox4Btn = new VBox(10)//放两个button
   private val vBox4Center = new VBox(10)
+  private val hBox = new HBox(10)
 
   private val nicknameLabel = new Label(s"昵称：${playerInfo.nickName}")
   private val playerIdLabel = new Label(s"玩家id：${playerInfo.playerId}")
@@ -55,20 +56,29 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
 
     confirmBtn.setPrefSize(100,20)
     randomBtn.setPrefSize(100,20)
-    vBox4Info.setPadding(new Insets(15,12,15,40))
-    vBox4Btn.setPadding(new Insets(120,20,15,20))
+
+    vBox4Info.setPadding(new Insets(15,12,15,12))
+    vBox4Btn.setPadding(new Insets(150,20,15,20))
+
     vBox4Info.setSpacing(10)
     vBox4Info.setStyle("-fx-background-color:#336699;")
 
     vBox4Btn.setSpacing(10)
-    listView.setMaxWidth(200)
-    listView.setPrefWidth(150)
-    listView.setPrefHeight(200)
+    vBox4Center.setMaxWidth(300)
+    vBox4Center.setMaxHeight(500)
+    vBox4Center.setPrefWidth(200)
+    vBox4Center.setPrefHeight(200)
 
     vBox4Center.setPadding(new Insets(30,30,30,30))
     VBox.setMargin(roomListLabel,new Insets(0,0,5,8))
     VBox.setMargin(listView,new Insets(0,0,5,8))
     VBox.setMargin(roomIdTextField,new Insets(0,0,5,8))
+//    hBox.setPadding(new Insets(20,20,20,100))
+    hBox.setAlignment(Pos.CENTER)
+
+    HBox.setHgrow(vBox4Center,Priority.ALWAYS)
+    borderPane.prefHeightProperty().bind(scene.heightProperty())
+    borderPane.prefWidthProperty().bind(scene.widthProperty())
   }
 
   def add():Unit = {
@@ -76,10 +86,11 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     vBox4Info.getChildren.addAll(playerIdLabel,nicknameLabel)
     vBox4Btn.getChildren.addAll(confirmBtn,randomBtn)
     vBox4Center.getChildren.addAll(roomListLabel,listView,roomIdTextField)
-    borderPane.setRight(vBox4Btn)
+    hBox.getChildren.addAll(vBox4Center,vBox4Btn)
     borderPane.setTop(vBox4Info)
-    borderPane.setCenter(vBox4Center)
+    borderPane.setCenter(hBox)
     group.getChildren.addAll(borderPane)
+
     setListenerFunc()
   }
 

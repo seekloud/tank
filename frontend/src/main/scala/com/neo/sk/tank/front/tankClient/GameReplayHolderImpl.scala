@@ -35,7 +35,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
       ctx.fillStyle = "rgb(250, 250, 250)"
       ctx.textAlign = "left"
       ctx.textBaseline = "top"
-      ctx.font = "36px Helvetica"
+      ctx.font = s"${3.6 * canvasUnit}px Helvetica"
       ctx.fillText(s"重新进入房间，倒计时：${countDownTimes}",150,100)
       ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
       countDownTimes = countDownTimes - 1
@@ -43,7 +43,18 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
       Shortcut.cancelSchedule(reStartTimer)
       countDownTimes = countDown
     }
-    startReplay()
+//    startReplay()
+  }
+
+  override protected def drawGameStop():Unit = {
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.fillStyle = "rgb(250, 250, 250)"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    ctx.font = s"${3.6 * canvasUnit}px Helvetica"
+    ctx.fillText(s"玩家已经死亡或离开,被玩家=${killerName}所杀", 150, 180)
+    println()
   }
 
   def startReplay(option: Option[ReplayInfo]=None)={
@@ -60,27 +71,92 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
     }
   }
 
+  override protected def gameLoop():Unit = {
+    checkScreenSize
+    gameState match {
+      case GameState.loadingPlay =>
+        println(s"等待同步数据")
+        drawGameLoading()
+      case GameState.play =>
+        /***/
+        gameContainerOpt.foreach(_.update())
+        logicFrameTime = System.currentTimeMillis()
+        ping()
+
+      case GameState.stop =>
+        gameContainerOpt.foreach(_.update())
+        logicFrameTime = System.currentTimeMillis()
+        drawGameStop()
+
+      case GameState.relive =>
+        /**
+          * 在生命值之内死亡重玩，倒计时进入
+          * */
+        gameContainerOpt.foreach(_.update())
+        logicFrameTime = System.currentTimeMillis()
+//        drawGameRestart()
+
+      case GameState.replayLoading =>
+        drawGameLoading()
+
+      case _ => println(s"state=${gameState} failed")
+    }
+  }
+
+
+  private def setKillCallback(name:String, hasLife:Boolean, killTankNum:Int, damage:Int) = {
+    println(s"you are killed")
+    killNum = killTankNum
+    killerList = killerList :+ name
+    damageNum = damage
+    killerName = name
+    if(hasLife) {
+      drawGameRestart()
+      reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
+    }
+  }
+
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
-    println(data.getClass)
+//    println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
         println("----Start!!!!!")
         //        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
-        gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
+        gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, setKillCallback = setKillCallback))
         gameContainerOpt.get.getTankId(e.tankId)
 
       case e:TankGameEvent.SyncGameAllState =>
         if(firstCome){
-          firstCome=false
-          setGameState(GameState.play)
-          timer = Shortcut.schedule(gameLoop, gameContainerOpt.get.config.frameDuration)
+          firstCome = false
+          setGameState(GameState.replayLoading)
+//          timer = Shortcut.schedule(gameLoop, gameContainerOpt.get.config.frameDuration)
           gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
-          nextFrame = dom.window.requestAnimationFrame(gameRender())
+          gameContainerOpt.foreach(_.update())
+//          nextFrame = dom.window.requestAnimationFrame(gameRender())
         }else{
           //fixme 此处存在重复操作
           //remind here allState change into state
           gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks,e.gState.props,e.gState.obstacle,e.gState.tankMoveAction)))
         }
+
+      case e:TankGameEvent.Ranks =>
+        /**
+          * 游戏排行榜
+          * */
+        gameContainerOpt.foreach{ t =>
+          t.currentRank = e.currentRank
+          t.historyRank = e.historyRank
+          t.rankUpdated = true
+        }
+
+
+      case TankGameEvent.StartReplay =>
+        println("start replay---")
+        setGameState(GameState.play)
+        timer = Shortcut.schedule(gameLoop, gameContainerOpt.get.config.frameDuration)
+        nextFrame = dom.window.requestAnimationFrame(gameRender())
+
+
 
 
 
@@ -94,15 +170,26 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
         //remind 此处判断是否为用户进入，更新userMap
         e match {
           case t: TankGameEvent.UserJoinRoom =>
-            if (t.tankState.tankId == gameContainerOpt.get.tankId) {
-              gameContainerOpt.foreach(_.update())
+            if (t.tankState.userId == gameContainerOpt.get.myId) {
+              gameContainerOpt.foreach(_.changeTankId(t.tankState.tankId))
+//              gameContainerOpt.foreach(_.update())
               setGameState(GameState.play)
             }
+
+          case t: TankGameEvent.UserLeftRoom =>
+            if(t.userId == gameContainerOpt.get.myId) {
+              println(s"recv userLeft=${t},set stop")
+              setGameState(GameState.stop)
+            }
+
           case _ =>
         }
 
       case e:TankGameEvent.EventData =>
         e.list.foreach(r=>wsMessageHandler(r))
+        if(this.gameState == GameState.replayLoading){
+          gameContainerOpt.foreach(_.update())
+        }
 
       case e:TankGameEvent.PingPackage =>
         receivePingPackage(e)

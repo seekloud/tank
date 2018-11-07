@@ -1,17 +1,18 @@
 package com.neo.sk.tank.game.draw
 
+import com.neo.sk.tank.App
 import com.neo.sk.tank.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.`object`.TankImpl
 import com.neo.sk.tank.shared.model.Constants.{InvincibleSize, SmallBullet}
 import com.neo.sk.tank.shared.model.Point
 import javafx.geometry.VPos
-import javafx.scene.SnapshotParameters
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.scene.shape.{StrokeLineCap, StrokeLineJoin}
-import javafx.scene.text.{Font, FontPosture, FontWeight, TextAlignment}
+import javafx.scene.text.{Font, FontWeight, TextAlignment}
+import javafx.scene.SnapshotParameters
 
 import scala.collection.mutable
 
@@ -22,13 +23,13 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
 
   //fixme 将此处map暴露给子类
-  private val myTankInfoCacheMap = mutable.HashMap[(Byte,Byte,Byte), Canvas]()
+  private val myTankInfoCacheMap = mutable.HashMap[(Byte,Byte,Byte), Image]()
   private var canvasBoundary:Point=canvasSize
 
-  private val fillBulletImg = new Image(s"file:client/src/main/resources/img/子弹初始重构.png")
-  private val emptyBulletImg = new Image(s"file:client/src/main/resources/img/子弹消失重构.png")
-  private val fillMedicalImg = new Image(s"file:client/src/main/resources/img/yiliao.png")
-  private val emptyMedicalImg = new Image(s"file:client/src/main/resources/img/huiyiliao.png")
+  private val fillBulletImg = new Image(App.getClass.getResourceAsStream("/img/子弹初始重构.png"))
+  private val emptyBulletImg = new Image(App.getClass.getResourceAsStream("/img/子弹消失重构.png"))
+  private val fillMedicalImg = new Image(App.getClass.getResourceAsStream("/img/yiliao.png"))
+  private val emptyMedicalImg = new Image(App.getClass.getResourceAsStream("/img/huiyiliao.png"))
 
 
   def updateTankSize(canvasSize:Point)={
@@ -56,7 +57,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         ctx.setFill(Color.web("#7A7A7A"))
         ctx.setStroke(Color.web("#636363"))
         ctx.fill()
-        ctx.setLineWidth(4)
+        ctx.setLineWidth(0.4 * canvasUnit)
         ctx.stroke()
         ctx.closePath()
         //----------------------------绘制坦克---------------------#
@@ -68,20 +69,20 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
           val radiusX =  InvincibleSize.r * canvasUnit
           val radiusY =  InvincibleSize.r * canvasUnit
           val startAngle = 0
-          val lengthAngle = 2 * math.Pi
+          val lengthAngle = 360
           ctx.arc(centerX.toFloat, centerY.toFloat, radiusX.toFloat, radiusY.toFloat, startAngle.toFloat, lengthAngle.toFloat)
           ctx.fill()
           ctx.closePath()
         }
         ctx.beginPath()
-        ctx.setLineWidth(4)
+        ctx.setLineWidth( 0.4 * canvasUnit)
         ctx.setStroke(Color.web("#636363"))
         val centerX = p.x * canvasUnit
         val centerY = p.y * canvasUnit
         val radiusX =  tank.getRadius * canvasUnit
         val radiusY =  tank.getRadius * canvasUnit
         val startAngle = 0
-        val lengthAngle = 2 * math.Pi
+        val lengthAngle = 360
         ctx.arc(centerX.toFloat, centerY.toFloat, radiusX.toFloat, radiusY.toFloat, startAngle.toFloat, lengthAngle.toFloat)
         val tankColor = tank.getTankColor()
         ctx.setFill(Color.web(tankColor))
@@ -97,7 +98,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         val namePosition = (p + Point(0, 5)) * canvasUnit
         ctx.setFill(Color.web("#006699"))
         ctx.setTextAlign(TextAlignment.CENTER)
-        ctx.setFont(Font.font("楷体", FontWeight.NORMAL, 20))
+        ctx.setFont(Font.font("楷体", FontWeight.NORMAL, 2 * canvasUnit))
         ctx.setLineWidth(2)
         ctx.fillText(s"${tank.name}", namePosition.x, namePosition.y, 20 * canvasUnit)
         ctx.closePath()
@@ -116,7 +117,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     ctx.beginPath()
     ctx.setLineCap(StrokeLineCap.BUTT)
     ctx.setLineJoin(StrokeLineJoin.MITER)
-    ctx.setLineWidth(5)
+    ctx.setLineWidth(0.5 * canvasUnit)
     ctx.setStroke(Color.web("#BEBEBE"))
     ctx.moveTo(sliderPositions.last.x,sliderPositions.last.y)
     ctx.lineTo(sliderPositions.head.x,sliderPositions.head.y)
@@ -124,7 +125,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     ctx.closePath()
     for(i <- Range(1 ,sliderPositions.length,2)){
       ctx.beginPath()
-      ctx.setLineWidth(5)
+      ctx.setLineWidth(0.5 * canvasUnit)
       if((i+1) / 2 <= 1f * tank.getCurBlood / 20){
         ctx.setStroke(Color.RED)
         ctx.moveTo(sliderPositions(i-1).x,sliderPositions(i-1).y)
@@ -169,45 +170,40 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
   }
 
-
-
-
-
-
-  private def generateMyTankInfoCanvas(tank:TankImpl):Canvas = {
+  private def generateMyTankInfoCanvas(tank:TankImpl):Image = {
     myTankInfoCacheMap.clear()
     val canvasCache = new Canvas(30 * canvasUnit, 20 * canvasUnit)
     val ctxCache = canvasCache.getGraphicsContext2D
-
     drawLevel(tank.getBloodLevel,config.getTankBloodMaxLevel(),"血量等级",Point(5,20 - 12) * canvasUnit,20 * canvasUnit,"#FF3030",ctxCache)
     drawLevel(tank.getSpeedLevel,config.getTankSpeedMaxLevel(),"速度等级",Point(5,20 - 8) * canvasUnit,20 * canvasUnit,"#66CD00",ctxCache)
     drawLevel(tank.getBulletLevel,config.getBulletMaxLevel(),"炮弹等级",Point(5,20 - 4) * canvasUnit,20 * canvasUnit,"#1C86EE",ctxCache)
     drawLevel(tank.lives.toByte,config.getTankLivesLimit.toByte,s"生命值",Point(5,20-16) * canvasUnit,20 * canvasUnit,"#FFA500",ctxCache)
-    canvasCache
-
+    val params = new SnapshotParameters
+    params.setFill(Color.TRANSPARENT)
+    canvasCache.snapshot(params, null)
   }
 
   protected def drawMyTankInfo(tank:TankImpl) = {
     val cache = myTankInfoCacheMap.getOrElseUpdate((tank.getBloodLevel,tank.getSpeedLevel,tank.getBulletLevel),generateMyTankInfoCanvas(tank))
-    ctx.drawImage(cache.snapshot(new SnapshotParameters(), null),0,(canvasBoundary.y - 20) * canvasUnit)
+    ctx.drawImage(cache,0,(canvasBoundary.y - 20) * canvasUnit)
   }
 
-  def drawLevel(level:Byte,maxLevel:Byte,name:String,start:Point,length:Float,color:String, context:GraphicsContext = ctx) = {
-    ctx.setStroke(Color.web("#4D4D4D"))
-    ctx.setLineCap(StrokeLineCap.ROUND)
-    context.setLineWidth(30)
+  def drawLevel(level:Byte,maxLevel:Byte,name:String,start:Point,length:Float,color:String, context:GraphicsContext) = {
+    context.setStroke(Color.web("#4D4D4D"))
+    context.setLineCap(StrokeLineCap.ROUND)
+    context.setLineWidth(3 * canvasUnit)
     context.beginPath()
     context.moveTo(start.x,start.y)
     context.lineTo(start.x+length,start.y)
     context.stroke()
     context.closePath()
 
-    context.setLineWidth(22)
-    ctx.setStroke(Color.web(color))
+    context.setLineWidth(2.2 * canvasUnit)
+    context.setStroke(Color.web(color))
     if(level == maxLevel){
       context.beginPath()
       context.moveTo(start.x + length,start.y)
-      context.lineTo(start.x+length,start.y)
+      context.lineTo(start.x + length,start.y)
       context.stroke()
       context.closePath()
     }
@@ -219,8 +215,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
       context.stroke()
       context.closePath()
 
-
-      ctx.setLineCap(StrokeLineCap.BUTT)
+      context.setLineCap(StrokeLineCap.BUTT)
       (0 until level).foreach{ index =>
         context.beginPath()
         context.moveTo(start.x + index * (length / maxLevel) + 2,start.y)
@@ -229,10 +224,10 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         context.closePath()
       }
     }
-    ctx.setFont(Font.font("Arial", FontWeight.BOLD, 18))
+    context.setFont(Font.font("Arial", FontWeight.BOLD, 1.8 * canvasUnit))
     context.setTextAlign(TextAlignment.CENTER)
     context.setTextBaseline(VPos.CENTER)
-    ctx.setStroke(Color.web("#FCFCFC"))
+    context.setFill(Color.web("#FCFCFC"))
     context.fillText(name, start.x + length / 2, start.y)
   }
 
@@ -241,7 +236,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     ctx.beginPath()
     ctx.setStroke(Color.BLACK)
     ctx.setTextAlign(TextAlignment.LEFT)
-    ctx.setFont(Font.font("隶书", FontWeight.BOLD, 18))
+    ctx.setFont(Font.font("隶书", FontWeight.BOLD, 1.8 * canvasUnit))
     ctx.setLineWidth(1)
     ctx.fillText(s"血包${("                       ").take(30)}(按E键使用)", 4.5*canvasUnit,(canvasBoundary.y - 22.5)  * canvasUnit , 30 * canvasUnit)
     val medicalNum = tank.medicalNumOpt match{
@@ -251,8 +246,8 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     (1 to medicalNum).foreach{ index =>
       val smallMedicalPosition = (Point(8,(canvasBoundary.y - 21)) + Point(index * config.propRadius * 3 / 2,0))
       val img = fillMedicalImg
-      ctx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit,
-        (smallMedicalPosition.y - config.propRadius) * canvasUnit,
+      ctx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
+        (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
         1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit)
     }
     ctx.setGlobalAlpha(0.5)
@@ -260,8 +255,8 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     (medicalNum + 1 to config.getTankMedicalLimit).foreach{ index =>
       val smallMedicalPosition = (Point(8,(canvasBoundary.y - 21)) + Point(index * config.propRadius * 3 / 2,0))
       val img = emptyMedicalImg
-      ctx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit,
-        (smallMedicalPosition.y - config.propRadius) * canvasUnit,
+      ctx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
+        (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
         1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit)
     }
     ctx.setGlobalAlpha(1)

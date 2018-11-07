@@ -97,7 +97,8 @@ object GameRecorder {
         val gameRecordBuffer:List[GameRecord] = List[GameRecord]()
         val data = GameRecorderData(roomId,fileName,0,gameInformation,initStateOpt,fileRecorder,gameRecordBuffer)
         timer.startSingleTimer(SaveDateKey, Save, saveTime)
-        switchBehavior(ctx,"work",work(data,mutable.HashMap.empty[EssfMapKey,EssfMapJoinLeftInfo],mutable.HashMap.empty[String,(Int,String)],mutable.HashMap.empty[String,(Int,String)], 0L, -1L))
+        val startFrame = initStateOpt.map(_.asInstanceOf[TankGameSnapshot].state.f).getOrElse(0L)
+        switchBehavior(ctx,"work",work(data,mutable.HashMap.empty[EssfMapKey,EssfMapJoinLeftInfo],mutable.HashMap.empty[String,(Int,String)],mutable.HashMap.empty[String,(Int,String)], startFrame, -1L))
       }
     }
   }
@@ -121,14 +122,20 @@ object GameRecorder {
           val wsMsg = t.event._1
           wsMsg.foreach{
                  case UserJoinRoom(userId, name, tankState,frame) =>
-                   userAllMap.put(userId, (tankState.tankId,name))
-                   userMap.put(userId, (tankState.tankId,name))
-                   essfMap.put(EssfMapKey(tankState.tankId, userId, name), EssfMapJoinLeftInfo(frame, -1l))
+                   if(tankState.lives >= gameRecordData.gameInformation.tankConfig.getTankLivesLimit){
+                     userAllMap.put(userId, (tankState.tankId,name))
+                     userMap.put(userId, (tankState.tankId,name))
+                     essfMap.put(EssfMapKey(tankState.tankId, userId, name), EssfMapJoinLeftInfo(frame, -1l))
+                   }
+
 
                  case UserLeftRoom(userId, name, tankId,frame) =>
                    userMap.remove(userId)
-                   val startF = essfMap(EssfMapKey(tankId, userId, name)).joinF
-                   essfMap.put(EssfMapKey(tankId, userId,name), EssfMapJoinLeftInfo(startF,frame))
+                   if(essfMap.get(EssfMapKey(tankId, userId, name)).isDefined){
+                     val startF = essfMap(EssfMapKey(tankId, userId, name)).joinF
+                     essfMap.put(EssfMapKey(tankId, userId,name), EssfMapJoinLeftInfo(startF,frame))
+                   }
+
 
                  case _ =>
 

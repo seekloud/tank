@@ -61,6 +61,7 @@ object TankGameEvent {
   final case class ReplayFrameData(ws:Array[Byte]) extends WsMsgSource
   final case class InitReplayError(msg:String) extends WsMsgServer
   final case class ReplayFinish() extends WsMsgServer
+  final case object StartReplay extends WsMsgServer
   /**
     * replay in front
     * */

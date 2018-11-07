@@ -40,15 +40,17 @@ abstract class GameHolder(name:String) extends NetworkInfo{
 
   println(s"test111111111111=${canvasUnit},=${canvasWidth}")
 
+  protected var killNum:Int = 0
+  protected var damageNum:Int = 0
+  var killerList = List.empty[String] //（击杀者）
+
   protected var firstCome = true
 
   protected val gameStateVar:Var[Int] = Var(GameState.firstCome)
   protected var gameState:Int = GameState.firstCome
 
   protected var killerName:String = ""
-  private var killNum:Int = 0
-  private var damageNum:Int = 0
-  var killerList = List.empty[String] //（击杀者）
+
 
   protected var gameContainerOpt : Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
 
@@ -71,7 +73,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     dom.window.cancelAnimationFrame(nextFrame)
     Shortcut.cancelSchedule(timer)
     Shortcut.cancelSchedule(reStartTimer)
-    //    webSocketClient.closeWs
+    webSocketClient.closeWs
   }
 
   protected def gameRender():Double => Unit = {d =>
@@ -92,7 +94,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       webSocketClient.sendMsg(msg)
   }
 
-  private def checkScreenSize={
+  protected def checkScreenSize={
     val newWidth=dom.window.innerWidth.toFloat
     val newHeight=dom.window.innerHeight.toFloat
     if(newWidth!=canvasWidth||newHeight!=canvasHeight){
@@ -101,7 +103,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       canvasHeight=newHeight
       canvasUnit = getCanvasUnit(canvasWidth)
       canvasBoundary=Point(canvasWidth, canvasHeight) / canvasUnit
-      println(s"update screen=${canvasUnit},=${canvasWidth}")
+      println(s"update screen=${canvasUnit},=${(canvasWidth,canvasHeight)}")
       canvas.width = canvasWidth.toInt
       canvas.height = canvasHeight.toInt
       gameContainerOpt.foreach{r=>
@@ -127,7 +129,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
         Shortcut.cancelSchedule(timer)
         Shortcut.cancelSchedule(reStartTimer)
         drawGameStop()
-        Shortcut.scheduleOnce(() => drawCombatGains(), 1000)
+        drawCombatGains()
         dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
 
       case GameState.relive =>
@@ -163,7 +165,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     ctx.fillStyle = "rgb(250, 250, 250)"
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
-    ctx.font = "36px Helvetica"
+    ctx.font = s"${3.6 * canvasUnit}px Helvetica"
     ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
     println()
   }
@@ -174,23 +176,20 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     ctx.fillStyle = "rgb(250, 250, 250)"
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
-    ctx.font = "36px Helvetica"
+    ctx.font = s"${3.6 * canvasUnit}px Helvetica"
     ctx.fillText(m, 150, 180)
     println()
   }
 
-  protected def drawCombatGains():Unit = {
+  protected def drawCombatGains(): Unit = {
     val combatGians = dom.document.getElementById("combat_gains").asInstanceOf[Div]
-    val combatP_1 = dom.document.createElement("p").asInstanceOf[Paragraph]
-    combatP_1.innerHTML = s"击杀数:<span>${killNum}</span>"
-    val combatP_2 =  dom.document.createElement("p").asInstanceOf[Paragraph]
-    combatP_2.innerHTML = s"伤害量:<span>${damageNum}</span>"
-    val combatP_3 =  dom.document.createElement("p").asInstanceOf[Paragraph]
-    combatP_3.innerHTML = s"击杀者ID:<span>${killerList.head}</span>、<span>${killerList(1)}</span>、<span>${killerList(2)}</span>"
-    combatGians.appendChild(combatP_1)
-    combatGians.appendChild(combatP_2)
-    combatGians.appendChild(combatP_3)
+    val temp = killerList.map(r => s"<span>${r}</span>")
+    combatGians.innerHTML = s"<p>击杀数:<span>${killNum}</span></p>" +
+      s"<p>伤害量:<span>${damageNum}</span></p>" +
+      s"<p>击杀者ID:" + temp.mkString("、")+ "</p>"
+    killerList = List.empty[String]
   }
+
 
 
   protected def drawGameRestart()

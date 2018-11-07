@@ -89,7 +89,8 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
       <div class ="input_mask" onkeydown ={e:KeyboardEvent => clickEnter(e)}>
       </div>
       <div class ="input_div">
-        <div id="combat_gains"></div>
+        <div id = "combat_gains">
+        </div>
         <div class ="input_title">{title}</div>
         <div>
           <div class="input_inline">
