@@ -72,7 +72,7 @@ lazy val client = project.in(file("client")).enablePlugins(PackPlugin)
   .settings(name := "client")
   .settings(
     mainClass in reStart := Some(clientMainClass),
-    javaOptions in reStart += "-Xmx512M"
+    javaOptions in reStart += "-Xmx2g"
   )
   .settings(
     packMain := Map("tank" -> clientMainClass),

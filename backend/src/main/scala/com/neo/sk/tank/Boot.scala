@@ -54,6 +54,7 @@ object Boot extends HttpService {
 
   val esheepSyncClient:ActorRef[EsheepSyncClient.Command] = system.spawn(EsheepSyncClient.create,"esheepSyncClient")
 
+
 //  var testTime = System.currentTimeMillis()
 //  scheduler.schedule(0.millis,120.millis){
 //    val startTime = System.currentTimeMillis()
@@ -61,6 +62,7 @@ object Boot extends HttpService {
 //    testTime = startTime
 //  }
 
+  scheduler.schedule(10 minutes, 10 minutes){deleteCode}
 
 
 

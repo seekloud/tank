@@ -115,4 +115,22 @@ object RecordDAO {
     db.run(q)
   }
 
+  //insert code
+  def insertCodeForDownload(time:Long, code:String) = {
+    val insertAc =
+      tCodeForDownload += rCodeForDownload(0, time, code)
+    db.run(insertAc)
+  }
+
+  //select code
+  def selectCodeForDownload(time:Long) = {
+    val q = tCodeForDownload.filter(r => r.deadline > time).map(_.code).result
+    db.run(q)
+  }
+
+  //delete code
+  def deleteCodeForDownload(time:Long) = {
+    val q = tCodeForDownload.filter(r => r.deadline < time).delete
+    db.run(q)
+  }
 }

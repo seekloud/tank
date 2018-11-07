@@ -2,11 +2,11 @@ package com.neo.sk.tank.game.draw
 
 import com.neo.sk.tank.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.`object`.Bullet
-import com.neo.sk.tank.shared.model.{Point}
+import com.neo.sk.tank.shared.model.Point
 import javafx.scene.canvas.Canvas
 import javafx.scene.paint.Color
 import javafx.scene.SnapshotParameters
-
+import javafx.scene.image.Image
 
 import scala.collection.mutable
 
@@ -14,7 +14,7 @@ import scala.collection.mutable
   * Created by hongruying on 2018/8/29
   */
 trait BulletDrawUtil { this:GameContainerClientImpl =>
-  private def generateCanvas(bullet:Bullet):Canvas = {
+  private def generateCanvas(bullet:Bullet):Image = {
     val radius = bullet.getRadius
     val canvasCache = new Canvas(math.ceil(radius * canvasUnit * 2 + radius * canvasUnit / 5).toInt, math.ceil(radius * canvasUnit * 2 + radius * canvasUnit / 5).toInt)
     val ctxCache = canvasCache.getGraphicsContext2D
@@ -39,10 +39,12 @@ trait BulletDrawUtil { this:GameContainerClientImpl =>
     ctxCache.setLineWidth(radius * canvasUnit / 5)
     ctxCache.stroke()
     ctx.closePath()
-    canvasCache
+    val params = new SnapshotParameters
+    params.setFill(Color.TRANSPARENT)
+    canvasCache.snapshot(params, null)
   }
 
-  private val canvasCacheMap = mutable.HashMap[Byte,Canvas]()
+  private val canvasCacheMap = mutable.HashMap[Byte, Image]()
 
   def updateBulletSize(canvasSize:Point)={
     canvasCacheMap.clear()
@@ -54,7 +56,7 @@ trait BulletDrawUtil { this:GameContainerClientImpl =>
       if(p.in(view,Point(bullet.getRadius * 4 ,bullet.getRadius *4))) {
         val cacheCanvas = canvasCacheMap.getOrElseUpdate(bullet.getBulletLevel(), generateCanvas(bullet))
         val radius = bullet.getRadius
-        ctx.drawImage(cacheCanvas.snapshot(new SnapshotParameters(), null), (p.x - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5, (p.y - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5)
+        ctx.drawImage(cacheCanvas, (p.x - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5, (p.y - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5)
       }
     }
   }
