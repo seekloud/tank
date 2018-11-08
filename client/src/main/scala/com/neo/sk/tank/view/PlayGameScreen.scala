@@ -24,21 +24,18 @@ class PlayGameScreen(context: Context) {
   import javafx.stage.Screen
 
   //todo 此处涉及到显卡的最大纹理尺寸
-  val screen= Screen.getPrimary.getVisualBounds
+  private var screen = Screen.getPrimary.getVisualBounds
   println(s"----width--${screen.getMaxX.toFloat}")
-  println(s"----width--${screen.getMaxY.toFloat}")
+  println(s"----heght--${screen.getMaxY.toFloat}")
   protected var canvasWidth = screen.getMaxX.toFloat
   protected var canvasHeight = screen.getMaxY.toFloat
-//  protected var canvasWidth = 1440
-//  protected var canvasHeight = 900
   var canvasUnit = getCanvasUnit(canvasWidth)
   var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
-  val group = new Group()
-  val canvas=new Canvas()
+  val canvas = new Canvas()
   canvas.setHeight(canvasHeight)
   canvas.setWidth(canvasWidth)
+  val group = new Group()
   val scene = new Scene(group)
-
   val image = new Image(App.getClass.getResourceAsStream("/img/瞄准.png"))
   scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))
 
@@ -47,6 +44,22 @@ class PlayGameScreen(context: Context) {
   def getCanvasContext: GraphicsContext = canvas.getGraphicsContext2D
 
   group.getChildren.add(canvas)
+
+  def checkScreenSize() = {
+    screen = Screen.getPrimary.getVisualBounds
+    val newCanvasWidth = context.getStageWidth.toFloat
+    val newCanvasHeight = if(context.isFullScreen) context.getStageHeight.toFloat else context.getStageHeight.toFloat - 20
+    if(canvasWidth != newCanvasWidth || canvasHeight != newCanvasHeight){
+      println("the screen size has changed")
+      canvasWidth = newCanvasWidth
+      canvasHeight = newCanvasHeight
+      canvasUnit = getCanvasUnit(newCanvasWidth)
+      canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+      canvas.setWidth(newCanvasWidth)
+      canvas.setHeight(newCanvasHeight)
+      (canvasBoundary, canvasUnit)
+    }else (Point(0,0), 0)
+  }
 
   def drawGameLoading():Unit = {
     getCanvasContext.setFill(Color.web("#006699"))
