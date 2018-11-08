@@ -10,20 +10,20 @@ import com.neo.sk.tank.view.{GameHallListener, GameHallScreen, PlayGameScreen}
 import javafx.geometry.Pos
 import javafx.scene.Group
 import javafx.scene.control._
+
 import com.neo.sk.utils.HttpUtil.Imports.postJsonRequestSend
 import com.neo.sk.utils.SecureUtil._
-import io.circe.Json
 
 import scala.concurrent.duration._
 import io.circe.parser.decode
-import com.neo.sk.tank.App.{executor, materializer, scheduler, system}
-import com.neo.sk.tank.actor.PlayGameActor
+import com.neo.sk.tank.App.{executor, materializer, scheduler, system,tokenActor}
+import com.neo.sk.tank.actor.{PlayGameActor, TokenActor}
 import io.circe.syntax._
 import io.circe.generic.auto._
 import org.slf4j.LoggerFactory
-import com.neo.sk.tank.actor.PlayGameActor.ConnectGame
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
-
+import scala.concurrent.Future
+import com.neo.sk.tank.actor.TokenActor
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 /**
