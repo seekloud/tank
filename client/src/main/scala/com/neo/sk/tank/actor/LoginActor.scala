@@ -127,7 +127,7 @@ object LoginActor {
               case Success(rst) =>
                 rst match {
                   case Right(value) =>
-                    val playerInfo= PlayerInfo(s"user${data.userId}", data.nickname,value.accessCode)
+                    val playerInfo= PlayerInfo(data,s"user${data.userId}", data.nickname,value.accessCode)
                     val gameServerInfo = GameServerInfo(value.gsPrimaryInfo.ip, value.gsPrimaryInfo.port, value.gsPrimaryInfo.domain)
                     controller.showSuccess()
                     controller.joinGame(playerInfo, gameServerInfo)
