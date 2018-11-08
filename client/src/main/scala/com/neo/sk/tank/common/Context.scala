@@ -8,6 +8,10 @@ import javafx.stage.Stage
   */
 class Context(stage: Stage) {
 
+  def getStageWidth = stage.getWidth
+  def getStageHeight = stage.getHeight
+  def isFullScreen = stage.isFullScreen
+
   def switchScene(scene: Scene, title:String = "Tank Game",resize:Boolean = false,fullScreen:Boolean = false) = {
     stage.centerOnScreen()
     stage.setScene(scene)
