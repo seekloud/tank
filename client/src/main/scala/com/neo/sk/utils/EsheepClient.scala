@@ -20,7 +20,7 @@ object EsheepClient extends HttpUtil {
   private val log = LoggerFactory.getLogger(this.getClass)
 
 //  private val baseUrl = s"${AppSettings.esheepProtocol}://${AppSettings.esheepHost}:${AppSettings.esheepPort}"
-  private val baseUrl = s"http://flowdev.neoap.com"
+  private val baseUrl = s"http://flow.neoap.com"
   println(baseUrl)
 //  private val appId = AppSettings.esheepAppId
 //  private val secureKey = AppSettings.esheepSecureKey

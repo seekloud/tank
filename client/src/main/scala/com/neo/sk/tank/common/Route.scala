@@ -12,7 +12,7 @@ import com.neo.sk.tank.model.PlayerInfo
 object Route {
   def getUserJoinGameWebSocketUri(name:String, domain:String, playerInfo:PlayerInfo, roomIdOpt:Option[String]): String = {
     val wsProtocol = "ws"
-    s"$wsProtocol://${domain}/tank${wsUserJoinGameUrl(URLEncoder.encode(name, "utf-8"),playerInfo.playerId, playerInfo.nickName, playerInfo.accessCode, roomIdOpt)}"
+    s"$wsProtocol://${domain}/tank${wsUserJoinGameUrl(URLEncoder.encode(name, "utf-8"),playerInfo.playerId, URLEncoder.encode(playerInfo.nickName, "utf-8"), playerInfo.accessCode, roomIdOpt)}"
     //    s"$wsProtocol://localhost:30369/tank${wsJoinGameUrl(name,playerInfo.playerId, playerInfo.nickName, playerInfo.accessCode, roomIdOpt)}"
   }
 

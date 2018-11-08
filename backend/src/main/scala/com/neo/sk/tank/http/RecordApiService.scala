@@ -168,12 +168,14 @@ trait RecordApiService extends ServiceUtils{
       flowFuture.map {
         case r: GetRecordFrameRsp =>
           complete(r)
+        case r: ErrorRsp=>
+          complete(r)
         case _ =>
-          complete(ErrorRsp(10001, "init error"))
+          complete(ErrorRsp(10003, "init error"))
       }.recover{
         case e:Exception =>
           log.debug(s"获取游戏录像失败，recover error:$e")
-          complete(ErrorRsp(10001,"init error"))
+          complete(ErrorRsp(10004,"init error"))
       }
     }
 
@@ -200,12 +202,14 @@ trait RecordApiService extends ServiceUtils{
       flowFuture.map {
         case r: GetUserInRecordRsp =>
           complete(r)
+        case r: ErrorRsp=>
+          complete(r)
         case _=>
-          complete(ErrorRsp(10001,"init error"))
+          complete(ErrorRsp(10003,"init error"))
       }.recover{
         case e:Exception =>
           log.debug(s"获取游戏录像失败，recover error:$e")
-          complete(ErrorRsp(10001,"init error"))
+          complete(ErrorRsp(10004,"init error"))
       }
     }
   /*    entity(as[Either[Error,GetUserInRecordReq]]){
