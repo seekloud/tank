@@ -271,7 +271,7 @@ object UserActor {
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
         case ChangeUserInfo(info) =>
-          replay(uId,info,startTime,frontActor)
+          replay(uId,recordId,info,startTime,frontActor)
 
         case UserLeft(actor) =>
           ctx.unwatch(actor)
