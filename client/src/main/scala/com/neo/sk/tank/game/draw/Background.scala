@@ -37,9 +37,23 @@ trait Background{ this:GameContainerClientImpl =>
   var minimapRenderFrame = 0L
   private var canvasBoundary:Point=canvasSize
 
+  def updateBackSize(canvasSize:Point)={
+    cacheCanvasMap.clear()
+    canvasBoundary = canvasSize
+    rankUpdated = true
+    minimapRenderFrame = systemFrame - 1
+    currentRankCanvas.setWidth(math.max(rankWidth * canvasUnit, rankWidth * 10))
+    currentRankCanvas.setHeight(math.max(rankHeight * canvasUnit, rankHeight * 10))
+    historyRankCanvas.setWidth(math.max(rankWidth * canvasUnit, rankWidth * 10))
+    historyRankCanvas.setHeight(math.max(rankHeight * canvasUnit, rankHeight * 10))
+    minimapCanvas.setWidth(LittleMap.w * canvasUnit + 6)
+    minimapCanvas.setHeight(LittleMap.h * canvasUnit + 6)
+  }
+
   private def generateBackgroundCanvas():Image = {
     val cacheCanvas = new Canvas(((boundary.x + canvasBoundary.x) * canvasUnit).toInt, ((boundary.y + canvasBoundary.y) * canvasUnit).toInt)
-//    val cacheCanvas = new Canvas((boundary.x * canvasUnit).toInt, (boundary.y * canvasUnit).toInt)
+    println(s"=====width==${cacheCanvas.getWidth}=====height====${cacheCanvas.getHeight}")
+    //    val cacheCanvas = new Canvas((boundary.x * canvasUnit).toInt, (boundary.y * canvasUnit).toInt)
     val ctxCache = cacheCanvas.getGraphicsContext2D
     clearScreen("#BEBEBE", 1, boundary.x + canvasBoundary.x, boundary.y + canvasBoundary.y, ctxCache)
     clearScreen("#E8E8E8",1, boundary.x, boundary.y, ctxCache, canvasBoundary / 2)
@@ -94,8 +108,8 @@ trait Background{ this:GameContainerClientImpl =>
         //绘制当前排行榜
         val unit = currentRankCanvas.getWidth / rankWidth
         println(s"rank =${historyRankCanvas.getWidth}, canvasUnit=${canvasUnit}, unit=${unit}")
-        val leftBegin = 4 * unit
-        context.setFont(Font.font("Arial", FontWeight.BOLD, 1.4 * canvasUnit))
+        val leftBegin = 5 * unit
+        context.setFont(Font.font("Arial", FontWeight.BOLD, 12))
         context.clearRect(0, 0, currentRankCanvas.getWidth, currentRankCanvas.getHeight)
 
         var index = 0
@@ -119,7 +133,7 @@ trait Background{ this:GameContainerClientImpl =>
             case _ => None
           }
           imgOpt.foreach{ img =>
-            context.drawImage(img, leftBegin - 4 * unit, (2 * index) * unit, 2 * unit, 2 * unit)
+            context.drawImage(img, leftBegin - 5 * unit, (2 * index) * unit, 2 * unit, 2 * unit)
           }
           context.setStroke(Color.web(drawColor))
           context.setLineWidth(1.8 * unit)
