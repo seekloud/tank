@@ -59,6 +59,8 @@ object UserActor {
 
   case class StartReplay(rid:Long, wid:String, f:Int) extends Command
 
+  case class ChangeUserInfo(info:TankGameUserInfo) extends Command
+
   final case class StartObserve(roomId:Long, watchedUserId:String) extends Command
 
   case class JoinRoomFail4Watch(msg:String) extends Command
@@ -139,16 +141,21 @@ object UserActor {
           ctx.watchWith(frontActor,UserLeft(frontActor))
           switchBehavior(ctx,"idle",idle(uId, userInfo,System.currentTimeMillis(), frontActor))
 
+        case ChangeUserInfo(info) =>
+          init(uId,info)
+
         case UserLeft(actor) =>
           ctx.unwatch(actor)
           Behaviors.stopped
 
         case msg:GetUserInRecordMsg=>
+          log.debug(s"--------------------$userInfo")
           getGameReplay(ctx,msg.recordId) ! msg
           Behaviors.same
 
 
         case ChangeBehaviorToInit=>
+          log.debug(s"------------000${userInfo}")
           Behaviors.same
 
         case msg:GetRecordFrameMsg=>
@@ -181,6 +188,9 @@ object UserActor {
             * */
           roomManager ! JoinRoom(uId,None,None,userInfo.name,startTime,ctx.self, roomIdOpt)
           Behaviors.same
+
+        case ChangeUserInfo(info) =>
+          idle(uId,info,startTime,frontActor)
 
         case StartReplay(rid,uid,f) =>
           getGameReplay(ctx,rid) ! GamePlayer.InitReplay(frontActor,uid,f)
@@ -260,6 +270,9 @@ object UserActor {
           ctx.unwatch(frontActor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
+        case ChangeUserInfo(info) =>
+          replay(uId,info,startTime,frontActor)
+
         case UserLeft(actor) =>
           ctx.unwatch(actor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
@@ -296,6 +309,9 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
+        case ChangeUserInfo(info) =>
+          observeInit(uId,info,frontActor)
+
         case JoinRoomSuccess4Watch(tank, config, roomActor, state) =>
           log.debug(s"${ctx.self.path} first sync gameContainerState")
           frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, tank.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
@@ -345,6 +361,9 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
+        case ChangeUserInfo(info) =>
+          observe(uId,info,tank,frontActor,roomActor)
+
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
             frontActor ! m
@@ -398,6 +417,9 @@ object UserActor {
                   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
+        case ChangeUserInfo(info) =>
+          play(uId,info,tank,startTime,frontActor,roomActor)
+
         case WebSocketMsg(reqOpt) =>
           reqOpt match {
             case Some(t:TankGameEvent.UserActionEvent) =>
