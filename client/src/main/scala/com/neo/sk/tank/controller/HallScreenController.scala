@@ -90,7 +90,6 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
         playGameScreen.setCursor
         close()
       }
-
     }
 
     override def confirmBtnListener(roomIdListView: String, roomIdTextField:String): Unit = {

@@ -12,6 +12,7 @@ import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameRsp, GetUserInReco
 import com.neo.sk.tank.shared.model.Constants.GameState
 import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, ReplayFrameData}
+import com.neo.sk.tank.shared.ptcl.ErrorRsp
 import org.slf4j.LoggerFactory
 //import com.neo.sk.tank.Boot.roomActor
 import com.neo.sk.tank.Boot.{roomManager,esheepSyncClient}
@@ -183,7 +184,7 @@ object UserActor {
 
         case StartReplay(rid,uid,f) =>
           getGameReplay(ctx,rid) ! GamePlayer.InitReplay(frontActor,uid,f)
-          switchBehavior(ctx, "replay", replay(uid, userInfo, startTime, frontActor))
+          switchBehavior(ctx, "replay", replay(uid,rid,userInfo, startTime, frontActor))
 //          Behaviors.same
 
         case JoinRoomSuccess(tank,config, `uId`,roomActor) =>
@@ -226,13 +227,13 @@ object UserActor {
           ctx.unwatch(actor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
-        case msg:GetUserInRecordMsg=>
-          getGameReplay(ctx,msg.recordId) ! msg
-          Behaviors.same
-
-        case msg:GetRecordFrameMsg=>
-          getGameReplay(ctx,msg.recordId) ! msg
-          Behaviors.same
+//        case msg:GetUserInRecordMsg=>
+//          getGameReplay(ctx,msg.recordId) ! msg
+//          Behaviors.same
+//
+//        case msg:GetRecordFrameMsg=>
+//          getGameReplay(ctx,msg.recordId) ! msg
+//          Behaviors.same
 
         case unknowMsg =>
 //          stashBuffer.stash(unknowMsg)
@@ -242,6 +243,7 @@ object UserActor {
     }
 
   private def replay(uId:String,
+                     recordId:Long,
                      userInfo: TankGameUserInfo,
                      startTime:Long,
                      frontActor:ActorRef[TankGameEvent.WsMsgSource])(
@@ -263,13 +265,22 @@ object UserActor {
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
         case msg:GetUserInRecordMsg=>
-//          log.debug(s"${ctx.self.path} recv a msg=${msg}")
-          getGameReplay(ctx,msg.recordId) ! msg
+          log.debug(s"${ctx.self.path} recv a msg=${msg}")
+          if(msg.recordId!=recordId){
+            msg.replyTo ! ErrorRsp(10002,"you are watching the other record")
+          }else{
+            getGameReplay(ctx,msg.recordId) ! msg
+          }
+
           Behaviors.same
 
         case msg:GetRecordFrameMsg=>
-//          log.debug(s"${ctx.self.path} recv a msg=${msg}")
-          getGameReplay(ctx,msg.recordId) ! msg
+          log.debug(s"${ctx.self.path} recv a msg=${msg}")
+          if(msg.recordId!=recordId){
+            msg.replyTo ! ErrorRsp(10002,"you are watching the other record")
+          }else{
+            getGameReplay(ctx,msg.recordId) ! msg
+          }
           Behaviors.same
 
         case unknowMsg =>
