@@ -111,7 +111,7 @@ object PlayGameActor {
           closed.onComplete { i =>
             println(s"${ctx.self.path} connect closed! try again 1 minutes later")
             //remind 此处存在失败重试
-            switchBehavior(ctx, "init", init(control), InitTime)
+            ctx.self ! SwitchBehavior("init", init(control), InitTime)
             timer.startSingleTimer(ConnectTimerKey, msg, 1.minutes)
           } //链接断开时
           switchBehavior(ctx, "busy", busy(), InitTime)
