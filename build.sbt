@@ -76,7 +76,7 @@ lazy val client = project.in(file("client")).enablePlugins(PackPlugin)
   )
   .settings(
     packMain := Map("tank" -> clientMainClass),
-    packJvmOpts := Map("tank" -> Seq("-Xmx256m", "-Xms64m")),
+    packJvmOpts := Map("tank" -> Seq("-Xmx512m", "-Xms64m")),
     packExtraClasspath := Map("tank" -> Seq("."))
   )
   .settings(
@@ -100,7 +100,7 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
     //packSettings,
     // [Optional] Creating `hello` command that calls org.mydomain.Hello#main(Array[String])
     packMain := Map("tank" -> projectMainClass),
-    packJvmOpts := Map("tank" -> Seq("-Xmx512m", "-Xms64m")),
+    packJvmOpts := Map("tank" -> Seq("-Xmx1024m", "-Xms128m")),
     packExtraClasspath := Map("tank" -> Seq("."))
   )
   .settings(
