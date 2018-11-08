@@ -128,6 +128,12 @@ class PlayScreenController(
 
   def logicLoop() = {
     App.pushStack2AppThread{
+      val (bounDary, unit) = playGameScreen.checkScreenSize()
+      if(unit != 0){
+        gameContainerOpt.foreach{r =>
+          r.updateClientSize(bounDary, unit)
+        }
+      }
       gameState match {
         case GameState.loadingPlay =>
           //        println(s"等待同步数据")
@@ -145,8 +151,7 @@ class PlayScreenController(
           //todo 死亡结算
           playGameScreen.drawCombatGains(killNum, damageNum, killerList)
           killerList = List.empty[String]
-
-          Thread.sleep(3000)
+          Thread.sleep(5000)
           val gameHallScreen = new GameHallScreen(context, playerInfo)
           context.switchScene(gameHallScreen.getScene,resize = true)
           new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)
