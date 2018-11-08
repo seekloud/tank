@@ -27,10 +27,10 @@ class PlayGameScreen(context: Context) {
   val screen= Screen.getPrimary.getVisualBounds
   println(s"----width--${screen.getMaxX.toFloat}")
   println(s"----width--${screen.getMaxY.toFloat}")
-  protected var canvasWidth = screen.getMaxX.toFloat
-  protected var canvasHeight = screen.getMaxY.toFloat
-//  protected var canvasWidth = 1440
-//  protected var canvasHeight = 900
+//  protected var canvasWidth = screen.getMaxX.toFloat
+//  protected var canvasHeight = screen.getMaxY.toFloat
+  protected var canvasWidth = 1440f
+  protected var canvasHeight = 900f
   var canvasUnit = getCanvasUnit(canvasWidth)
   var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
   val group = new Group()
@@ -39,8 +39,17 @@ class PlayGameScreen(context: Context) {
   canvas.setWidth(canvasWidth)
   val scene = new Scene(group)
 
-  val image = new Image(App.getClass.getResourceAsStream("/img/瞄准.png"))
-  scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))
+  def setCursor={
+    val image = new Image(App.getClass.getResourceAsStream("/img/瞄准.png"))
+    scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))
+  }
+
+  def updateSize={
+    canvasWidth = screen.getMaxX.toFloat
+    canvasHeight = screen.getMaxY.toFloat
+  }
+
+  setCursor
 
   def getScene():Scene = scene
 

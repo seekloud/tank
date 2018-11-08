@@ -7,7 +7,7 @@ import com.neo.sk.tank.actor.PlayGameActor
 import com.neo.sk.tank.common.Context
 import com.neo.sk.tank.game.{GameContainerClientImpl, NetworkInfo}
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
-import com.neo.sk.tank.view.PlayGameScreen
+import com.neo.sk.tank.view.{PlayGameScreen,GameHallScreen}
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.tank.actor.PlayGameActor.{DispatchMsg, log}
 import com.neo.sk.tank.game.GameContainerClientImpl
@@ -122,12 +122,6 @@ class PlayScreenController(
 
   }
 
-  def closeHolder={
-    animationTimer.stop()
-    playGameActor ! PlayGameActor.StopGameLoop
-    //todo 此处关闭WebSocket
-  }
-
   private def drawGame(offsetTime: Long) = {
     gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency))
   }
@@ -146,11 +140,15 @@ class PlayScreenController(
           ping()
 
         case GameState.stop =>
-          animationTimer.stop()
-          playGameActor ! PlayGameActor.StopGameLoop
+          closeHolder
           playGameScreen.drawGameStop(killerName)
+          //todo 死亡结算
           playGameScreen.drawCombatGains(killNum, damageNum, killerList)
           killerList = List.empty[String]
+          Thread.sleep(5000)
+          val gameHallScreen = new GameHallScreen(context, playerInfo)
+          context.switchScene(gameHallScreen.getScene,resize = true)
+          new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)
 
         case GameState.relive =>
 
@@ -352,6 +350,12 @@ class PlayScreenController(
           log.info(s"unknow msg={sss}")
       }
     }
+  }
+
+  private def closeHolder={
+    animationTimer.stop()
+    //remind 此处关闭WebSocket
+    playGameActor ! PlayGameActor.StopGameActor
   }
 
 

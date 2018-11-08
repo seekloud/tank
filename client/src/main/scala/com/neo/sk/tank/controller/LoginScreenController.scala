@@ -73,7 +73,6 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
     * eg.关闭Actor
     * */
   private def close():Unit = {
-
   }
 
 

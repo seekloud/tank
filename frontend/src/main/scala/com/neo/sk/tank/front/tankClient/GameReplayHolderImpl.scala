@@ -187,6 +187,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
 
       case e:TankGameEvent.EventData =>
         e.list.foreach(r=>wsMessageHandler(r))
+        //remind 快速播放
         if(this.gameState == GameState.replayLoading){
           gameContainerOpt.foreach(_.update())
         }
