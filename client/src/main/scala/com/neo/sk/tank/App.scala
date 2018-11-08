@@ -24,11 +24,11 @@ import concurrent.duration._
 import javafx.application.Platform
 
 import akka.actor.typed.ActorRef
-import com.neo.sk.tank.actor.LoginActor
+import com.neo.sk.tank.actor.{LoginActor, TokenActor}
 /**
   * Created by hongruying on 2018/10/22
   */
-class App extends Application{
+class  App extends Application{
 
   import App._
 
@@ -60,6 +60,8 @@ object App{
   implicit val materializer = ActorMaterializer()
 
   implicit val scheduler = system.scheduler
+
+  val tokenActor:ActorRef[TokenActor.Command] = system.spawn(TokenActor.create,"esheepSyncClient")
 
   implicit val timeout:Timeout = Timeout(20 seconds) // for actor asks
 

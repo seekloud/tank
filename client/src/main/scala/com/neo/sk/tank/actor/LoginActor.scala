@@ -13,12 +13,12 @@ import com.neo.sk.tank.model._
 import org.slf4j.LoggerFactory
 import io.circe.parser.decode
 import io.circe.generic.auto._
-
+import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
-import com.neo.sk.tank.App.{executor, materializer, system}
+import com.neo.sk.tank.App.{executor, materializer, system, tokenActor}
 import com.neo.sk.tank.controller.LoginScreenController
 import com.neo.sk.utils.EsheepClient
 
@@ -35,6 +35,8 @@ object LoginActor {
   final case class Request(m: String) extends Command
   final case object StopWs extends Command
   private val log = LoggerFactory.getLogger(this.getClass)
+  private final case object RefreshTokenKey
+  private final val refreshTime = 1.hour
 
   def create(controller: LoginScreenController): Behavior[Command] = {
     Behaviors.receive[Command]{ (ctx, msg) =>
@@ -49,8 +51,7 @@ object LoginActor {
   }
 
 
-  def idle(controller: LoginScreenController)(
-  ): Behavior[Command] = {
+  def idle(controller: LoginScreenController): Behavior[Command] = {
     Behaviors.receive[Command]{ (ctx, msg) =>
       println("idle")
       msg match {
@@ -100,7 +101,6 @@ object LoginActor {
 
           Behaviors.same
 
-
         case StopWs =>
            println("ws stop now ")
           Behaviors.stopped
@@ -127,6 +127,7 @@ object LoginActor {
               case Success(rst) =>
                 rst match {
                   case Right(value) =>
+                    tokenActor ! TokenActor.InitToken(data.token,data.tokenExpireTime,s"user${data.userId}")
                     val playerInfo= PlayerInfo(s"user${data.userId}", data.nickname,value.accessCode)
                     val gameServerInfo = GameServerInfo(value.gsPrimaryInfo.ip, value.gsPrimaryInfo.port, value.gsPrimaryInfo.domain)
                     controller.showSuccess()
