@@ -26,17 +26,15 @@ class PlayGameScreen(context: Context) {
   //todo 此处涉及到显卡的最大纹理尺寸
   val screen= Screen.getPrimary.getVisualBounds
   println(s"----width--${screen.getMaxX.toFloat}")
-  println(s"----width--${screen.getMaxY.toFloat}")
+  println(s"----heght--${screen.getMaxY.toFloat}")
   protected var canvasWidth = screen.getMaxX.toFloat
   protected var canvasHeight = screen.getMaxY.toFloat
-//  protected var canvasWidth = 1440
-//  protected var canvasHeight = 900
   var canvasUnit = getCanvasUnit(canvasWidth)
   var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
-  val group = new Group()
-  val canvas=new Canvas()
+  val canvas = new Canvas()
   canvas.setHeight(canvasHeight)
   canvas.setWidth(canvasWidth)
+  val group = new Group()
   val scene = new Scene(group)
 //  var listener : CanvasListener = _
 //  canvas.widthProperty().bind(scene.widthProperty())
@@ -52,6 +50,11 @@ class PlayGameScreen(context: Context) {
     scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))
   }
 
+  def updateSize={
+    canvasWidth = screen.getMaxX.toFloat
+    canvasHeight = screen.getMaxY.toFloat
+  }
+
   setCursor
 
   def getScene():Scene = scene
@@ -59,6 +62,21 @@ class PlayGameScreen(context: Context) {
   def getCanvasContext: GraphicsContext = canvas.getGraphicsContext2D
 
   group.getChildren.add(canvas)
+
+  def checkScreenSize() = {
+    val newCanvasWidth = context.getStageWidth.toFloat
+    val newCanvasHeight = if(context.isFullScreen) context.getStageHeight.toFloat else context.getStageHeight.toFloat - 20
+    if(canvasWidth != newCanvasWidth || canvasHeight != newCanvasHeight){
+      println("the screen size has changed")
+      canvasWidth = newCanvasWidth
+      canvasHeight = newCanvasHeight
+      canvasUnit = getCanvasUnit(newCanvasWidth)
+      canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+      canvas.setWidth(newCanvasWidth)
+      canvas.setHeight(newCanvasHeight)
+      (canvasBoundary, canvasUnit)
+    }else (Point(0,0), 0)
+  }
 
   def drawGameLoading():Unit = {
     getCanvasContext.setFill(Color.web("#006699"))
