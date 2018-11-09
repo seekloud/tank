@@ -35,7 +35,9 @@ trait Background{ this:GameContainerClientImpl =>
   private val minimapCanvas = new Canvas(LittleMap.w * canvasUnit + 6, LittleMap.h * canvasUnit + 6)
   private val minimapCanvasCtx = minimapCanvas.getGraphicsContext2D
   var minimapRenderFrame = 0L
-  private var canvasBoundary:Point=canvasSize
+  private var canvasBoundary:Point = canvasSize
+  private val backgroundCanvas = new Canvas(canvasBoundary.x, canvasBoundary.y)
+  private val backgroundCanvasCtx = backgroundCanvas.getGraphicsContext2D
 
   def updateBackSize(canvasSize:Point)={
     cacheCanvasMap.clear()
@@ -82,11 +84,50 @@ trait Background{ this:GameContainerClientImpl =>
     context.fillRect(start.x * canvasUnit, start.y * canvasUnit,  width * this.canvasUnit, height * this.canvasUnit)
     context.setGlobalAlpha(1)
   }
-
+//
+//  protected def drawBackground(offset:Point) = {
+//    clearScreen("#FCFCFC",1)
+//    val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background",generateBackgroundCanvas())
+//    ctx.drawImage(cacheCanvas, (-offset.x + canvasBoundary.x/2) * canvasUnit, ( -offset.y+canvasBoundary.y/2 )* canvasUnit, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit, 0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+//  }
   protected def drawBackground(offset:Point) = {
-    clearScreen("#FCFCFC",1)
-    val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background",generateBackgroundCanvas())
-    ctx.drawImage(cacheCanvas, (-offset.x + canvasBoundary.x/2) * canvasUnit, ( -offset.y+canvasBoundary.y/2 )* canvasUnit, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit, 0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, ctx)
+    val beginPoint = canvasBoundary/2 - offset
+    if(beginPoint.x < canvasBoundary.x/2 && beginPoint.y < canvasBoundary.y/2){
+      clearScreen("#E8E8E8", 1, canvasBoundary.x - offset.x, canvasBoundary.y - offset.y, ctx, offset)
+    }
+    else if(beginPoint.x < canvasBoundary.x/2 && beginPoint.y + canvasBoundary.y/2 < boundary.y && beginPoint.y > canvasBoundary.y/2){
+      clearScreen("#E8E8E8", 1, canvasBoundary.x - offset.x, canvasBoundary.y, ctx, Point(offset.x, 0))
+    }
+    else if(beginPoint.x < canvasBoundary.x/2 && beginPoint.y + canvasBoundary.y/2 > boundary.y){
+      clearScreen("#E8E8E8", 1, canvasBoundary.x - offset.x, boundary.y + offset.y, ctx, Point(offset.x, 0))
+    }
+    else if(beginPoint.x > canvasBoundary.x/2 && beginPoint.x +  canvasBoundary.x/2 < boundary.x && beginPoint.y < canvasBoundary.y/2){
+      clearScreen("#E8E8E8", 1, canvasBoundary.x, canvasBoundary.y - offset.y, ctx, Point(0, offset.y))
+    }
+    else if(beginPoint.x > canvasBoundary.x/2 && beginPoint.x + canvasBoundary.x/2 < boundary.x && beginPoint.y + canvasBoundary.y/2 < boundary.y && beginPoint.y > canvasBoundary.y/2){
+      clearScreen("#E8E8E8", 1, canvasBoundary.x, canvasBoundary.y, ctx)
+    }
+    else if(beginPoint.x > canvasBoundary.x/2 && beginPoint.x + canvasBoundary.x/2 < boundary.x && beginPoint.y + canvasBoundary.y/2 > boundary.y){
+      clearScreen("#E8E8E8", 1, canvasBoundary.x, boundary.y + offset.y, ctx)
+    }
+    else if(beginPoint.x + canvasBoundary.x/2 > boundary.x && beginPoint.y < canvasBoundary.y/2){
+      clearScreen("#E8E8E8", 1, boundary.x + offset.x, canvasBoundary.y + offset.y, ctx, Point(0, offset.y))
+    }
+    else if(beginPoint.x + canvasBoundary.x/2 > boundary.x && beginPoint.y > canvasBoundary.y/2 && beginPoint.y + canvasBoundary.y/2 < boundary.y){
+      clearScreen("#E8E8E8", 1, boundary.x + offset.x, canvasBoundary.y, ctx)
+    }
+    else if(beginPoint.x + canvasBoundary.x/2 > boundary.x && beginPoint.y + canvasBoundary.y/2 > boundary.y){
+      clearScreen("#E8E8E8", 1, boundary.x + offset.x, boundary.y + offset.y, ctx)
+    }
+//    ctx.setLineWidth(1)
+//    ctx.setStroke(Color.rgb(0,0,0,0.05))
+//    for(i <- 0 to (canvasBoundary.x.toInt,2)){
+//      drawLine(Point(i,0), Point(i, canvasBoundary.y), ctx)
+//    }
+//    for(i <- 0  to (canvasBoundary.y.toInt,2)){
+//      drawLine(Point(0 ,i), Point(canvasBoundary.x, i), ctx)
+//    }
   }
 
 
