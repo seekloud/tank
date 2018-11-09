@@ -130,6 +130,12 @@ class PlayScreenController(
 
   def logicLoop() = {
     App.pushStack2AppThread{
+      val (bounDary, unit) = playGameScreen.checkScreenSize()
+      if(unit != 0){
+        gameContainerOpt.foreach{r =>
+          r.updateClientSize(bounDary, unit)
+        }
+      }
       gameState match {
         case GameState.loadingPlay =>
           //        println(s"等待同步数据")
