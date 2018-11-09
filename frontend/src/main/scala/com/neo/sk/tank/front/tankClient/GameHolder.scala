@@ -17,6 +17,7 @@ import org.scalajs.dom.raw.{Event, HTMLElement}
 import scala.collection.mutable
 import scala.xml.Elem
 import com.neo.sk.tank.shared.model.Constants
+import scalacss.internal.Attrs._
 
 /**
   * User: sky

@@ -9,6 +9,7 @@ package object model {
 
 
   case class PlayerInfo(
+                       userInfo:UserInfo,
                        playerId:String,
                        nickName:String,
                        accessCode:String
