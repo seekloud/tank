@@ -76,6 +76,11 @@ package object model {
                       token: String,
                       expireTime: Long
                       )
+  case class TokenAndAcessCode(
+                                token: String,
+                                expireTime: Long,
+                                accessCode: String
+                              )
 
   case class gaRefreshTokenRsp(
                                 data: TokenInfo,
