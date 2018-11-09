@@ -12,6 +12,7 @@ import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameRsp, GetUserInReco
 import com.neo.sk.tank.shared.model.Constants.GameState
 import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, ReplayFrameData}
+import com.neo.sk.tank.shared.ptcl.ErrorRsp
 import org.slf4j.LoggerFactory
 //import com.neo.sk.tank.Boot.roomActor
 import com.neo.sk.tank.Boot.{roomManager,esheepSyncClient}
@@ -57,6 +58,8 @@ object UserActor {
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
 
   case class StartReplay(rid:Long, wid:String, f:Int) extends Command
+
+  case class ChangeUserInfo(info:TankGameUserInfo) extends Command
 
   final case class StartObserve(roomId:Long, watchedUserId:String) extends Command
 
@@ -138,16 +141,21 @@ object UserActor {
           ctx.watchWith(frontActor,UserLeft(frontActor))
           switchBehavior(ctx,"idle",idle(uId, userInfo,System.currentTimeMillis(), frontActor))
 
+        case ChangeUserInfo(info) =>
+          init(uId,info)
+
         case UserLeft(actor) =>
           ctx.unwatch(actor)
           Behaviors.stopped
 
         case msg:GetUserInRecordMsg=>
+          log.debug(s"--------------------$userInfo")
           getGameReplay(ctx,msg.recordId) ! msg
           Behaviors.same
 
 
         case ChangeBehaviorToInit=>
+          log.debug(s"------------000${userInfo}")
           Behaviors.same
 
         case msg:GetRecordFrameMsg=>
@@ -181,9 +189,12 @@ object UserActor {
           roomManager ! JoinRoom(uId,None,None,userInfo.name,startTime,ctx.self, roomIdOpt)
           Behaviors.same
 
+        case ChangeUserInfo(info) =>
+          idle(uId,info,startTime,frontActor)
+
         case StartReplay(rid,uid,f) =>
           getGameReplay(ctx,rid) ! GamePlayer.InitReplay(frontActor,uid,f)
-          switchBehavior(ctx, "replay", replay(uid, userInfo, startTime, frontActor))
+          switchBehavior(ctx, "replay", replay(uid,rid,userInfo, startTime, frontActor))
 //          Behaviors.same
 
         case JoinRoomSuccess(tank,config, `uId`,roomActor) =>
@@ -242,6 +253,7 @@ object UserActor {
     }
 
   private def replay(uId:String,
+                     recordId:Long,
                      userInfo: TankGameUserInfo,
                      startTime:Long,
                      frontActor:ActorRef[TankGameEvent.WsMsgSource])(
@@ -258,18 +270,30 @@ object UserActor {
           ctx.unwatch(frontActor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
+        case ChangeUserInfo(info) =>
+          replay(uId,recordId,info,startTime,frontActor)
+
         case UserLeft(actor) =>
           ctx.unwatch(actor)
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
         case msg:GetUserInRecordMsg=>
           log.debug(s"${ctx.self.path} recv a msg=${msg}")
-          getGameReplay(ctx,msg.recordId) ! msg
+          if(msg.recordId!=recordId){
+            msg.replyTo ! ErrorRsp(10002,"you are watching the other record")
+          }else{
+            getGameReplay(ctx,msg.recordId) ! msg
+          }
+
           Behaviors.same
 
         case msg:GetRecordFrameMsg=>
           log.debug(s"${ctx.self.path} recv a msg=${msg}")
-          getGameReplay(ctx,msg.recordId) ! msg
+          if(msg.recordId!=recordId){
+            msg.replyTo ! ErrorRsp(10002,"you are watching the other record")
+          }else{
+            getGameReplay(ctx,msg.recordId) ! msg
+          }
           Behaviors.same
 
         case unknowMsg =>
@@ -285,6 +309,9 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
+        case ChangeUserInfo(info) =>
+          observeInit(uId,info,frontActor)
+
         case JoinRoomSuccess4Watch(tank, config, roomActor, state) =>
           log.debug(s"${ctx.self.path} first sync gameContainerState")
           frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, tank.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
@@ -334,6 +361,9 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
+        case ChangeUserInfo(info) =>
+          observe(uId,info,tank,frontActor,roomActor)
+
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
             frontActor ! m
@@ -387,6 +417,9 @@ object UserActor {
                   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
+        case ChangeUserInfo(info) =>
+          play(uId,info,tank,startTime,frontActor,roomActor)
+
         case WebSocketMsg(reqOpt) =>
           reqOpt match {
             case Some(t:TankGameEvent.UserActionEvent) =>

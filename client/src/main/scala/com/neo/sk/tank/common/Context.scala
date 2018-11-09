@@ -1,6 +1,8 @@
 package com.neo.sk.tank.common
 
+import javafx.event.EventHandler
 import javafx.scene.Scene
+import javafx.scene.input.{KeyCode, KeyEvent}
 import javafx.stage.Stage
 
 /**
@@ -20,6 +22,11 @@ class Context(stage: Stage) {
     stage.setTitle(title)
     stage.setFullScreen(fullScreen)
     stage.show()
+    scene.setOnKeyPressed(new EventHandler[KeyEvent] {
+      override def handle(event: KeyEvent): Unit = {
+        if(event.getCode == KeyCode.Z && resize) stage.setFullScreen(fullScreen)
+      }
+    })
   }
 
 
