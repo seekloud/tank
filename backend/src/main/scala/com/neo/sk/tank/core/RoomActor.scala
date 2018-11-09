@@ -167,6 +167,7 @@ object RoomActor {
           val gameEvents = gameContainer.getLastGameEvent()
           if(AppSettings.gameRecordIsWork){
             if (tickCount % 20 == 1){
+              //remind 排行榜
               val rankEvent = TankGameEvent.Ranks(gameContainer.currentRank,gameContainer.historyRank)
               getGameRecorder(ctx,gameContainer,roomId,gameContainer.systemFrame) ! GameRecorder.GameRecord(rankEvent :: gameEvents, snapshotOpt)
             } else {

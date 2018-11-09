@@ -32,7 +32,7 @@ case class GameContainerClientImpl(
                                     myTankId:Int,
                                     myName:String,
                                     canvasSize:Point,
-                                    canvasUnit:Int,
+                                    var canvasUnit:Int,
                                     setGameState:Int => Unit
                                   ) extends GameContainerImpl(config, myId, myTankId, myName)
   with Background
@@ -91,6 +91,16 @@ case class GameContainerClientImpl(
       if (tank.lives > 1) setGameState(GameState.relive)
       else setGameState(GameState.stop)
     }
+  }
+
+  def updateClientSize(canvasSize:Point, cUnit:Int)={
+    canvasBoundary=canvasSize
+    canvasUnit = cUnit
+    updateBackSize(canvasBoundary)
+    updateBulletSize(canvasBoundary)
+    updateFpsSize(canvasBoundary)
+    updateObstacleSize(canvasBoundary)
+    updateTankSize(canvasBoundary)
   }
 
 

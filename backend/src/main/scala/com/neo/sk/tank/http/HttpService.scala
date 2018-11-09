@@ -81,31 +81,32 @@ trait HttpService
       'playerId.as[String].?
     ){
       (roomId, accessCode, watchedUserIdOpt) =>
-//        authPlatUser(accessCode) { user =>
-        if (watchedUserIdOpt.nonEmpty){
-          val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow4WatchGame(roomId, watchedUserIdOpt.get, _))
-          dealFutureResult(flowFuture.map(handleWebSocketMessages))
-        } else {
-          val resFuture:Future[UserInfoListByRoomIdRsp] = roomManager ? (GetUserInfoList(roomId,_))
-          dealFutureResult{
-            resFuture.map{res =>
-              if(res.errCode == 0){
-                if(res.data.playerList.nonEmpty){
-                  val random = (new Random).nextInt(res.data.playerList.length)
-                  val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow4WatchGame(roomId, res.data.playerList(random).playerId, _))
-                  dealFutureResult(flowFuture.map(handleWebSocketMessages))
-                }else{
-                  log.debug(s"该房间没有玩家")
-                  complete("该房间没有玩家")
+        authPlatUser(accessCode) { user =>
+          if (watchedUserIdOpt.nonEmpty) {
+            val flowFuture: Future[Flow[Message, Message, Any]] = userManager ? (UserManager.GetWebSocketFlow4WatchGame(roomId, watchedUserIdOpt.get, _, Some(user)))
+            dealFutureResult(flowFuture.map(handleWebSocketMessages))
+          } else {
+            val resFuture: Future[UserInfoListByRoomIdRsp] = roomManager ? (GetUserInfoList(roomId, _))
+            dealFutureResult {
+              resFuture.map { res =>
+                if (res.errCode == 0) {
+                  if (res.data.playerList.nonEmpty) {
+                    val random = (new Random).nextInt(res.data.playerList.length)
+                    val flowFuture: Future[Flow[Message, Message, Any]] = userManager ? (UserManager.GetWebSocketFlow4WatchGame(roomId, res.data.playerList(random).playerId, _, Some(user)))
+                    dealFutureResult(flowFuture.map(handleWebSocketMessages))
+                  } else {
+                    log.debug(s"该房间没有玩家")
+                    complete("该房间没有玩家")
+                  }
+                } else {
+                  log.debug(s"该房间未被创建")
+                  complete("该房间未被创建")
                 }
-              }else{
-                log.debug(s"该房间未被创建")
-                complete("该房间未被创建")
+              }.recover {
+                case e: Exception =>
+                  log.debug(s"websocket 建立连接失败${e}")
+                  complete(s"websocket 建立连接失败${e}")
               }
-            }.recover{
-              case e:Exception =>
-                log.debug(s"websocket 建立连接失败${e}")
-                complete(s"websocket 建立连接失败${e}")
             }
           }
         }
