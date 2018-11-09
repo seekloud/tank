@@ -17,6 +17,7 @@ import io.circe.{Decoder, Encoder}
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.Boot.{executor, scheduler, timeout}
 import com.neo.sk.tank.common.Constants
+import com.neo.sk.tank.core.UserActor.ChangeUserInfo
 /**
   * Created by hongruying on 2018/7/9
   */
@@ -70,6 +71,7 @@ object UserManager {
           }
           val userActor = getUserActor(ctx, uid, TankGameUserInfo(uid, name, name, true))
           replyTo ! getWebSocketFlow(userActor)
+          userActor ! ChangeUserInfo(TankGameUserInfo(uid,name,name,true))
           userActor ! UserActor.StartReplay(rid, wid, f)
           Behaviors.same
 
@@ -88,6 +90,7 @@ object UserManager {
           }
           val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
           replyTo ! getWebSocketFlow(userActor)
+          userActor ! ChangeUserInfo(playerInfo)
           userActor ! UserActor.StartGame(roomIdOpt)
           Behaviors.same
 
@@ -105,6 +108,7 @@ object UserManager {
           }
           val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
           replyTo ! getWebSocketFlow(userActor)
+          userActor ! ChangeUserInfo(playerInfo)
           //发送用户观战命令
           userActor ! UserActor.StartObserve(roomId, watchedUserId)
           Behaviors.same
