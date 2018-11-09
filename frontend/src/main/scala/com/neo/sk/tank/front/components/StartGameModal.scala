@@ -40,7 +40,7 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
 
   private val watchButtonDivStyle = inputDisabled.map{
     case true => "display:none;"
-    case false => "display:block;"
+    case false => "display:inline;"
   }
 
 
@@ -88,7 +88,7 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
         </div>
         <div class ="input_button">
           <span>{button}</span>
-          <span  style={watchButtonDivStyle}>{watchButton}</span>
+          <span style={watchButtonDivStyle}>{watchButton}</span>
         </div>
       </div>
     </div>
