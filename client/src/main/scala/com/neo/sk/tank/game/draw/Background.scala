@@ -90,36 +90,36 @@ trait Background{ this:GameContainerClientImpl =>
 //    val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background",generateBackgroundCanvas())
 //    ctx.drawImage(cacheCanvas, (-offset.x + canvasBoundary.x/2) * canvasUnit, ( -offset.y+canvasBoundary.y/2 )* canvasUnit, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit, 0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
 //  }
-  protected def drawBackground(offset:Point) = {
-    clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, ctx)
-    val beginPoint = canvasBoundary/2 - offset
-    if(beginPoint.x < canvasBoundary.x/2 && beginPoint.y < canvasBoundary.y/2){
-      clearScreen("#E8E8E8", 1, canvasBoundary.x - offset.x, canvasBoundary.y - offset.y, ctx, offset)
-    }
-    else if(beginPoint.x < canvasBoundary.x/2 && beginPoint.y + canvasBoundary.y/2 < boundary.y && beginPoint.y > canvasBoundary.y/2){
-      clearScreen("#E8E8E8", 1, canvasBoundary.x - offset.x, canvasBoundary.y, ctx, Point(offset.x, 0))
-    }
-    else if(beginPoint.x < canvasBoundary.x/2 && beginPoint.y + canvasBoundary.y/2 > boundary.y){
-      clearScreen("#E8E8E8", 1, canvasBoundary.x - offset.x, boundary.y + offset.y, ctx, Point(offset.x, 0))
-    }
-    else if(beginPoint.x > canvasBoundary.x/2 && beginPoint.x +  canvasBoundary.x/2 < boundary.x && beginPoint.y < canvasBoundary.y/2){
-      clearScreen("#E8E8E8", 1, canvasBoundary.x, canvasBoundary.y - offset.y, ctx, Point(0, offset.y))
-    }
-    else if(beginPoint.x > canvasBoundary.x/2 && beginPoint.x + canvasBoundary.x/2 < boundary.x && beginPoint.y + canvasBoundary.y/2 < boundary.y && beginPoint.y > canvasBoundary.y/2){
-      clearScreen("#E8E8E8", 1, canvasBoundary.x, canvasBoundary.y, ctx)
-    }
-    else if(beginPoint.x > canvasBoundary.x/2 && beginPoint.x + canvasBoundary.x/2 < boundary.x && beginPoint.y + canvasBoundary.y/2 > boundary.y){
-      clearScreen("#E8E8E8", 1, canvasBoundary.x, boundary.y + offset.y, ctx)
-    }
-    else if(beginPoint.x + canvasBoundary.x/2 > boundary.x && beginPoint.y < canvasBoundary.y/2){
-      clearScreen("#E8E8E8", 1, boundary.x + offset.x, canvasBoundary.y + offset.y, ctx, Point(0, offset.y))
-    }
-    else if(beginPoint.x + canvasBoundary.x/2 > boundary.x && beginPoint.y > canvasBoundary.y/2 && beginPoint.y + canvasBoundary.y/2 < boundary.y){
-      clearScreen("#E8E8E8", 1, boundary.x + offset.x, canvasBoundary.y, ctx)
-    }
-    else if(beginPoint.x + canvasBoundary.x/2 > boundary.x && beginPoint.y + canvasBoundary.y/2 > boundary.y){
-      clearScreen("#E8E8E8", 1, boundary.x + offset.x, boundary.y + offset.y, ctx)
-    }
+//  protected def drawBackground(offset:Point) = {
+//    clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, ctx)
+//    val beginPoint = canvasBoundary/2 - offset
+//    if(beginPoint.x < canvasBoundary.x/2 && beginPoint.y < canvasBoundary.y/2){
+//      clearScreen("#E8E8E8", 1, canvasBoundary.x - offset.x, canvasBoundary.y - offset.y, ctx, offset)
+//    }
+//    else if(beginPoint.x < canvasBoundary.x/2 && beginPoint.y + canvasBoundary.y/2 < boundary.y && beginPoint.y > canvasBoundary.y/2){
+//      clearScreen("#E8E8E8", 1, canvasBoundary.x - offset.x, canvasBoundary.y, ctx, Point(offset.x, 0))
+//    }
+//    else if(beginPoint.x < canvasBoundary.x/2 && beginPoint.y + canvasBoundary.y/2 > boundary.y){
+//      clearScreen("#E8E8E8", 1, canvasBoundary.x - offset.x, boundary.y + offset.y, ctx, Point(offset.x, 0))
+//    }
+//    else if(beginPoint.x > canvasBoundary.x/2 && beginPoint.x +  canvasBoundary.x/2 < boundary.x && beginPoint.y < canvasBoundary.y/2){
+//      clearScreen("#E8E8E8", 1, canvasBoundary.x, canvasBoundary.y - offset.y, ctx, Point(0, offset.y))
+//    }
+//    else if(beginPoint.x > canvasBoundary.x/2 && beginPoint.x + canvasBoundary.x/2 < boundary.x && beginPoint.y + canvasBoundary.y/2 < boundary.y && beginPoint.y > canvasBoundary.y/2){
+//      clearScreen("#E8E8E8", 1, canvasBoundary.x, canvasBoundary.y, ctx)
+//    }
+//    else if(beginPoint.x > canvasBoundary.x/2 && beginPoint.x + canvasBoundary.x/2 < boundary.x && beginPoint.y + canvasBoundary.y/2 > boundary.y){
+//      clearScreen("#E8E8E8", 1, canvasBoundary.x, boundary.y + offset.y, ctx)
+//    }
+//    else if(beginPoint.x + canvasBoundary.x/2 > boundary.x && beginPoint.y < canvasBoundary.y/2){
+//      clearScreen("#E8E8E8", 1, boundary.x + offset.x, canvasBoundary.y + offset.y, ctx, Point(0, offset.y))
+//    }
+//    else if(beginPoint.x + canvasBoundary.x/2 > boundary.x && beginPoint.y > canvasBoundary.y/2 && beginPoint.y + canvasBoundary.y/2 < boundary.y){
+//      clearScreen("#E8E8E8", 1, boundary.x + offset.x, canvasBoundary.y, ctx)
+//    }
+//    else if(beginPoint.x + canvasBoundary.x/2 > boundary.x && beginPoint.y + canvasBoundary.y/2 > boundary.y){
+//      clearScreen("#E8E8E8", 1, boundary.x + offset.x, boundary.y + offset.y, ctx)
+//    }
 //    ctx.setLineWidth(1)
 //    ctx.setStroke(Color.rgb(0,0,0,0.05))
 //    for(i <- 0 to (canvasBoundary.x.toInt,2)){
@@ -128,6 +128,30 @@ trait Background{ this:GameContainerClientImpl =>
 //    for(i <- 0  to (canvasBoundary.y.toInt,2)){
 //      drawLine(Point(0 ,i), Point(canvasBoundary.x, i), ctx)
 //    }
+ // }
+
+  protected def drawBackground(offset:Point) = {
+    clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, ctx)
+    val boundStart = Point(canvasBoundary.x/2, canvasBoundary.y/2)
+    val boundEnd = Point(canvasBoundary.x/2 + boundary.x, canvasBoundary.y/2 + boundary.y)
+    val canvasStart = Point(-offset.x + canvasBoundary.x/2, -offset.y + canvasBoundary.y/2)
+    val canvasEnd = Point(-offset.x + canvasBoundary.x/2 * 3, -offset.y + canvasBoundary.y/2 * 3)
+    val start = Point(math.max(boundStart.x, canvasStart.x), math.max(boundStart.y, canvasStart.y))
+    val end = Point(math.min(boundEnd.x, canvasEnd.x), math.min(boundEnd.y, canvasEnd.y))
+    val width = end.x - start.x
+    val height = end.y - start.y
+    if(canvasStart.x < boundStart.x && canvasStart.y > boundStart.y){
+      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, 0))
+    }
+    else if(canvasStart.x > boundStart.x && canvasStart.y < boundStart.y){
+      clearScreen("#E8E8E8", 1, width, height, ctx, Point(0, canvasBoundary.y - height))
+    }
+    else if(canvasStart.x < boundStart.x && canvasStart.y < boundStart.y){
+      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, canvasBoundary.y - height))
+    }
+    else{
+      clearScreen("#E8E8E8", 1, width, height, ctx)
+    }
   }
 
 
