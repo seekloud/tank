@@ -79,7 +79,7 @@ object GamePlayer {
                 work(
                   replay,
                   metaDataDecode(info.simulatorMetadata).right.get,
-                  initStateDecode(info.simulatorInitState).right.get.asInstanceOf[TankGameEvent.TankGameSnapshot],
+                  initStateDecode(info.simulatorInitState).right.get.asInstanceOf[TankGameEvent.TankGameSnapshot].state.f,
                   info.frameCount,
                   userMapDecode(replay.getMutableInfo(AppSettings.essfMapKeyName).getOrElse(Array[Byte]())).right.get.m
                 ))
@@ -99,7 +99,7 @@ object GamePlayer {
 
   def work(fileReader:FrameInputStream,
            metaData:GameInformation,
-           initState:TankGameEvent.TankGameSnapshot,
+           initStateFrame:Long,
            frameCount:Int,
            userMap:List[(EssfMapKey,EssfMapJoinLeftInfo)],
            userOpt:Option[ActorRef[TankGameEvent.WsMsgSource]]=None
@@ -113,7 +113,7 @@ object GamePlayer {
         case msg:InitReplay=>
           log.info("start new replay!")
           timer.cancel(GameLoopKey)
-          timer.cancel(BehaviorWaitKey)
+//          timer.cancel(BehaviorWaitKey)
 //          fileReader.mutableInfoIterable
           userMap.filter(t => t._1.userId == msg.userId && t._2.leftF >= msg.f).sortBy(_._2.joinF).headOption match {
             case Some(u)=>
@@ -134,15 +134,14 @@ object GamePlayer {
 
               if(fileReader.hasMoreFrame){
                 timer.startPeriodicTimer(GameLoopKey, GameLoop, metaData.tankConfig.frameDuration.millis)
-                work(fileReader,metaData,initState,frameCount,userMap,Some(msg.userActor))
+                work(fileReader,metaData,initStateFrame,frameCount,userMap,Some(msg.userActor))
               }else{
-                timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
-                Behaviors.same
+                Behaviors.stopped
               }
             case None=>
               dispatchTo(msg.userActor,TankGameEvent.InitReplayError("本局游戏中不存在该用户！！"))
-              timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
-              Behaviors.same
+//              timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
+              Behaviors.stopped
           }
 
         case GameLoop=>
@@ -158,8 +157,7 @@ object GamePlayer {
               dispatchTo(u,TankGameEvent.ReplayFinish())
             )
             timer.cancel(GameLoopKey)
-            timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
-            Behaviors.same
+            Behaviors.stopped
           }
 
         case msg:GetRecordFrameMsg=>
@@ -168,14 +166,11 @@ object GamePlayer {
 
         case msg:GetUserInRecordMsg=>
           val data=userMap.groupBy(r=>(r._1.userId,r._1.name)).map{r=>
-            val fList=r._2.map(f=>ExistTimeInfo(f._2.joinF-initState.state.f,f._2.leftF-initState.state.f))
+            val fList=r._2.map(f=>ExistTimeInfo(f._2.joinF-initStateFrame,f._2.leftF-initStateFrame))
             PlayerInRecordInfo(r._1._1,r._1._2,fList)
           }.toList
           msg.replyTo ! GetUserInRecordRsp(PlayerList(frameCount,data))
           Behaviors.same
-
-        case msg:TimeOut=>
-          Behaviors.stopped
 
         case unKnowMsg =>
           stashBuffer.stash(unKnowMsg)
