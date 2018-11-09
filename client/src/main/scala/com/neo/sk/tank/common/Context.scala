@@ -24,22 +24,13 @@ class Context(stage: Stage) {
     stage.setResizable(resize)
     stage.setTitle(title)
     stage.setFullScreen(fullScreen)
-//    stage.fullScreenProperty().addListener(e => fun())
     stage.show()
-    scene.setOnKeyPressed(    new EventHandler[KeyEvent] {
+    scene.setOnKeyPressed(new EventHandler[KeyEvent] {
       override def handle(event: KeyEvent): Unit = {
-        if(event.getCode == KeyCode.Z) stage.setFullScreen(fullScreen)
-//        else  false
+        if(event.getCode == KeyCode.Z && resize) stage.setFullScreen(fullScreen)
       }
     })
-//    def fun() = {
-//      scene.setOnKeyPressed(    new EventHandler[KeyEvent] {
-//        override def handle(event: KeyEvent): Unit = {
-//          if(event.getCode == KeyCode.Z) true
-//          else  false
-//        }
-//      })
-//    }
+
   }
 
 
