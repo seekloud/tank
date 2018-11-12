@@ -2,12 +2,12 @@ package com.neo.sk.tank.controller
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.neo.sk.tank.App.{executor, materializer, scheduler, system, timeout}
-import com.neo.sk.tank.actor.PlayGameActor
+import com.neo.sk.tank.App.{executor, materializer, scheduler, system, timeout, tokenActor}
+import com.neo.sk.tank.actor.{PlayGameActor, TokenActor}
 import com.neo.sk.tank.common.Context
 import com.neo.sk.tank.game.{GameContainerClientImpl, NetworkInfo}
-import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
-import com.neo.sk.tank.view.{PlayGameScreen,GameHallScreen}
+import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo, TokenAndAcessCode, UserInfo}
+import com.neo.sk.tank.view.{GameHallScreen, PlayGameScreen}
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.tank.actor.PlayGameActor.{DispatchMsg, log}
 import com.neo.sk.tank.game.GameContainerClientImpl
@@ -17,11 +17,14 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.utils.JavaFxUtil.{changeKeys, keyCode2Int}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
+
+import akka.actor.typed.scaladsl.AskPattern._
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.App
 import javafx.util.Duration
 
 import scala.collection.mutable
+import scala.concurrent.Future
 
 
 /**
@@ -154,7 +157,15 @@ class PlayScreenController(
           Thread.sleep(5000)
           val gameHallScreen = new GameHallScreen(context, playerInfo)
           context.switchScene(gameHallScreen.getScene,resize = true)
-          new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)
+          val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
+          accessCodeInfo.map{
+            info =>
+              if(info.token != ""){
+                val newUserInfo = UserInfo(playerInfo.userInfo.userId,playerInfo.userInfo.nickname,info.token, info.expireTime)
+                val newPlayerInfo = PlayerInfo(newUserInfo,playerInfo.playerId, playerInfo.nickName, info.accessCode)
+                new HallScreenController(context, gameHallScreen, gameServerInfo, newPlayerInfo)
+              }
+          }
 
         case GameState.relive =>
 

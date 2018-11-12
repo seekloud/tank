@@ -82,6 +82,34 @@ object EsheepClient extends HttpUtil {
     }
   }
 
+  def refreshToken(token:String, playerId: String): Future[Either[ErrorRsp,TokenInfo]] = {
+    val methodName = s"gaRefreshToken"
+    val url = s"${baseUrl}/esheep/api/gameAgent/gaRefreshToken?token=$token"
+
+    val data = gaRefreshTokenReq(playerId).asJson.noSpaces
+
+
+    postJsonRequestSend(methodName,url,Nil,data).map{
+      case Right(jsonStr) =>
+        println(jsonStr)
+        decode[gaRefreshTokenRsp](jsonStr) match {
+          case Right(rsp) =>
+            if(rsp.errCode == 0){
+              Right(rsp.data)
+            }else{
+              log.debug(s"${methodName} failed,error:${rsp.msg}")
+              Left(ErrorRsp(rsp.errCode, rsp.msg))
+            }
+          case Left(error) =>
+            println(s"${methodName} parse json error:${error.getMessage}")
+            Left(ErrorRsp(-1, error.getMessage))
+        }
+      case Left(error) =>
+        println(s"${methodName}  failed,error:${error.getMessage}")
+        Left(ErrorRsp(-1,error.getMessage))
+    }
+  }
+
 
 
 
