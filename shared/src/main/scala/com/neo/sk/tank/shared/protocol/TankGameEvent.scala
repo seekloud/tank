@@ -38,7 +38,6 @@ object TankGameEvent {
   final case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends WsMsgServer
   final case class SyncGameState(state:GameContainerState) extends WsMsgServer
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
-  final case class FirstSyncGameAllState(gState:GameContainerAllState,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
   final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false) extends WsMsgSource
   final case class PingPackage(sendTime:Long) extends WsMsgServer with WsMsgFront
 
@@ -82,19 +81,23 @@ object TankGameEvent {
     * 使用医疗包,
     * */
   final case class UserPressKeyMedical(tankId:Int,override val frame:Long, override val serialNum: Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  /**伤害计算*/
+  @deprecated final case class TankAttacked(tankId:Int,bulletId:Int, bulletTankId:Int, bulletTankName:String, damage:Int,override val frame:Long) extends GameEvent with WsMsgServer
 
-  final case class TankAttacked(tankId:Int,bulletId:Int, bulletTankId:Int, bulletTankName:String, damage:Int,override val frame:Long) extends GameEvent with WsMsgServer
-  final case class ObstacleAttacked(obstacleId:Int, bulletId:Int, damage:Int, override val frame:Long) extends GameEvent with WsMsgServer
-
+  @deprecated final case class ObstacleAttacked(obstacleId:Int, bulletId:Int, damage:Int, override val frame:Long) extends GameEvent with WsMsgServer
+  /**tank吃道具*/
   final case class TankEatProp(tankId:Int,propId:Int,propType:Byte,frame:Long) extends GameEvent with WsMsgServer
 
-
-  final case class TankFillBullet(tankId:Int,override val frame:Long) extends EnvironmentEvent with WsMsgServer
-  final case class TankInvincible(tankId:Int,override val frame:Long) extends EnvironmentEvent with WsMsgServer
-  final case class TankShotgunExpire(tankId:Int,override val frame:Long) extends EnvironmentEvent with WsMsgServer
-
+  @deprecated final case class TankFillBullet(tankId:Int,override val frame:Long) extends EnvironmentEvent with WsMsgServer
+  /**tank无敌时间消除*/
+  @deprecated final case class TankInvincible(tankId:Int,override val frame:Long) extends EnvironmentEvent with WsMsgServer
+  /**散弹枪失效*/
+  @deprecated final case class TankShotgunExpire(tankId:Int,override val frame:Long) extends EnvironmentEvent with WsMsgServer
+  /**生成道具*/
   final case class GenerateProp(override val frame:Long,propState: PropState,generateType:Byte = 0) extends EnvironmentEvent with WsMsgServer
-  final case class GenerateBullet(override val frame:Long,bullet:BulletState) extends EnvironmentEvent with WsMsgServer
+
+  @deprecated final case class GenerateBullet(override val frame:Long,bullet:BulletState) extends EnvironmentEvent with WsMsgServer
+  /**生成河流，钢铁*/
   final case class GenerateObstacle(override val frame:Long,obstacleState: ObstacleState) extends EnvironmentEvent with WsMsgServer
 
   sealed trait GameSnapshot
