@@ -66,7 +66,7 @@ object Dependencies {
   val postgresql = "org.postgresql" % "postgresql" % "9.4.1208"
   val asynchttpclient = "org.asynchttpclient" % "async-http-client" % "2.0.32"
   val ehcache = "net.sf.ehcache" % "ehcache" % "2.10.4"
-  val essf = "org.seekloud" %% "essf" % "0.0.1-beta2"
+  val essf = "org.seekloud" %% "essf" % "0.0.1-beta3"
   val byteobject = "org.seekloud" %% "byteobject" % "0.1.1"
   val scalajs =  "org.scala-js" %% "scalajs-dom" % "0.9.2"
 //  val scalaFx = "org.scalafx" %% "scalafx" % "10.0.2-R15"
