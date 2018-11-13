@@ -17,26 +17,26 @@ import org.scalajs.dom.html.Canvas
   */
 class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:String, playerId:Option[String]) extends GameHolder(canvasObserver) {
 
-  override protected def drawGameRestart(): Unit = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.globalAlpha = 1
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    if(countDownTimes > 0){
-      ctx.fillStyle = Color.Black.toString()
-      ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-      ctx.globalAlpha = 0.4
-      ctx.fillStyle = "rgb(250, 250, 250)"
-      ctx.textAlign = "left"
-      ctx.textBaseline = "top"
-      ctx.font = s"${3.6 * canvasUnit}px Helvetica"
-      ctx.fillText(s"重新进入房间，倒计时：${countDownTimes}",150,100)
-      ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
-      countDownTimes = countDownTimes - 1
-    } else{
-      Shortcut.cancelSchedule(reStartTimer)
-      countDownTimes = countDown
-    }
-  }
+//  override protected def drawGameRestart(): Unit = {
+//    ctx.fillStyle = Color.Black.toString()
+//    ctx.globalAlpha = 1
+//    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+//    if(countDownTimes > 0){
+//      ctx.fillStyle = Color.Black.toString()
+//      ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+//      ctx.globalAlpha = 0.4
+//      ctx.fillStyle = "rgb(250, 250, 250)"
+//      ctx.textAlign = "left"
+//      ctx.textBaseline = "top"
+//      ctx.font = s"${3.6 * canvasUnit}px Helvetica"
+//      ctx.fillText(s"重新进入房间，倒计时：${countDownTimes}",150,100)
+//      ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
+//      countDownTimes = countDownTimes - 1
+//    } else{
+//      Shortcut.cancelSchedule(reStartTimer)
+//      countDownTimes = countDown
+//    }
+//  }
 
   override protected def gameLoop(): Unit = {
     checkScreenSize
@@ -61,6 +61,9 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
       case e:TankGameEvent.PlayerLeftRoom =>
         Shortcut.cancelSchedule(timer)
         gameContainerOpt.foreach(_.drawDeadImg(s"玩家已经离开了房间，请重新选择观战对象"))
+
+      case e:TankGameEvent.TankReliveInfo =>
+        nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case e:TankGameEvent.SyncGameAllState =>
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
@@ -105,7 +108,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
 
         }
         dom.window.cancelAnimationFrame(nextFrame)
-        Shortcut.cancelSchedule(timer)
+//        Shortcut.cancelSchedule(timer)
 
       case TankGameEvent.RebuildWebSocket=>
         drawReplayMsg("存在异地登录。。")

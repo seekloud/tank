@@ -47,6 +47,7 @@ object RoomActor {
   case class ShotgunExpire(tId:Int) extends Command
   case class TankFillABullet(tId:Int) extends Command
   case class TankInvincible(tId:Int)extends  Command
+  case class TankRelive(userId:String, tankIdOpt:Option[Int],name:String) extends Command
 
 
   final case class SwitchBehavior(
@@ -214,6 +215,10 @@ object RoomActor {
           gameContainer.receiveGameEvent(TankGameEvent.TankInvincible(tId,gameContainer.systemFrame))
           Behaviors.same
 
+        case TankRelive(userId,tankIdOpt,name) =>
+          gameContainer.handleTankRelive(userId,tankIdOpt,name)
+          Behaviors.same
+
         case ShotgunExpire(tId) =>
           gameContainer.receiveGameEvent(TankGameEvent.TankShotgunExpire(tId,gameContainer.systemFrame))
           Behaviors.same
@@ -248,13 +253,14 @@ object RoomActor {
     }
 
     val isKillMsg = msg.isInstanceOf[TankGameEvent.YouAreKilled]
-    subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
+    val isReliveMsg = msg.isInstanceOf[TankGameEvent.TankReliveInfo]
+    subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg,isReliveMsg)))
     /**
       * 分发数据
       * */
 
     observersByUserId match{
-      case Some(ls) => ls.keys.foreach(uId4WatchGame => observers.get(uId4WatchGame).foreach(t => t ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg))))
+      case Some(ls) => ls.keys.foreach(uId4WatchGame => observers.get(uId4WatchGame).foreach(t => t ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg,isReliveMsg))))
       case None =>
     }
 //    observers.get(id).foreach(_ ! UserActor4WatchGame.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))

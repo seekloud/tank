@@ -7,6 +7,8 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import com.neo.sk.tank.common.Constants
+import com.neo.sk.tank.core.RoomActor.TankRelive
+import com.neo.sk.tank.core.game.TankGameConfigServerImpl
 import com.neo.sk.tank.models.TankGameUserInfo
 import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameRsp, GetUserInRecordRsp, PlayerList, RecordFrameInfo}
 import com.neo.sk.tank.shared.model.Constants.GameState
@@ -51,10 +53,11 @@ object UserActor {
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
 
   case class StartGame(roomId:Option[Long]) extends Command
-  case class JoinRoom(uid:String,tankIdOpt:Option[Int],gameStateOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None) extends Command with RoomManager.Command
+  case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None) extends Command with RoomManager.Command
 
   case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:String,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
 
+  case class TankRelive4UserActor(tank:TankServerImpl,userId:String,name:String,roomActor:ActorRef[RoomActor.Command], config:TankGameConfigImpl) extends Command with UserManager.Command
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
 
   case class StartReplay(rid:Long, wid:String, f:Int) extends Command
@@ -186,7 +189,7 @@ object UserActor {
           /**换成给roomManager发消息,告知uId,name
             * 还要给userActor发送回带roomId的数据
             * */
-          roomManager ! JoinRoom(uId,None,None,userInfo.name,startTime,ctx.self, roomIdOpt)
+          roomManager ! JoinRoom(uId,None,userInfo.name,startTime,ctx.self, roomIdOpt)
           Behaviors.same
 
         case ChangeUserInfo(info) =>
@@ -213,16 +216,9 @@ object UserActor {
         case WebSocketMsg(reqOpt) =>
           reqOpt match {
             case Some(t:TankGameEvent.RestartGame) =>
-              if(t.gameState == GameState.stop){
-                log.debug("dead 3--------------")
-                val newStartTime = System.currentTimeMillis()
-                roomManager ! JoinRoom(uId,t.tankIdOpt,Some(GameState.stop),t.name,newStartTime,ctx.self)
-                idle(uId,userInfo.copy(name = t.name),newStartTime,frontActor)
-              }else{
-                log.debug(s"tank game state${t.gameState}")
-                roomManager ! JoinRoom(uId,t.tankIdOpt,Some(t.gameState),t.name,startTime,ctx.self)
-                idle(uId,userInfo.copy(name = t.name),startTime,frontActor)
-              }
+              val newStartTime = System.currentTimeMillis()
+              roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,newStartTime,ctx.self)
+              idle(uId,userInfo.copy(name = t.name),newStartTime,frontActor)
             case _ =>
               Behaviors.same
           }
@@ -323,6 +319,10 @@ object UserActor {
           frontActor ! TankGameEvent.Wrap(TankGameEvent.WsMsgErrorRsp(1, error).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           frontActor ! TankGameEvent.CompleteMsgServer
           Behaviors.stopped
+
+        case TankRelive4UserActor(tank,userId,name,roomActor,config) =>
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          switchBehavior(ctx,"observe",observe(uId,userInfo,tank,frontActor,roomActor))
 
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
@@ -440,7 +440,7 @@ object UserActor {
             println(s"${ctx.self.path} tank 当前生命值${tank.getTankState().lives}")
             if (tank.lives > 1){
               //玩家进入复活状态
-              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
+//              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
               switchBehavior(ctx,"waitRestartWhenPlay",waitRestartWhenPlay(uId,userInfo,startTime,frontActor, tank))
             } else {
               roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
@@ -492,15 +492,26 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case WebSocketMsg(reqOpt) =>
-          reqOpt match {
-            case Some(t:TankGameEvent.RestartGame) =>
-              roomManager ! JoinRoom(uId,t.tankIdOpt,Some(t.gameState),t.name,startTime,ctx.self)
-              Behaviors.same
-//              idle(uId,userInfo.copy(name = t.name),startTime,frontActor)
-            case _ =>
-              Behaviors.same
-          }
+//        case DispatchMsg(m) =>
+//          if(m.asInstanceOf[TankGameEvent.Wrap].isReliveMsg) {
+//            frontActor ! m
+//            println(s"${ctx.self.path} tank 当前生命值${tank.getTankState().lives}")
+//            if (tank.lives > 1){
+//              //玩家进入复活状态
+//              //              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
+//              switchBehavior(ctx,"waitRestartWhenPlay",waitRestartWhenPlay(uId,userInfo,startTime,frontActor, tank))
+//            } else {
+//              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
+//              switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
+//            }
+//          }else{
+//            frontActor ! m
+//            Behaviors.same
+//          }
+        case TankRelive4UserActor(tank,userId,name,roomActor,config) =>
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          switchBehavior(ctx,"play",play(uId,userInfo,tank,startTime,frontActor,roomActor))
+
         /**
           * 本消息内转换为初始状态并给前端发送异地登录消息*/
         case ChangeBehaviorToInit=>

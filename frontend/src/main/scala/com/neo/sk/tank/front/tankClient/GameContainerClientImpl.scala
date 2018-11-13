@@ -97,8 +97,7 @@ case class GameContainerClientImpl(
   override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
     if(tank.tankId == tId){
       setKillCallback(bulletTankName, tank.lives > 1, tank.killTankNum, tank.damageStatistics)
-      if (tank.lives > 1) setGameState(GameState.relive)
-      else setGameState(GameState.stop)
+      if (tank.lives <= 1) setGameState(GameState.stop)
     }
   }
 
