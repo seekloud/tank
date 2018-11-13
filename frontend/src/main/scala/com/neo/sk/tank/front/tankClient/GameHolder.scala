@@ -130,8 +130,8 @@ abstract class GameHolder(name:String) extends NetworkInfo{
         Shortcut.cancelSchedule(timer)
         Shortcut.cancelSchedule(reStartTimer)
         drawGameStop()
-        drawCombatGains()
-        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+        Shortcut.scheduleOnce(() => drawCombatGains(), 3000)
+//        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
 
       case GameState.relive =>
         /**
@@ -157,7 +157,6 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     ctx.textBaseline = "top"
     ctx.font = "36px Helvetica"
     ctx.fillText("请稍等，正在连接服务器", 150, 180)
-    //    println()
   }
 
   protected def drawGameStop():Unit = {
@@ -183,8 +182,10 @@ abstract class GameHolder(name:String) extends NetworkInfo{
   }
 
   protected def drawCombatGains(): Unit = {
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     val combatGians = dom.document.getElementById("combat_gains").asInstanceOf[Div]
-    val temp = killerList.map(r => s"<span>${r}</span>")
+    val temp = killerList.map(r => s"<span>${r.take(3)}</span>")
     combatGians.innerHTML = s"<p>击杀数:<span>${killNum}</span></p>" +
       s"<p>伤害量:<span>${damageNum}</span></p>" +
       s"<p>击杀者ID:" + temp.mkString("、")+ "</p>"
