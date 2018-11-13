@@ -1,7 +1,7 @@
 package com.neo.sk.tank.front.tankClient.view
 
 import com.neo.sk.tank.front.common.Routes
-import com.neo.sk.tank.front.tankClient.model.{GameContainerClientImpl, TankClientImpl}
+import com.neo.sk.tank.front.tankClient.game.{GameContainerClientImpl, TankClientImpl}
 import com.neo.sk.tank.shared.model.Constants.{InvincibleSize, SmallBullet}
 import com.neo.sk.tank.shared.model.Point
 import org.scalajs.dom

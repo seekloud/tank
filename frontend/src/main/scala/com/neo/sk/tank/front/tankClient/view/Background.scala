@@ -1,7 +1,7 @@
 package com.neo.sk.tank.front.tankClient.view
 
 import com.neo.sk.tank.front.common.Routes
-import com.neo.sk.tank.front.tankClient.model.GameContainerClientImpl
+import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.model.Constants.LittleMap
 import com.neo.sk.tank.shared.model.{Point, Score}

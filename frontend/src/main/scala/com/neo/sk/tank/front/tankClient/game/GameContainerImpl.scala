@@ -1,4 +1,4 @@
-package com.neo.sk.tank.front.tankClient.model
+package com.neo.sk.tank.front.tankClient.game
 
 import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.TankGameConfig
