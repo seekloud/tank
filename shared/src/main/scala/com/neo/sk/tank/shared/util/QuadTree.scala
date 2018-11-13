@@ -102,7 +102,7 @@ class QuadTree(bounds:model.Rectangle,level :Int = 0) {
       val childrenObjectList = seq.filter(_._2.nonEmpty)
       objects = seq.filter(_._2.isEmpty).map(_._1)
       childrenObjectList.foreach{
-        case ((o,id)) =>
+        case (o,id) =>
           this.children(id.getOrElse(0)).insert(o)
       }
     }

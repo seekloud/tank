@@ -47,6 +47,7 @@ object TankGameEvent {
 
   trait UserEvent extends GameEvent
   trait EnvironmentEvent extends GameEvent
+  trait FollowEvent extends GameEvent
   trait UserActionEvent extends UserEvent{
     val tankId:Int
     val serialNum:Int
@@ -87,8 +88,6 @@ object TankGameEvent {
   @deprecated final case class ObstacleAttacked(obstacleId:Int, bulletId:Int, damage:Int, override val frame:Long) extends GameEvent with WsMsgServer
   /**tank吃道具*/
   final case class TankEatProp(tankId:Int,propId:Int,propType:Byte,frame:Long) extends GameEvent with WsMsgServer
-
-  @deprecated final case class TankFillBullet(tankId:Int,override val frame:Long) extends EnvironmentEvent with WsMsgServer
   /**tank无敌时间消除*/
   @deprecated final case class TankInvincible(tankId:Int,override val frame:Long) extends EnvironmentEvent with WsMsgServer
   /**散弹枪失效*/
@@ -99,6 +98,10 @@ object TankGameEvent {
   @deprecated final case class GenerateBullet(override val frame:Long,bullet:BulletState) extends EnvironmentEvent with WsMsgServer
   /**生成河流，钢铁*/
   final case class GenerateObstacle(override val frame:Long,obstacleState: ObstacleState) extends EnvironmentEvent with WsMsgServer
+
+  /**
+    * 游戏逻辑产生事件*/
+  final case class TankFillBullet(tankId:Int,override val frame:Long) extends FollowEvent
 
   sealed trait GameSnapshot
 

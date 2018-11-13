@@ -176,7 +176,7 @@ object RoomActor {
 
           }
 
-          if (tickCount % 20 == 5) {
+          if (tickCount % 200 == 5) {
             val state = gameContainer.getGameContainerState()
             dispatch(subscribersMap,observersMap)(TankGameEvent.SyncGameState(state))
           }
@@ -200,7 +200,7 @@ object RoomActor {
 
         case TankFillABullet(tId) =>
           //          log.debug(s"${ctx.self.path} recv a msg=${msg}")
-          gameContainer.receiveGameEvent(TankGameEvent.TankFillBullet(tId,gameContainer.systemFrame))
+          gameContainer.receiveFollowEvent(TankGameEvent.TankFillBullet(tId,gameContainer.systemFrame))
           Behaviors.same
 
 

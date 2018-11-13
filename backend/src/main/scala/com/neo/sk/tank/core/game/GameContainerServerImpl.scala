@@ -350,6 +350,11 @@ case class GameContainerServerImpl(
     addGameEvent(event)
   }
 
+  def receiveFollowEvent(event:TankGameEvent.GameEvent) = {
+//    dispatch(event)
+    addFollowEvent(event)
+  }
+
   private def generateEnvironment(pType:Byte,barrierPosList:List[RectangleObjectOfGame],barrier:List[List[(Int,Int)]]) = {
     var barrierPosListCopy = barrierPosList
     def isSuitable(position:Point, environmentTypePosition : List[(Int, Int)]) = {
