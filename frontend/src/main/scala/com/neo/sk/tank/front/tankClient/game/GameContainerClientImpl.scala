@@ -67,6 +67,11 @@ case class GameContainerClientImpl(
     updateTankSize(canvasBoundary)
   }
 
+  override protected def handleUserJoinRoomEvent(e: TankGameEvent.UserJoinRoom): Unit = {
+    super.handleUserJoinRoomEvent(e)
+    tankInvincibleCallBack(e.tankState.tankId)
+  }
+
 
   override protected def handleObstacleAttacked(e: ObstacleAttacked): Unit = {
     super.handleObstacleAttacked(e)
