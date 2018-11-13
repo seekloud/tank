@@ -378,9 +378,8 @@ trait GameContainer extends KillInformation{
     es foreach handleTankInvincible
   }
 
-  @deprecated
   final protected def handleTankInvincibleNow() :Unit = {
-    gameEventMap.get(systemFrame).foreach{ events =>
+    followEventMap.get(systemFrame).foreach{ events =>
       handleTankInvincible(events.filter(_.isInstanceOf[TankInvincible]).map(_.asInstanceOf[TankInvincible]).reverse)
     }
   }
@@ -559,8 +558,9 @@ trait GameContainer extends KillInformation{
   }
 
   /**
+    * @author sky
     * 重置followEventMap
-    * 筛选之前帧产生的事件,不包含本帧
+    * 筛选回溯之前帧产生的事件,不包含本帧
     * */
   protected def reSetFollowEvent(frame:Long)={
     followEventMap.foreach{l=>

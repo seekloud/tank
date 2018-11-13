@@ -44,9 +44,6 @@ object RoomActor {
   case class JoinRoom4Watch(uid:String,roomId:Long,playerId:String,userActor4Watch: ActorRef[UserActor.Command]) extends Command with  RoomManager.Command
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command with RoomManager.Command
   case object GameLoop extends Command
-  case class ShotgunExpire(tId:Int) extends Command
-  case class TankFillABullet(tId:Int) extends Command
-  case class TankInvincible(tId:Int)extends  Command
 
 
   final case class SwitchBehavior(
@@ -77,7 +74,7 @@ object RoomActor {
             val subscribersMap = mutable.HashMap[String,ActorRef[UserActor.Command]]()
             val observersMap = mutable.HashMap[String,ActorRef[UserActor.Command]]()
             implicit val sendBuffer = new MiddleBufferInJvm(81920)
-            val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer, log,
+            val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, log,
               dispatch(subscribersMap,observersMap),
               dispatchTo(subscribersMap,observersMap)
             )
@@ -197,27 +194,10 @@ object RoomActor {
           }
           idle(roomId,Nil,userMap,subscribersMap, observersMap,gameContainer,tickCount+1)
 
-
-        case TankFillABullet(tId) =>
-          //          log.debug(s"${ctx.self.path} recv a msg=${msg}")
-          gameContainer.receiveFollowEvent(TankGameEvent.TankFillBullet(tId,gameContainer.systemFrame))
-          Behaviors.same
-
-
         case ChildDead(name, childRef) =>
 //          log.debug(s"${ctx.self.path} recv a msg:${msg}")
           ctx.unwatch(childRef)
           Behaviors.same
-
-
-        case TankInvincible(tId) =>
-          gameContainer.receiveFollowEvent(TankGameEvent.TankInvincible(tId,gameContainer.systemFrame))
-          Behaviors.same
-
-        case ShotgunExpire(tId) =>
-          gameContainer.receiveFollowEvent(TankGameEvent.TankShotgunExpire(tId,gameContainer.systemFrame))
-          Behaviors.same
-
 
         case _ =>
           log.warn(s"${ctx.self.path} recv a unknow msg=${msg}")

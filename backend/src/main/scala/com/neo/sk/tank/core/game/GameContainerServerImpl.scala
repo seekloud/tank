@@ -25,7 +25,6 @@ import com.neo.sk.tank.Boot.roomManager
 case class GameContainerServerImpl(
                                     config: TankGameConfig,
                                     roomActorRef:ActorRef[RoomActor.Command],
-                                    timer:TimerScheduler[RoomActor.Command],
                                     log:Logger,
                                     dispatch:TankGameEvent.WsMsgServer => Unit,
                                     dispatchTo:(String,TankGameEvent.WsMsgServer,Option[mutable.HashMap[String,ActorRef[UserActor.Command]]]) => Unit
@@ -50,7 +49,7 @@ case class GameContainerServerImpl(
   override def info(msg: String): Unit = log.info(msg)
 
   override protected implicit def tankState2Impl(tank:TankState):Tank = {
-    new TankServerImpl(roomActorRef,timer,config,tank,fillBulletCallBack,tankShotgunExpireCallBack)
+    new TankServerImpl(config,tank,fillBulletCallBack,tankShotgunExpireCallBack)
   }
 
   def getUserActor4WatchGameList(uId:String) = userMapObserver.get(uId)
@@ -220,14 +219,14 @@ case class GameContainerServerImpl(
       }
       def genTankServeImpl(tankId:Int,killTankNum:Int,damageStatistics:Int,lives:Int) = {
         val position = genTankPositionRandom()
-        var tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack,roomActorRef, timer, config, userId, tankId, name,
+        var tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack,config, userId, tankId, name,
           config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
           config.maxBulletCapacity,lives = lives,None,
           killTankNum = killTankNum,damageStatistics = damageStatistics)
         var objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
         while (tank.isIntersectsObject(objects)){
           val position = genTankPositionRandom()
-          tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack,roomActorRef, timer, config, userId, tankId, name,
+          tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack, config, userId, tankId, name,
             config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
             config.maxBulletCapacity,lives = lives,None,
             killTankNum = killTankNum,damageStatistics = damageStatistics)
