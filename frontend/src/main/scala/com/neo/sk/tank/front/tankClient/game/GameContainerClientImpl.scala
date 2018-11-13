@@ -1,18 +1,15 @@
-package com.neo.sk.tank.front.tankClient
+package com.neo.sk.tank.front.tankClient.game
 
-import com.neo.sk.tank.shared.model.Constants
-import com.neo.sk.tank.front.tankClient.draw._
+import com.neo.sk.tank.front.tankClient.view._
 import com.neo.sk.tank.front.utils.Shortcut
-import com.neo.sk.tank.shared.`object`.{Tank, TankImpl}
+import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.config.TankGameConfig
-import com.neo.sk.tank.shared.game.GameContainerImpl
-import com.neo.sk.tank.shared.model.Constants.{GameAnimation, GameState, LittleMap, PropGenerateType}
+import com.neo.sk.tank.shared.model.Constants.{GameAnimation, GameState, PropGenerateType}
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.ObstacleAttacked
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
-import org.scalajs.dom.html.Image
 
 import scala.collection.mutable
 
@@ -70,6 +67,11 @@ case class GameContainerClientImpl(
     updateTankSize(canvasBoundary)
   }
 
+  override protected def handleUserJoinRoomEvent(e: TankGameEvent.UserJoinRoom): Unit = {
+    super.handleUserJoinRoomEvent(e)
+    tankInvincibleCallBack(e.tankState.tankId)
+  }
+
 
   override protected def handleObstacleAttacked(e: ObstacleAttacked): Unit = {
     super.handleObstacleAttacked(e)
@@ -112,7 +114,7 @@ case class GameContainerClientImpl(
       ctx.lineJoin = "round"
       tankMap.get(tId) match {
         case Some(tank) =>
-          val offset = canvasBoundary / 2 - tank.asInstanceOf[TankImpl].getPosition4Animation(boundary, quadTree, offsetTime)
+          val offset = canvasBoundary / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime)
           drawBackground(offset)
           drawObstacles(offset,Point(w,h))
           drawEnvironment(offset,Point(w,h))
@@ -120,13 +122,13 @@ case class GameContainerClientImpl(
           drawBullet(offset,offsetTime, Point(w,h))
           drawTank(offset,offsetTime,Point(w,h))
           drawObstacleBloodSlider(offset)
-          drawMyTankInfo(tank.asInstanceOf[TankImpl])
+          drawMyTankInfo(tank.asInstanceOf[TankClientImpl])
           drawMinimap(tank)
           drawRank()
           renderFps(networkLatency)
           drawKillInformation()
           drawRoomNumber()
-          drawCurMedicalNum(tank.asInstanceOf[TankImpl])
+          drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
 
           if(tank.cavasFrame >=1) {
             tank.cavasFrame += 1

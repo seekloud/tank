@@ -78,7 +78,7 @@ object RoomActor {
             val subscribersMap = mutable.HashMap[String,ActorRef[UserActor.Command]]()
             val observersMap = mutable.HashMap[String,ActorRef[UserActor.Command]]()
             implicit val sendBuffer = new MiddleBufferInJvm(81920)
-            val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer, log,
+            val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, log,
               dispatch(subscribersMap,observersMap),
               dispatchTo(subscribersMap,observersMap)
             )
@@ -177,7 +177,7 @@ object RoomActor {
 
           }
 
-          if (tickCount % 20 == 5) {
+          if (tickCount % 200 == 5) {
             val state = gameContainer.getGameContainerState()
             dispatch(subscribersMap,observersMap)(TankGameEvent.SyncGameState(state))
           }
@@ -197,13 +197,6 @@ object RoomActor {
 //            log.debug(s"${ctx.self.path} curFrame=${gameContainer.systemFrame} use time=${endTime-startTime}")
           }
           idle(roomId,Nil,userMap,subscribersMap, observersMap,gameContainer,tickCount+1)
-
-
-        case TankFillABullet(tId) =>
-          //          log.debug(s"${ctx.self.path} recv a msg=${msg}")
-          gameContainer.receiveGameEvent(TankGameEvent.TankFillBullet(tId,gameContainer.systemFrame))
-          Behaviors.same
-
 
         case ChildDead(name, childRef) =>
 //          log.debug(s"${ctx.self.path} recv a msg:${msg}")

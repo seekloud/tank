@@ -176,8 +176,6 @@ object GameRecorder {
           ctx.self ! SaveDate(1)
           switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
 
-
-
         case unknow =>
           log.warn(s"${ctx.self.path} recv an unknown msg:${unknow}")
           Behaviors.same

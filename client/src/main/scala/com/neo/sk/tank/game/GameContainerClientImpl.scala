@@ -1,9 +1,8 @@
 package com.neo.sk.tank.game
 
 import com.neo.sk.tank.game.draw._
-import com.neo.sk.tank.shared.`object`.{Tank, TankImpl}
+import com.neo.sk.tank.shared.`object`.{Tank, TankClientImpl}
 import com.neo.sk.tank.shared.config.TankGameConfig
-import com.neo.sk.tank.shared.game.GameContainerImpl
 import com.neo.sk.tank.shared.model.Constants.{GameAnimation, PropGenerateType}
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -18,8 +17,8 @@ import java.util.Timer
 import java.util.TimerTask
 
 import com.neo.sk.tank.App.scheduler
-import concurrent.duration._
 
+import concurrent.duration._
 import scala.collection.mutable
 
 /**
@@ -120,7 +119,7 @@ case class GameContainerClientImpl(
       ctx.setLineJoin(StrokeLineJoin.ROUND)
       tankMap.get(myTankId) match {
         case Some(tank) =>
-          val offset = canvasBoundary / 2 - tank.asInstanceOf[TankImpl].getPosition4Animation(boundary, quadTree, offsetTime)
+          val offset = canvasBoundary / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime)
 //          val t1=System.currentTimeMillis()
           drawBackground(offset)
 //          val t2=System.currentTimeMillis()
@@ -136,7 +135,7 @@ case class GameContainerClientImpl(
 //          val t7=System.currentTimeMillis()
           drawObstacleBloodSlider(offset)
 //          val t8=System.currentTimeMillis()
-          drawMyTankInfo(tank.asInstanceOf[TankImpl])
+          drawMyTankInfo(tank.asInstanceOf[TankClientImpl])
 //          val t9=System.currentTimeMillis()
           drawMinimap(tank)
 //          val t10=System.currentTimeMillis()
@@ -148,7 +147,7 @@ case class GameContainerClientImpl(
 //          val t13=System.currentTimeMillis()
           drawRoomNumber()
 //          val t14=System.currentTimeMillis()
-          drawCurMedicalNum(tank.asInstanceOf[TankImpl])
+          drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
 //          val t15=System.currentTimeMillis()
       /*    val l=List(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15)
           l.reduceLeft{(a,b)=> {
