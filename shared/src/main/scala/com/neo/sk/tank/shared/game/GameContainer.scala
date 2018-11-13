@@ -79,6 +79,7 @@ trait GameContainer extends KillInformation{
 
   protected val gameEventMap = mutable.HashMap[Long,List[GameEvent]]() //frame -> List[GameEvent] 待处理的事件 frame >= curFrame
   protected val actionEventMap = mutable.HashMap[Long,List[UserActionEvent]]() //frame -> List[UserActionEvent]
+  protected val followEventMap = mutable.HashMap[Long,List[GameEvent]]()  // 记录游戏逻辑中产生事件
   protected val myTankAction = mutable.HashMap[Long,List[UserActionEvent]]()
   final protected def handleUserJoinRoomEvent(l:List[UserJoinRoom]) :Unit = {
     l foreach handleUserJoinRoomEvent
@@ -359,8 +360,15 @@ trait GameContainer extends KillInformation{
     es foreach handleTankFillBullet
   }
 
+ /* @deprecated
   final protected def handleTankFillBulletNow() = {
     gameEventMap.get(systemFrame).foreach{ events =>
+      handleTankFillBullet(events.filter(_.isInstanceOf[TankFillBullet]).map(_.asInstanceOf[TankFillBullet]).reverse)
+    }
+  }*/
+
+  final protected def handleTankFillBulletNow() = {
+    followEventMap.get(systemFrame).foreach{ events =>
       handleTankFillBullet(events.filter(_.isInstanceOf[TankFillBullet]).map(_.asInstanceOf[TankFillBullet]).reverse)
     }
   }
@@ -376,6 +384,7 @@ trait GameContainer extends KillInformation{
     es foreach handleTankInvincible
   }
 
+  @deprecated
   final protected def handleTankInvincibleNow() :Unit = {
     gameEventMap.get(systemFrame).foreach{ events =>
       handleTankInvincible(events.filter(_.isInstanceOf[TankInvincible]).map(_.asInstanceOf[TankInvincible]).reverse)
@@ -413,7 +422,7 @@ trait GameContainer extends KillInformation{
     }
   }
 
-  //后台需要重写，生成迟到道具事件，客户端不必重写
+  //后台需要重写，生成吃到道具事件，客户端不必重写
   protected def tankEatPropCallback(tank:Tank)(prop: Prop):Unit = {}
 
   protected def bulletMove():Unit = {
@@ -471,6 +480,13 @@ trait GameContainer extends KillInformation{
     gameEventMap.get(event.frame) match {
       case Some(events) => gameEventMap.put(event.frame, event :: events)
       case None => gameEventMap.put(event.frame,List(event))
+    }
+  }
+
+  protected final def addFollowEvent(event:GameEvent):Unit = {
+    followEventMap.get(event.frame) match {
+      case Some(events) => followEventMap.put(event.frame, event :: events)
+      case None => followEventMap.put(event.frame,List(event))
     }
   }
 

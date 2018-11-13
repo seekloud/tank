@@ -1,5 +1,6 @@
-package com.neo.sk.tank.shared.game
+package com.neo.sk.tank.front.tankClient.game
 
+import com.neo.sk.tank.shared.game.GameContainerAllState
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameEvent, UserActionEvent}
 
 import scala.collection.mutable
