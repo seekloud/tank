@@ -167,14 +167,6 @@ case class GameContainerServerImpl(
     n
   }
 
- /* override protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
-
-    super.attackObstacleCallBack(bullet)(o)
-    val event = TankGameEvent.ObstacleAttacked(o.oId,bullet.bId,bullet.damage,systemFrame)
-    dispatch(event)
-    addGameEvent(event)
-  }*/
-
   override protected def handleObstacleAttacked(e: TankGameEvent.ObstacleAttacked): Unit = {
     bulletMap.get(e.bulletId).foreach(quadTree.remove)
     bulletMap.remove(e.bulletId)
@@ -341,17 +333,6 @@ case class GameContainerServerImpl(
 
     addUserAction(action)
     dispatch(action)
-  }
-
-  //定时器发的定时事件
-  def receiveGameEvent(event:TankGameEvent.GameEvent with TankGameEvent.WsMsgServer) = {
-    dispatch(event)
-    addGameEvent(event)
-  }
-
-  def receiveFollowEvent(event:TankGameEvent.GameEvent) = {
-//    dispatch(event)
-    addFollowEvent(event)
   }
 
   private def generateEnvironment(pType:Byte,barrierPosList:List[RectangleObjectOfGame],barrier:List[List[(Int,Int)]]) = {

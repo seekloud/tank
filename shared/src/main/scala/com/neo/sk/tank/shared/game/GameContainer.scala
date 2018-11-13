@@ -562,7 +562,7 @@ trait GameContainer extends KillInformation{
     * 重置followEventMap
     * 筛选回溯之前帧产生的事件,不包含本帧
     * */
-  protected def reSetFollowEvent(frame:Long)={
+  protected def reSetFollowEventMap(frame:Long)={
     followEventMap.foreach{l=>
       val eventList=l._2.filter(r=>
         r.asInstanceOf[TankGameEvent.TankInvincible].frame-config.initInvincibleDuration<frame||r.asInstanceOf[TankGameEvent.TankFillBullet].frame-config.fillBulletDuration<frame||
