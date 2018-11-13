@@ -87,7 +87,7 @@ trait GameContainer extends KillInformation{
   }
 
 
-  final protected def handleUserJoinRoomEvent(e:UserJoinRoom) :Unit = {
+  protected def handleUserJoinRoomEvent(e:UserJoinRoom) :Unit = {
     println(s"-------------------处理用户加入房间事件")
     val tank : Tank = e.tankState
     tankMap.put(e.tankState.tankId,tank)
@@ -397,7 +397,7 @@ trait GameContainer extends KillInformation{
   }
 
   final protected def handleTankShotgunExpireNow() = {
-    gameEventMap.get(systemFrame).foreach{ events =>
+    followEventMap.get(systemFrame).foreach{ events =>
       handleTankShotgunExpire(events.filter(_.isInstanceOf[TankShotgunExpire]).map(_.asInstanceOf[TankShotgunExpire]).reverse)
     }
   }
@@ -488,6 +488,18 @@ trait GameContainer extends KillInformation{
     }
   }
 
+  final protected def fillBulletCallBack(tid:Int):Unit={
+    addFollowEvent(TankGameEvent.TankFillBullet(tid,systemFrame+config.fillBulletDuration))
+  }
+
+  final protected def tankInvincibleCallBack(tid:Int):Unit={
+    addFollowEvent(TankGameEvent.TankInvincible(tid,systemFrame+config.initInvincibleDuration))
+  }
+
+  final protected def tankShotgunExpireCallBack(tid:Int):Unit={
+    addFollowEvent(TankGameEvent.TankShotgunExpire(tid,systemFrame+config.shotgunDuration))
+  }
+
   final protected def handlePropLifecycleNow() = {
     propMap.values.foreach{ prop =>
       if(!prop.updateLifecycle()){
@@ -544,6 +556,19 @@ trait GameContainer extends KillInformation{
       environmentMap.values.map(_.getObstacleState()).toList,
       tankMoveAction = tankMoveAction.toList.map(t => (t._1,t._2.toList))
     )
+  }
+
+  /**
+    * 重置followEventMap
+    * 筛选之前帧产生的事件,不包含本帧
+    * */
+  protected def reSetFollowEvent(frame:Long)={
+    followEventMap.foreach{l=>
+      val eventList=l._2.filter(r=>
+        r.asInstanceOf[TankGameEvent.TankInvincible].frame-config.initInvincibleDuration<frame||r.asInstanceOf[TankGameEvent.TankFillBullet].frame-config.fillBulletDuration<frame||
+          r.asInstanceOf[TankGameEvent.TankShotgunExpire].frame-config.shotgunDuration<frame)
+      followEventMap.put(l._1,eventList)
+    }
   }
 
   protected def addGameEvents(frame:Long,events:List[GameEvent],actionEvents:List[UserActionEvent]) = {

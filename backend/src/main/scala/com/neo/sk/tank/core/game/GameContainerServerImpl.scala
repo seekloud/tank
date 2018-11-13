@@ -50,7 +50,7 @@ case class GameContainerServerImpl(
   override def info(msg: String): Unit = log.info(msg)
 
   override protected implicit def tankState2Impl(tank:TankState):Tank = {
-    new TankServerImpl(roomActorRef,timer,config,tank)
+    new TankServerImpl(roomActorRef,timer,config,tank,fillBulletCallBack,tankShotgunExpireCallBack)
   }
 
   def getUserActor4WatchGameList(uId:String) = userMapObserver.get(uId)
@@ -220,14 +220,14 @@ case class GameContainerServerImpl(
       }
       def genTankServeImpl(tankId:Int,killTankNum:Int,damageStatistics:Int,lives:Int) = {
         val position = genTankPositionRandom()
-        var tank = TankServerImpl(roomActorRef, timer, config, userId, tankId, name,
+        var tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack,roomActorRef, timer, config, userId, tankId, name,
           config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
           config.maxBulletCapacity,lives = lives,None,
           killTankNum = killTankNum,damageStatistics = damageStatistics)
         var objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
         while (tank.isIntersectsObject(objects)){
           val position = genTankPositionRandom()
-          tank = TankServerImpl(roomActorRef, timer, config, userId, tankId, name,
+          tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack,roomActorRef, timer, config, userId, tankId, name,
             config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
             config.maxBulletCapacity,lives = lives,None,
             killTankNum = killTankNum,damageStatistics = damageStatistics)
@@ -278,7 +278,7 @@ case class GameContainerServerImpl(
         tankMap.put(tank.tankId,tank)
         quadTree.insert(tank)
         //无敌时间消除
-        timer.startSingleTimer(s"TankInvincible_${tank.tankId}",RoomActor.TankInvincible(tank.tankId),config.initInvincibleDuration.millis)
+        tankInvincibleCallBack(tank.tankId)
     }
     justJoinUser = Nil
   }

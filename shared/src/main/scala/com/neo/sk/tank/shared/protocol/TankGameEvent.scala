@@ -82,10 +82,6 @@ object TankGameEvent {
   final case class UserPressKeyMedical(tankId:Int,override val frame:Long, override val serialNum: Int) extends UserActionEvent with WsMsgFront with WsMsgServer
   /**tank吃道具*/
   final case class TankEatProp(tankId:Int,propId:Int,propType:Byte,frame:Long) extends GameEvent with WsMsgServer
-  /**tank无敌时间消除*/
-  @deprecated final case class TankInvincible(tankId:Int,override val frame:Long) extends EnvironmentEvent with WsMsgServer
-  /**散弹枪失效*/
-  @deprecated final case class TankShotgunExpire(tankId:Int,override val frame:Long) extends EnvironmentEvent with WsMsgServer
   /**生成道具*/
   final case class GenerateProp(override val frame:Long,propState: PropState,generateType:Byte = 0) extends EnvironmentEvent with WsMsgServer
 
@@ -97,6 +93,10 @@ object TankGameEvent {
     * 游戏逻辑产生事件
     * */
   final case class TankFillBullet(tankId:Int,override val frame:Long) extends FollowEvent
+  /**tank无敌时间消除*/
+  final case class TankInvincible(tankId:Int,override val frame:Long) extends FollowEvent
+  /**散弹枪失效*/
+  final case class TankShotgunExpire(tankId:Int,override val frame:Long) extends FollowEvent
   /**伤害计算*/
   final case class TankAttacked(tankId:Int,bulletId:Int, bulletTankId:Int, bulletTankName:String, damage:Int,override val frame:Long) extends FollowEvent
 

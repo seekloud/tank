@@ -211,11 +211,11 @@ object RoomActor {
 
 
         case TankInvincible(tId) =>
-          gameContainer.receiveGameEvent(TankGameEvent.TankInvincible(tId,gameContainer.systemFrame))
+          gameContainer.receiveFollowEvent(TankGameEvent.TankInvincible(tId,gameContainer.systemFrame))
           Behaviors.same
 
         case ShotgunExpire(tId) =>
-          gameContainer.receiveGameEvent(TankGameEvent.TankShotgunExpire(tId,gameContainer.systemFrame))
+          gameContainer.receiveFollowEvent(TankGameEvent.TankShotgunExpire(tId,gameContainer.systemFrame))
           Behaviors.same
 
 
