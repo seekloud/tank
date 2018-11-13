@@ -1,7 +1,7 @@
 package com.neo.sk.tank.front.pages
 
 import com.neo.sk.tank.front.common.Page
-import com.neo.sk.tank.front.tankClient.GameObserverHolderImpl
+import com.neo.sk.tank.front.tankClient.control.GameObserverHolderImpl
 import com.neo.sk.tank.front.utils.Shortcut
 import org.scalajs.dom
 

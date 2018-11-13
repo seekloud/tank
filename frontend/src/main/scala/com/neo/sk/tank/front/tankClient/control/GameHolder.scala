@@ -1,24 +1,16 @@
-package com.neo.sk.tank.front.tankClient
+package com.neo.sk.tank.front.tankClient.control
 
-import java.util.concurrent.atomic.AtomicInteger
-
-import com.neo.sk.tank.front.components.StartGameModal
-import com.neo.sk.tank.front.model.ReplayInfo
-import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
+import com.neo.sk.tank.front.tankClient.model.GameContainerClientImpl
+import com.neo.sk.tank.front.tankClient.{NetworkInfo, WebSocketClient}
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.model.Constants.GameState
-import com.neo.sk.tank.shared.model.Point
+import com.neo.sk.tank.shared.model.{Constants, Point}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import mhtml.Var
 import org.scalajs.dom
-import org.scalajs.dom.ext.{Color, KeyCode}
-import org.scalajs.dom.html.{Canvas, Div, Paragraph}
+import org.scalajs.dom.ext.Color
+import org.scalajs.dom.html.{Canvas, Div}
 import org.scalajs.dom.raw.{Event, HTMLElement}
-
-import scala.collection.mutable
-import scala.xml.Elem
-import com.neo.sk.tank.shared.model.Constants
-import scalacss.internal.Attrs._
 
 /**
   * User: sky

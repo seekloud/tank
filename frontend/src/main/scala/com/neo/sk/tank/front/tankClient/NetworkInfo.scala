@@ -1,5 +1,6 @@
 package com.neo.sk.tank.front.tankClient
 
+import com.neo.sk.tank.front.tankClient.control.GameHolder
 import com.neo.sk.tank.front.utils.Shortcut
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 

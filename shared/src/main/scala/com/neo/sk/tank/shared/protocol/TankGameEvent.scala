@@ -46,9 +46,9 @@ object TankGameEvent {
   }
 
   trait UserEvent extends GameEvent
-  trait EnvironmentEvent extends GameEvent
-  trait FollowEvent extends GameEvent
-  trait UserActionEvent extends UserEvent{
+  trait EnvironmentEvent extends GameEvent  //游戏环境产生事件
+  trait FollowEvent extends GameEvent  //游戏逻辑产生事件
+  trait UserActionEvent extends UserEvent{   //游戏用户动作事件
     val tankId:Int
     val serialNum:Int
   }
@@ -78,14 +78,8 @@ object TankGameEvent {
   final case class UserMouseClick(tankId:Int,override val frame:Long,time:Long,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
   final case class UserPressKeyDown(tankId:Int,override val frame:Long,keyCodeDown:Int,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
   final case class UserPressKeyUp(tankId:Int,override val frame:Long,keyCodeUp:Int,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
-  /**
-    * 使用医疗包,
-    * */
+  /**使用医疗包*/
   final case class UserPressKeyMedical(tankId:Int,override val frame:Long, override val serialNum: Int) extends UserActionEvent with WsMsgFront with WsMsgServer
-  /**伤害计算*/
-  @deprecated final case class TankAttacked(tankId:Int,bulletId:Int, bulletTankId:Int, bulletTankName:String, damage:Int,override val frame:Long) extends GameEvent with WsMsgServer
-
-  @deprecated final case class ObstacleAttacked(obstacleId:Int, bulletId:Int, damage:Int, override val frame:Long) extends GameEvent with WsMsgServer
   /**tank吃道具*/
   final case class TankEatProp(tankId:Int,propId:Int,propType:Byte,frame:Long) extends GameEvent with WsMsgServer
   /**tank无敌时间消除*/
@@ -95,13 +89,18 @@ object TankGameEvent {
   /**生成道具*/
   final case class GenerateProp(override val frame:Long,propState: PropState,generateType:Byte = 0) extends EnvironmentEvent with WsMsgServer
 
-  @deprecated final case class GenerateBullet(override val frame:Long,bullet:BulletState) extends EnvironmentEvent with WsMsgServer
+  final case class GenerateBullet(override val frame:Long,bullet:BulletState) extends EnvironmentEvent with WsMsgServer
   /**生成河流，钢铁*/
   final case class GenerateObstacle(override val frame:Long,obstacleState: ObstacleState) extends EnvironmentEvent with WsMsgServer
 
   /**
-    * 游戏逻辑产生事件*/
+    * 游戏逻辑产生事件
+    * */
   final case class TankFillBullet(tankId:Int,override val frame:Long) extends FollowEvent
+  /**伤害计算*/
+  final case class TankAttacked(tankId:Int,bulletId:Int, bulletTankId:Int, bulletTankName:String, damage:Int,override val frame:Long) extends FollowEvent
+
+  final case class ObstacleAttacked(obstacleId:Int, bulletId:Int, damage:Int, override val frame:Long) extends FollowEvent
 
   sealed trait GameSnapshot
 
