@@ -1,6 +1,7 @@
 package com.neo.sk.tank.front.tankClient.draw
 
-import com.neo.sk.tank.front.tankClient.{GameContainerClientImpl, NetworkLatency}
+import com.neo.sk.tank.front.tankClient.NetworkLatency
+import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.LittleMap
 import com.neo.sk.tank.shared.model.Point
 import org.scalajs.dom.ext.Color

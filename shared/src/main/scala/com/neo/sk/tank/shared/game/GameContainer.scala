@@ -360,13 +360,6 @@ trait GameContainer extends KillInformation{
     es foreach handleTankFillBullet
   }
 
- /* @deprecated
-  final protected def handleTankFillBulletNow() = {
-    gameEventMap.get(systemFrame).foreach{ events =>
-      handleTankFillBullet(events.filter(_.isInstanceOf[TankFillBullet]).map(_.asInstanceOf[TankFillBullet]).reverse)
-    }
-  }*/
-
   final protected def handleTankFillBulletNow() = {
     followEventMap.get(systemFrame).foreach{ events =>
       handleTankFillBullet(events.filter(_.isInstanceOf[TankFillBullet]).map(_.asInstanceOf[TankFillBullet]).reverse)
