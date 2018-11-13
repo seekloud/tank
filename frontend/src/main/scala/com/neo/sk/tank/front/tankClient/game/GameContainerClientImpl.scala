@@ -1,4 +1,4 @@
-package com.neo.sk.tank.front.tankClient.model
+package com.neo.sk.tank.front.tankClient.game
 
 import com.neo.sk.tank.front.tankClient.view._
 import com.neo.sk.tank.front.utils.Shortcut

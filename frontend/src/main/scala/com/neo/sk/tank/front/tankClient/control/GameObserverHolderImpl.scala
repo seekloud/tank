@@ -1,7 +1,7 @@
 package com.neo.sk.tank.front.tankClient.control
 
 import com.neo.sk.tank.front.common.Routes
-import com.neo.sk.tank.front.tankClient.model.GameContainerClientImpl
+import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.utils.Shortcut
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom

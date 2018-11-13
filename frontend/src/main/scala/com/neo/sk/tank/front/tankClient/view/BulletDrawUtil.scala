@@ -1,6 +1,6 @@
 package com.neo.sk.tank.front.tankClient.view
 
-import com.neo.sk.tank.front.tankClient.model.GameContainerClientImpl
+import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.`object`.Bullet
 import com.neo.sk.tank.shared.model.Point
 import org.scalajs.dom
