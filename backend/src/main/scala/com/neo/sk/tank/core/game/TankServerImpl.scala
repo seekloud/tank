@@ -16,8 +16,6 @@ import concurrent.duration._
 case class TankServerImpl(
                            fillBulletCallBack: Int => Unit,
                            tankShotgunExpireCallBack:Int=> Unit,
-                           roomActor:ActorRef[RoomActor.Command],
-                           timer:TimerScheduler[RoomActor.Command],
                            config:TankGameConfig,
                            userId : String,
                            tankId : Int,
@@ -41,8 +39,8 @@ case class TankServerImpl(
                            protected var isMove: Boolean = false
                          ) extends Tank{
 
-  def this(roomActor:ActorRef[RoomActor.Command], timer:TimerScheduler[RoomActor.Command],config: TankGameConfig,tankState: TankState,fillBulletCallBack: Int => Unit, tankShotgunExpireCallBack:Int=> Unit){
-    this(fillBulletCallBack,tankShotgunExpireCallBack,roomActor, timer, config,tankState.userId,tankState.tankId,tankState.name,tankState.blood,tankState.tankColorType,tankState.position,tankState.curBulletNum,tankState.lives,tankState.medicalNumOpt,
+  def this(config: TankGameConfig,tankState: TankState,fillBulletCallBack: Int => Unit, tankShotgunExpireCallBack:Int=> Unit){
+    this(fillBulletCallBack,tankShotgunExpireCallBack,config,tankState.userId,tankState.tankId,tankState.name,tankState.blood,tankState.tankColorType,tankState.position,tankState.curBulletNum,tankState.lives,tankState.medicalNumOpt,
       tankState.bloodLevel,tankState.speedLevel,tankState.bulletPowerLevel,tankState.direction,tankState.gunDirection,tankState.shotgunState,tankState.invincible,tankState.killTankNum,tankState.damageTank,tankState.speed,tankState.isMove)
   }
 
