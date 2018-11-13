@@ -41,7 +41,7 @@ object TankGameEvent {
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
   final case class FirstSyncGameAllState(gState:GameContainerAllState,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
   final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false,isReliveMsg:Boolean = false) extends WsMsgSource
-  final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false) extends WsMsgSource
+//  final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false) extends WsMsgSource
   final case class PingPackage(sendTime:Long) extends WsMsgServer with WsMsgFront
 
   sealed trait GameEvent {
