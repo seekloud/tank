@@ -1,14 +1,14 @@
 package com.neo.sk.tank.front.tankClient.draw
 
 import com.neo.sk.tank.front.common.Routes
-import com.neo.sk.tank.front.tankClient.GameContainerClientImpl
-import com.neo.sk.tank.front.tankClient.game.TankClientImpl
+import com.neo.sk.tank.front.tankClient.game.{GameContainerClientImpl, TankClientImpl}
 import com.neo.sk.tank.shared.model.Constants.{InvincibleSize, SmallBullet}
 import com.neo.sk.tank.shared.model.Point
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
 import org.scalajs.dom.raw.HTMLElement
 import org.scalajs.dom.html
+
 import scala.collection.mutable
 
 /**

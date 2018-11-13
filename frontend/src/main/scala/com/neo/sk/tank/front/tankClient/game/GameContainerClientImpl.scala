@@ -1,19 +1,15 @@
-package com.neo.sk.tank.front.tankClient
+package com.neo.sk.tank.front.tankClient.game
 
-import com.neo.sk.tank.shared.model.Constants
 import com.neo.sk.tank.front.tankClient.draw._
-import com.neo.sk.tank.front.tankClient.game.GameContainerImpl
 import com.neo.sk.tank.front.utils.Shortcut
-import com.neo.sk.tank.shared.`object`.{Tank}
-import com.neo.sk.tank.front.tankClient.game.TankClientImpl
+import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.config.TankGameConfig
-import com.neo.sk.tank.shared.model.Constants.{GameAnimation, GameState, LittleMap, PropGenerateType}
+import com.neo.sk.tank.shared.model.Constants.{GameAnimation, GameState, PropGenerateType}
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.ObstacleAttacked
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
-import org.scalajs.dom.html.Image
 
 import scala.collection.mutable
 

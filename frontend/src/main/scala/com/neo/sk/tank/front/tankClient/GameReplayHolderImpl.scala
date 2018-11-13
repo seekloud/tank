@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.tank.front.common.Routes
 import com.neo.sk.tank.front.model.{PlayerInfo, ReplayInfo}
+import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.game.GameContainerState
 import com.neo.sk.tank.shared.model.Constants.GameState
