@@ -18,9 +18,6 @@ import scala.util.Random
 import collection.mutable
 import com.neo.sk.tank.shared.`object`.TankState
 import com.neo.sk.tank.Boot.roomManager
-import com.neo.sk.tank.core.RoomActor.TankRelive
-import com.neo.sk.tank.Boot.userManager
-import com.neo.sk.tank.core.UserActor.TankRelive4UserActor
 
 /**
   * Created by hongruying on 2018/8/29
@@ -53,7 +50,7 @@ case class GameContainerServerImpl(
   override def info(msg: String): Unit = log.info(msg)
 
   override protected implicit def tankState2Impl(tank:TankState):Tank = {
-    new TankServerImpl(roomActorRef,timer,config,tank)
+    new TankServerImpl(config,tank,fillBulletCallBack,tankShotgunExpireCallBack)
   }
 
   def getUserActor4WatchGameList(uId:String) = userMapObserver.get(uId)
@@ -95,12 +92,12 @@ case class GameContainerServerImpl(
     addGameEvent(event)
   }
 
-  override protected def attackTankCallBack(bullet: Bullet)(tank:Tank):Unit = {
+  /*override protected def attackTankCallBack(bullet: Bullet)(tank:Tank):Unit = {
     super.attackTankCallBack(bullet)(tank)
     val event = TankGameEvent.TankAttacked(tank.tankId,bullet.bId, bullet.tankId, bullet.tankName,bullet.damage,systemFrame)
     dispatch(event)
     addGameEvent(event)
-  }
+  }*/
 
 
 
@@ -174,14 +171,6 @@ case class GameContainerServerImpl(
     n
   }
 
-  override protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
-
-    super.attackObstacleCallBack(bullet)(o)
-    val event = TankGameEvent.ObstacleAttacked(o.oId,bullet.bId,bullet.damage,systemFrame)
-    dispatch(event)
-    addGameEvent(event)
-  }
-
   override protected def handleObstacleAttacked(e: TankGameEvent.ObstacleAttacked): Unit = {
     bulletMap.get(e.bulletId).foreach(quadTree.remove)
     bulletMap.remove(e.bulletId)
@@ -217,6 +206,50 @@ case class GameContainerServerImpl(
     addGameEvent(event)
   }
 
+  override protected def handleUserJoinRoomEventNow() = {
+
+    def genATank(userId:String,tankIdOpt:Option[Int],name:String) = {
+      def genTankPositionRandom():Point = {
+        Point(random.nextInt(boundary.x.toInt - (2 * config.tankRadius.toInt)) + config.tankRadius.toInt,
+          random.nextInt(boundary.y.toInt - (2 * config.tankRadius.toInt)) + config.tankRadius.toInt)
+      }
+      def genTankServeImpl(tankId:Int,killTankNum:Int,damageStatistics:Int,lives:Int) = {
+        val position = genTankPositionRandom()
+        var tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack,config, userId, tankId, name,
+          config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
+          config.maxBulletCapacity,lives = lives,None,
+          killTankNum = killTankNum,damageStatistics = damageStatistics)
+        var objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
+        while (tank.isIntersectsObject(objects)){
+          val position = genTankPositionRandom()
+          tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack, config, userId, tankId, name,
+            config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
+            config.maxBulletCapacity,lives = lives,None,
+            killTankNum = killTankNum,damageStatistics = damageStatistics)
+          objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
+        }
+        tank
+      }
+      tankIdOpt match {
+        case Some(id) =>
+          val tankStateOld = tankLivesMap.get(id)
+          tankStateOld match{
+            case Some(tankState) =>
+              if(tankState.lives > 0){//tank复活还有生命
+                genTankServeImpl(id,tankState.killTankNum,tankState.damageStatistics,tankState.lives)
+              }else{//tank复活没有生命,更新tankLivesMap
+                tankLivesMap.remove(id)
+                val tankId = tankIdGenerator.getAndIncrement()
+                genTankServeImpl(tankId,0,0,config.getTankLivesLimit)
+              }
+            case None =>
+              genTankServeImpl(id,0,0,config.getTankLivesLimit)
+          }
+        case None =>
+          val tankId = tankIdGenerator.getAndIncrement()
+          genTankServeImpl(tankId,0,0,config.getTankLivesLimit)
+      }
+    }
   private def genATank(userId:String,tankIdOpt:Option[Int],name:String) = {
     def genTankPositionRandom():Point = {
       Point(random.nextInt(boundary.x.toInt - (2 * config.tankRadius.toInt)) + config.tankRadius.toInt,
@@ -260,8 +293,6 @@ case class GameContainerServerImpl(
     }
   }
 
-
-  override protected def handleUserJoinRoomEventNow() = {
     justJoinUser.foreach{
       case (userId,tankIdOpt,name,ref) =>
         val tank = genATank(userId,tankIdOpt,name)
@@ -284,7 +315,7 @@ case class GameContainerServerImpl(
         tankMap.put(tank.tankId,tank)
         quadTree.insert(tank)
         //无敌时间消除
-        timer.startSingleTimer(s"TankInvincible_${tank.tankId}",RoomActor.TankInvincible(tank.tankId),config.initInvincibleDuration.millis)
+        tankInvincibleCallBack(tank.tankId)
     }
     justJoinUser = Nil
   }
@@ -371,12 +402,6 @@ case class GameContainerServerImpl(
 
     addUserAction(action)
     dispatch(action)
-  }
-
-  //定时器发的定时事件
-  def receiveGameEvent(event:TankGameEvent.GameEvent with TankGameEvent.WsMsgServer) = {
-    dispatch(event)
-    addGameEvent(event)
   }
 
   private def generateEnvironment(pType:Byte,barrierPosList:List[RectangleObjectOfGame],barrier:List[List[(Int,Int)]]) = {

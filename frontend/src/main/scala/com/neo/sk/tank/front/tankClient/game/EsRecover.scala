@@ -1,5 +1,6 @@
-package com.neo.sk.tank.shared.game
+package com.neo.sk.tank.front.tankClient.game
 
+import com.neo.sk.tank.shared.game.GameContainerAllState
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameEvent, UserActionEvent}
 
 import scala.collection.mutable
@@ -43,6 +44,7 @@ trait EsRecover { this:GameContainerImpl =>
         //同步所有数据
 
         removeKillInfoByRollback(frame)
+        reSetFollowEventMap(frame)
         (frame until curFrame).foreach{ f =>
           this.addGameEvents(f,gameEventHistoryMap.getOrElse(f,Nil),actionEventHistoryMap.getOrElse(f,Nil))
           this.rollbackUpdate()

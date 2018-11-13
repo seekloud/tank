@@ -1,11 +1,10 @@
-package com.neo.sk.tank.shared.game
+package com.neo.sk.tank.front.tankClient.game
 
 import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.TankGameConfig
-import com.neo.sk.tank.shared.model.Constants.ObstacleType
-import com.neo.sk.tank.shared.model.{Point, Rectangle, Score}
+import com.neo.sk.tank.shared.game.{GameContainer, GameContainerAllState, GameContainerState}
+import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent._
-import com.neo.sk.tank.shared.util.QuadTree
 
 import scala.collection.mutable
 
@@ -13,6 +12,7 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/8/24
   * 终端
+  * 本文件可以合并到GameContainerClientImpl
   */
 class GameContainerImpl(
                          override val config: TankGameConfig,
@@ -51,7 +51,7 @@ class GameContainerImpl(
   }
 
   override protected implicit def tankState2Impl(tank:TankState):Tank = {
-    new TankImpl(config,tank)
+    new TankClientImpl(config,tank,fillBulletCallBack,tankShotgunExpireCallBack)
   }
 
   def receiveGameEvent(e:GameEvent) = {
@@ -62,7 +62,6 @@ class GameContainerImpl(
       rollback4GameEvent(e)
     }
   }
-
 
   //接受服务器的用户事件
   def receiveUserEvent(e:UserActionEvent) = {
@@ -133,7 +132,7 @@ class GameContainerImpl(
     bulletMap.clear()
     environmentMap.clear()
     gameContainerAllState.tanks.foreach{t =>
-      val tank = new TankImpl(config,t)
+      val tank = new TankClientImpl(config,t,fillBulletCallBack,tankShotgunExpireCallBack)
       quadTree.insert(tank)
       tankMap.put(t.tankId,tank)
     }
@@ -185,7 +184,7 @@ class GameContainerImpl(
     propMap.clear()
     tankMoveAction.clear()
     gameContainerState.tanks.foreach{t =>
-      val tank = new TankImpl(config,t)
+      val tank = new TankClientImpl(config,t,fillBulletCallBack,tankShotgunExpireCallBack)
       quadTree.insert(tank)
       tankMap.put(t.tankId,tank)
     }

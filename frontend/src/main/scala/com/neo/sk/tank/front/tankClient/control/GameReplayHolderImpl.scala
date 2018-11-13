@@ -1,20 +1,14 @@
-package com.neo.sk.tank.front.tankClient
-
-import java.util.concurrent.atomic.AtomicInteger
+package com.neo.sk.tank.front.tankClient.control
 
 import com.neo.sk.tank.front.common.Routes
 import com.neo.sk.tank.front.model.{PlayerInfo, ReplayInfo}
+import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.game.GameContainerState
 import com.neo.sk.tank.shared.model.Constants.GameState
-import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
-import org.scalajs.dom.ext.{Color, KeyCode}
-import org.scalajs.dom.html.Canvas
-import org.scalajs.dom.raw.MouseEvent
-
-import scala.collection.mutable
+import org.scalajs.dom.ext.Color
 
 /**
   * User: sky
