@@ -78,7 +78,7 @@ object RoomActor {
             val subscribersMap = mutable.HashMap[String,ActorRef[UserActor.Command]]()
             val observersMap = mutable.HashMap[String,ActorRef[UserActor.Command]]()
             implicit val sendBuffer = new MiddleBufferInJvm(81920)
-            val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, log,
+            val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer,log,
               dispatch(subscribersMap,observersMap),
               dispatchTo(subscribersMap,observersMap)
             )
@@ -204,17 +204,17 @@ object RoomActor {
           Behaviors.same
 
 
-        case TankInvincible(tId) =>
-          gameContainer.receiveGameEvent(TankGameEvent.TankInvincible(tId,gameContainer.systemFrame))
-          Behaviors.same
+//        case TankInvincible(tId) =>
+//          gameContainer.receiveGameEvent(TankGameEvent.TankInvincible(tId,gameContainer.systemFrame))
+//          Behaviors.same
 
         case TankRelive(userId,tankIdOpt,name) =>
           gameContainer.handleTankRelive(userId,tankIdOpt,name)
           Behaviors.same
 
-        case ShotgunExpire(tId) =>
-          gameContainer.receiveGameEvent(TankGameEvent.TankShotgunExpire(tId,gameContainer.systemFrame))
-          Behaviors.same
+//        case ShotgunExpire(tId) =>
+//          gameContainer.receiveGameEvent(TankGameEvent.TankShotgunExpire(tId,gameContainer.systemFrame))
+//          Behaviors.same
 
 
         case _ =>
