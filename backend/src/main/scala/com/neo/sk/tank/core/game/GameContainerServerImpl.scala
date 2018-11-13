@@ -92,12 +92,12 @@ case class GameContainerServerImpl(
     addGameEvent(event)
   }
 
-  override protected def attackTankCallBack(bullet: Bullet)(tank:Tank):Unit = {
+  /*override protected def attackTankCallBack(bullet: Bullet)(tank:Tank):Unit = {
     super.attackTankCallBack(bullet)(tank)
     val event = TankGameEvent.TankAttacked(tank.tankId,bullet.bId, bullet.tankId, bullet.tankName,bullet.damage,systemFrame)
     dispatch(event)
     addGameEvent(event)
-  }
+  }*/
 
 
 
@@ -168,13 +168,13 @@ case class GameContainerServerImpl(
     n
   }
 
-  override protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
+ /* override protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
 
     super.attackObstacleCallBack(bullet)(o)
     val event = TankGameEvent.ObstacleAttacked(o.oId,bullet.bId,bullet.damage,systemFrame)
     dispatch(event)
     addGameEvent(event)
-  }
+  }*/
 
   override protected def handleObstacleAttacked(e: TankGameEvent.ObstacleAttacked): Unit = {
     bulletMap.get(e.bulletId).foreach(quadTree.remove)

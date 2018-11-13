@@ -1,4 +1,4 @@
-package com.neo.sk.tank.front.tankClient.game
+package com.neo.sk.tank.front.tankClient.model
 
 import com.neo.sk.tank.front.utils.Shortcut
 import com.neo.sk.tank.shared.`object`.{Tank, TankState}

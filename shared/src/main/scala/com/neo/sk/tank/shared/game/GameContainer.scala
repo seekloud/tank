@@ -4,6 +4,7 @@ import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.TankGameConfig
 import com.neo.sk.tank.shared.model.Constants.ObstacleType
 import com.neo.sk.tank.shared.model.{Point, Rectangle, Score}
+import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent._
 import com.neo.sk.tank.shared.util.QuadTree
 
@@ -241,7 +242,7 @@ trait GameContainer extends KillInformation{
   }
 
   final protected def handleTankAttackedNow() = {
-    gameEventMap.get(systemFrame).foreach{ events =>
+    followEventMap.get(systemFrame).foreach{ events =>
       handleTankAttacked(events.filter(_.isInstanceOf[TankAttacked]).map(_.asInstanceOf[TankAttacked]).reverse)
     }
   }
@@ -265,7 +266,7 @@ trait GameContainer extends KillInformation{
   }
 
   final protected def handleObstacleAttackedNow() = {
-    gameEventMap.get(systemFrame).foreach{ events =>
+    followEventMap.get(systemFrame).foreach{ events =>
       handleObstacleAttacked(events.filter(_.isInstanceOf[ObstacleAttacked]).map(_.asInstanceOf[ObstacleAttacked]).reverse)
     }
   }
@@ -439,12 +440,16 @@ trait GameContainer extends KillInformation{
   //游戏后端需要重写，生成伤害事件
   protected def attackTankCallBack(bullet: Bullet)(tank:Tank):Unit = {
     removeBullet(bullet)
+    val event = TankGameEvent.TankAttacked(tank.tankId,bullet.bId, bullet.tankId, bullet.tankName,bullet.damage,systemFrame)
+    addFollowEvent(event)
   }
 
 
   //子弹攻击到障碍物的回调函数，游戏后端需要重写,生成伤害事件
   protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
     removeBullet(bullet)
+    val event = TankGameEvent.ObstacleAttacked(o.oId,bullet.bId,bullet.damage,systemFrame)
+    addFollowEvent(event)
   }
 
   protected final def removeBullet(bullet: Bullet):Unit = {
