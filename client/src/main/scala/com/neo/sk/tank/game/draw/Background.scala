@@ -1,20 +1,26 @@
 package com.neo.sk.tank.game.draw
 
+import java.io.{File, FileInputStream}
+
 import com.neo.sk.tank.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.model.Constants.LittleMap
 import com.neo.sk.tank.shared.model.{Point, Score}
 import javafx.geometry.VPos
-import javafx.scene.SnapshotParameters
+import javafx.scene.{Camera, SnapshotParameters}
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
-import javafx.scene.image.{Image, WritableImage}
+import javafx.scene.image.{Image, ImageView}
+import javax.imageio._
 import javafx.scene.paint.Color
 import javafx.scene.shape.StrokeLineCap
 import javafx.scene.text.{Font, FontWeight, TextAlignment}
 
 import scala.collection.mutable
 import com.neo.sk.tank.App
+import javafx.embed.swing.SwingFXUtils
+import javafx.scene.transform.Transform
+
 
 /**
   * Created by hongruying on 2018/8/29
@@ -36,8 +42,6 @@ trait Background{ this:GameContainerClientImpl =>
   private val minimapCanvasCtx = minimapCanvas.getGraphicsContext2D
   var minimapRenderFrame = 0L
   private var canvasBoundary:Point = canvasSize
-  private val backgroundCanvas = new Canvas(canvasBoundary.x, canvasBoundary.y)
-  private val backgroundCanvasCtx = backgroundCanvas.getGraphicsContext2D
 
   def updateBackSize(canvasSize:Point)={
     cacheCanvasMap.clear()
@@ -52,10 +56,18 @@ trait Background{ this:GameContainerClientImpl =>
     minimapCanvas.setHeight(LittleMap.h * canvasUnit + 6)
   }
 
-  private def generateBackgroundCanvas():Image = {
+  private def scale(source: Image, targetWidth: Int, targetHeight: Int, preserveRatio: Boolean): Image = {
+    val iv = new ImageView()
+    iv.setImage(source)
+    iv.setPreserveRatio(preserveRatio)
+    iv.setFitWidth(targetWidth)
+    iv.setFitHeight(targetHeight)
+    iv.snapshot(null, null)
+  }
+
+  private def generateBackgroundCanvas() = {
     val cacheCanvas = new Canvas(((boundary.x + canvasBoundary.x) * canvasUnit).toInt, ((boundary.y + canvasBoundary.y) * canvasUnit).toInt)
     println(s"=====width==${cacheCanvas.getWidth}=====height====${cacheCanvas.getHeight}")
-    //    val cacheCanvas = new Canvas((boundary.x * canvasUnit).toInt, (boundary.y * canvasUnit).toInt)
     val ctxCache = cacheCanvas.getGraphicsContext2D
     clearScreen("#BEBEBE", 1, boundary.x + canvasBoundary.x, boundary.y + canvasBoundary.y, ctxCache)
     clearScreen("#E8E8E8",1, boundary.x, boundary.y, ctxCache, canvasBoundary / 2)
@@ -68,14 +80,18 @@ trait Background{ this:GameContainerClientImpl =>
     for(i <- 0  to((boundary.y + canvasBoundary.y).toInt,2)){
       drawLine(Point(0 ,i), Point(boundary.x + canvasBoundary.x, i), ctxCache)
     }
-   /* for(i <- 0  to(boundary.x.toInt,2)){
-      drawLine(Point(i,0), Point(i, boundary.y + canvasBoundary.y), ctxCache)
-    }
+    val param = new SnapshotParameters()
+//    param.setTransform(Transform.scale(boundary.x + canvasBoundary.x, boundary.y + canvasBoundary.y))
+    val img = cacheCanvas.snapshot(param, null)
+//    saveToFile(img)
+    img
+  }
 
-    for(i <- 0  to(boundary.y.toInt,2)){
-      drawLine(Point(0 ,i), Point(boundary.x + canvasBoundary.x, i), ctxCache)
-    }*/
-    cacheCanvas.snapshot(new SnapshotParameters(), null)
+  private def saveToFile(image: Image) = {
+    val file = new File("/Users/wang/IdeaProjects/tank/client/src/main/resources/img/background.png")
+    if (!file.exists()) file.createNewFile()
+    val bImage = SwingFXUtils.fromFXImage(image, null)
+    ImageIO.write(bImage, "png", file)
   }
 
   private def clearScreen(color:String, alpha:Double, width:Float = canvasBoundary.x, height:Float = canvasBoundary.y, context:GraphicsContext = ctx , start:Point = Point(0,0)):Unit = {
@@ -84,51 +100,12 @@ trait Background{ this:GameContainerClientImpl =>
     context.fillRect(start.x * canvasUnit, start.y * canvasUnit,  width * this.canvasUnit, height * this.canvasUnit)
     context.setGlobalAlpha(1)
   }
-//
+
 //  protected def drawBackground(offset:Point) = {
 //    clearScreen("#FCFCFC",1)
 //    val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background",generateBackgroundCanvas())
-//    ctx.drawImage(cacheCanvas, (-offset.x + canvasBoundary.x/2) * canvasUnit, ( -offset.y+canvasBoundary.y/2 )* canvasUnit, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit, 0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+//    ctx.drawImage(cacheCanvas, (-offset.x + canvasBoundary.x/2) * canvasUnit, (-offset.y+canvasBoundary.y/2 ) * canvasUnit, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit, 0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
 //  }
-//  protected def drawBackground(offset:Point) = {
-//    clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, ctx)
-//    val beginPoint = canvasBoundary/2 - offset
-//    if(beginPoint.x < canvasBoundary.x/2 && beginPoint.y < canvasBoundary.y/2){
-//      clearScreen("#E8E8E8", 1, canvasBoundary.x - offset.x, canvasBoundary.y - offset.y, ctx, offset)
-//    }
-//    else if(beginPoint.x < canvasBoundary.x/2 && beginPoint.y + canvasBoundary.y/2 < boundary.y && beginPoint.y > canvasBoundary.y/2){
-//      clearScreen("#E8E8E8", 1, canvasBoundary.x - offset.x, canvasBoundary.y, ctx, Point(offset.x, 0))
-//    }
-//    else if(beginPoint.x < canvasBoundary.x/2 && beginPoint.y + canvasBoundary.y/2 > boundary.y){
-//      clearScreen("#E8E8E8", 1, canvasBoundary.x - offset.x, boundary.y + offset.y, ctx, Point(offset.x, 0))
-//    }
-//    else if(beginPoint.x > canvasBoundary.x/2 && beginPoint.x +  canvasBoundary.x/2 < boundary.x && beginPoint.y < canvasBoundary.y/2){
-//      clearScreen("#E8E8E8", 1, canvasBoundary.x, canvasBoundary.y - offset.y, ctx, Point(0, offset.y))
-//    }
-//    else if(beginPoint.x > canvasBoundary.x/2 && beginPoint.x + canvasBoundary.x/2 < boundary.x && beginPoint.y + canvasBoundary.y/2 < boundary.y && beginPoint.y > canvasBoundary.y/2){
-//      clearScreen("#E8E8E8", 1, canvasBoundary.x, canvasBoundary.y, ctx)
-//    }
-//    else if(beginPoint.x > canvasBoundary.x/2 && beginPoint.x + canvasBoundary.x/2 < boundary.x && beginPoint.y + canvasBoundary.y/2 > boundary.y){
-//      clearScreen("#E8E8E8", 1, canvasBoundary.x, boundary.y + offset.y, ctx)
-//    }
-//    else if(beginPoint.x + canvasBoundary.x/2 > boundary.x && beginPoint.y < canvasBoundary.y/2){
-//      clearScreen("#E8E8E8", 1, boundary.x + offset.x, canvasBoundary.y + offset.y, ctx, Point(0, offset.y))
-//    }
-//    else if(beginPoint.x + canvasBoundary.x/2 > boundary.x && beginPoint.y > canvasBoundary.y/2 && beginPoint.y + canvasBoundary.y/2 < boundary.y){
-//      clearScreen("#E8E8E8", 1, boundary.x + offset.x, canvasBoundary.y, ctx)
-//    }
-//    else if(beginPoint.x + canvasBoundary.x/2 > boundary.x && beginPoint.y + canvasBoundary.y/2 > boundary.y){
-//      clearScreen("#E8E8E8", 1, boundary.x + offset.x, boundary.y + offset.y, ctx)
-//    }
-//    ctx.setLineWidth(1)
-//    ctx.setStroke(Color.rgb(0,0,0,0.05))
-//    for(i <- 0 to (canvasBoundary.x.toInt,2)){
-//      drawLine(Point(i,0), Point(i, canvasBoundary.y), ctx)
-//    }
-//    for(i <- 0  to (canvasBoundary.y.toInt,2)){
-//      drawLine(Point(0 ,i), Point(canvasBoundary.x, i), ctx)
-//    }
- // }
 
   protected def drawBackground(offset:Point) = {
     clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, ctx)
@@ -152,8 +129,23 @@ trait Background{ this:GameContainerClientImpl =>
     else{
       clearScreen("#E8E8E8", 1, width, height, ctx)
     }
-  }
+    ctx.setLineWidth(1)
+    ctx.setStroke(Color.rgb(0,0,0,0.05))
+    for(i <- 0  to (canvasBoundary.x.toInt,2)){
+      drawLine(Point(i,0), Point(i, boundary.y + canvasBoundary.y), ctx)
+    }
 
+    for(i <- 0  to ((canvasBoundary.y).toInt,2)){
+      drawLine(Point(0 ,i), Point(boundary.x + canvasBoundary.x, i), ctx)
+    }
+    for(i <- (48 - canvasStart.x % 48) to canvasBoundary.x by 48f){
+      drawLine(Point(i,0), Point(i, canvasBoundary.y), ctx)
+    }
+    for(i <- (48 - canvasStart.y % 48) to canvasBoundary.y by 48f){
+      drawLine(Point(0, i), Point(canvasBoundary.x, i), ctx)
+    }
+
+  }
 
   protected def drawLine(start:Point,end:Point, context:GraphicsContext = ctx):Unit = {
     context.beginPath()
