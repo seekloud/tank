@@ -1,8 +1,7 @@
-package com.neo.sk.tank.front.tankClient.game
+package com.neo.sk.tank.shared.game
 
 import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.TankGameConfig
-import com.neo.sk.tank.shared.game.{GameContainer, GameContainerAllState, GameContainerState}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent._
 
@@ -122,6 +121,12 @@ class GameContainerImpl(
   //    myTankId = tankId
   //  }
 
+  //客户端增加坦克无敌失效callBack
+  override protected def handleUserJoinRoomEvent(e: TankGameEvent.UserJoinRoom): Unit = {
+    super.handleUserJoinRoomEvent(e)
+    tankInvincibleCallBack(e.tankState.tankId)
+  }
+
   protected def handleGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
     systemFrame = gameContainerAllState.f
     quadTree.clear()
@@ -131,6 +136,11 @@ class GameContainerImpl(
     tankMoveAction.clear()
     bulletMap.clear()
     environmentMap.clear()
+
+    //remind 重置followEventMap
+//    followEventMap.clear()
+//    gameContainerAllState.followEvent.foreach{t=>followEventMap.put(t._1,t._2)}
+
     gameContainerAllState.tanks.foreach{t =>
       val tank = new TankClientImpl(config,t,fillBulletCallBack,tankShotgunExpireCallBack)
       quadTree.insert(tank)
