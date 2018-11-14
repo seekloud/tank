@@ -1,7 +1,6 @@
-package com.neo.sk.tank.front.tankClient.game
+package com.neo.sk.tank.shared.game
 
-import com.neo.sk.tank.front.utils.Shortcut
-import com.neo.sk.tank.shared.`object`.{Tank, TankState}
+import com.neo.sk.tank.shared.`object`.{Prop, Tank, TankState}
 import com.neo.sk.tank.shared.config.TankGameConfig
 import com.neo.sk.tank.shared.model
 import com.neo.sk.tank.shared.model.Constants.TankColor
@@ -15,6 +14,7 @@ import com.neo.sk.tank.shared.util.QuadTree
   */
 case class TankClientImpl(
                            fillBulletCallBack: Int => Unit,
+                           tankShotgunExpireCallBack:Int=> Unit,
                            config: TankGameConfig,
                            userId: String,
                            tankId: Int,
@@ -38,8 +38,8 @@ case class TankClientImpl(
                            protected var isMove: Boolean
                          ) extends Tank {
 
-  def this(config: TankGameConfig, tankState: TankState, fillBulletCallBack: Int => Unit) {
-    this(fillBulletCallBack, config, tankState.userId, tankState.tankId, tankState.name, tankState.blood, tankState.tankColorType, tankState.position, tankState.curBulletNum,
+  def this(config: TankGameConfig, tankState: TankState, fillBulletCallBack: Int => Unit, tankShotgunExpireCallBack:Int=> Unit) {
+    this(fillBulletCallBack, tankShotgunExpireCallBack, config, tankState.userId, tankState.tankId, tankState.name, tankState.blood, tankState.tankColorType, tankState.position, tankState.curBulletNum,
       tankState.lives, tankState.medicalNumOpt, tankState.bloodLevel, tankState.speedLevel, tankState.bulletPowerLevel, tankState.direction, tankState.gunDirection, tankState.shotgunState, tankState.invincible, tankState.killTankNum, tankState.damageTank,
       tankState.speed, tankState.isMove)
   }
@@ -49,7 +49,7 @@ case class TankClientImpl(
   override val radius: Float = config.tankRadius
 
   override def startFillBullet(): Unit = {
-    Shortcut.scheduleOnce(() => fillBulletCallBack(tankId), config.fillBulletDuration)
+    fillBulletCallBack(tankId)
   }
 
   final def getInvincibleState = invincibleState
@@ -108,6 +108,13 @@ case class TankClientImpl(
   def getCurMedicalNum = medicalNumOpt match {
     case Some(num) => num
     case None => 0
+  }
+
+  override def eatProp(p: Prop)(implicit config: TankGameConfig): Unit = {
+    super.eatProp(p)
+    if(p.propType == 5){
+      tankShotgunExpireCallBack(tankId)
+    }
   }
 
 

@@ -1,8 +1,7 @@
-package com.neo.sk.tank.front.tankClient.game
+package com.neo.sk.tank.shared.game
 
 import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.TankGameConfig
-import com.neo.sk.tank.shared.game.{GameContainer, GameContainerAllState, GameContainerState}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent._
 
@@ -12,6 +11,7 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/8/24
   * 终端
+  * 本文件可以合并到GameContainerClientImpl
   */
 class GameContainerImpl(
                          override val config: TankGameConfig,
@@ -50,7 +50,7 @@ class GameContainerImpl(
   }
 
   override protected implicit def tankState2Impl(tank:TankState):Tank = {
-    new TankClientImpl(config,tank,fillBulletCallBack)
+    new TankClientImpl(config,tank,fillBulletCallBack,tankShotgunExpireCallBack)
   }
 
   def receiveGameEvent(e:GameEvent) = {
@@ -60,14 +60,6 @@ class GameContainerImpl(
       println(s"rollback-frame=${e.frame},curFrame=${this.systemFrame},e=${e}")
       rollback4GameEvent(e)
     }
-  }
-
-  def receiveFollowEvent(event:TankGameEvent.GameEvent) = {
-    addFollowEvent(event)
-  }
-
-  def fillBulletCallBack(fillTankId:Int):Unit={
-    receiveFollowEvent(TankGameEvent.TankFillBullet(fillTankId,systemFrame))
   }
 
   //接受服务器的用户事件
@@ -129,6 +121,12 @@ class GameContainerImpl(
   //    myTankId = tankId
   //  }
 
+  //客户端增加坦克无敌失效callBack
+  override protected def handleUserJoinRoomEvent(e: TankGameEvent.UserJoinRoom): Unit = {
+    super.handleUserJoinRoomEvent(e)
+    tankInvincibleCallBack(e.tankState.tankId)
+  }
+
   protected def handleGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
     systemFrame = gameContainerAllState.f
     quadTree.clear()
@@ -138,8 +136,13 @@ class GameContainerImpl(
     tankMoveAction.clear()
     bulletMap.clear()
     environmentMap.clear()
+
+    //remind 重置followEventMap
+//    followEventMap.clear()
+//    gameContainerAllState.followEvent.foreach{t=>followEventMap.put(t._1,t._2)}
+
     gameContainerAllState.tanks.foreach{t =>
-      val tank = new TankClientImpl(config,t,fillBulletCallBack)
+      val tank = new TankClientImpl(config,t,fillBulletCallBack,tankShotgunExpireCallBack)
       quadTree.insert(tank)
       tankMap.put(t.tankId,tank)
     }
@@ -191,7 +194,7 @@ class GameContainerImpl(
     propMap.clear()
     tankMoveAction.clear()
     gameContainerState.tanks.foreach{t =>
-      val tank = new TankClientImpl(config,t,fillBulletCallBack)
+      val tank = new TankClientImpl(config,t,fillBulletCallBack,tankShotgunExpireCallBack)
       quadTree.insert(tank)
       tankMap.put(t.tankId,tank)
     }
