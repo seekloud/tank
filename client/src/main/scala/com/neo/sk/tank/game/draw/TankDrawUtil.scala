@@ -2,7 +2,7 @@ package com.neo.sk.tank.game.draw
 
 import com.neo.sk.tank.App
 import com.neo.sk.tank.game.GameContainerClientImpl
-import com.neo.sk.tank.shared.`object`.TankClientImpl
+import com.neo.sk.tank.shared.game.TankClientImpl
 import com.neo.sk.tank.shared.model.Constants.{InvincibleSize, SmallBullet}
 import com.neo.sk.tank.shared.model.Point
 import javafx.geometry.VPos
