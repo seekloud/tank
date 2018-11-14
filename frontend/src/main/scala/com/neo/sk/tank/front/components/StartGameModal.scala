@@ -36,10 +36,15 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
     case _ => "display:block;"
   }
 
+  private val combatGainsStyle = gameState.map{
+    case GameState.stop => "display:block"
+    case _ => "display:none"
+  }
+
 
   private val watchButtonDivStyle = inputDisabled.map{
     case true => "display:none;"
-    case false => "display:block;"
+    case false => "display:inline;"
   }
 
 
@@ -77,9 +82,8 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
     <div style={divStyle}>
       <div class ="input_mask" onkeydown ={e:KeyboardEvent => clickEnter(e)}>
       </div>
+      <div style = {combatGainsStyle}><div id = "combat_gains"></div></div>
       <div class ="input_div">
-        <div id = "combat_gains">
-        </div>
         <div class ="input_title">{title}</div>
         <div>
           <p class="input_inline"><span class="input_des">名字</span>{inputElem}</p>
@@ -87,7 +91,7 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
         </div>
         <div class ="input_button">
           <span>{button}</span>
-          <span  style={watchButtonDivStyle}>{watchButton}</span>
+          <span style={watchButtonDivStyle}>{watchButton}</span>
         </div>
       </div>
     </div>
