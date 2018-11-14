@@ -66,28 +66,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
   def getActionSerialNum:Int = actionSerialNumGenerator.getAndIncrement()
 
-//  override protected def drawGameRestart(): Unit = {
-//    ctx.fillStyle = Color.Black.toString()
-////    ctx.globalAlpha = 1
-//    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-////    if(countDownTimes > 0){
-////      ctx.fillStyle = Color.Black.toString()
-////      ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-//      ctx.globalAlpha = 0.4
-//      ctx.fillStyle = "rgb(250, 250, 250)"
-//      ctx.textAlign = "left"
-//      ctx.textBaseline = "top"
-//      ctx.font = s"${3.6 * canvasUnit}px Helvetica"
-//      ctx.fillText(s"重新进入房间，等待倒计时进入",150,100)
-//      ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
-////      countDownTimes = countDownTimes - 1
-////    } else{
-////      Shortcut.cancelSchedule(reStartTimer)
-////      gameContainerOpt.foreach(t => start(t.myName,None))
-////      countDownTimes = countDown
-////    }
-//  }
-
   def getStartGameModal():Elem = {
     startGameModal.render
   }
@@ -281,6 +259,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       case e:TankGameEvent.TankReliveInfo =>
 //        gameContainerOpt.foreach(t => start(t.myName,None))
 //        timer = Shortcut.schedule(gameLoop,e.config.frameDuration)
+//        println(s"${System.currentTimeMillis()} receive the relive msg")
         nextFrame = dom.window.requestAnimationFrame(gameRender())
 //        setGameState(GameState.play)
 

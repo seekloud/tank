@@ -107,6 +107,7 @@ case class GameContainerServerImpl(
     val tankState = tank.getTankState()
     val killEvent = TankGameEvent.YouAreKilled(bulletTankId, bulletTankName, tankState.lives > 1, tank.killTankNum, tank.lives, tank.damageStatistics)
     if(tank.lives > 1){
+      log.debug(s"${roomActorRef.path} timer for relive is starting...")
       timer.startSingleTimer(s"TankRelive_${tank.tankId}",RoomActor.TankRelive(tank.userId,Some(tank.tankId),tank.name),config.getTankReliveDuration.millis)
     }
     dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
@@ -339,11 +340,13 @@ case class GameContainerServerImpl(
 //        userMapObserver.update(userId,mutable.HashMap.empty)
     }
 //    dispatchTo(userId, TankRelive(tank,userId,name,roomActorRef,config.getTankGameConfigImpl()), getUserActor4WatchGameList(userId))
+    log.debug(s"${roomActorRef.path} is processing to generate tank for ${userId} ")
     userManager ! event
     tankMap.put(tank.tankId,tank)
     quadTree.insert(tank)
     //无敌时间消除
-    timer.startSingleTimer(s"TankInvincible_${tank.tankId}",RoomActor.TankInvincible(tank.tankId),config.initInvincibleDuration.millis)
+    tankInvincibleCallBack(tank.tankId)
+//    timer.startSingleTimer(s"TankInvincible_${tank.tankId}",RoomActor.TankInvincible(tank.tankId),config.initInvincibleDuration.millis)
   }
 
   def handleJoinRoom4Watch(userActor4WatchGame:ActorRef[UserActor.Command],uid:String,playerId:String) = {
