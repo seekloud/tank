@@ -79,8 +79,7 @@ object Constants {
     val play = 2
     val stop = 3
     val loadingPlay = 4
-//    val relive = 5
-    val replayLoading = 6
+    val replayLoading = 5
   }
 
 

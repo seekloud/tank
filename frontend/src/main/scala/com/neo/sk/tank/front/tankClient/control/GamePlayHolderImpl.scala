@@ -257,11 +257,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         setGameState(GameState.play)
 
       case e:TankGameEvent.TankReliveInfo =>
-//        gameContainerOpt.foreach(t => start(t.myName,None))
-//        timer = Shortcut.schedule(gameLoop,e.config.frameDuration)
-//        println(s"${System.currentTimeMillis()} receive the relive msg")
         nextFrame = dom.window.requestAnimationFrame(gameRender())
-//        setGameState(GameState.play)
 
       case e:TankGameEvent.UserActionEvent =>
         //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
