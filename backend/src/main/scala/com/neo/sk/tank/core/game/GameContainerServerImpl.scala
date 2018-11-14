@@ -25,7 +25,6 @@ import com.neo.sk.tank.Boot.roomManager
 case class GameContainerServerImpl(
                                     config: TankGameConfig,
                                     roomActorRef:ActorRef[RoomActor.Command],
-                                    timer:TimerScheduler[RoomActor.Command],
                                     log:Logger,
                                     dispatch:TankGameEvent.WsMsgServer => Unit,
                                     dispatchTo:(String,TankGameEvent.WsMsgServer,Option[mutable.HashMap[String,ActorRef[UserActor.Command]]]) => Unit
@@ -50,7 +49,7 @@ case class GameContainerServerImpl(
   override def info(msg: String): Unit = log.info(msg)
 
   override protected implicit def tankState2Impl(tank:TankState):Tank = {
-    new TankServerImpl(roomActorRef,timer,config,tank)
+    new TankServerImpl(config,tank,fillBulletCallBack,tankShotgunExpireCallBack)
   }
 
   def getUserActor4WatchGameList(uId:String) = userMapObserver.get(uId)
@@ -168,14 +167,6 @@ case class GameContainerServerImpl(
     n
   }
 
- /* override protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
-
-    super.attackObstacleCallBack(bullet)(o)
-    val event = TankGameEvent.ObstacleAttacked(o.oId,bullet.bId,bullet.damage,systemFrame)
-    dispatch(event)
-    addGameEvent(event)
-  }*/
-
   override protected def handleObstacleAttacked(e: TankGameEvent.ObstacleAttacked): Unit = {
     bulletMap.get(e.bulletId).foreach(quadTree.remove)
     bulletMap.remove(e.bulletId)
@@ -220,14 +211,14 @@ case class GameContainerServerImpl(
       }
       def genTankServeImpl(tankId:Int,killTankNum:Int,damageStatistics:Int,lives:Int) = {
         val position = genTankPositionRandom()
-        var tank = TankServerImpl(roomActorRef, timer, config, userId, tankId, name,
+        var tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack,config, userId, tankId, name,
           config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
           config.maxBulletCapacity,lives = lives,None,
           killTankNum = killTankNum,damageStatistics = damageStatistics)
         var objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
         while (tank.isIntersectsObject(objects)){
           val position = genTankPositionRandom()
-          tank = TankServerImpl(roomActorRef, timer, config, userId, tankId, name,
+          tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack, config, userId, tankId, name,
             config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
             config.maxBulletCapacity,lives = lives,None,
             killTankNum = killTankNum,damageStatistics = damageStatistics)
@@ -278,7 +269,7 @@ case class GameContainerServerImpl(
         tankMap.put(tank.tankId,tank)
         quadTree.insert(tank)
         //无敌时间消除
-        timer.startSingleTimer(s"TankInvincible_${tank.tankId}",RoomActor.TankInvincible(tank.tankId),config.initInvincibleDuration.millis)
+        tankInvincibleCallBack(tank.tankId)
     }
     justJoinUser = Nil
   }
@@ -342,17 +333,6 @@ case class GameContainerServerImpl(
 
     addUserAction(action)
     dispatch(action)
-  }
-
-  //定时器发的定时事件
-  def receiveGameEvent(event:TankGameEvent.GameEvent with TankGameEvent.WsMsgServer) = {
-    dispatch(event)
-    addGameEvent(event)
-  }
-
-  def receiveFollowEvent(event:TankGameEvent.GameEvent) = {
-//    dispatch(event)
-    addFollowEvent(event)
   }
 
   private def generateEnvironment(pType:Byte,barrierPosList:List[RectangleObjectOfGame],barrier:List[List[(Int,Int)]]) = {
