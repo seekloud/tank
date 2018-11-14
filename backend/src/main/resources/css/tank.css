@@ -108,14 +108,16 @@
     text-align: center;
     position: fixed;
     top: 10%;
+    left: 0;
+    right:0;
     width: 50%;
-    margin-left: 23%;
+    margin: 0 auto;
     padding-top: 15px;
     padding-bottom: 15px;
 
     z-index: 100;
     background-image: url(/tank/static/img/dead.png);
-    background-size: 60% 100%;
+    background-size: 67% 100%;
     background-repeat: no-repeat;
     background-position: 60% 0%;
 }
