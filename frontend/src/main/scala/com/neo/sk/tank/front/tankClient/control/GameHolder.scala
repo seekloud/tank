@@ -52,13 +52,9 @@ abstract class GameHolder(name:String) extends NetworkInfo{
 
 
   protected var timer:Int = 0
-//  protected var reStartTimer:Int = 0
   /**
     * 倒计时，config
     * */
-  protected val reStartInterval = 1000
-  protected val countDown = 3
-  protected var countDownTimes = countDown
   protected var nextFrame = 0
   protected var logicFrameTime = System.currentTimeMillis()
 
@@ -66,7 +62,6 @@ abstract class GameHolder(name:String) extends NetworkInfo{
   def closeHolder={
     dom.window.cancelAnimationFrame(nextFrame)
     Shortcut.cancelSchedule(timer)
-//    Shortcut.cancelSchedule(reStartTimer)
     webSocketClient.closeWs
   }
 
@@ -121,8 +116,6 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       case GameState.stop =>
         dom.window.cancelAnimationFrame(nextFrame)
         Shortcut.cancelSchedule(timer)
-//        Shortcut.cancelSchedule(reStartTimer)
-        drawGameStop()
         drawCombatGains()
         dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
 
