@@ -131,13 +131,6 @@ trait Background{ this:GameContainerClientImpl =>
     }
     ctx.setLineWidth(1)
     ctx.setStroke(Color.rgb(0,0,0,0.05))
-    for(i <- 0  to (canvasBoundary.x.toInt,2)){
-      drawLine(Point(i,0), Point(i, boundary.y + canvasBoundary.y), ctx)
-    }
-
-    for(i <- 0  to ((canvasBoundary.y).toInt,2)){
-      drawLine(Point(0 ,i), Point(boundary.x + canvasBoundary.x, i), ctx)
-    }
     for(i <- (48 - canvasStart.x % 48) to canvasBoundary.x by 48f){
       drawLine(Point(i,0), Point(i, canvasBoundary.y), ctx)
     }
