@@ -120,6 +120,7 @@ case class GameContainerClientImpl(
       ctx.setLineJoin(StrokeLineJoin.ROUND)
       tankMap.get(myTankId) match {
         case Some(tank) =>
+//          println(s"---------------------------------------------------------${tank}")
           val offset = canvasBoundary / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime)
 //          val t1=System.currentTimeMillis()
           drawBackground(offset)
