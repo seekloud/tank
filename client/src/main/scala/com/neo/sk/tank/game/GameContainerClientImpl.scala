@@ -1,7 +1,7 @@
 package com.neo.sk.tank.game
 
 import com.neo.sk.tank.game.draw._
-import com.neo.sk.tank.shared.`object`.{Tank, TankClientImpl}
+import com.neo.sk.tank.shared.`object`.{Tank}
 import com.neo.sk.tank.shared.config.TankGameConfig
 import com.neo.sk.tank.shared.model.Constants.{GameAnimation, PropGenerateType}
 import com.neo.sk.tank.shared.model.Point
@@ -17,6 +17,7 @@ import java.util.Timer
 import java.util.TimerTask
 
 import com.neo.sk.tank.App.scheduler
+import com.neo.sk.tank.shared.game.{GameContainerImpl, TankClientImpl}
 
 import concurrent.duration._
 import scala.collection.mutable

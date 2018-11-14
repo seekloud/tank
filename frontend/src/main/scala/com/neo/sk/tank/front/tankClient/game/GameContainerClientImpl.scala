@@ -4,6 +4,7 @@ import com.neo.sk.tank.front.tankClient.view._
 import com.neo.sk.tank.front.utils.Shortcut
 import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.config.TankGameConfig
+import com.neo.sk.tank.shared.game.{GameContainerImpl, TankClientImpl}
 import com.neo.sk.tank.shared.model.Constants.{GameAnimation, GameState, PropGenerateType}
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -65,11 +66,6 @@ case class GameContainerClientImpl(
     updateFpsSize(canvasBoundary)
     updateObstacleSize(canvasBoundary)
     updateTankSize(canvasBoundary)
-  }
-
-  override protected def handleUserJoinRoomEvent(e: TankGameEvent.UserJoinRoom): Unit = {
-    super.handleUserJoinRoomEvent(e)
-    tankInvincibleCallBack(e.tankState.tankId)
   }
 
 
