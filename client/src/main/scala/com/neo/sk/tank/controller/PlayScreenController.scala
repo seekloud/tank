@@ -152,7 +152,7 @@ class PlayScreenController(
 
         case GameState.stop =>
           closeHolder
-          playGameScreen.drawGameStop(killerName)
+//          playGameScreen.drawGameStop(killerName)
           //todo 死亡结算
           playGameScreen.drawCombatGains(killNum, damageNum, killerList)
           killerList = List.empty[String]
@@ -168,17 +168,6 @@ class PlayScreenController(
                 new HallScreenController(context, gameHallScreen, gameServerInfo, newPlayerInfo)
               }
           }
-
-//        case GameState.relive =>
-//
-//          /**
-//            * 在生命值之内死亡重玩，倒计时进入
-//            **/
-//          //        dom.window.cancelAnimationFrame(nextFrame)
-//          //        Shortcut.cancelSchedule(timer)
-//          animationTimer.stop()
-//          playGameActor ! PlayGameActor.StopGameLoop
-//          timeline.play()
 
         case _ => log.info(s"state=${gameState} failed")
       }
@@ -316,17 +305,13 @@ class PlayScreenController(
           damageNum = e.damageStatistics
           killerList = killerList :+ e.name
           killerName = e.name
-          if(!e.hasLife){
-//            println(s"------------------------------------================")
-            playGameActor ! PlayGameActor.StopGameLoop
-            setGameState(GameState.stop)
-          }
-//          setGameState(GameState.play)
-          animationTimer.stop()
+//          animationTimer.stop()
           playGameScreen.drawGameStop(killerName)
+          if(!e.hasLife){
+            setGameState(GameState.stop)
+          }else animationTimer.stop()
 
         case e:TankGameEvent.TankReliveInfo =>
-//          setGameState(GameState.play)
           animationTimer.start()
 
         case e: TankGameEvent.Ranks =>
