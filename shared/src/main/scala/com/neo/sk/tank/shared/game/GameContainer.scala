@@ -567,8 +567,8 @@ trait GameContainer extends KillInformation{
   protected def reSetFollowEventMap(frame:Long)={
     followEventMap.foreach{l=>
       val eventList=l._2.filter(r=>
-        r.asInstanceOf[TankGameEvent.TankInvincible].frame-config.initInvincibleDuration<frame||r.asInstanceOf[TankGameEvent.TankFillBullet].frame-config.fillBulletDuration<frame||
-          r.asInstanceOf[TankGameEvent.TankShotgunExpire].frame-config.shotgunDuration<frame)
+        (r.isInstanceOf[TankGameEvent.TankInvincible]&&(r.frame-config.initInvincibleDuration<frame))||(r.isInstanceOf[TankGameEvent.TankFillBullet]&&(r.frame-config.fillBulletDuration<frame))||
+          (r.isInstanceOf[TankGameEvent.TankShotgunExpire]&&(r.frame-config.shotgunDuration<frame)))
       followEventMap.put(l._1,eventList)
     }
   }
