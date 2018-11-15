@@ -5,13 +5,6 @@ package com.neo.sk.tank.common
   */
 object Constants {
 
-//  object GameState{
-//    val firstCome = 1
-//    val play = 2
-//    val stop = 3
-//    val loadingPlay = 4
-//  }
-
   object SceneBound{
     val weight = 500
     val height = 500

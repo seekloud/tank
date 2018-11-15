@@ -52,7 +52,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
 
 
   protected var timer:Int = 0
-  protected var reStartTimer:Int = 0
+//  protected var reStartTimer:Int = 0
   /**
     * 倒计时，config
     * */
@@ -120,12 +120,12 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       case GameState.stop =>
         dom.window.cancelAnimationFrame(nextFrame)
         Shortcut.cancelSchedule(timer)
-        Shortcut.cancelSchedule(reStartTimer)
+//        Shortcut.cancelSchedule(reStartTimer)
         drawGameStop()
         Shortcut.scheduleOnce(() => drawCombatGains(), 3000)
 //        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
-        drawCombatGains()
-        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+//        drawCombatGains()
+//        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
 
       case _ => println(s"state=${gameState} failed")
     }
