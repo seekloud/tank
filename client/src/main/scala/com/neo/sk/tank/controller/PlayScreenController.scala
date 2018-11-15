@@ -274,6 +274,7 @@ class PlayScreenController(
   /**
     * 此处处理消息*/
   def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
+    println(data.getClass)
     App.pushStack2AppThread{
 //      log.debug(s"${data.getClass}")
       data match {
@@ -361,6 +362,8 @@ class PlayScreenController(
           playGameScreen.drawReplayMsg("存在异地登录。。")
           closeHolder
 
+        case _:TankGameEvent.DecodeError=>
+          log.info("hahahha")
         case _ =>
           log.info(s"unknow msg={sss}")
       }
