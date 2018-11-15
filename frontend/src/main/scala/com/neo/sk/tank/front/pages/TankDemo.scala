@@ -1,13 +1,14 @@
 package com.neo.sk.tank.front.pages
 
 import com.neo.sk.tank.front.common.Page
-import com.neo.sk.tank.front.tankClient.GamePlayHolderImpl
+import com.neo.sk.tank.front.tankClient.control.GamePlayHolderImpl
 import com.neo.sk.tank.front.utils.Shortcut
 import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
 import org.scalajs.dom.html.Canvas
 import mhtml._
+
 import scala.xml.Elem
 
 /**

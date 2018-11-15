@@ -1,16 +1,17 @@
-package com.neo.sk.tank.front.tankClient
+package com.neo.sk.tank.front.tankClient.control
+
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.tank.front.common.Routes
 import com.neo.sk.tank.front.components.StartGameModal
 import com.neo.sk.tank.front.model.PlayerInfo
+import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
-import org.scalajs.dom.html.Canvas
 import org.scalajs.dom.raw.MouseEvent
 
 import scala.collection.mutable
@@ -65,28 +66,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
   def getActionSerialNum:Int = actionSerialNumGenerator.getAndIncrement()
 
-  override protected def drawGameRestart(): Unit = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.globalAlpha = 1
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    if(countDownTimes > 0){
-      ctx.fillStyle = Color.Black.toString()
-      ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-      ctx.globalAlpha = 0.4
-      ctx.fillStyle = "rgb(250, 250, 250)"
-      ctx.textAlign = "left"
-      ctx.textBaseline = "top"
-      ctx.font = s"${3.6 * canvasUnit}px Helvetica"
-      ctx.fillText(s"重新进入房间，倒计时：${countDownTimes}",150,100)
-      ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
-      countDownTimes = countDownTimes - 1
-    } else{
-      Shortcut.cancelSchedule(reStartTimer)
-      gameContainerOpt.foreach(t => start(t.myName,None))
-      countDownTimes = countDown
-    }
-  }
-
   def getStartGameModal():Elem = {
     startGameModal.render
   }
@@ -104,9 +83,9 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     }else if(webSocketClient.getWsState){
       gameContainerOpt match {
         case Some(gameContainer) =>
-          webSocketClient.sendMsg(TankGameEvent.RestartGame(Some(gameContainer.myTankId),name,gameState))
+          webSocketClient.sendMsg(TankGameEvent.RestartGame(Some(gameContainer.myTankId),name))
         case None =>
-          webSocketClient.sendMsg(TankGameEvent.RestartGame(None,name,gameState))
+          webSocketClient.sendMsg(TankGameEvent.RestartGame(None,name))
       }
       setGameState(GameState.loadingPlay)
       gameLoop()
@@ -253,11 +232,11 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         killerList = killerList :+ e.name
         damageNum = e.damageStatistics
         killerName = e.name
-        if(e.hasLife){
-          reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
-          setGameState(GameState.relive)
-        } else setGameState(GameState.stop)
-      //        setGameState(Constants.GameState.stop)
+        dom.window.cancelAnimationFrame(nextFrame)
+        drawGameStop()
+        if(! e.hasLife){
+          setGameState(GameState.stop)
+        }
 
       case e:TankGameEvent.Ranks =>
         /**
@@ -277,6 +256,8 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         nextFrame = dom.window.requestAnimationFrame(gameRender())
         setGameState(GameState.play)
 
+      case e:TankGameEvent.TankReliveInfo =>
+        nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case e:TankGameEvent.UserActionEvent =>
         //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)

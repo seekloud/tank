@@ -54,7 +54,8 @@ final case class TankParameters(
                                  tankGunHeight:Float,
                                  maxBulletCapacity:Int,
                                  fillBulletDuration:Int,
-                                 initInvincibleDuration:Int
+                                 initInvincibleDuration:Int,
+                                 tankReliveDuration:Int
                                ){
   def getTankBloodByLevel(l:Byte):Int = tankBloodLevel(l-1)
 }
@@ -162,6 +163,7 @@ trait TankGameConfig{
   def maxBulletCapacity:Int
   def fillBulletDuration:Int
   def initInvincibleDuration:Int
+  def getTankReliveDuration:Int
   def getTankSpeedByType(t:Byte):Point
   def getTankAccByLevel(l: Byte): Int
   def getTankDecByLevel(l: Byte): Int
@@ -238,6 +240,7 @@ case class TankGameConfigImpl(
   def maxBulletCapacity = tankParameters.maxBulletCapacity
   def fillBulletDuration = tankParameters.fillBulletDuration
   def initInvincibleDuration = tankParameters.initInvincibleDuration
+  def getTankReliveDuration = tankParameters.tankReliveDuration
   def getTankSpeedByType(t:Byte) = tankParameters.tankSpeed.getTankSpeedByType(t)
 
   def getTankSpeedMaxLevel():Byte = tankParameters.tankSpeed.speeds.size.toByte

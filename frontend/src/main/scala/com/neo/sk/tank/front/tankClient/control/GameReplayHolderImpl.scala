@@ -1,20 +1,14 @@
-package com.neo.sk.tank.front.tankClient
-
-import java.util.concurrent.atomic.AtomicInteger
+package com.neo.sk.tank.front.tankClient.control
 
 import com.neo.sk.tank.front.common.Routes
 import com.neo.sk.tank.front.model.{PlayerInfo, ReplayInfo}
+import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.game.GameContainerState
 import com.neo.sk.tank.shared.model.Constants.GameState
-import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
-import org.scalajs.dom.ext.{Color, KeyCode}
-import org.scalajs.dom.html.Canvas
-import org.scalajs.dom.raw.MouseEvent
-
-import scala.collection.mutable
+import org.scalajs.dom.ext.Color
 
 /**
   * User: sky
@@ -24,27 +18,6 @@ import scala.collection.mutable
 class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) extends GameHolder(name) {
   webSocketClient.setWsReplay(true)
 
-  override protected def drawGameRestart(): Unit = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.globalAlpha = 1
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    if(countDownTimes > 0){
-      ctx.fillStyle = Color.Black.toString()
-      ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-      ctx.globalAlpha = 0.4
-      ctx.fillStyle = "rgb(250, 250, 250)"
-      ctx.textAlign = "left"
-      ctx.textBaseline = "top"
-      ctx.font = s"${3.6 * canvasUnit}px Helvetica"
-      ctx.fillText(s"重新进入房间，倒计时：${countDownTimes}",150,100)
-      ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
-      countDownTimes = countDownTimes - 1
-    } else{
-      Shortcut.cancelSchedule(reStartTimer)
-      countDownTimes = countDown
-    }
-//    startReplay()
-  }
 
   override protected def drawGameStop():Unit = {
     ctx.fillStyle = Color.Black.toString()
@@ -88,14 +61,6 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
         logicFrameTime = System.currentTimeMillis()
         drawGameStop()
 
-      case GameState.relive =>
-        /**
-          * 在生命值之内死亡重玩，倒计时进入
-          * */
-        gameContainerOpt.foreach(_.update())
-        logicFrameTime = System.currentTimeMillis()
-//        drawGameRestart()
-
       case GameState.replayLoading =>
         drawGameLoading()
 
@@ -110,10 +75,6 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
     killerList = killerList :+ name
     damageNum = damage
     killerName = name
-    if(hasLife) {
-      drawGameRestart()
-      reStartTimer = Shortcut.schedule(drawGameRestart,reStartInterval)
-    }
   }
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
