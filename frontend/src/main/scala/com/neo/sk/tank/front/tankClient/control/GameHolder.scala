@@ -1,23 +1,16 @@
-package com.neo.sk.tank.front.tankClient
+package com.neo.sk.tank.front.tankClient.control
 
-import java.util.concurrent.atomic.AtomicInteger
-
-import com.neo.sk.tank.front.components.StartGameModal
-import com.neo.sk.tank.front.model.ReplayInfo
+import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
+import com.neo.sk.tank.front.tankClient.{NetworkInfo, WebSocketClient}
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.model.Constants.GameState
-import com.neo.sk.tank.shared.model.Point
+import com.neo.sk.tank.shared.model.{Constants, Point}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import mhtml.Var
 import org.scalajs.dom
-import org.scalajs.dom.ext.{Color, KeyCode}
-import org.scalajs.dom.html.{Canvas, Div, Paragraph}
+import org.scalajs.dom.ext.Color
+import org.scalajs.dom.html.{Canvas, Div}
 import org.scalajs.dom.raw.{Event, HTMLElement}
-
-import scala.collection.mutable
-import scala.xml.Elem
-import com.neo.sk.tank.shared.model.Constants
-import scalacss.internal.Attrs._
 
 /**
   * User: sky
@@ -73,7 +66,6 @@ abstract class GameHolder(name:String) extends NetworkInfo{
   def closeHolder={
     dom.window.cancelAnimationFrame(nextFrame)
     Shortcut.cancelSchedule(timer)
-    Shortcut.cancelSchedule(reStartTimer)
     webSocketClient.closeWs
   }
 
@@ -130,16 +122,10 @@ abstract class GameHolder(name:String) extends NetworkInfo{
         Shortcut.cancelSchedule(timer)
         Shortcut.cancelSchedule(reStartTimer)
         drawGameStop()
+        Shortcut.scheduleOnce(() => drawCombatGains(), 3000)
+//        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
         drawCombatGains()
         dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
-
-      case GameState.relive =>
-        /**
-          * 在生命值之内死亡重玩，倒计时进入
-          * */
-        dom.window.cancelAnimationFrame(nextFrame)
-        Shortcut.cancelSchedule(timer)
-        drawGameRestart()
 
       case _ => println(s"state=${gameState} failed")
     }
@@ -157,7 +143,6 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     ctx.textBaseline = "top"
     ctx.font = "36px Helvetica"
     ctx.fillText("请稍等，正在连接服务器", 150, 180)
-    //    println()
   }
 
   protected def drawGameStop():Unit = {
@@ -167,7 +152,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
     ctx.font = s"${3.6 * canvasUnit}px Helvetica"
-    ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
+    ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀,等待倒计时进入游戏", 150, 180)
     println()
   }
 
@@ -183,8 +168,10 @@ abstract class GameHolder(name:String) extends NetworkInfo{
   }
 
   protected def drawCombatGains(): Unit = {
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     val combatGians = dom.document.getElementById("combat_gains").asInstanceOf[Div]
-    val temp = killerList.map(r => s"<span>${r}</span>")
+    val temp = killerList.map(r => s"<span>${r.take(3)}</span>")
     combatGians.innerHTML = s"<p>击杀数:<span>${killNum}</span></p>" +
       s"<p>伤害量:<span>${damageNum}</span></p>" +
       s"<p>击杀者ID:" + temp.mkString("、")+ "</p>"
@@ -193,7 +180,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
 
 
 
-  protected def drawGameRestart()
+//  protected def drawGameRestart()
 
   protected def wsConnectSuccess(e:Event) = {
     println(s"连接服务器成功")

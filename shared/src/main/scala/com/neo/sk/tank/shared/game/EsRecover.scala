@@ -43,6 +43,7 @@ trait EsRecover { this:GameContainerImpl =>
         //同步所有数据
 
         removeKillInfoByRollback(frame)
+        reSetFollowEventMap(frame)
         (frame until curFrame).foreach{ f =>
           this.addGameEvents(f,gameEventHistoryMap.getOrElse(f,Nil),actionEventHistoryMap.getOrElse(f,Nil))
           this.rollbackUpdate()

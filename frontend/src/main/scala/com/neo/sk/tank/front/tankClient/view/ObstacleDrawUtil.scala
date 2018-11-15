@@ -1,7 +1,7 @@
-package com.neo.sk.tank.front.tankClient.draw
+package com.neo.sk.tank.front.tankClient.view
 
 import com.neo.sk.tank.front.common.Routes
-import com.neo.sk.tank.front.tankClient.GameContainerClientImpl
+import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.`object`.{AirDropBox, Obstacle}
 import com.neo.sk.tank.shared.model.Constants.ObstacleType
 import com.neo.sk.tank.shared.model.Point

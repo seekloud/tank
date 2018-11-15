@@ -1,14 +1,15 @@
-package com.neo.sk.tank.front.tankClient.draw
+package com.neo.sk.tank.front.tankClient.view
 
 import com.neo.sk.tank.front.common.Routes
-import com.neo.sk.tank.front.tankClient.GameContainerClientImpl
-import com.neo.sk.tank.shared.`object`.TankImpl
+import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
+import com.neo.sk.tank.shared.game.TankClientImpl
 import com.neo.sk.tank.shared.model.Constants.{InvincibleSize, SmallBullet}
 import com.neo.sk.tank.shared.model.Point
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
 import org.scalajs.dom.raw.HTMLElement
 import org.scalajs.dom.html
+
 import scala.collection.mutable
 
 /**
@@ -39,7 +40,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
   protected def drawTank(offset:Point, offsetTime:Long, view:Point) = {
     tankMap.values.foreach { t =>
-      val tank = t.asInstanceOf[TankImpl]
+      val tank = t.asInstanceOf[TankClientImpl]
       val p = tank.getPosition4Animation(boundary, quadTree, offsetTime) + offset
       if (p.in(view, Point(t.getRadius * 4, t.getRadius * 4))) {
         if (tankAttackedAnimationMap.contains(tank.tankId)) {
@@ -99,7 +100,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     }
   }
 
-  def drawBloodSlider(tankPosition:Point, tank:TankImpl) = {
+  def drawBloodSlider(tankPosition:Point, tank:TankClientImpl) = {
     val num = tank.getMaxBlood / 20
     val sliderLength = 2f * tank.getRadius
     val greyLength = 0.3f * sliderLength
@@ -137,7 +138,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     }
   }
 
-  def drawTankBullet(tankPosition:Point, tank:TankImpl) = {
+  def drawTankBullet(tankPosition:Point, tank:TankClientImpl) = {
     var left = tank.bulletMaxCapacity * SmallBullet.width / 2 * -1
 
     (1 to tank.getCurBulletNum).foreach{ indedx =>
@@ -169,7 +170,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
 
 
-  private def generateMyTankInfoCanvas(tank:TankImpl):html.Canvas = {
+  private def generateMyTankInfoCanvas(tank:TankClientImpl):html.Canvas = {
     myTankInfoCacheMap.clear()
     val canvasCache = dom.document.createElement("canvas").asInstanceOf[html.Canvas]
     val ctxCache = canvasCache.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
@@ -184,7 +185,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
   }
 
-  protected def drawMyTankInfo(tank:TankImpl) = {
+  protected def drawMyTankInfo(tank:TankClientImpl) = {
     val cache = myTankInfoCacheMap.getOrElseUpdate((tank.getBloodLevel,tank.getSpeedLevel,tank.getBulletLevel),generateMyTankInfoCanvas(tank))
     ctx.drawImage(cache,0,(canvasBoundary.y - 20) * canvasUnit)
   }
@@ -238,7 +239,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   }
 
 
-  def drawCurMedicalNum(tank:TankImpl) = {
+  def drawCurMedicalNum(tank:TankClientImpl) = {
     ctx.beginPath()
     ctx.fillStyle = Color.Black.toString()
     ctx.textAlign = "left"

@@ -17,7 +17,8 @@ import io.circe.{Decoder, Encoder}
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.Boot.{executor, scheduler, timeout}
 import com.neo.sk.tank.common.Constants
-import com.neo.sk.tank.core.UserActor.ChangeUserInfo
+import com.neo.sk.tank.core.RoomActor.TankRelive
+import com.neo.sk.tank.core.UserActor.{ChangeUserInfo, TankRelive4UserActor}
 /**
   * Created by hongruying on 2018/7/9
   */
@@ -124,6 +125,12 @@ object UserManager {
           getUserActor(ctx,msg.watchId,
             TankGameUserInfo(msg.watchId,msg.watchId.toString,msg.watchId.toString,false)
           ) ! msg
+          Behaviors.same
+
+        case msg:TankRelive4UserActor =>
+          //todo
+          getUserActor(ctx,msg.userId,
+            TankGameUserInfo(msg.userId,msg.name,msg.name,msg.userId.take(4) == "user")) ! TankRelive4UserActor(msg.tank,msg.userId,msg.name,msg.roomActor,msg.config)
           Behaviors.same
 
         case ChildDead(child, childRef) =>

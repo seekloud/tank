@@ -68,6 +68,25 @@ package object model {
                           gameId: Long,
                           playerId: String
                         )
+  //刷新tokend
+  case class gaRefreshTokenReq(
+                                playerId: String
+                              )
+  case class TokenInfo(
+                      token: String,
+                      expireTime: Long
+                      )
+  case class TokenAndAcessCode(
+                                token: String,
+                                expireTime: Long,
+                                accessCode: String
+                              )
+
+  case class gaRefreshTokenRsp(
+                                data: TokenInfo,
+                                errCode: Int = 0,
+                                msg: String = "ok"
+                              )extends CommonRsp
 
   case class RoomList(roomList:List[Long])
   case class RoomListRsp(data:RoomList,
