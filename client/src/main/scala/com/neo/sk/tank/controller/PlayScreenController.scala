@@ -65,10 +65,10 @@ class PlayScreenController(
   private var recvYourInfo: Boolean = false
   private var recvSyncGameAllState: Option[TankGameEvent.SyncGameAllState] = None
 
-  private val gameMusic = new AudioClip(App.getClass.getResource("/music/tank.mp3").toString)
+  private val gameMusic = new AudioClip(getClass.getResource("/music/tank.mp3").toString)
   gameMusic.setCycleCount(AudioClip.INDEFINITE)
-  private val bulletMusic = new AudioClip(App.getClass.getResource("/music/tank.mp3").toString)
-  private val deadMusic = new AudioClip(App.getClass.getResource("/music/tank.mp3").toString)
+  private val bulletMusic = new AudioClip(getClass.getResource("/music/tank.mp3").toString)
+  private val deadMusic = new AudioClip(getClass.getResource("/music/tank.mp3").toString)
 
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
   private var gameState = GameState.loadingPlay
