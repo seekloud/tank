@@ -9,7 +9,7 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
 import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
-import org.scalajs.dom.html.{Canvas, Div}
+import org.scalajs.dom.html.{Audio, Canvas, Div}
 import org.scalajs.dom.raw.{Event, HTMLElement}
 
 /**
@@ -30,6 +30,9 @@ abstract class GameHolder(name:String) extends NetworkInfo{
   protected var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
   canvas.width = canvasWidth.toInt
   canvas.height = canvasHeight.toInt
+
+  protected val audioForBgm = dom.document.getElementById("GameAudioForBgm").asInstanceOf[Audio]
+  protected val audioForDead = dom.document.getElementById("GameAudioForDead").asInstanceOf[Audio]
 
 
   println(s"test111111111111=${canvasUnit},=${canvasWidth}")

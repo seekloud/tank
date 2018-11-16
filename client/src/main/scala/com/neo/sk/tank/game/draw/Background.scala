@@ -81,7 +81,7 @@ trait Background{ this:GameContainerClientImpl =>
       drawLine(Point(0 ,i), Point(boundary.x + canvasBoundary.x, i), ctxCache)
     }
     val param = new SnapshotParameters()
-//    param.setTransform(Transform.scale(boundary.x + canvasBoundary.x, boundary.y + canvasBoundary.y))
+    param.setTransform(Transform.scale(boundary.x + canvasBoundary.x, boundary.y + canvasBoundary.y))
     val img = cacheCanvas.snapshot(param, null)
 //    saveToFile(img)
     img
@@ -104,7 +104,7 @@ trait Background{ this:GameContainerClientImpl =>
 //  protected def drawBackground(offset:Point) = {
 //    clearScreen("#FCFCFC",1)
 //    val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background",generateBackgroundCanvas())
-//    ctx.drawImage(cacheCanvas, (-offset.x + canvasBoundary.x/2) * canvasUnit, (-offset.y+canvasBoundary.y/2 ) * canvasUnit, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit, 0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+//    ctx.drawImage(cacheCanvas, (-offset.x + canvasBoundary.x/2), (-offset.y+canvasBoundary.y/2 ), canvasBoundary.x, canvasBoundary.y, 0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
 //  }
 
   protected def drawBackground(offset:Point) = {
@@ -129,12 +129,13 @@ trait Background{ this:GameContainerClientImpl =>
     else{
       clearScreen("#E8E8E8", 1, width, height, ctx)
     }
-    ctx.setLineWidth(1)
+    ctx.setLineWidth(3)
     ctx.setStroke(Color.rgb(0,0,0,0.05))
-    for(i <- (48 - canvasStart.x % 48) to canvasBoundary.x by 48f){
+
+    for(i <- (64 - canvasStart.x % 64) to canvasBoundary.x by 64f){
       drawLine(Point(i,0), Point(i, canvasBoundary.y), ctx)
     }
-    for(i <- (48 - canvasStart.y % 48) to canvasBoundary.y by 48f){
+    for(i <- (64 - canvasStart.y % 64) to canvasBoundary.y by 64f){
       drawLine(Point(0, i), Point(canvasBoundary.x, i), ctx)
     }
 
