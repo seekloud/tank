@@ -32,7 +32,6 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
   private val divStyle = gameState.map{
     case GameState.play => "display:none;"
     case GameState.loadingPlay => "display:none;"
-    case GameState.relive => "display:none;"
 //    case Constants.GameState.stop if lives != 1 => "display:none"
     case _ => "display:block;"
   }

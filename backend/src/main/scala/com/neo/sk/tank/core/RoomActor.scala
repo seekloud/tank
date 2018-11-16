@@ -44,6 +44,10 @@ object RoomActor {
   case class JoinRoom4Watch(uid:String,roomId:Long,playerId:String,userActor4Watch: ActorRef[UserActor.Command]) extends Command with  RoomManager.Command
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command with RoomManager.Command
   case object GameLoop extends Command
+  case class ShotgunExpire(tId:Int) extends Command
+  case class TankFillABullet(tId:Int) extends Command
+  case class TankInvincible(tId:Int)extends  Command
+  case class TankRelive(userId:String, tankIdOpt:Option[Int],name:String) extends Command
 
 
   final case class SwitchBehavior(
@@ -74,7 +78,7 @@ object RoomActor {
             val subscribersMap = mutable.HashMap[String,ActorRef[UserActor.Command]]()
             val observersMap = mutable.HashMap[String,ActorRef[UserActor.Command]]()
             implicit val sendBuffer = new MiddleBufferInJvm(81920)
-            val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, log,
+            val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer,log,
               dispatch(subscribersMap,observersMap),
               dispatchTo(subscribersMap,observersMap)
             )
@@ -199,6 +203,20 @@ object RoomActor {
           ctx.unwatch(childRef)
           Behaviors.same
 
+
+//        case TankInvincible(tId) =>
+//          gameContainer.receiveGameEvent(TankGameEvent.TankInvincible(tId,gameContainer.systemFrame))
+//          Behaviors.same
+
+        case TankRelive(userId,tankIdOpt,name) =>
+          gameContainer.handleTankRelive(userId,tankIdOpt,name)
+          Behaviors.same
+
+//        case ShotgunExpire(tId) =>
+//          gameContainer.receiveGameEvent(TankGameEvent.TankShotgunExpire(tId,gameContainer.systemFrame))
+//          Behaviors.same
+
+
         case _ =>
           log.warn(s"${ctx.self.path} recv a unknow msg=${msg}")
           Behaviors.same
@@ -228,13 +246,14 @@ object RoomActor {
     }
 
     val isKillMsg = msg.isInstanceOf[TankGameEvent.YouAreKilled]
-    subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
+    val isReliveMsg = msg.isInstanceOf[TankGameEvent.TankReliveInfo]
+    subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg,isReliveMsg)))
     /**
       * 分发数据
       * */
 
     observersByUserId match{
-      case Some(ls) => ls.keys.foreach(uId4WatchGame => observers.get(uId4WatchGame).foreach(t => t ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg))))
+      case Some(ls) => ls.keys.foreach(uId4WatchGame => observers.get(uId4WatchGame).foreach(t => t ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg,isReliveMsg))))
       case None =>
     }
 //    observers.get(id).foreach(_ ! UserActor4WatchGame.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))

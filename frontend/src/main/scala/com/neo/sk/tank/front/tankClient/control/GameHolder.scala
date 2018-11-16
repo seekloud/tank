@@ -52,7 +52,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
 
 
   protected var timer:Int = 0
-  protected var reStartTimer:Int = 0
+//  protected var reStartTimer:Int = 0
   /**
     * 倒计时，config
     * */
@@ -66,7 +66,6 @@ abstract class GameHolder(name:String) extends NetworkInfo{
   def closeHolder={
     dom.window.cancelAnimationFrame(nextFrame)
     Shortcut.cancelSchedule(timer)
-    Shortcut.cancelSchedule(reStartTimer)
     webSocketClient.closeWs
   }
 
@@ -121,18 +120,12 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       case GameState.stop =>
         dom.window.cancelAnimationFrame(nextFrame)
         Shortcut.cancelSchedule(timer)
-        Shortcut.cancelSchedule(reStartTimer)
+//        Shortcut.cancelSchedule(reStartTimer)
         drawGameStop()
         Shortcut.scheduleOnce(() => drawCombatGains(), 3000)
 //        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
-
-      case GameState.relive =>
-        /**
-          * 在生命值之内死亡重玩，倒计时进入
-          * */
-        dom.window.cancelAnimationFrame(nextFrame)
-        Shortcut.cancelSchedule(timer)
-        drawGameRestart()
+//        drawCombatGains()
+//        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
 
       case _ => println(s"state=${gameState} failed")
     }
@@ -159,7 +152,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
     ctx.font = s"${3.6 * canvasUnit}px Helvetica"
-    ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 150, 180)
+    ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀,等待倒计时进入游戏", 150, 180)
     println()
   }
 
@@ -187,7 +180,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
 
 
 
-  protected def drawGameRestart()
+//  protected def drawGameRestart()
 
   protected def wsConnectSuccess(e:Event) = {
     println(s"连接服务器成功")

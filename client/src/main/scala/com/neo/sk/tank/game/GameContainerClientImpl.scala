@@ -3,11 +3,11 @@ package com.neo.sk.tank.game
 import com.neo.sk.tank.game.draw._
 import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.config.TankGameConfig
-import com.neo.sk.tank.shared.model.Constants.{GameAnimation, PropGenerateType}
+import com.neo.sk.tank.shared.model.Constants.{GameAnimation, GameState, PropGenerateType}
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import javafx.scene.canvas.GraphicsContext
-import com.neo.sk.tank.common.Constants.GameState
+//import com.neo.sk.tank.common.Constants.GameState
 import javafx.geometry.VPos
 import javafx.scene.paint.Color
 import javafx.scene.shape.{StrokeLineCap, StrokeLineJoin}
@@ -89,10 +89,8 @@ case class GameContainerClientImpl(
 
 
   override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
-    if(tank.tankId == myTankId){
-      if (tank.lives > 1) setGameState(GameState.relive)
-      else setGameState(GameState.stop)
-    }
+    if(tank.tankId == myTankId && tank.lives <= 1)
+      setGameState(GameState.stop)
   }
 
   def updateClientSize(canvasSize:Point, cUnit:Int)={
@@ -119,6 +117,7 @@ case class GameContainerClientImpl(
       ctx.setLineJoin(StrokeLineJoin.ROUND)
       tankMap.get(myTankId) match {
         case Some(tank) =>
+//          println(s"---------------------------------------------------------${tank}")
           val offset = canvasBoundary / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime)
 //          val t1=System.currentTimeMillis()
           drawBackground(offset)

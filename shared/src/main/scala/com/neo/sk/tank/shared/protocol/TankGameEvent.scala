@@ -20,7 +20,7 @@ object TankGameEvent {
   /**
     * 携带原来tankId
     * */
-  final case class RestartGame(tankIdOpt:Option[Int],name:String,gameState:Int) extends WsMsgFront
+  final case class RestartGame(tankIdOpt:Option[Int],name:String) extends WsMsgFront
 
   /**后台建立WebSocket*/
   sealed trait WsMsgSource
@@ -32,13 +32,16 @@ object TankGameEvent {
   final case class WsMsgErrorRsp(errCode:Int, msg:String) extends WsMsgServer
   //  final case class GameConfig(config:TankGameConfigImpl) extends WsMsgServer
   final case class YourInfo(userId:String,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
+  final case class TankReliveInfo(config:TankGameConfigImpl) extends WsMsgServer
 //  final case class YouAreKilled(tankId:Int,name:String) extends WsMsgServer //可能会丢弃
 //  final case class PlayerAreKilled(tankId:Int,name:String) extends WsMsgServer
   final case class YouAreKilled(tankId:Int,name:String, hasLife:Boolean,killTankNum:Int,lives:Int,damageStatistics:Int) extends WsMsgServer //可能会丢弃
   final case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends WsMsgServer
   final case class SyncGameState(state:GameContainerState) extends WsMsgServer
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
-  final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false) extends WsMsgSource
+  final case class FirstSyncGameAllState(gState:GameContainerAllState,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
+  final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false,isReliveMsg:Boolean = false) extends WsMsgSource
+//  final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false) extends WsMsgSource
   final case class PingPackage(sendTime:Long) extends WsMsgServer with WsMsgFront
 
   sealed trait GameEvent {
