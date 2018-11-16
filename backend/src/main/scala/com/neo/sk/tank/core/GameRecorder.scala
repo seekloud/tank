@@ -168,12 +168,16 @@ object GameRecorder {
         case Save =>
           log.info(s"${ctx.self.path} work get msg save")
           timer.startSingleTimer(SaveDateKey, Save, saveTime)
-          ctx.self ! SaveDate(0)
+          if(userAllMap.nonEmpty){
+            ctx.self ! SaveDate(0)
+          }
           switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
 
         case RoomClose =>
           log.info(s"${ctx.self.path} work get msg save, room close")
-          ctx.self ! SaveDate(1)
+          if(userAllMap.nonEmpty){
+            ctx.self ! SaveDate(1)
+          }
           switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
 
 
