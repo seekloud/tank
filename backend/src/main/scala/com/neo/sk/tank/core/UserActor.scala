@@ -492,9 +492,9 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case TankRelive4UserActor(tank,userId,name,roomActor,config) =>
+        case TankRelive4UserActor(t,userId,name,roomActor,config) =>
           frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
-          switchBehavior(ctx,"play",play(uId,userInfo,tank,startTime,frontActor,roomActor))
+          switchBehavior(ctx,"play",play(uId,userInfo,t,startTime,frontActor,roomActor))
 
         /**
           * 本消息内转换为初始状态并给前端发送异地登录消息*/

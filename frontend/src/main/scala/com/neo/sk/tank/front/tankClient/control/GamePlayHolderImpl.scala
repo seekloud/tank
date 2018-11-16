@@ -233,9 +233,10 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         damageNum = e.damageStatistics
         killerName = e.name
         dom.window.cancelAnimationFrame(nextFrame)
+        drawGameStop()
         if(! e.hasLife){
           setGameState(GameState.stop)
-        }else drawGameStop()
+        }
 
       case e:TankGameEvent.Ranks =>
         /**
@@ -257,8 +258,8 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         setGameState(GameState.play)
 
       case e:TankGameEvent.TankReliveInfo =>
-        dom.window.cancelAnimationFrame(nextFrame)
-        nextFrame = dom.window.requestAnimationFrame(gameRender())
+//        dom.window.cancelAnimationFrame(nextFrame)
+//        nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case e:TankGameEvent.UserActionEvent =>
         //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
@@ -267,6 +268,13 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
       case e:TankGameEvent.GameEvent =>
         e match {
+          case e:TankGameEvent.UserRelive =>
+            gameContainerOpt.foreach(_.receiveGameEvent(e))
+            if(e.userId == gameContainerOpt.get.myId){
+              dom.window.cancelAnimationFrame(nextFrame)
+              nextFrame = dom.window.requestAnimationFrame(gameRender())
+            }
+
           case ee:TankGameEvent.GenerateBullet =>
             gameContainerOpt.foreach(_.receiveGameEvent(e))
           //            if(gameContainerOpt.get.systemFrame > ee.frame)

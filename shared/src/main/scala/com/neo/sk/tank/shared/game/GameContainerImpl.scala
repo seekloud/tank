@@ -55,6 +55,7 @@ class GameContainerImpl(
 
   def receiveGameEvent(e:GameEvent) = {
     if(e.frame >= systemFrame){
+      println(s"---------------------")
       addGameEvent(e)
     }else if(esRecoverSupport){
       println(s"rollback-frame=${e.frame},curFrame=${this.systemFrame},e=${e}")
@@ -124,6 +125,11 @@ class GameContainerImpl(
   //客户端增加坦克无敌失效callBack
   override protected def handleUserJoinRoomEvent(e: TankGameEvent.UserJoinRoom): Unit = {
     super.handleUserJoinRoomEvent(e)
+    tankInvincibleCallBack(e.tankState.tankId)
+  }
+
+  override protected def handleUserReliveEvent(e:TankGameEvent.UserRelive):Unit = {
+    super.handleUserReliveEvent(e)
     tankInvincibleCallBack(e.tankState.tankId)
   }
 

@@ -253,50 +253,6 @@ case class GameContainerServerImpl(
   }
 
   override protected def handleUserJoinRoomEventNow() = {
-
-//    def genATank(userId:String,tankIdOpt:Option[Int],name:String) = {
-//      def genTankPositionRandom():Point = {
-//        Point(random.nextInt(boundary.x.toInt - (2 * config.tankRadius.toInt)) + config.tankRadius.toInt,
-//          random.nextInt(boundary.y.toInt - (2 * config.tankRadius.toInt)) + config.tankRadius.toInt)
-//      }
-//      def genTankServeImpl(tankId:Int,killTankNum:Int,damageStatistics:Int,lives:Int) = {
-//        val position = genTankPositionRandom()
-//        var tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack,config, userId, tankId, name,
-//          config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
-//          config.maxBulletCapacity,lives = lives,None,
-//          killTankNum = killTankNum,damageStatistics = damageStatistics)
-//        var objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
-//        while (tank.isIntersectsObject(objects)){
-//          val position = genTankPositionRandom()
-//          tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack, config, userId, tankId, name,
-//            config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
-//            config.maxBulletCapacity,lives = lives,None,
-//            killTankNum = killTankNum,damageStatistics = damageStatistics)
-//          objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
-//        }
-//        tank
-//      }
-//      tankIdOpt match {
-//        case Some(id) =>
-//          val tankStateOld = tankLivesMap.get(id)
-//          tankStateOld match{
-//            case Some(tankState) =>
-//              if(tankState.lives > 0){//tank复活还有生命
-//                genTankServeImpl(id,tankState.killTankNum,tankState.damageStatistics,tankState.lives)
-//              }else{//tank复活没有生命,更新tankLivesMap
-//                tankLivesMap.remove(id)
-//                val tankId = tankIdGenerator.getAndIncrement()
-//                genTankServeImpl(tankId,0,0,config.getTankLivesLimit)
-//              }
-//            case None =>
-//              genTankServeImpl(id,0,0,config.getTankLivesLimit)
-//          }
-//        case None =>
-//          val tankId = tankIdGenerator.getAndIncrement()
-//          genTankServeImpl(tankId,0,0,config.getTankLivesLimit)
-//      }
-//    }
-
     justJoinUser.foreach{
       case (userId,tankIdOpt,name,ref) =>
         val tank = genATank(userId,tankIdOpt,name)
@@ -326,6 +282,7 @@ case class GameContainerServerImpl(
 
   def handleTankRelive(userId:String,tankIdOpt:Option[Int],name:String) = {
     val tank = genATank(userId,tankIdOpt,name)
+//    println(s"------------------------------------------${tank}")
     tankLivesMap.update(tank.tankId,tank.getTankState())
     val event = TankRelive4UserActor(tank,userId,name,roomActorRef,config.getTankGameConfigImpl())
     //todo
@@ -342,6 +299,9 @@ case class GameContainerServerImpl(
 //    dispatchTo(userId, TankRelive(tank,userId,name,roomActorRef,config.getTankGameConfigImpl()), getUserActor4WatchGameList(userId))
     log.debug(s"${roomActorRef.path} is processing to generate tank for ${userId} ")
     userManager ! event
+    val userReliveEvent = TankGameEvent.UserRelive(userId,name,tank.getTankState(),systemFrame)
+    dispatch(userReliveEvent)
+    addGameEvent(userReliveEvent)
     tankMap.put(tank.tankId,tank)
     quadTree.insert(tank)
     //无敌时间消除
