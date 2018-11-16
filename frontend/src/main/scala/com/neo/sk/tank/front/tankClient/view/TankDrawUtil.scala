@@ -62,6 +62,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         ctx.closePath()
         //----------------------------绘制坦克---------------------#
         if (tank.getInvincibleState) {
+//          println(s"----------------------------------------draw")
           ctx.beginPath()
           ctx.fillStyle = "rgba(128, 100, 162, 0.2)"
           ctx.arc(p.x * canvasUnit, p.y * canvasUnit, InvincibleSize.r * canvasUnit, 0, 2 * math.Pi)

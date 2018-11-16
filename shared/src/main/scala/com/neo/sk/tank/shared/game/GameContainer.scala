@@ -105,6 +105,22 @@ trait GameContainer extends KillInformation{
     }
   }
 
+  final protected def handleUserReliveEvent(l:List[UserRelive]):Unit = {
+    l foreach handleUserReliveEvent
+  }
+
+  protected def handleUserReliveEvent(e:UserRelive):Unit = {
+    val t = e.tankState
+    tankMap.put(t.tankId,t)
+    quadTree.insert(t)
+  }
+
+  protected def handleUserReliveNow() = {
+    gameEventMap.get(systemFrame).foreach{events =>
+      handleUserReliveEvent(events.filter(_.isInstanceOf[UserRelive]).map(_.asInstanceOf[UserRelive]).reverse)
+    }
+  }
+
   protected final def handleUserLeftRoom(e:UserLeftRoom) :Unit = {
     tankMoveAction.remove(e.tankId)
     tankMap.get(e.tankId).foreach(quadTree.remove)
@@ -380,6 +396,7 @@ trait GameContainer extends KillInformation{
   }
 
   final protected def handleTankInvincibleNow() :Unit = {
+//    println(s"---------------------------------------invicible")
     followEventMap.get(systemFrame).foreach{ events =>
       handleTankInvincible(events.filter(_.isInstanceOf[TankInvincible]).map(_.asInstanceOf[TankInvincible]).reverse)
     }
@@ -533,6 +550,7 @@ trait GameContainer extends KillInformation{
     handleGeneratePropNow()
     handleGenerateBulletNow()
     handleUserJoinRoomEventNow()
+    handleUserReliveNow()
 
     quadTree.refresh(quadTree)
     updateKillInformation()
