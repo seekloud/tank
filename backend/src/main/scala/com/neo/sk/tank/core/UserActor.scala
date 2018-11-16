@@ -492,22 +492,6 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-//        case DispatchMsg(m) =>
-//          if(m.asInstanceOf[TankGameEvent.Wrap].isReliveMsg) {
-//            frontActor ! m
-//            println(s"${ctx.self.path} tank 当前生命值${tank.getTankState().lives}")
-//            if (tank.lives > 1){
-//              //玩家进入复活状态
-//              //              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
-//              switchBehavior(ctx,"waitRestartWhenPlay",waitRestartWhenPlay(uId,userInfo,startTime,frontActor, tank))
-//            } else {
-//              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
-//              switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
-//            }
-//          }else{
-//            frontActor ! m
-//            Behaviors.same
-//          }
         case TankRelive4UserActor(tank,userId,name,roomActor,config) =>
           frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId,userInfo,tank,startTime,frontActor,roomActor))
