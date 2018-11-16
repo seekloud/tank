@@ -17,6 +17,8 @@ import scala.xml.Elem
 object TankDemo extends Page{
 
   private val cannvas = <canvas id ="GameView" tabindex="1"></canvas>
+  private val audio_1 = <audio id = "GameAudioForBgm" src="/tank/static/music/tank.mp3"></audio>
+  private val audio_2 = <audio id = "GameAudioForDead"></audio>
 
 //  private val can = cannvas.asInstanceOf[Canvas]
 ////
@@ -52,6 +54,8 @@ object TankDemo extends Page{
     <div>
       <div >{modal}</div>
       {cannvas}
+      {audio_1}
+      {audio_2}
     </div>
   }
 
