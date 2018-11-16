@@ -11,6 +11,7 @@ import scala.language.implicitConversions
 import scala.concurrent.duration._
 import com.neo.sk.utils.EsheepClient
 import com.neo.sk.tank.App.executor
+import com.neo.sk.tank.model.TokenAndAcessCode
 
 import scala.util.{Failure, Success}
 
@@ -19,7 +20,7 @@ object TokenActor {
   sealed trait Command
   final case object RefreshToken extends Command
   final case class  InitToken(token: String, tokenExpireTime: Long, playerId: String) extends Command
-  final case class GetAccessCode(rsp:ActorRef[String]) extends Command
+  final case class GetAccessCode(rsp:ActorRef[TokenAndAcessCode]) extends Command
   private final case object GetNewToken extends Command
   private val log = LoggerFactory.getLogger(this.getClass)
   private final case object RefreshTokenKey
@@ -54,7 +55,7 @@ object TokenActor {
         case t:InitToken =>
           Behaviors.withTimers[Command] { implicit timer =>
             ctx.self ! RefreshToken
-            work(t.token,t.playerId)
+            work(t.token,t.tokenExpireTime,t.playerId)
           }
         case _ =>
           Behaviors.same
@@ -62,7 +63,7 @@ object TokenActor {
     }
   }
 
-  def work(token: String, playerId: String)
+  def work(token: String, tokenExpireTime:Long,playerId: String)
           (implicit stashBuffer: StashBuffer[Command],
             timer:TimerScheduler[Command]
           ): Behavior[Command] = {
@@ -82,7 +83,7 @@ object TokenActor {
             case Success(rst) =>
               rst match {
                 case Right(value) =>
-                  ctx.self !  SwitchBehavior("work",work(value.token,playerId))
+                  ctx.self !  SwitchBehavior("work",work(value.token,value.expireTime,playerId))
                 case Left(error) =>
                   //异常
                   timer.startSingleTimer(RefreshTokenKey, RefreshToken, 5.minutes)
@@ -100,15 +101,15 @@ object TokenActor {
             case Success(rst) =>
               rst match {
                 case Right(value) =>
-                  rsp ! value.accessCode
+                  rsp ! TokenAndAcessCode(token,tokenExpireTime,value.accessCode)
                 case Left(error) =>
                   //异常
-                  rsp ! "error"
+                  rsp ! TokenAndAcessCode("", 0l,"")
               }
             case Failure(exception) =>
               //异常
               log.warn(s" linkGameAgent failed, error:${exception.getMessage}")
-              rsp ! "error"
+              rsp ! TokenAndAcessCode("", 0l,"")
           }
 
           Behaviors.same

@@ -14,7 +14,7 @@
     top: 30%;
     left: 0;
     right: 0;
-    width: 500px;
+    width: 50%;
     margin: 0 auto;
     z-index: 100;
     padding: 20px 50px;
@@ -22,28 +22,28 @@
 
 .input_title{
     color: white;
-    font-size: 18px;
+    font-size: 1.8vw;
     text-align: center;
 }
 .input_des {
     color: white;
-    font-size: 18px;
+    font-size: 1.8vw;
+    text-align: center;
+    padding-right: 10px;
+}
+
+.input_inline{
+    margin-top: 5%;
     text-align: center;
 }
 
 
-.input_elem {
-    margin-top: 20px;
-}
-
 #TankGameNameInput{
-    width: 307px;
-    height: 43px;
-    line-height: 38.7px;
-    font-size: 38.7px;
+    width: 50%;
+    line-height: 2.5vw;
+    font-size: 2.5vw;
     padding-left: 5px;
     padding-right: 5px;
-    margin-left: 50px;
     background-color: #f3ebeb;
     font-family: 'Ubuntu';
     padding: 0;
@@ -54,13 +54,11 @@
 }
 
 #TankGameRoomIdInput{
-    width: 307px;
-    height: 43px;
-    line-height: 38.7px;
-    font-size: 38.7px;
+    width: 50%;
+    line-height: 2.5vw;
+    font-size: 2.5vw;
     padding-left: 5px;
     padding-right: 5px;
-    margin-left: 50px;
     background-color: #f3ebeb;
     font-family: 'Ubuntu';
     padding: 0;
@@ -73,6 +71,10 @@
 .input_button {
     text-align: center;
     margin-top: 20px;
+}
+
+.input_button span{
+    margin-left: 10px;
 }
 
 #GameView {
@@ -102,11 +104,11 @@
 
 #combat_gains{
     color: white;
-    font-size: 30px;
-    font-family: 'Helvetica';
+    font-size: 1.8vw;
     text-align: left;
-    margin-bottom: 30px;
-    width: 500px;
+    margin-bottom: 8%;
+    padding-left: 15%;
+    width: 100%;
 }
 
 #combat_gains p{
