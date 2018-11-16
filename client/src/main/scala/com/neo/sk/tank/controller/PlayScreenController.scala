@@ -67,8 +67,8 @@ class PlayScreenController(
 
   private val gameMusic = new AudioClip(getClass.getResource("/music/tank.mp3").toString)
   gameMusic.setCycleCount(AudioClip.INDEFINITE)
-  private val bulletMusic = new AudioClip(getClass.getResource("/music/tank.mp3").toString)
-  private val deadMusic = new AudioClip(getClass.getResource("/music/tank.mp3").toString)
+  private val bulletMusic = new AudioClip(getClass.getResource("/music/peng.mp3").toString)
+  private val deadMusic = new AudioClip(getClass.getResource("/music/loss_sound.mp3").toString)
 
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
   private var gameState = GameState.loadingPlay
@@ -199,7 +199,7 @@ class PlayScreenController(
       **/
     playGameScreen.canvas.setOnMouseClicked{ e=>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
-        bulletMusic.play
+        bulletMusic.play()
         val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
         playGameActor ! DispatchMsg(preExecuteAction)
