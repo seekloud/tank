@@ -228,6 +228,7 @@ object GameRecorder {
     import gameRecordData._
     Behaviors.receive{(ctx,msg) =>
       msg match {
+          //fixme 这里存储文件的时候，gameRecordData的buffer数据没存，导致数据丢失
         case s:SaveDate =>
           log.info(s"${ctx.self.path} save get msg saveDate")
           val mapInfo = essfMap.map{
