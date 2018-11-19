@@ -65,10 +65,11 @@ class PlayScreenController(
   private var recvYourInfo: Boolean = false
   private var recvSyncGameAllState: Option[TankGameEvent.SyncGameAllState] = None
 
-  private val gameMusic = new AudioClip(getClass.getResource("/music/tank.mp3").toString)
-  gameMusic.setCycleCount(AudioClip.INDEFINITE)
+  private val gameMusic = new Media(getClass.getResource("/music/bgm.mp3").toString)
+  private val gameMusicPlayer = new MediaPlayer(gameMusic)
+  gameMusicPlayer.setCycleCount(MediaPlayer.INDEFINITE)
   private val bulletMusic = new AudioClip(getClass.getResource("/music/bullet.mp3").toString)
-  private val deadMusic = new AudioClip(getClass.getResource("/music/peng.mp3").toString)
+  private val deadMusic = new AudioClip(getClass.getResource("/music/over.mp3").toString)
 
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
   private var gameState = GameState.loadingPlay
@@ -287,8 +288,8 @@ class PlayScreenController(
             * 更新游戏数据
             **/
           println("start------------")
+          gameMusicPlayer.play()
           try {
-            gameMusic.play()
             gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
             gameContainerOpt.get.getTankId(e.tankId)
             recvYourInfo = true
@@ -307,7 +308,6 @@ class PlayScreenController(
             * 死亡重玩
             **/
           println(s"you are killed")
-          deadMusic.play()
           killNum = e.killTankNum
           damageNum = e.damageStatistics
           killerList = killerList :+ e.name
@@ -316,6 +316,8 @@ class PlayScreenController(
           playGameScreen.drawGameStop(killerName)
           if(!e.hasLife){
             setGameState(GameState.stop)
+            gameMusicPlayer.pause()
+            deadMusic.play()
           }else animationTimer.stop()
 
         case e:TankGameEvent.TankReliveInfo =>
