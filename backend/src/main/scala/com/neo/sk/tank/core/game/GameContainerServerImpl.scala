@@ -312,6 +312,7 @@ case class GameContainerServerImpl(
   def handleJoinRoom4Watch(userActor4WatchGame:ActorRef[UserActor.Command],uid:String,playerId:String) = {
     tankMap.find(_._2.userId == playerId) match {
       case Some((_, tank)) =>
+        userMapObserver.values.foreach(t => t.remove(uid))
         val playerObserversMap = userMapObserver.getOrElse(playerId, mutable.HashMap[String, ActorRef[UserActor.Command]]())
         playerObserversMap.put(uid, userActor4WatchGame)
         userMapObserver.put(playerId, playerObserversMap)
