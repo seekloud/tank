@@ -180,8 +180,6 @@ object GameRecorder {
           }
           switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
 
-
-
         case unknow =>
           log.warn(s"${ctx.self.path} recv an unknown msg:${unknow}")
           Behaviors.same
@@ -244,6 +242,7 @@ object GameRecorder {
     import gameRecordData._
     Behaviors.receive{(ctx,msg) =>
       msg match {
+          //fixme 这里存储文件的时候，gameRecordData的buffer数据没存，导致数据丢失
         case s:SaveDate =>
           log.info(s"${ctx.self.path} save get msg saveDate")
           val gameRecorderBuffer = gameRecordData.gameRecordBuffer

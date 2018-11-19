@@ -4,8 +4,8 @@ import java.net.URLDecoder
 
 import com.neo.sk.tank.front.common.Page
 import com.neo.sk.tank.front.model.PlayerInfo
-import com.neo.sk.tank.front.tankClient.GamePlayHolderImpl
-import com.neo.sk.tank.front.utils.{Shortcut,JsFunc}
+import com.neo.sk.tank.front.tankClient.control.GamePlayHolderImpl
+import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import mhtml.{Var, emptyHTML}
 
 import scala.xml.Elem
