@@ -186,7 +186,7 @@ object GameRecorder {
       }
     }.receiveSignal{
       case (ctx,PostStop) =>
-        timer.cancelAll()
+        timer.cancel(SaveDateKey)
         log.info(s"${ctx.self.path} stopping....")
 
         val gameRecorderBuffer = gameRecordData.gameRecordBuffer
