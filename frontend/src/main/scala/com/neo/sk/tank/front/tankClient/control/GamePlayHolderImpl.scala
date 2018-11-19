@@ -167,6 +167,15 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           sendMsg2Server(preExecuteAction)
           e.preventDefault()
         }
+        else if(keyCode == KeyCode.M){
+          if(needBgm){
+            audioForBgm.pause()
+            needBgm = false
+          }else{
+            audioForBgm.play()
+            needBgm = true
+          }
+        }
       }
     }
 
