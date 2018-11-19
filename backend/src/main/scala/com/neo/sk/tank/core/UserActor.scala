@@ -424,6 +424,7 @@ object UserActor {
           reqOpt match {
             case Some(t:TankGameEvent.UserActionEvent) =>
               //分发数据给roomActor
+              println(s"${ctx.self.path} websocketmsg---------------${t}")
               roomActor ! RoomActor.WebSocketMsg(uId,tank.tankId,t)
             case Some(t:TankGameEvent.PingPackage) =>
 

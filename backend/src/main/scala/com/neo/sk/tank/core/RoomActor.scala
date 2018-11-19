@@ -212,7 +212,7 @@ object RoomActor {
           gameContainer.handleTankRelive(userId,tankIdOpt,name)
           val state = gameContainer.getGameContainerState()
           dispatch(subscribersMap,observersMap)(TankGameEvent.SyncGameState(state))
-//          gameContainer.update()
+          gameContainer.update()
           Behaviors.same
 
 //        case ShotgunExpire(tId) =>
