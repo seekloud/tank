@@ -111,7 +111,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     }
     canvas.onclick = { e: MouseEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
-        audioForBullet.play()
         val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
         sendMsg2Server(preExecuteAction) //发送鼠标位置
@@ -150,7 +149,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
         }
         else if (keyCode == KeyCode.Space && spaceKeyUpState) {
-          audioForBullet.play()
           spaceKeyUpState = false
           val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
@@ -166,16 +164,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
           e.preventDefault()
-        }
-        else if(keyCode == KeyCode.M){
-          if(needBgm){
-            audioForBgm.pause()
-            needBgm = false
-          }
-          else{
-            audioForBgm.play()
-            needBgm = true
-          }
         }
       }
     }
@@ -233,8 +221,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           * */
         gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
-        audioForBgm.play()
-
 
       case e:TankGameEvent.YouAreKilled =>
         /**
@@ -247,8 +233,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         killerName = e.name
         dom.window.cancelAnimationFrame(nextFrame)
         drawGameStop()
-        audioForBgm.pause()
-        audioForDead.play()
         if(! e.hasLife){
           setGameState(GameState.stop)
         }
