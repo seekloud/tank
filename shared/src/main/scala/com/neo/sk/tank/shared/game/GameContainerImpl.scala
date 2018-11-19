@@ -204,6 +204,7 @@ class GameContainerImpl(
       quadTree.insert(tank)
       tankMap.put(t.tankId,tank)
     }
+    println(s"-------gamecontainerstate--------------${gameContainerState.tanks.map(_.tankId)}")
     gameContainerState.obstacle.foreach{o =>
       val obstacle = Obstacle(config,o)
       quadTree.insert(obstacle)
@@ -245,6 +246,7 @@ class GameContainerImpl(
 
   def receiveGameContainerState(gameContainerState: GameContainerState) = {
     if(gameContainerState.f > systemFrame){
+      info(s"gameContainerState-------------------------------------------------------ppppppp")
       gameContainerStateOpt = Some(gameContainerState)
     }else if(gameContainerState.f == systemFrame){
       info(s"收到同步数据，立即同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
@@ -276,6 +278,7 @@ class GameContainerImpl(
         addGameSnapShot(systemFrame,this.getGameContainerAllState())
       }
     }else{
+//      info(s"------------,curSystemFrame=${systemFrame},sync game container state frame=${gameContainerStateOpt.get.f}")
       super.update()
       if(esRecoverSupport) addGameSnapShot(systemFrame,getGameContainerAllState())
     }

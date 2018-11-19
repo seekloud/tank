@@ -112,6 +112,9 @@ trait GameContainer extends KillInformation{
   protected def handleUserReliveEvent(e:UserRelive):Unit = {
     val t = e.tankState
     tankMap.put(t.tankId,t)
+//    if(quadTree.contain(t))quadTree.remove(t)
+//    quadTree
+//    println(s"reliveeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
     quadTree.insert(t)
   }
 
@@ -233,6 +236,7 @@ trait GameContainer extends KillInformation{
 
 
   protected def handleTankAttacked(e:TankAttacked) :Unit = {
+//    println(s"pppppppppppppppppppppppppppppppp${e}")
     bulletMap.get(e.bulletId).foreach(quadTree.remove)
     bulletMap.remove(e.bulletId)
     val bulletTankOpt = tankMap.get(e.bulletTankId)
@@ -243,6 +247,8 @@ trait GameContainer extends KillInformation{
         bulletTankOpt.foreach(_.killTankNum += 1)
         quadTree.remove(tank)
         tankMap.remove(e.tankId)
+//        println(s"removeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+//        println(s"------------------------=================${quadTree.}")
         tankMoveAction.remove(e.tankId)
 
         addKillInfo(e.bulletTankName,tank.name)
@@ -259,7 +265,10 @@ trait GameContainer extends KillInformation{
   }
 
   final protected def handleTankAttackedNow() = {
+//    println(s"00000000000000000000000")
+//    println(s"followEventMap------------------------${followEventMap}")
     followEventMap.get(systemFrame).foreach{ events =>
+      println(s"----------------${events}")
       handleTankAttacked(events.filter(_.isInstanceOf[TankAttacked]).map(_.asInstanceOf[TankAttacked]).reverse)
     }
   }
@@ -439,8 +448,16 @@ trait GameContainer extends KillInformation{
   protected def bulletMove():Unit = {
     bulletMap.toList.sortBy(_._1).map(_._2).foreach{ bullet =>
       val objects = quadTree.retrieveFilter(bullet)
-      objects.filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]).filter(_.tankId != bullet.tankId)
-        .foreach(t => bullet.checkAttackObject(t,attackTankCallBack(bullet)))
+      println(s"-----tank-----------------------------${objects.filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]).filter(_.tankId != bullet.tankId).map(_.getTankState())}")
+      val a = objects.filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]).filter(_.tankId != bullet.tankId)
+      var ls = List[Tank]()
+      a.foreach{v =>
+        if(!ls.exists(_.tankId == v.tankId))ls = v :: ls
+      }
+        ls
+//      objects.filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]).filter(_.tankId != bullet.tankId)
+        .foreach{t =>
+          bullet.checkAttackObject(t,attackTankCallBack(bullet))}
       objects.filter(t => t.isInstanceOf[ObstacleBullet] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
         .foreach(t => bullet.checkAttackObject(t,attackObstacleCallBack(bullet)))
       bullet.move(boundary,removeBullet)
@@ -458,6 +475,7 @@ trait GameContainer extends KillInformation{
   protected def attackTankCallBack(bullet: Bullet)(tank:Tank):Unit = {
     removeBullet(bullet)
     val event = TankGameEvent.TankAttacked(tank.tankId,bullet.bId, bullet.tankId, bullet.tankName,bullet.damage,systemFrame)
+    println(s"attackTankCallBack-------------------${tank.tankId}----------------${bullet.bId}")
     addFollowEvent(event)
   }
 
@@ -499,6 +517,7 @@ trait GameContainer extends KillInformation{
   }
 
   protected final def addFollowEvent(event:GameEvent):Unit = {
+    println(s"addFollowEvent------------------${event}")
     followEventMap.get(event.frame) match {
       case Some(events) => followEventMap.put(event.frame, event :: events)
       case None => followEventMap.put(event.frame,List(event))

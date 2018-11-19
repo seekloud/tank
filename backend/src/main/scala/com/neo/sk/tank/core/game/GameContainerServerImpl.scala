@@ -67,13 +67,13 @@ case class GameContainerServerImpl(
 
     tank.launchBullet()(config) match {
       case Some((bulletDirection,position,damage)) =>
-        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(),tankId,position,damage,position,config.getMoveDistanceByFrame(tank.getTankSpeedLevel()),System.currentTimeMillis(),tank.name,bulletDirection)
+        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(),tankId,position,damage,position,config.getMoveDistanceByFrame(tank.getTankSpeedLevel()),tank.getTankDirection(),tank.getTankIsMove(),System.currentTimeMillis(),tank.name,bulletDirection)
         transformGenerateBulletEvent(bulletState)
         if(tank.getShotGunState()){
           List(Math.PI / 8, - Math.PI / 8).foreach{ bulletOffsetDirection =>
             val bulletPos = tank.getOtherLaunchBulletPosition(bulletOffsetDirection.toFloat)(config)
             val bulletDir = bulletDirection + bulletOffsetDirection.toFloat
-            val bulletState = BulletState(bulletIdGenerator.getAndIncrement(),tankId,bulletPos,damage,bulletPos,config.getMoveDistanceByFrame(tank.getTankSpeedLevel()),System.currentTimeMillis(),tank.name,bulletDir)
+            val bulletState = BulletState(bulletIdGenerator.getAndIncrement(),tankId,bulletPos,damage,bulletPos,config.getMoveDistanceByFrame(tank.getTankSpeedLevel()),tank.getTankDirection(),tank.getTankIsMove(),System.currentTimeMillis(),tank.name,bulletDir)
             transformGenerateBulletEvent(bulletState)
           }
         }
@@ -452,11 +452,14 @@ case class GameContainerServerImpl(
   }
 
   override def update(): Unit = {
+//    val t = AirDropBox(config,1,Point(0,0),config.airDropBlood)
+//    println(s"update-----------------${quadTree.retrieveFilter(t).filter(t => t.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]).map(_.tankId)}")
     super.update()
     updateRanks()
   }
 
   def getGameContainerState():GameContainerState = {
+//    println(s"---------------------------${tankMap.values.map(_.getTankState()).toList}")
     GameContainerState(
       systemFrame,
       tankMap.values.map(_.getTankState()).toList,
