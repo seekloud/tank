@@ -24,7 +24,8 @@ class Context(stage: Stage) {
     stage.show()
     scene.setOnKeyPressed(new EventHandler[KeyEvent] {
       override def handle(event: KeyEvent): Unit = {
-        if(event.getCode == KeyCode.Z && resize) stage.setFullScreen(fullScreen)
+        if(event.getCode == KeyCode.Z) stage.setFullScreen(fullScreen)
+//        else  false
       }
     })
   }

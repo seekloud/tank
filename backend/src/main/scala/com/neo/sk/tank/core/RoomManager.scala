@@ -54,7 +54,7 @@ object RoomManager {
           (implicit stashBuffer: StashBuffer[Command],timer:TimerScheduler[Command]) = {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {
-        case JoinRoom(uid,tankIdOpt,gameStateOpt,name,startTime,userActor, roomIdOpt) =>
+        case JoinRoom(uid,tankIdOpt,name,startTime,userActor, roomIdOpt) =>
           roomIdOpt match{
             case Some(roomId) =>
               roomInUse.get(roomId) match{
@@ -63,23 +63,15 @@ object RoomManager {
               }
               getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
             case None =>
-              gameStateOpt match{
-                case Some(GameState.relive) =>
-                  roomInUse.find(_._2.exists(_._1 == uid)) match{
-                    case Some(t) =>getRoomActor(ctx,t._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,t._1)
-                    case None =>log.debug(s"${ctx.self.path} error:tank relives, but find no room")
-                  }
-                case _ =>
-                  roomInUse.find(p => p._2.length < personLimit).toList.sortBy(_._1).headOption match{
-                    case Some(t) =>
-                      roomInUse.put(t._1,(uid,name) :: t._2)
-                      getRoomActor(ctx,t._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,t._1)
-                    case None =>
-                      var roomId = roomIdGenerator.getAndIncrement()
-                      while(roomInUse.exists(_._1 == roomId))roomId = roomIdGenerator.getAndIncrement()
-                      roomInUse.put(roomId,List((uid,name)))
-                      getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
-                  }
+              roomInUse.find(p => p._2.length < personLimit).toList.sortBy(_._1).headOption match{
+                case Some(t) =>
+                  roomInUse.put(t._1,(uid,name) :: t._2)
+                  getRoomActor(ctx,t._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,t._1)
+                case None =>
+                  var roomId = roomIdGenerator.getAndIncrement()
+                  while(roomInUse.exists(_._1 == roomId))roomId = roomIdGenerator.getAndIncrement()
+                  roomInUse.put(roomId,List((uid,name)))
+                  getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
               }
           }
           log.debug(s"now roomInUse:$roomInUse")
@@ -112,9 +104,7 @@ object RoomManager {
         case LeftRoomByKilled(uid,tankId,tankLives,name) =>
           roomInUse.find(_._2.exists(_._1 == uid)) match{
             case Some(t) =>
-              if(tankLives <= 1){
-                roomInUse.put(t._1,t._2.filterNot(_._1 == uid))
-              }
+              roomInUse.put(t._1,t._2.filterNot(_._1 == uid))
               getRoomActor(ctx,t._1) ! LeftRoomByKilled(uid,tankId,tankLives,name)
             case None =>log.debug(s"this user doesn't exist")
           }

@@ -138,8 +138,10 @@ final case class TankGameConfigServerImpl(
     .requiring(_ > 0,"minimum supported tank fill bullet duration is 1ms")
   private[this] val tankInvincibleDuration = config.getInt("tankGame.tank.initInvincibleDuration")
     .requiring(_ > 0,"minimum supported tank invincible duration is 1ms")
+  private[this] val tankReliveDuration = config.getInt("tankGame.tank.tankReliveDuration")
+    .requiring(_ > 0,"minimum supported tank relive duration is 1ms")
   private val tankParameters = TankParameters(TankMoveSpeed(tankSpeedLevel,accelerationTime,decelerationTime),tankBloodLevel,tankLivesLimit,tankMedicalLimit,
-    tankRadiusData,tankGunWidthData,tankGunHeightData,tankMaxBulletCapacity,tankFillBulletDuration,tankInvincibleDuration)
+    tankRadiusData,tankGunWidthData,tankGunHeightData,tankMaxBulletCapacity,tankFillBulletDuration,tankInvincibleDuration,tankReliveDuration)
 
   private val tankGameConfig = TankGameConfigImpl(gridBoundary,gameFameDuration,bulletParameters,obstacleParameters,propParameters,tankParameters)
 
@@ -191,6 +193,8 @@ final case class TankGameConfigServerImpl(
   def maxBulletCapacity:Int = tankGameConfig.maxBulletCapacity
   def fillBulletDuration:Int = tankGameConfig.fillBulletDuration
   def initInvincibleDuration:Int = tankGameConfig.initInvincibleDuration
+
+  def getTankReliveDuration: Int = tankGameConfig.getTankReliveDuration
   def getTankSpeedByType(t:Byte):Point = tankGameConfig.getTankSpeedByType(t)
 
   def getTankBloodByLevel(l:Byte):Int = tankGameConfig.getTankBloodByLevel(l)

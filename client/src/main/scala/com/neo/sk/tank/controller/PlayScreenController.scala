@@ -70,23 +70,24 @@ class PlayScreenController(
   private var logicFrameTime = System.currentTimeMillis()
   private val animationTimer = new AnimationTimer() {
     override def handle(now: Long): Unit = {
+//      log.debug(s"draw game ${System.currentTimeMillis()} ${logicFrameTime}")
       drawGame(System.currentTimeMillis() - logicFrameTime)
     }
   }
-  private val timeline = new Timeline()
-  private var countDownTimes=3
-  timeline.setCycleCount(Animation.INDEFINITE)
-  val keyFrame = new KeyFrame(Duration.millis(1000), { _ =>
-    if(countDownTimes>0){
-      playGameScreen.drawGameRestart(countDownTimes,killerName)
-      countDownTimes-=1
-    }else{
-      timeline.stop()
-      countDownTimes=3
-      start
-    }
-  })
-  timeline.getKeyFrames.add(keyFrame)
+//  private val timeline = new Timeline()
+//  private var countDownTimes=3
+//  timeline.setCycleCount(Animation.INDEFINITE)
+//  val keyFrame = new KeyFrame(Duration.millis(1000), { _ =>
+//    if(countDownTimes>0){
+//      playGameScreen.drawGameRestart(countDownTimes,killerName)
+//      countDownTimes-=1
+//    }else{
+//      timeline.stop()
+//      countDownTimes=3
+//      start
+//    }
+//  })
+//  timeline.getKeyFrames.add(keyFrame)
 
   private val watchKeys = Set(
     KeyCode.LEFT,
@@ -117,7 +118,7 @@ class PlayScreenController(
       logicFrameTime = System.currentTimeMillis()
     }else{
       gameContainerOpt.foreach{r=>
-        playGameActor ! DispatchMsg(TankGameEvent.RestartGame(Some(r.myTankId),r.myName,gameState))
+        playGameActor ! DispatchMsg(TankGameEvent.RestartGame(Some(r.myTankId),r.myName))
         setGameState(GameState.loadingPlay)
         playGameActor ! PlayGameActor.StartGameLoop
       }
@@ -126,6 +127,7 @@ class PlayScreenController(
   }
 
   private def drawGame(offsetTime: Long) = {
+//    println(s"game container opt ${gameContainerOpt}")
     gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency))
   }
 
@@ -150,7 +152,7 @@ class PlayScreenController(
 
         case GameState.stop =>
           closeHolder
-          playGameScreen.drawGameStop(killerName)
+//          playGameScreen.drawGameStop(killerName)
           //todo 死亡结算
           playGameScreen.drawCombatGains(killNum, damageNum, killerList)
           killerList = List.empty[String]
@@ -166,17 +168,6 @@ class PlayScreenController(
                 new HallScreenController(context, gameHallScreen, gameServerInfo, newPlayerInfo)
               }
           }
-
-        case GameState.relive =>
-
-          /**
-            * 在生命值之内死亡重玩，倒计时进入
-            **/
-          //        dom.window.cancelAnimationFrame(nextFrame)
-          //        Shortcut.cancelSchedule(timer)
-          animationTimer.stop()
-          playGameActor ! PlayGameActor.StopGameLoop
-          timeline.play()
 
         case _ => log.info(s"state=${gameState} failed")
       }
@@ -283,7 +274,9 @@ class PlayScreenController(
   /**
     * 此处处理消息*/
   def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
+    println(data.getClass)
     App.pushStack2AppThread{
+//      log.debug(s"${data.getClass}")
       data match {
         case e: TankGameEvent.YourInfo =>
           /**
@@ -313,9 +306,14 @@ class PlayScreenController(
           damageNum = e.damageStatistics
           killerList = killerList :+ e.name
           killerName = e.name
-          if(e.hasLife){
-            setGameState(GameState.relive)
-          } else setGameState(GameState.stop)
+//          animationTimer.stop()
+          playGameScreen.drawGameStop(killerName)
+          if(!e.hasLife){
+            setGameState(GameState.stop)
+          }else animationTimer.stop()
+
+        case e:TankGameEvent.TankReliveInfo =>
+          animationTimer.start()
 
         case e: TankGameEvent.Ranks =>
 
@@ -339,6 +337,7 @@ class PlayScreenController(
           } else {
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             logicFrameTime = System.currentTimeMillis()
+            //todo
             animationTimer.start()
             playGameActor ! PlayGameActor.StartGameLoop
             setGameState(GameState.play)
@@ -363,6 +362,8 @@ class PlayScreenController(
           playGameScreen.drawReplayMsg("存在异地登录。。")
           closeHolder
 
+        case _:TankGameEvent.DecodeError=>
+          log.info("hahahha")
         case _ =>
           log.info(s"unknow msg={sss}")
       }

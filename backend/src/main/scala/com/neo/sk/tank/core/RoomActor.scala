@@ -47,6 +47,7 @@ object RoomActor {
   case class ShotgunExpire(tId:Int) extends Command
   case class TankFillABullet(tId:Int) extends Command
   case class TankInvincible(tId:Int)extends  Command
+  case class TankRelive(userId:String, tankIdOpt:Option[Int],name:String) extends Command
 
 
   final case class SwitchBehavior(
@@ -77,7 +78,7 @@ object RoomActor {
             val subscribersMap = mutable.HashMap[String,ActorRef[UserActor.Command]]()
             val observersMap = mutable.HashMap[String,ActorRef[UserActor.Command]]()
             implicit val sendBuffer = new MiddleBufferInJvm(81920)
-            val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer, log,
+            val gameContainer = GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer,log,
               dispatch(subscribersMap,observersMap),
               dispatchTo(subscribersMap,observersMap)
             )
@@ -176,7 +177,7 @@ object RoomActor {
 
           }
 
-          if (tickCount % 20 == 5) {
+          if (tickCount % 200 == 5) {
             val state = gameContainer.getGameContainerState()
             dispatch(subscribersMap,observersMap)(TankGameEvent.SyncGameState(state))
           }
@@ -197,26 +198,23 @@ object RoomActor {
           }
           idle(roomId,Nil,userMap,subscribersMap, observersMap,gameContainer,tickCount+1)
 
-
-        case TankFillABullet(tId) =>
-          //          log.debug(s"${ctx.self.path} recv a msg=${msg}")
-          gameContainer.receiveGameEvent(TankGameEvent.TankFillBullet(tId,gameContainer.systemFrame))
-          Behaviors.same
-
-
         case ChildDead(name, childRef) =>
 //          log.debug(s"${ctx.self.path} recv a msg:${msg}")
           ctx.unwatch(childRef)
           Behaviors.same
 
 
-        case TankInvincible(tId) =>
-          gameContainer.receiveGameEvent(TankGameEvent.TankInvincible(tId,gameContainer.systemFrame))
+//        case TankInvincible(tId) =>
+//          gameContainer.receiveGameEvent(TankGameEvent.TankInvincible(tId,gameContainer.systemFrame))
+//          Behaviors.same
+
+        case TankRelive(userId,tankIdOpt,name) =>
+          gameContainer.handleTankRelive(userId,tankIdOpt,name)
           Behaviors.same
 
-        case ShotgunExpire(tId) =>
-          gameContainer.receiveGameEvent(TankGameEvent.TankShotgunExpire(tId,gameContainer.systemFrame))
-          Behaviors.same
+//        case ShotgunExpire(tId) =>
+//          gameContainer.receiveGameEvent(TankGameEvent.TankShotgunExpire(tId,gameContainer.systemFrame))
+//          Behaviors.same
 
 
         case _ =>

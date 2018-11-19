@@ -1,9 +1,9 @@
 package com.neo.sk.tank.front.pages
 
 import com.neo.sk.tank.front.common.Page
-import com.neo.sk.tank.front.tankClient.GameReplayHolderImpl
 import com.neo.sk.tank.front.utils.Shortcut
 import com.neo.sk.tank.front.model.ReplayInfo
+import com.neo.sk.tank.front.tankClient.control.GameReplayHolderImpl
 import mhtml.{Var, emptyHTML}
 
 import scala.xml.Elem

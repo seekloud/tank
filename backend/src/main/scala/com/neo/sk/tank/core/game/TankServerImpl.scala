@@ -14,8 +14,8 @@ import concurrent.duration._
   * Created by hongruying on 2018/8/29
   */
 case class TankServerImpl(
-                           roomActor:ActorRef[RoomActor.Command],
-                           timer:TimerScheduler[RoomActor.Command],
+                           fillBulletCallBack: Int => Unit,
+                           tankShotgunExpireCallBack:Int=> Unit,
                            config:TankGameConfig,
                            userId : String,
                            tankId : Int,
@@ -39,8 +39,8 @@ case class TankServerImpl(
                            protected var isMove: Boolean = false
                          ) extends Tank{
 
-  def this(roomActor:ActorRef[RoomActor.Command], timer:TimerScheduler[RoomActor.Command],config: TankGameConfig,tankState: TankState){
-    this(roomActor, timer, config,tankState.userId,tankState.tankId,tankState.name,tankState.blood,tankState.tankColorType,tankState.position,tankState.curBulletNum,tankState.lives,tankState.medicalNumOpt,
+  def this(config: TankGameConfig,tankState: TankState,fillBulletCallBack: Int => Unit, tankShotgunExpireCallBack:Int=> Unit){
+    this(fillBulletCallBack,tankShotgunExpireCallBack,config,tankState.userId,tankState.tankId,tankState.name,tankState.blood,tankState.tankColorType,tankState.position,tankState.curBulletNum,tankState.lives,tankState.medicalNumOpt,
       tankState.bloodLevel,tankState.speedLevel,tankState.bulletPowerLevel,tankState.direction,tankState.gunDirection,tankState.shotgunState,tankState.invincible,tankState.killTankNum,tankState.damageTank,tankState.speed,tankState.isMove)
   }
 
@@ -52,17 +52,13 @@ case class TankServerImpl(
 
 
   override def startFillBullet(): Unit = {
-    timer.startSingleTimer(s"TankFillABullet_${tankId}_${System.currentTimeMillis()}",
-      RoomActor.TankFillABullet(tankId),
-      config.fillBulletDuration.millis)
+    fillBulletCallBack(tankId)
   }
 
   override def eatProp(p: Prop)(implicit config: TankGameConfig): Unit = {
     super.eatProp(p)
     if(p.propType == 5){
-      timer.startSingleTimer(s"TankEatAShotgunProp_${tankId}",
-        RoomActor.ShotgunExpire(tankId),
-        config.shotgunDuration.second)
+      tankShotgunExpireCallBack(tankId)
     }
   }
 }
