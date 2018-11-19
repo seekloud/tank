@@ -18,7 +18,7 @@ object TankDemo extends Page{
 
   private val cannvas = <canvas id="GameView" tabindex="1"></canvas>
   private val audio_1 = <audio id="GameAudioForBgm" src="/tank/static/music/tank.mp3" loop="loop" preload="auto" style="display:none"></audio>
-  private val audio_2 = <audio id="GameAudioForDead" src="/tank/static/music/peng.mp3" preload="auto" style="display:none"></audio>
+  private val audio_2 = <audio id="GameAudioForDead" src="/tank/static/music/over.mp3" preload="auto" style="display:none"></audio>
   private val audio_3 = <audio id="GameAudioForBullet" src="/tank/static/music/bullet.mp3" preload="auto" style="display:none"></audio>
 //  private val audio_3 = <audio id="GameAudioForBullet" src="/tank/static/music/fail.mp3" preload="auto" style="display:none"></audio>
 //  private val can = cannvas.asInstanceOf[Canvas]
