@@ -401,7 +401,6 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
 
 
   def attackedDamage(d:Int):Unit = {
-    println(s"--------ffffff-----------------$d")
     if(!invincibleState) blood -= d
   }
 

@@ -38,9 +38,9 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
         Shortcut.cancelSchedule(timer)
         gameContainerOpt.foreach(_.drawDeadImg(s"玩家已经离开了房间，请重新选择观战对象"))
 
-      case e:TankGameEvent.TankReliveInfo =>
+//      case e:TankGameEvent.TankReliveInfo =>
 //        dom.window.cancelAnimationFrame(nextFrame)
-        nextFrame = dom.window.requestAnimationFrame(gameRender())
+//        nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case e:TankGameEvent.SyncGameAllState =>
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
@@ -65,6 +65,19 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
 
       case e:TankGameEvent.GameEvent =>
         e match {
+          case e:TankGameEvent.UserRelive =>
+            println(e.getClass)
+            gameContainerOpt.foreach(_.receiveGameEvent(e))
+            playerId match{
+              case Some(id) =>
+                if(id == e.userId){
+                  println(s"----------------")
+                  dom.window.cancelAnimationFrame(nextFrame)
+                  nextFrame = dom.window.requestAnimationFrame(gameRender())
+                }
+              case None =>
+            }
+
           case ee:TankGameEvent.GenerateBullet =>
             gameContainerOpt.foreach(_.receiveGameEvent(e))
           case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))

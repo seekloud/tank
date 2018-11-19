@@ -111,8 +111,10 @@ trait GameContainer extends KillInformation{
 
   protected def handleUserReliveEvent(e:UserRelive):Unit = {
     val t = e.tankState
-    tankMap.put(t.tankId,t)
-    quadTree.insert(t)
+    if(!tankMap.exists(_._1 == t.tankId)){
+      tankMap.put(t.tankId,t)
+      quadTree.insert(t)
+    }
   }
 
   protected def handleUserReliveNow() = {
