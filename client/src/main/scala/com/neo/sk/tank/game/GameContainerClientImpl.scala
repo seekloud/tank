@@ -116,6 +116,7 @@ case class GameContainerClientImpl(
 //          println(s"---------------------------------------------------------${tank}")
           val offset = canvasBoundary / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime)
 //          val t1=System.currentTimeMillis()
+          println("----drawBack---")
           drawBackground(offset)
           if(tank.cavasFrame >=1) {
             tank.cavasFrame += 1
