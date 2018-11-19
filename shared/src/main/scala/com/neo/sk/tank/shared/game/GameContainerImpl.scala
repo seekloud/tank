@@ -2,8 +2,10 @@ package com.neo.sk.tank.shared.game
 
 import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.TankGameConfig
+import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent._
+import com.neo.sk.tank.shared.util.canvas.{MiddleCanvas, MiddleContext, MiddleFrame}
 
 import scala.collection.mutable
 
@@ -17,8 +19,11 @@ class GameContainerImpl(
                          override val config: TankGameConfig,
                          myId:String,
                          myTankId:Int,
-                         myName:String
-                       ) extends GameContainer with EsRecover {
+                         myName:String,
+                         var canvasSize:Point,
+                         var canvasUnit:Int,
+                         val ctx:MiddleContext,
+                         ) extends GameContainer with EsRecover {
 
   import scala.language.implicitConversions
 

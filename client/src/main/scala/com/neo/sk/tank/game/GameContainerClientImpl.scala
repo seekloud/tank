@@ -31,10 +31,10 @@ case class GameContainerClientImpl(
                                     myId:String,
                                     myTankId:Int,
                                     myName:String,
-                                    canvasSize:Point,
-                                    var canvasUnit:Int,
+                                    override var canvasSize:Point,
+                                    override var canvasUnit:Int,
                                     setGameState:Int => Unit
-                                  ) extends GameContainerImpl(config, myId, myTankId, myName)
+                                  ) extends GameContainerImpl(config, myId, myTankId, myName, canvasSize,canvasUnit)
   with Background
   with ObstacleDrawUtil
   with PropDrawUtil
