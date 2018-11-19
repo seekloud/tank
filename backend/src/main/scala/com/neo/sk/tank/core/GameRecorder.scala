@@ -190,6 +190,20 @@ object GameRecorder {
       case (ctx,PostStop) =>
         timer.cancelAll()
         log.info(s"${ctx.self.path} stopping....")
+
+        val gameRecorderBuffer = gameRecordData.gameRecordBuffer
+        //保存剩余gameRecorderBuffer中数据
+        val rs = gameRecorderBuffer.reverse
+        rs.headOption.foreach{ e =>
+          recorder.writeFrame(e.event._1.fillMiddleBuffer(middleBuffer).result(),e.event._2.map(_.fillMiddleBuffer(middleBuffer).result()))
+          rs.tail.foreach{e =>
+            if(e.event._1.nonEmpty){
+              recorder.writeFrame(e.event._1.fillMiddleBuffer(middleBuffer).result())
+            }else{
+              recorder.writeEmptyFrame()
+            }
+          }
+        }
         val mapInfo = essfMap.map{
           essf=>
             if(essf._2.leftF == -1L){
@@ -232,6 +246,19 @@ object GameRecorder {
       msg match {
         case s:SaveDate =>
           log.info(s"${ctx.self.path} save get msg saveDate")
+          val gameRecorderBuffer = gameRecordData.gameRecordBuffer
+          //保存剩余gameRecorderBuffer中数据
+          val rs = gameRecorderBuffer.reverse
+          rs.headOption.foreach{ e =>
+            recorder.writeFrame(e.event._1.fillMiddleBuffer(middleBuffer).result(),e.event._2.map(_.fillMiddleBuffer(middleBuffer).result()))
+            rs.tail.foreach{e =>
+              if(e.event._1.nonEmpty){
+                recorder.writeFrame(e.event._1.fillMiddleBuffer(middleBuffer).result())
+              }else{
+                recorder.writeEmptyFrame()
+              }
+            }
+          }
           val mapInfo = essfMap.map{
             essf=>
               if(essf._2.leftF == -1L){
