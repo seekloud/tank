@@ -178,11 +178,11 @@ class PlayScreenController(
   }
 
   private def addUserActionListenEvent: Unit = {
-    playGameScreen.canvas.requestFocus()
+    playGameScreen.canvas.returnSelf.requestFocus()
     /**
       * 增加鼠标移动操作
       **/
-    playGameScreen.canvas.setOnMouseMoved{ e =>
+    playGameScreen.canvas.returnSelf.setOnMouseMoved{ e =>
       val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(16,16)
       val theta = point.getTheta(playGameScreen.canvasBoundary * playGameScreen.canvasUnit / 2).toFloat
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
@@ -197,7 +197,7 @@ class PlayScreenController(
     /**
       * 增加鼠标点击操作
       **/
-    playGameScreen.canvas.setOnMouseClicked{ e=>
+    playGameScreen.canvas.returnSelf.setOnMouseClicked{ e=>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         bulletMusic.play()
         val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
@@ -208,7 +208,7 @@ class PlayScreenController(
     /**
       * 增加按下按键操作
       **/
-    playGameScreen.canvas.setOnKeyPressed{ e =>
+    playGameScreen.canvas.returnSelf.setOnKeyPressed{ e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
@@ -253,7 +253,7 @@ class PlayScreenController(
     /**
       * 增加松开按键操作
       **/
-    playGameScreen.canvas.setOnKeyReleased { e =>
+    playGameScreen.canvas.returnSelf.setOnKeyReleased { e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode)) {
@@ -290,7 +290,7 @@ class PlayScreenController(
           try {
             gameMusic.play()
             println(s"=====${gameMusic.isPlaying}=======")
-            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
+            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.drawFrame,playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
             gameContainerOpt.get.getTankId(e.tankId)
             recvYourInfo = true
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))

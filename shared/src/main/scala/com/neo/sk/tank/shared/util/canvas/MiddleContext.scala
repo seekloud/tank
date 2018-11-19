@@ -4,13 +4,20 @@ package com.neo.sk.tank.shared.util.canvas
   * Created by sky
   * Date on 2018/11/18
   * Time at 下午10:41
+  * 合并框架中的ctx
   */
+
+/**
+  * 本文件为了统一JvavFx和Js，请注意以下:
+  * color：设置rgb或者rgba或者16进制
+  *
+  * */
 trait MiddleContext {
   def setGlobalAlpha(alpha: Double): Unit
 
   def setLineWidth(h: Double): Unit //设置线
 
-  def setStrokeStyle(s: String): Unit
+  def setStrokeStyle(c:String): Unit
 
   def arc(x: Double, y: Double, radius: Double, startAngle: Double,
           endAngle: Double): Unit
@@ -21,7 +28,7 @@ trait MiddleContext {
 
   def setFill(color: String): Unit
 
-  def drawImage(image: Any, offsetX: Double, offsetY: Double): Unit
+  def drawImage(image: Any, offsetX: Double, offsetY: Double, size:Option[(Double,Double)]=None): Unit
 
   def moveTo(x: Double, y: Double): Unit
 
@@ -37,13 +44,15 @@ trait MiddleContext {
 
   def fillText(text: String, x: Double, y: Double):Unit
 
-  def setFont(f:String):Unit
+  def setFont(f:String,fw:String,s:Double):Unit
 
   def setTextAlign(s:String)
 
   def setTextBaseline(s:String)
 
   def setLineCap(s:String)
+
+  def setLineJoin(s:String)
 
   def rect(x: Double, y: Double, w: Double, h: Double)
 

@@ -2,6 +2,7 @@ package com.neo.sk.tank.front.tankClient.control
 
 import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.tankClient.{NetworkInfo, WebSocketClient}
+import com.neo.sk.tank.front.utils.canvas.MiddleFrameInJs
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.model.{Constants, Point}
@@ -19,17 +20,18 @@ import org.scalajs.dom.raw.{Event, HTMLElement}
   * 需要构造参数，所以重构为抽象类
   */
 abstract class GameHolder(name:String) extends NetworkInfo{
-  protected val canvas = dom.document.getElementById(name).asInstanceOf[Canvas]
-  protected val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-
+  val drawFrame=new MiddleFrameInJs
   protected var canvasWidth = dom.window.innerWidth.toFloat
   protected var canvasHeight = dom.window.innerHeight.toFloat
+
+  protected val canvas = drawFrame.createCanvas(name,canvasWidth,canvasHeight)
+  protected val ctx = canvas.getCtx
 
 
   protected var canvasUnit = getCanvasUnit(canvasWidth)
   protected var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
-  canvas.width = canvasWidth.toInt
-  canvas.height = canvasHeight.toInt
+//  canvas.width = canvasWidth.toInt
+//  canvas.height = canvasHeight.toInt
 
   protected val audioForBgm = dom.document.getElementById("GameAudioForBgm").asInstanceOf[Audio]
   protected val audioForDead = dom.document.getElementById("GameAudioForDead").asInstanceOf[Audio]
@@ -100,8 +102,8 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       canvasUnit = getCanvasUnit(canvasWidth)
       canvasBoundary=Point(canvasWidth, canvasHeight) / canvasUnit
       println(s"update screen=${canvasUnit},=${(canvasWidth,canvasHeight)}")
-      canvas.width = canvasWidth.toInt
-      canvas.height = canvasHeight.toInt
+      canvas.setWidth(canvasWidth.toInt)
+      canvas.setHeight(canvasHeight.toInt)
       gameContainerOpt.foreach{r=>
         r.updateClientSize(canvasBoundary, canvasUnit)
       }
@@ -139,40 +141,40 @@ abstract class GameHolder(name:String) extends NetworkInfo{
   }
 
   protected def drawGameLoading():Unit = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    ctx.fillStyle = "rgb(250, 250, 250)"
-    ctx.textAlign = "left"
-    ctx.textBaseline = "top"
-    ctx.font = "36px Helvetica"
+    ctx.setFill("rgb(0,0,0)")
+    ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.setFill("rgb(250, 250, 250)")
+    ctx.setTextAlign("left")
+    ctx.setTextBaseline("top")
+    ctx.setFont(s"Helvetica","normal",3.6 * canvasUnit)
     ctx.fillText("请稍等，正在连接服务器", 150, 180)
   }
 
   protected def drawGameStop():Unit = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    ctx.fillStyle = "rgb(250, 250, 250)"
-    ctx.textAlign = "left"
-    ctx.textBaseline = "top"
-    ctx.font = s"${3.6 * canvasUnit}px Helvetica"
+    ctx.setFill("rgb(0,0,0)")
+    ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.setFill("rgb(250, 250, 250)")
+    ctx.setTextAlign("left")
+    ctx.setTextBaseline("top")
+    ctx.setFont(s"Helvetica","normal",3.6 * canvasUnit)
     ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀,等待倒计时进入游戏", 150, 180)
     println()
   }
 
   protected def drawReplayMsg(m:String):Unit = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    ctx.fillStyle = "rgb(250, 250, 250)"
-    ctx.textAlign = "left"
-    ctx.textBaseline = "top"
-    ctx.font = s"${3.6 * canvasUnit}px Helvetica"
+    ctx.setFill("rgb(0,0,0)")
+    ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.setFill("rgb(250, 250, 250)")
+    ctx.setTextAlign("left")
+    ctx.setTextBaseline("top")
+    ctx.setFont(s"Helvetica","normal",3.6 * canvasUnit)
     ctx.fillText(m, 150, 180)
     println()
   }
 
   protected def drawCombatGains(): Unit = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.setFill("rgb(0,0,0)")
+    ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     val combatGians = dom.document.getElementById("combat_gains").asInstanceOf[Div]
     val temp = killerList.map(r => s"<span>${r.take(3)}</span>")
     combatGians.innerHTML = s"<p>击杀数:<span>${killNum}</span></p>" +

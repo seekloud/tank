@@ -2,6 +2,7 @@ package com.neo.sk.tank.shared.game
 
 import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.TankGameConfig
+import com.neo.sk.tank.shared.game.view.Background
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent._
@@ -23,7 +24,9 @@ class GameContainerImpl(
                          var canvasSize:Point,
                          var canvasUnit:Int,
                          val ctx:MiddleContext,
-                         ) extends GameContainer with EsRecover {
+                         val drawFrame:MiddleFrame
+                         ) extends GameContainer with EsRecover
+with Background{
 
   import scala.language.implicitConversions
 
@@ -48,6 +51,15 @@ class GameContainerImpl(
   protected var waitSyncData:Boolean = true
 
   private val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
+
+  def updateClientSize(canvasSize:Point, cUnit:Int)={
+    canvasUnit = cUnit
+    updateBackSize(canvasSize)
+    //    updateBulletSize(canvasBoundary)
+    //    updateFpsSize(canvasBoundary)
+    //    updateObstacleSize(canvasBoundary)
+    //    updateTankSize(canvasBoundary)
+  }
 
 
   override def tankExecuteLaunchBulletAction(tankId: Int, tank: Tank): Unit = {
