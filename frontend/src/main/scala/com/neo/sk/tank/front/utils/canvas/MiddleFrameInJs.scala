@@ -8,5 +8,7 @@ import com.neo.sk.tank.shared.util.canvas.{MiddleCanvas, MiddleFrame, MiddleImag
 class MiddleFrameInJs extends MiddleFrame {
   override def createCanvas(width: Double, height: Double): MiddleCanvas = MiddleCanvasInJs(width,height)
 
+  def createCanvas(name:String,width: Double, height: Double) = MiddleCanvasInJs(name,width,height)
+
   override def createImage(url: String): MiddleImage = MiddleImageInJs(url)
 }

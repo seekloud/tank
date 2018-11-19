@@ -25,38 +25,21 @@ class MiddleCanvasInFx private() extends MiddleCanvas {
     canvas = new Canvas(width, height)
   }
 
-  private def getCtx = canvas.getGraphicsContext2D
+  def returnSelf=canvas
+
+  override def getCtx =  MiddleContextInFx(this)
 
   override def getWidth = canvas.getWidth
 
   override def getHeight = canvas.getHeight
 
-  override def setWidth(h: Int) = canvas.setWidth(h)
+  override def setWidth(h: Any) = canvas.setWidth(h.asInstanceOf[Double])
 
-  override def setHeight(h: Int) = canvas.setHeight(h)
-
-  override def setGlobalAlpha(alpha: Double): Unit = getCtx.setGlobalAlpha(alpha)
-
-  override def setLineWidth(h: Int) = getCtx.setLineWidth(h)
-
-  override def setStrokeStyle(s: String) = getCtx.setStroke(Color.web(s))
-
-  override def arc(x: Double, y: Double, radius: Double, startAngle: Double,
-                   endAngle: Double) = getCtx.arc(x, y, radius, radius, startAngle, endAngle)
-
-  override def fill = getCtx.fill()
-
-  override def closePath = getCtx.closePath()
-
-  override def setFill(color: String) = getCtx.setFill(Color.web(color))
+  override def setHeight(h: Any) = canvas.setHeight(h.asInstanceOf[Double])
 
   override def change2Image = {
     val params = new SnapshotParameters
     params.setFill(Color.TRANSPARENT)
     canvas.snapshot(params, null)
   }
-
-  override def drawImage(image: Any, offsetX: Double, offsetY: Double) = getCtx.drawImage(image.asInstanceOf[Image], offsetX, offsetY)
-
-  override def moveTo(x: Int, y: Int): Unit = getCtx.moveTo(x, y)
 }

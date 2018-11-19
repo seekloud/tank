@@ -71,7 +71,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   private def start(name:String,roomIdOpt:Option[Long]):Unit = {
-    canvas.focus()
+    canvas.returnSelf.focus()
     if(firstCome){
       firstCome = false
       addUserActionListenEvent()
@@ -96,8 +96,8 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   private def addUserActionListenEvent():Unit = {
-    canvas.focus()
-    canvas.onmousemove = { e: dom.MouseEvent =>
+    canvas.returnSelf.focus()
+    canvas.returnSelf.onmousemove = { e: dom.MouseEvent =>
       val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(16,16)
       val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
@@ -110,7 +110,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         }
       }
     }
-    canvas.onclick = { e: MouseEvent =>
+    canvas.returnSelf.onclick = { e: MouseEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
@@ -119,7 +119,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       }
     }
 
-    canvas.onkeydown = { e: dom.KeyboardEvent =>
+    canvas.returnSelf.onkeydown = { e: dom.KeyboardEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         /**
           * 增加按键操作
@@ -169,7 +169,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       }
     }
 
-    canvas.onkeyup = { e: dom.KeyboardEvent =>
+    canvas.returnSelf.onkeyup = { e: dom.KeyboardEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.keyCode)
         if (watchKeys.contains(keyCode)) {
@@ -220,7 +220,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         /**
           * 更新游戏数据
           * */
-        gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
 
       case e:TankGameEvent.YouAreKilled =>

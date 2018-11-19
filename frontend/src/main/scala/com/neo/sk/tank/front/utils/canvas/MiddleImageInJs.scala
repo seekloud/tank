@@ -1,6 +1,8 @@
 package com.neo.sk.tank.front.utils.canvas
 
 import com.neo.sk.tank.shared.util.canvas.MiddleImage
+import javafx.scene.SnapshotParameters
+import javafx.scene.paint.Color
 import org.scalajs.dom.html.Image
 import org.scalajs.dom
 import org.scalajs.dom.html

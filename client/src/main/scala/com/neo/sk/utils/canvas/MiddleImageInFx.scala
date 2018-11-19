@@ -8,7 +8,7 @@ import javafx.scene.image.Image
   * Time at 下午4:51
   */
 object MiddleImageInFx{
-  def apply(url: String): MiddleImageInFx = new MiddleImageInFx()(url)
+  def apply(url: String): MiddleImageInFx = new MiddleImageInFx(url)
 }
 class MiddleImageInFx extends MiddleImage {
   private[this] var canvas: Image = _

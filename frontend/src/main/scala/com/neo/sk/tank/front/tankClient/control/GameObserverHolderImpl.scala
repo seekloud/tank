@@ -21,7 +21,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
   }
 
   def watchGame() = {
-    canvas.focus()
+    canvas.returnSelf.focus()
     webSocketClient.setup(Routes.getWsSocketUri(roomId, accessCode, playerId))
   }
 
@@ -30,7 +30,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
     data match {
       case e:TankGameEvent.YourInfo =>
         //        setGameState(Constants.GameState.loadingPlay)
-        gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, true))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, true))
         gameContainerOpt.get.getTankId(e.tankId)
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
 

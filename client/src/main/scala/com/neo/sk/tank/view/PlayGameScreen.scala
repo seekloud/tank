@@ -8,6 +8,7 @@ import javafx.scene.canvas.GraphicsContext
 import javafx.scene.canvas.Canvas
 import javafx.scene.image.Image
 import com.neo.sk.utils.JavaFxUtil.getCanvasUnit
+import com.neo.sk.utils.canvas.{MiddleContextInFx, MiddleFrameInFx}
 import javafx.animation.{Animation, KeyFrame, Timeline}
 import javafx.scene.ImageCursor
 import javafx.scene.paint.Color
@@ -31,9 +32,11 @@ class PlayGameScreen(context: Context) {
   protected var canvasHeight = screen.getMaxY.toFloat
   var canvasUnit = getCanvasUnit(canvasWidth)
   var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
-  val canvas = new Canvas()
-  canvas.setHeight(canvasHeight)
-  canvas.setWidth(canvasWidth)
+  val drawFrame=new MiddleFrameInFx
+
+  val canvas = drawFrame.createCanvas(canvasWidth,canvasHeight)
+//  canvas.setHeight(canvasHeight)
+//  canvas.setWidth(canvasWidth)
   val group = new Group()
   val scene = new Scene(group)
 //  var listener : CanvasListener = _
@@ -59,9 +62,9 @@ class PlayGameScreen(context: Context) {
 
   def getScene():Scene = scene
 
-  def getCanvasContext: GraphicsContext = canvas.getGraphicsContext2D
+  def getCanvasContext = canvas.getCtx
 
-  group.getChildren.add(canvas)
+  group.getChildren.add(canvas.returnSelf)
 
   def checkScreenSize() = {
     val newCanvasWidth = context.getStageWidth.toFloat
@@ -79,50 +82,50 @@ class PlayGameScreen(context: Context) {
   }
 
   def drawGameLoading():Unit = {
-    getCanvasContext.setFill(Color.web("#006699"))
-    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    getCanvasContext.setTextAlign(TextAlignment.CENTER)
-    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
-    getCanvasContext.setFill(Color.BLACK)
+    getCanvasContext.setFill("#006699")
+    getCanvasContext.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    getCanvasContext.setTextAlign("center")
+    getCanvasContext.setFont("楷体", "normal", 5 * canvasUnit)
+    getCanvasContext.setFill("rgb(0,0,0)")
     getCanvasContext.fillText("请稍等，正在连接服务器", 300, 180)
   }
 
   def drawGameStop(killerName:String):Unit = {
-    getCanvasContext.setFill(Color.web("#006699"))
-    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    getCanvasContext.setTextAlign(TextAlignment.CENTER)
-    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
-    getCanvasContext.setFill(Color.BLACK)
+    getCanvasContext.setFill("#006699")
+    getCanvasContext.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    getCanvasContext.setTextAlign("center")
+    getCanvasContext.setFont("楷体", "normal", 5 * canvasUnit)
+    getCanvasContext.setFill("rgb(0,0,0)")
     getCanvasContext.fillText(s"您已经死亡,被玩家=${killerName}所杀", 300, 180)
   }
 
   def drawReplayMsg(m:String):Unit = {
-    getCanvasContext.setFill(Color.web("#006699"))
-    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    getCanvasContext.setTextAlign(TextAlignment.CENTER)
-    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
-    getCanvasContext.setFill(Color.BLACK)
+    getCanvasContext.setFill("#006699")
+    getCanvasContext.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    getCanvasContext.setTextAlign("center")
+    getCanvasContext.setFont("楷体", "normal", 5 * canvasUnit)
+    getCanvasContext.setFill("rgb(0,0,0)")
     getCanvasContext.fillText(m, 300, 180)
   }
 
   def drawGameRestart(countDownTimes:Int,killerName:String): Unit = {
-    getCanvasContext.setFill(Color.web("#006699"))
-    getCanvasContext.setTextAlign(TextAlignment.CENTER)
-    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
-    getCanvasContext.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    getCanvasContext.setFill(Color.BLACK)
+    getCanvasContext.setFill("#006699")
+    getCanvasContext.setTextAlign("center")
+    getCanvasContext.setFont("楷体", "normal", 5 * canvasUnit)
+    getCanvasContext.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    getCanvasContext.setFill("rgb(0,0,0)")
     getCanvasContext.fillText(s"重新进入房间，倒计时：${countDownTimes}", 300, 100)
     getCanvasContext.fillText(s"您已经死亡,被玩家=${killerName}所杀", 300, 180)
   }
 
   def drawCombatGains(killNum:Int, damageNum:Int, killerList:List[String]):Unit = {
-    getCanvasContext.setFont(Font.font("楷体", FontWeight.NORMAL, 5 * canvasUnit))
-    getCanvasContext.setFill(Color.BLACK)
-    getCanvasContext.setTextAlign(TextAlignment.LEFT)
+    getCanvasContext.setFont("楷体", "normal", 5 * canvasUnit)
+    getCanvasContext.setFill("rgb(0,0,0)")
+    getCanvasContext.setTextAlign("left")
     getCanvasContext.fillText(s"击杀者：", 500, 300)
     getCanvasContext.fillText(s"伤害量：", 500, 350)
     getCanvasContext.fillText(s"击杀者ID：", 500, 400)
-    getCanvasContext.setFill(Color.RED)
+    getCanvasContext.setFill("rgb(255,0,0)")
     getCanvasContext.fillText(s"${killNum}", 650, 300)
     getCanvasContext.fillText(s"${damageNum}", 650, 350)
     var pos = 700

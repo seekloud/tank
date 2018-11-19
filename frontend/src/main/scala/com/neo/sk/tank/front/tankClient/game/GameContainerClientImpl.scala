@@ -1,7 +1,8 @@
 package com.neo.sk.tank.front.tankClient.game
 
-import com.neo.sk.tank.front.tankClient.view._
+//import com.neo.sk.tank.front.tankClient.view._
 import com.neo.sk.tank.front.utils.Shortcut
+import com.neo.sk.tank.front.utils.canvas.{MiddleContextInJs, MiddleFrameInJs}
 import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.config.TankGameConfig
 import com.neo.sk.tank.shared.game.{GameContainerImpl, TankClientImpl}
@@ -18,23 +19,18 @@ import scala.collection.mutable
   * Created by hongruying on 2018/8/29
   */
 case class GameContainerClientImpl(
-                                    ctx:dom.CanvasRenderingContext2D,
+                                    override val drawFrame:MiddleFrameInJs,
+                                    override val ctx:MiddleContextInJs,
                                     override val config:TankGameConfig,
                                     myId:String,
                                     myTankId:Int,
                                     myName:String,
-                                    canvasSize:Point,
-                                    var canvasUnit:Int,
+                                    canvasS:Point,
+                                    canvasU:Int,
                                     setGameState:Int => Unit,
                                     isObserve: Boolean = false,
                                     setKillCallback: (String, Boolean, Int, Int) => Unit = {(_,_,_,_) =>} // killerName, live, killTankNum, damage
-                                  ) extends GameContainerImpl(config,myId,myTankId,myName,canvasSize,canvasUnit)
-  with Background
-  with ObstacleDrawUtil
-  with PropDrawUtil
-  with TankDrawUtil
-  with FpsComponents
-  with BulletDrawUtil{
+                                  ) extends GameContainerImpl(config,myId,myTankId,myName,canvasS,canvasU,ctx,drawFrame){
 
 
   private var renderTime:Long = 0
@@ -57,16 +53,6 @@ case class GameContainerClientImpl(
   protected val tankDestroyAnimationMap = mutable.HashMap[Int,Int]() //prop ->
 
   private var canvasBoundary=canvasSize
-
-  def updateClientSize(canvasSize:Point, cUnit:Int)={
-    canvasBoundary=canvasSize
-    canvasUnit = cUnit
-    updateBackSize(canvasBoundary)
-    updateBulletSize(canvasBoundary)
-    updateFpsSize(canvasBoundary)
-    updateObstacleSize(canvasBoundary)
-    updateTankSize(canvasBoundary)
-  }
 
 
   override protected def handleObstacleAttacked(e: ObstacleAttacked): Unit = {
@@ -106,25 +92,25 @@ case class GameContainerClientImpl(
     val w = dom.window.innerWidth.toFloat
     val startTime = System.currentTimeMillis()
     if(!waitSyncData){
-      ctx.lineCap = "round"
-      ctx.lineJoin = "round"
+      ctx.setLineCap("round")
+      ctx.setLineJoin("round")
       tankMap.get(tId) match {
         case Some(tank) =>
           val offset = canvasBoundary / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime)
           drawBackground(offset)
-          drawObstacles(offset,Point(w,h))
-          drawEnvironment(offset,Point(w,h))
-          drawProps(offset,Point(w,h))
-          drawBullet(offset,offsetTime, Point(w,h))
-          drawTank(offset,offsetTime,Point(w,h))
-          drawObstacleBloodSlider(offset)
-          drawMyTankInfo(tank.asInstanceOf[TankClientImpl])
-          drawMinimap(tank)
-          drawRank()
-          renderFps(networkLatency)
-          drawKillInformation()
-          drawRoomNumber()
-          drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
+//          drawObstacles(offset,Point(w,h))
+//          drawEnvironment(offset,Point(w,h))
+//          drawProps(offset,Point(w,h))
+//          drawBullet(offset,offsetTime, Point(w,h))
+//          drawTank(offset,offsetTime,Point(w,h))
+//          drawObstacleBloodSlider(offset)
+//          drawMyTankInfo(tank.asInstanceOf[TankClientImpl])
+//          drawMinimap(tank)
+//          drawRank()
+//          renderFps(networkLatency)
+//          drawKillInformation()
+//          drawRoomNumber()
+//          drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
 
           if(tank.cavasFrame >=1) {
             tank.cavasFrame += 1
@@ -144,12 +130,12 @@ case class GameContainerClientImpl(
   }
 
   def drawDeadImg(s:String) = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    ctx.fillStyle = "rgb(250, 250, 250)"
-    ctx.textAlign = "left"
-    ctx.textBaseline = "top"
-    ctx.font = "36px Helvetica"
+    ctx.setFill("rgb(0,0,0)")
+    ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.setFill("rgb(250, 250, 250)")
+    ctx.setTextAlign("left")
+    ctx.setTextBaseline("top")
+    ctx.setFont("Helvetica","normal",36)
     ctx.fillText(s"$s", 150, 180)
   }
 

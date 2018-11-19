@@ -13,9 +13,9 @@ import scala.collection.mutable
   */
 trait Background{ this:GameContainerImpl =>
 
-  val drawFrame:MiddleFrame
+//  implicit val drawFrame:MiddleFrame
   //fixme 将此处map暴露给子类
-  private val cacheCanvasMap = mutable.HashMap.empty[String, MiddleCanvas]
+  private val cacheCanvasMap = mutable.HashMap.empty[String, Any]
   private var canvasBoundary:Point=canvasSize
 
   private val rankWidth = 26
@@ -49,14 +49,13 @@ trait Background{ this:GameContainerImpl =>
 
 
   private def generateBackgroundCanvas() = {
-    val blackBackground = "rgba(0, 0, 0 ,0.05)"
     val cacheCanvas = drawFrame.createCanvas(((boundary.x + canvasBoundary.x) * canvasUnit).toInt,((boundary.y + canvasBoundary.y) * canvasUnit).toInt)
     val cacheCanvasCtx=cacheCanvas.getCtx
     clearScreen("#BEBEBE", 1, boundary.x + canvasBoundary.x, boundary.y + canvasBoundary.y, cacheCanvasCtx)
     clearScreen("#E8E8E8",1, boundary.x, boundary.y, cacheCanvas.getCtx, canvasBoundary / 2)
 
     cacheCanvasCtx.setLineWidth(1)
-    cacheCanvasCtx.setStrokeStyle(blackBackground)
+    cacheCanvasCtx.setStrokeStyle("rgba(0,0,0,0.5)")
     for(i <- 0  to((boundary.x + canvasBoundary.x).toInt,2)){
       drawLine(Point(i,0), Point(i, boundary.y + canvasBoundary.y), cacheCanvasCtx)
     }
@@ -64,7 +63,7 @@ trait Background{ this:GameContainerImpl =>
     for(i <- 0  to((boundary.y + canvasBoundary.y).toInt,2)){
       drawLine(Point(0 ,i), Point(boundary.x + canvasBoundary.x, i), cacheCanvasCtx)
     }
-    cacheCanvas
+    cacheCanvas.change2Image()
   }
 
 
@@ -84,69 +83,86 @@ trait Background{ this:GameContainerImpl =>
   }
 
 
-
-  protected def drawBackground(offset:Point) = {
-    clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, ctx)
-    val boundStart = Point(canvasBoundary.x/2, canvasBoundary.y/2)
-    val boundEnd = Point(canvasBoundary.x/2 + boundary.x, canvasBoundary.y/2 + boundary.y)
-    val canvasStart = Point(-offset.x + canvasBoundary.x/2, -offset.y + canvasBoundary.y/2)
-    val canvasEnd = Point(-offset.x + canvasBoundary.x/2 * 3, -offset.y + canvasBoundary.y/2 * 3)
-    val start = Point(math.max(boundStart.x, canvasStart.x), math.max(boundStart.y, canvasStart.y))
-    val end = Point(math.min(boundEnd.x, canvasEnd.x), math.min(boundEnd.y, canvasEnd.y))
-    val width = end.x - start.x
-    val height = end.y - start.y
-    if(canvasStart.x < boundStart.x && canvasStart.y > boundStart.y){
-      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, 0))
-    }
-    else if(canvasStart.x > boundStart.x && canvasStart.y < boundStart.y){
-      clearScreen("#E8E8E8", 1, width, height, ctx, Point(0, canvasBoundary.y - height))
-    }
-    else if(canvasStart.x < boundStart.x && canvasStart.y < boundStart.y){
-      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, canvasBoundary.y - height))
-    }
-    else{
-      clearScreen("#E8E8E8", 1, width, height, ctx)
-    }
-    ctx.setLineWidth(3)
-    ctx.setStrokeStyle("")
-
-    for(i <- (64 - canvasStart.x % 64) to canvasBoundary.x by 64f){
-      drawLine(Point(i,0), Point(i, canvasBoundary.y), ctx)
-    }
-    for(i <- (64 - canvasStart.y % 64) to canvasBoundary.y by 64f){
-      drawLine(Point(0, i), Point(canvasBoundary.x, i), ctx)
+    protected def drawBackground(offset:Point) = {
+      println("---drawBackground")
+      clearScreen("#FCFCFC",1,canvasBoundary.x,canvasBoundary.y,ctx)
+  //    ctx.lineWidth = 1
+  //    ctx.fillStyle = Color.Black.toString()
+  //    ctx.strokeStyle = Color.Black.toString()
+  //    for(i <- 0 to(boundary.x.toInt,3)){
+  //      drawLine(Point(i,0) + offset, Point(i, boundary.y) + offset)
+  //    }
+  //
+  //    for(i <- 0 to(boundary.y.toInt,3)){
+  //      drawLine(Point(0,i) + offset, Point(boundary.x, i) + offset)
+  //    }
+      val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background",generateBackgroundCanvas())
+      ctx.drawImage(cacheCanvas,(-offset.x + canvasBoundary.x/2) * canvasUnit,( -offset.y+canvasBoundary.y/2 )* canvasUnit,
+        Some(canvasBoundary.x * canvasUnit,canvasBoundary.y * canvasUnit))
     }
 
-  }
+//  protected def drawBackground(offset:Point) = {
+//    clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, ctx)
+//    val boundStart = Point(canvasBoundary.x/2, canvasBoundary.y/2)
+//    val boundEnd = Point(canvasBoundary.x/2 + boundary.x, canvasBoundary.y/2 + boundary.y)
+//    val canvasStart = Point(-offset.x + canvasBoundary.x/2, -offset.y + canvasBoundary.y/2)
+//    val canvasEnd = Point(-offset.x + canvasBoundary.x/2 * 3, -offset.y + canvasBoundary.y/2 * 3)
+//    val start = Point(math.max(boundStart.x, canvasStart.x), math.max(boundStart.y, canvasStart.y))
+//    val end = Point(math.min(boundEnd.x, canvasEnd.x), math.min(boundEnd.y, canvasEnd.y))
+//    val width = end.x - start.x
+//    val height = end.y - start.y
+//    if(canvasStart.x < boundStart.x && canvasStart.y > boundStart.y){
+//      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, 0))
+//    }
+//    else if(canvasStart.x > boundStart.x && canvasStart.y < boundStart.y){
+//      clearScreen("#E8E8E8", 1, width, height, ctx, Point(0, canvasBoundary.y - height))
+//    }
+//    else if(canvasStart.x < boundStart.x && canvasStart.y < boundStart.y){
+//      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, canvasBoundary.y - height))
+//    }
+//    else{
+//      clearScreen("#E8E8E8", 1, width, height, ctx)
+//    }
+//    ctx.setLineWidth(3)
+//    ctx.setStrokeStyle("rgba(0,0,0,0.05)")
+//
+//    for(i <- (64 - canvasStart.x % 64) to canvasBoundary.x by 64f){
+//      drawLine(Point(i,0), Point(i, canvasBoundary.y), ctx)
+//    }
+//    for(i <- (64 - canvasStart.y % 64) to canvasBoundary.y by 64f){
+//      drawLine(Point(0, i), Point(canvasBoundary.x, i), ctx)
+//    }
+//
+//  }
 
   protected def drawRank():Unit = {
     def drawTextLine(str: String, x: Double, y: Double, context:MiddleContext) = {
       context.fillText(str, x, y)
     }
 
-    def refreshCacheCanvas(middleCanvas:MiddleContext, header: String, rank: List[Score],historyRank:Boolean): Unit ={
+    def refreshCacheCanvas(context:MiddleContext, header: String, rank: List[Score], historyRank:Boolean): Unit ={
       //绘制当前排行榜
       val unit = currentRankCanvas.getWidth() / rankWidth
 
       println(s"rank =${historyRankCanvas.getWidth()}, canvasUnit=${canvasUnit}, unit=${unit}")
 
       val leftBegin = 4 * unit
-      middleCanvas.setFont(s"bold ${12}px Arial")
-      middleCanvas.clearRect(0,0,currentRankCanvas.getWidth(), currentRankCanvas.getHeight())
+      context.setFont("Arial","bold",12)
+      context.clearRect(0,0,currentRankCanvas.getWidth(), currentRankCanvas.getHeight())
 
       var index = 0
-      middleCanvas.setFill("black")
-      middleCanvas.setTextAlign("center")
+      context.setFill("black")
+      context.setTextAlign("center")
       minimapCanvas.getCtx.setTextBaseline("middle")
-      middleCanvas.setLineCap("round")
-      drawTextLine(header, currentRankCanvas.getWidth() / 2 , 1 * unit, middleCanvas)
+      context.setLineCap("round")
+      drawTextLine(header, currentRankCanvas.getWidth() / 2 , 1 * unit, context)
       rank.foreach{ score =>
         index += 1
         val drawColor = index match {
-          case 1 => "#FFD700"
-          case 2 => "#D1D1D1"
-          case 3 => "#8B5A00"
-          case _ => "#CAE1FF"
+          case 1 => "rgb(255,215,0)"
+          case 2 => "rgb(209,209,209)"
+          case 3 => "rgb(139,90,0)"
+          case _ => "rgb(202,225,255)"
         }
         val imgOpt = index match {
           case 1 => Some(goldImg)
@@ -155,16 +171,16 @@ trait Background{ this:GameContainerImpl =>
           case _ => None
         }
         imgOpt.foreach{ img =>
-          middleCanvas.drawImage(img, leftBegin - 4 * unit, (2 * index) * unit, 2 * unit, 2 * unit)
+          context.drawImage(img, leftBegin - 4 * unit, (2 * index) * unit, Some(2 * unit,2 * unit))
         }
-        middleCanvas.setStrokeStyle(drawColor)
-        middleCanvas.setLineWidth(1.8 * unit)
-        middleCanvas.beginPath()
-        middleCanvas.moveTo(leftBegin,(2 * index + 1) * unit)
-        middleCanvas.lineTo((rankWidth - 2) * unit,(2 * index + 1) * unit)
-        middleCanvas.stroke()
-        middleCanvas.closePath()
-        middleCanvas.setTextAlign("start")
+        context.setStrokeStyle(drawColor)
+        context.setLineWidth(1.8 * unit)
+        context.beginPath()
+        context.moveTo(leftBegin,(2 * index + 1) * unit)
+        context.lineTo((rankWidth - 2) * unit,(2 * index + 1) * unit)
+        context.stroke()
+        context.closePath()
+        context.setTextAlign("start")
         if(historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, (2 * index + 1) * unit, context)
         else drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d} lives=${score.l}", leftBegin, (2 * index + 1) * unit, context)
       }
@@ -203,15 +219,15 @@ trait Background{ this:GameContainerImpl =>
 
 
     def refreshMinimap():Unit = {
+      //todo 转换为RGB颜色
       val mapColor = "rgba(255,245,238,0.5)"
       val myself = "#000080"
       val otherTankColor = "#CD5C5C"
-      val bolderColor = "#8F8F8F"
 
       minimapCanvasCtx.clearRect(0, 0, minimapCanvas.getWidth(), minimapCanvas.getHeight())
       minimapCanvasCtx.setFill(mapColor)
       minimapCanvasCtx.fillRec(3, 3, LittleMap.w * canvasUnit ,LittleMap.h * canvasUnit)
-      minimapCanvasCtx.setStrokeStyle(bolderColor)
+      minimapCanvasCtx.setStrokeStyle("rgb(143,143,143)")
       minimapCanvasCtx.setLineWidth(6)
       minimapCanvasCtx.beginPath()
       minimapCanvasCtx.setFill(mapColor)
@@ -241,9 +257,9 @@ trait Background{ this:GameContainerImpl =>
     if(killInfoList.nonEmpty){
       var offsetY = canvasBoundary.y - 30
       ctx.beginPath()
-      ctx.setStrokeStyle("black")
+      ctx.setStrokeStyle("ragb(0,0,0)")
       ctx.setTextAlign("start")
-      ctx.setFont(s"bold ${2.5 * canvasUnit}px 微软雅黑")
+      ctx.setFont("微软雅黑","blod",2.5*canvasUnit)
       ctx.setLineWidth(1)
 
       killInfoList.foreach{
@@ -259,9 +275,9 @@ trait Background{ this:GameContainerImpl =>
   protected def drawRoomNumber():Unit = {
 
     ctx.beginPath()
-    ctx.setStrokeStyle("black")
+    ctx.setStrokeStyle("rgb(0,0,0)")
     ctx.setTextAlign("left")
-    ctx.setFont(s" ${3 * canvasUnit}px Arial")
+    ctx.setFont("Arial","normal",3*canvasUnit)
     ctx.setLineWidth(1)
     val offsetX = canvasBoundary.x - 20
 
