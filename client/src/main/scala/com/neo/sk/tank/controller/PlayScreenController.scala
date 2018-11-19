@@ -298,7 +298,7 @@ class PlayScreenController(
             case e:Exception=>
               closeHolder
               println(e.getMessage)
-              print("client is stop!!!")
+              println("client is stop!!!")
           }
 
 

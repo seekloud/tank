@@ -5,7 +5,7 @@ import javafx.geometry.VPos
 import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.scene.canvas.GraphicsContext
-import javafx.scene.shape.StrokeLineCap
+import javafx.scene.shape.{StrokeLineCap, StrokeLineJoin}
 import javafx.scene.text.{Font, FontWeight, TextAlignment}
 
 /**
@@ -16,6 +16,7 @@ import javafx.scene.text.{Font, FontWeight, TextAlignment}
 object MiddleContextInFx {
   def apply(canvas:MiddleCanvasInFx): MiddleContextInFx = new MiddleContextInFx(canvas)
 
+  //todo 匹配所有情况
   def string2FontWeight(s:String):FontWeight={
     s match {
       case "blod" => FontWeight.BOLD
@@ -38,7 +39,7 @@ object MiddleContextInFx {
       case "middle"=>VPos.CENTER
       case "top"=>VPos.TOP
       case "center"=>VPos.CENTER
-      case "bottom"=>VPos.
+      case "bottom"=>VPos.BOTTOM
       case _ => VPos.CENTER //设置默认值
     }
   }
@@ -50,7 +51,12 @@ object MiddleContextInFx {
     }
   }
 
-  implicit def string2
+  implicit def string2StrokeLineJoin(s:String):StrokeLineJoin={
+    s match {
+      case "round"=> StrokeLineJoin.ROUND
+      case _ => StrokeLineJoin.ROUND
+    }
+  }
 }
 
 class MiddleContextInFx extends MiddleContext{
