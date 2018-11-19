@@ -8,13 +8,14 @@ import com.neo.sk.tank.shared.model.Point
   * Created by hongruying on 2018/7/8
   * 子弹
   */
-case class BulletState(bId:Int,tankId:Int,position:Point,damage:Int,startPosition:Point,createTime:Long, name:String, direction:Float)
+case class BulletState(bId:Int,tankId:Int,position:Point,damage:Int,startPosition:Point,tankMomentum:Point,createTime:Long, name:String, direction:Float)
 
 case class Bullet(
                  config:TankGameConfig,
                  override protected var position: Point,
                  damage:Int, //威力
                  startPosition: model.Point, //起始位置
+                 tankMomentum:Point,
                  createTime:Long,
                  bId:Int,
                  tankId:Int,
@@ -23,7 +24,7 @@ case class Bullet(
                  ) extends CircleObjectOfGame{
 
   def this(config:TankGameConfig, bulletState: BulletState){
-    this(config,bulletState.position,bulletState.damage,bulletState.startPosition,bulletState.createTime,bulletState.bId,bulletState.tankId,bulletState.name,bulletState.direction)
+    this(config,bulletState.position,bulletState.damage,bulletState.startPosition,bulletState.tankMomentum,bulletState.createTime,bulletState.bId,bulletState.tankId,bulletState.name,bulletState.direction)
   }
 
 
@@ -43,7 +44,7 @@ case class Bullet(
 
 
   def getBulletState(): BulletState = {
-    BulletState(bId,tankId,position,damage,startPosition,createTime,tankName,direction)
+    BulletState(bId,tankId,position,damage,startPosition,tankMomentum,createTime,tankName,direction)
   }
 
 
@@ -65,7 +66,7 @@ case class Bullet(
     if(isFlyEnd(boundary)){
       flyEndCallBack(this)
     } else{
-      this.position = this.position + momentum
+      this.position = this.position + momentum + tankMomentum.rotate(this.direction)
     }
 
 
@@ -80,7 +81,7 @@ case class Bullet(
 
 
   def getPosition4Animation(offsetTime:Long) = {
-    this.position + momentum / config.frameDuration * offsetTime
+    this.position + (momentum + tankMomentum.rotate(this.direction)) / config.frameDuration * offsetTime
   }
 
   def getBulletLevel() = {

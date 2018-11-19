@@ -168,12 +168,16 @@ object GameRecorder {
         case Save =>
           log.info(s"${ctx.self.path} work get msg save")
           timer.startSingleTimer(SaveDateKey, Save, saveTime)
-          ctx.self ! SaveDate(0)
+          if(userAllMap.nonEmpty){
+            ctx.self ! SaveDate(0)
+          }
           switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
 
         case RoomClose =>
           log.info(s"${ctx.self.path} work get msg save, room close")
-          ctx.self ! SaveDate(1)
+          if(userAllMap.nonEmpty){
+            ctx.self ! SaveDate(1)
+          }
           switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
 
         case unknow =>
@@ -224,6 +228,7 @@ object GameRecorder {
     import gameRecordData._
     Behaviors.receive{(ctx,msg) =>
       msg match {
+          //fixme 这里存储文件的时候，gameRecordData的buffer数据没存，导致数据丢失
         case s:SaveDate =>
           log.info(s"${ctx.self.path} save get msg saveDate")
           val mapInfo = essfMap.map{

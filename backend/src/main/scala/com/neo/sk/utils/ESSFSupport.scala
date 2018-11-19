@@ -4,15 +4,14 @@ import java.io.File
 
 import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.protocol.ReplayProtocol.{EssfMapInfo, EssfMapJoinLeftInfo, EssfMapKey}
-
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameEvent, GameInformation, SyncGameAllState, UserActionEvent}
-
 import org.seekloud.byteobject.{MiddleBuffer, MiddleBufferInJvm}
 import org.seekloud.essf.io.{FrameData, FrameInputStream, FrameOutputStream}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
+import scala.concurrent.Future
 /**
   * User: sky
   * Date: 2018/10/11
@@ -105,19 +104,25 @@ object ESSFSupport {
 
 
 
-  def readData(input: FrameInputStream)= {
+  def readData(input: FrameInputStream, i : Int = 0)= {
     val info=input.init()
     val a=metaDataDecode(info.simulatorMetadata)
-    println(a)
-    println(input.getMutableInfo(AppSettings.essfMapKeyName))
-    println(userMapDecode(input.getMutableInfo(AppSettings.essfMapKeyName).get))
+//    println(a)
+//    println(input.getMutableInfo(AppSettings.essfMapKeyName))
+//    println(userMapDecode(input.getMutableInfo(AppSettings.essfMapKeyName).get))
+    println(s"all frame=${info.frameCount}")
     while (input.hasMoreFrame) {
       input.readFrame() match {
         case Some(FrameData(idx, ev, stOp)) =>
-          replayEventDecode(ev)
+          val event = replayEventDecode(ev)
           stOp.foreach{r=>
             replayStateDecode(r)
           }
+          val len = if(event.isInstanceOf[TankGameEvent.EventData]){
+            event.asInstanceOf[TankGameEvent.EventData].list.length
+          } else 0
+
+          println(s"frame=${input.getFramePosition}, event=${len}")
           /*if (ev.length > 0) {
             println(idx)
             val buffer = new MiddleBufferInJvm(ev)
@@ -149,11 +154,25 @@ object ESSFSupport {
           println("get to the end, no more frame.")
       }
     }
+
+    println(s"finsih=${i}")
   }
 
 
   def main(args: Array[String]): Unit = {
-    readData(initFileReader("C:\\Users\\sky\\IdeaProjects\\tank\\backend\\gameDataDirectoryPath\\tankGame_1539941979228_0"))
+    import concurrent.ExecutionContext.Implicits.global
+    for(i <- 1 to 20)
+    Future{
+      readData(initFileReader("D:\\software_data\\ideaProject\\tank\\tankGame_1541561905459_2"), i)
+    }
+
+    Thread.sleep(100000000)
+
+//    readData(initFileReader("D:\\software_data\\ideaProject\\tank\\tankGame_1541561905459_2"))
+//    readData(initFileReader("D:\\software_data\\ideaProject\\tank\\tankGame_1541561905459_2"))
+//    readData(initFileReader("D:\\software_data\\ideaProject\\tank\\tankGame_1541561905459_2"))
+//    readData(initFileReader("D:\\software_data\\ideaProject\\tank\\tankGame_1541561905459_2"))
+//    readData(initFileReader("D:\\software_data\\ideaProject\\tank\\tankGame_1541561905459_2"))
   }
 
 }
