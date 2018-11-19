@@ -303,7 +303,7 @@ case class GameContainerServerImpl(
     dispatch(userReliveEvent)
     addGameEvent(userReliveEvent)
     tankMap.put(tank.tankId,tank)
-//    quadTree.insert(tank)
+    quadTree.insert(tank)
     //无敌时间消除
     tankInvincibleCallBack(tank.tankId)
 //    timer.startSingleTimer(s"TankInvincible_${tank.tankId}",RoomActor.TankInvincible(tank.tankId),config.initInvincibleDuration.millis)

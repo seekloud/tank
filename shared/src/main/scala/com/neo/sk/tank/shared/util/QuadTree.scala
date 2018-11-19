@@ -209,7 +209,7 @@ class QuadTree(bounds:model.Rectangle,level :Int = 0) {
   }
 
   def contain(o:ObjectOfGame):Boolean = {
-    if(this.objects.exists(_.eq(o))) true
+    if(this.objects.exists(_.equals(o))) true
     else if(this.children.nonEmpty){
       this.children.exists(_.contain(o))
     }else false

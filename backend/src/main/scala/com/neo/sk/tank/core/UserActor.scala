@@ -321,7 +321,6 @@ object UserActor {
           Behaviors.stopped
 
         case TankRelive4UserActor(tank,userId,name,roomActor,config) =>
-          frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"observe",observe(uId,userInfo,tank,frontActor,roomActor))
 
         case DispatchMsg(m) =>
@@ -424,7 +423,7 @@ object UserActor {
           reqOpt match {
             case Some(t:TankGameEvent.UserActionEvent) =>
               //分发数据给roomActor
-              println(s"${ctx.self.path} websocketmsg---------------${t}")
+//              println(s"${ctx.self.path} websocketmsg---------------${t}")
               roomActor ! RoomActor.WebSocketMsg(uId,tank.tankId,t)
             case Some(t:TankGameEvent.PingPackage) =>
 
@@ -494,7 +493,7 @@ object UserActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case TankRelive4UserActor(t,userId,name,roomActor,config) =>
-          frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+//          frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId,userInfo,t,startTime,frontActor,roomActor))
 
         /**

@@ -257,10 +257,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         nextFrame = dom.window.requestAnimationFrame(gameRender())
         setGameState(GameState.play)
 
-      case e:TankGameEvent.TankReliveInfo =>
-//        dom.window.cancelAnimationFrame(nextFrame)
-//        nextFrame = dom.window.requestAnimationFrame(gameRender())
-
       case e:TankGameEvent.UserActionEvent =>
         //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
         gameContainerOpt.foreach(_.receiveUserEvent(e))

@@ -312,8 +312,8 @@ class PlayScreenController(
             setGameState(GameState.stop)
           }else animationTimer.stop()
 
-        case e:TankGameEvent.TankReliveInfo =>
-          animationTimer.start()
+//        case e:TankGameEvent.TankReliveInfo =>
+//          animationTimer.start()
 
         case e: TankGameEvent.Ranks =>
 
@@ -349,6 +349,13 @@ class PlayScreenController(
 
         case e: TankGameEvent.GameEvent =>
           e match {
+            case e:TankGameEvent.UserRelive =>
+              gameContainerOpt.foreach(_.receiveGameEvent(e))
+              if(e.userId == gameContainerOpt.get.myId){
+                animationTimer.start()
+//                dom.window.cancelAnimationFrame(nextFrame)
+//                nextFrame = dom.window.requestAnimationFrame(gameRender())
+              }
             case ee:TankGameEvent.GenerateBullet =>
               gameContainerOpt.foreach(_.receiveGameEvent(e))
             case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))

@@ -32,7 +32,7 @@ object TankGameEvent {
   final case class WsMsgErrorRsp(errCode:Int, msg:String) extends WsMsgServer
   //  final case class GameConfig(config:TankGameConfigImpl) extends WsMsgServer
   final case class YourInfo(userId:String,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
-  final case class TankReliveInfo(config:TankGameConfigImpl) extends WsMsgServer
+//  final case class TankReliveInfo(config:TankGameConfigImpl) extends WsMsgServer
 //  final case class YouAreKilled(tankId:Int,name:String) extends WsMsgServer //可能会丢弃
 //  final case class PlayerAreKilled(tankId:Int,name:String) extends WsMsgServer
   final case class YouAreKilled(tankId:Int,name:String, hasLife:Boolean,killTankNum:Int,lives:Int,damageStatistics:Int) extends WsMsgServer //可能会丢弃
