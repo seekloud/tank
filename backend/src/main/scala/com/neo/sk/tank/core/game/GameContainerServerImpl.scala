@@ -303,7 +303,7 @@ case class GameContainerServerImpl(
     dispatch(userReliveEvent)
     addGameEvent(userReliveEvent)
     tankMap.put(tank.tankId,tank)
-    quadTree.insert(tank)
+//    quadTree.insert(tank)
     //无敌时间消除
     tankInvincibleCallBack(tank.tankId)
 //    timer.startSingleTimer(s"TankInvincible_${tank.tankId}",RoomActor.TankInvincible(tank.tankId),config.initInvincibleDuration.millis)
@@ -349,6 +349,7 @@ case class GameContainerServerImpl(
 
 
   def receiveUserAction(preExecuteUserAction:TankGameEvent.UserActionEvent):Unit = {
+//    println(s"receive user action preExecuteUserAction frame=${preExecuteUserAction.frame}----system fram=${systemFrame}")
     val f = math.max(preExecuteUserAction.frame,systemFrame)
     if(preExecuteUserAction.frame != f){
       log.debug(s"preExecuteUserAction fame=${preExecuteUserAction.frame}, systemFrame=${systemFrame}")
