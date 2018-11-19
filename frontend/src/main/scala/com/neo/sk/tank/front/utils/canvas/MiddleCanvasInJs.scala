@@ -29,6 +29,8 @@ class MiddleCanvasInJs private() extends MiddleCanvas {
   def this(name:String,width: Double, height: Double) = {
     this()
     canvas = dom.document.getElementById(name).asInstanceOf[Canvas]
+    setWidth(width)
+    setHeight(height)
   }
 
   def returnSelf = canvas
