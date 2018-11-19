@@ -28,7 +28,7 @@ case class GameContainerClientImpl(
                                     setGameState:Int => Unit,
                                     isObserve: Boolean = false,
                                     setKillCallback: (String, Boolean, Int, Int) => Unit = {(_,_,_,_) =>} // killerName, live, killTankNum, damage
-                                  ) extends GameContainerImpl(config,myId,myTankId,myName)
+                                  ) extends GameContainerImpl(config,myId,myTankId,myName,canvasSize,canvasUnit)
   with Background
   with ObstacleDrawUtil
   with PropDrawUtil
