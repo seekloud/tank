@@ -44,7 +44,7 @@ trait MiddleContext {
 
   def stroke():Unit
 
-  def fillText(text: String, x: Double, y: Double):Unit
+  def fillText(text: String, x: Double, y: Double, z:Double=0):Unit
 
   def setFont(f:String,fw:String,s:Double):Unit
 
@@ -59,4 +59,8 @@ trait MiddleContext {
   def rect(x: Double, y: Double, w: Double, h: Double)
 
   def strokeText(text: String, x: Double, y: Double, maxWidth: Double):Unit
+
+  def save():Unit
+
+  def restore():Unit
 }

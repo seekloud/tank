@@ -47,19 +47,6 @@ trait BulletDrawUtil { this:GameContainerImpl =>
         val cacheCanvas = canvasCacheMap.getOrElseUpdate(bullet.getBulletLevel(), generateCanvas(bullet))
         val radius = bullet.getRadius
         ctx.drawImage(cacheCanvas, (p.x - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5, (p.y - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5)
-        //      val color = bullet.getBulletLevel() match {
-        //        case 1 => "#CD6600"
-        //        case 2 => "#FF4500"
-        //        case 3 => "#8B2323"
-        //      }
-        //      ctx.fillStyle = color.toString()
-        //      ctx.beginPath()
-        //      ctx.arc(p.x * canvasUnit,p.y * canvasUnit, bullet.getRadius * canvasUnit,0, 360)
-        //      ctx.fill()
-        //      ctx.strokeStyle = "#474747"
-        //      ctx.lineWidth = bullet.getRadius * canvasUnit / 5
-        //      ctx.stroke()
-        //      ctx.closePath()
       }
     }
   }

@@ -38,10 +38,6 @@ case class GameContainerClientImpl(
                                     setGameState:Int => Unit
                                   ) extends GameContainerImpl(config, myId, myTankId, myName, canvasS,canvasU,ctx = ctx,drawFrame = drawFrame) {
 
-  protected val obstacleAttackedAnimationMap = mutable.HashMap[Int,Int]()
-  protected val tankAttackedAnimationMap = mutable.HashMap[Int,Int]()
-  protected val tankDestroyAnimationMap = mutable.HashMap[Int,Int]() //prop ->
-
   private var canvasBoundary=canvasSize
   private var renderTime:Long = 0
   private var renderTimes = 0
@@ -60,28 +56,6 @@ case class GameContainerClientImpl(
       renderTimes = 0
     }
   }, 0, 5000)
-
-  override protected def handleObstacleAttacked(e: TankGameEvent.ObstacleAttacked): Unit = {
-    super.handleObstacleAttacked(e)
-    if(obstacleMap.get(e.obstacleId).nonEmpty || environmentMap.get(e.obstacleId).nonEmpty){
-      obstacleAttackedAnimationMap.put(e.obstacleId, GameAnimation.bulletHitAnimationFrame)
-    }
-  }
-
-
-  override protected def handleTankAttacked(e: TankGameEvent.TankAttacked): Unit = {
-    super.handleTankAttacked(e)
-    if(tankMap.get(e.tankId).nonEmpty){
-      tankAttackedAnimationMap.put(e.tankId,GameAnimation.bulletHitAnimationFrame)
-    }
-  }
-
-  override protected def handleGenerateProp(e: TankGameEvent.GenerateProp): Unit = {
-    super.handleGenerateProp(e)
-    if(e.generateType == PropGenerateType.tank){
-      tankDestroyAnimationMap.put(e.propState.pId,GameAnimation.tankDestroyAnimationFrame)
-    }
-  }
 
 
   override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
