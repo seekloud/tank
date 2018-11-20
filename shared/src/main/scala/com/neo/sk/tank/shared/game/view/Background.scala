@@ -201,8 +201,8 @@ trait Background{ this:GameContainerImpl =>
       rankUpdated = false
     }
     ctx.setGlobalAlpha(0.8)
-    ctx.drawImage(currentRankCanvas,0,0)
-    ctx.drawImage(historyRankCanvas, canvasBoundary.x * canvasUnit - historyRankCanvas.getWidth(),0)
+    ctx.drawImage(currentRankCanvas.change2Image(),0,0)
+    ctx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - historyRankCanvas.getWidth(),0)
     ctx.setGlobalAlpha(1)
   }
 
@@ -247,7 +247,7 @@ trait Background{ this:GameContainerImpl =>
       minimapRenderFrame = systemFrame
     }
 
-    ctx.drawImage(minimapCanvas, (canvasBoundary.x - LittleMap.w) * canvasUnit - 6, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
+    ctx.drawImage(minimapCanvas.change2Image(), (canvasBoundary.x - LittleMap.w) * canvasUnit - 6, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
 
   }
 

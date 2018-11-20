@@ -2,7 +2,7 @@ package com.neo.sk.utils.canvas
 
 import com.neo.sk.tank.shared.util.canvas.MiddleContext
 import javafx.geometry.VPos
-import javafx.scene.image.Image
+import javafx.scene.image.{Image, WritableImage}
 import javafx.scene.paint.Color
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.shape.{StrokeLineCap, StrokeLineJoin}
@@ -91,10 +91,19 @@ class MiddleContextInFx extends MiddleContext{
   override def moveTo(x: Double, y: Double): Unit = context.moveTo(x, y)
 
   override def drawImage(image: Any, offsetX: Double, offsetY: Double, size: Option[(Double,Double)]): Unit = {
-    if(size.isEmpty){
-      context.drawImage(image.asInstanceOf[Image],offsetX,offsetY)
-    }else{
-      context.drawImage(image.asInstanceOf[Image],offsetX,offsetY,size.get._1,size.get._2)
+    image match {
+      case js: MiddleImageInFx =>
+        if (size.isEmpty) {
+          context.drawImage(js.returnSelf, offsetX, offsetY)
+        } else {
+          context.drawImage(js.returnSelf, offsetX, offsetY, size.get._1, size.get._2)
+        }
+      case js:WritableImage =>
+        if (size.isEmpty) {
+          context.drawImage(js, offsetX, offsetY)
+        } else {
+          context.drawImage(js, offsetX, offsetY, size.get._1, size.get._2)
+        }
     }
   }
 
