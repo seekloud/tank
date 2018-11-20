@@ -32,19 +32,16 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
         //        setGameState(Constants.GameState.loadingPlay)
         gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, true))
         gameContainerOpt.get.getTankId(e.tankId)
+        Shortcut.cancelSchedule(timer)
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
 
       case e:TankGameEvent.PlayerLeftRoom =>
         Shortcut.cancelSchedule(timer)
         gameContainerOpt.foreach(_.drawDeadImg(s"玩家已经离开了房间，请重新选择观战对象"))
 
-//      case e:TankGameEvent.TankReliveInfo =>
-//        dom.window.cancelAnimationFrame(nextFrame)
-//        nextFrame = dom.window.requestAnimationFrame(gameRender())
-
       case e:TankGameEvent.SyncGameAllState =>
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
-//        dom.window.cancelAnimationFrame(nextFrame)
+        dom.window.cancelAnimationFrame(nextFrame)
         nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case e:TankGameEvent.SyncGameState =>
@@ -71,7 +68,6 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
             playerId match{
               case Some(id) =>
                 if(id == e.userId){
-                  println(s"----------------")
                   dom.window.cancelAnimationFrame(nextFrame)
                   nextFrame = dom.window.requestAnimationFrame(gameRender())
                 }

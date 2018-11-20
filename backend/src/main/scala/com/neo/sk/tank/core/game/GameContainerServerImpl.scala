@@ -282,21 +282,15 @@ case class GameContainerServerImpl(
 
   def handleTankRelive(userId:String,tankIdOpt:Option[Int],name:String) = {
     val tank = genATank(userId,tankIdOpt,name)
-//    println(s"------------------------------------------${tank}")
     tankLivesMap.update(tank.tankId,tank.getTankState())
     val event = TankRelive4UserActor(tank,userId,name,roomActorRef,config.getTankGameConfigImpl())
-    //todo
     userMapObserver.get(userId) match{
       case Some(maps) =>
         maps.foreach{p =>
-//          val event1 = UserActor.JoinRoomSuccess4Watch(tank,config.getTankGameConfigImpl(), roomActorRef, TankGameEvent.SyncGameAllState(getGameContainerAllState()))
           p._2 ! event
         }
-
       case None =>
-//        userMapObserver.update(userId,mutable.HashMap.empty)
     }
-//    dispatchTo(userId, TankRelive(tank,userId,name,roomActorRef,config.getTankGameConfigImpl()), getUserActor4WatchGameList(userId))
     log.debug(s"${roomActorRef.path} is processing to generate tank for ${userId} ")
     userManager ! event
     val userReliveEvent = TankGameEvent.UserRelive(userId,name,tank.getTankState(),systemFrame)
@@ -306,7 +300,6 @@ case class GameContainerServerImpl(
     quadTree.insert(tank)
     //无敌时间消除
     tankInvincibleCallBack(tank.tankId)
-//    timer.startSingleTimer(s"TankInvincible_${tank.tankId}",RoomActor.TankInvincible(tank.tankId),config.initInvincibleDuration.millis)
   }
 
   def handleJoinRoom4Watch(userActor4WatchGame:ActorRef[UserActor.Command],uid:String,playerId:String) = {
@@ -454,14 +447,11 @@ case class GameContainerServerImpl(
   }
 
   override def update(): Unit = {
-//    val t = AirDropBox(config,1,Point(0,0),config.airDropBlood)
-//    println(s"update-----------------${quadTree.retrieveFilter(t).filter(t => t.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]).map(_.tankId)}")
     super.update()
     updateRanks()
   }
 
   def getGameContainerState():GameContainerState = {
-//    println(s"---------------------------${tankMap.values.map(_.getTankState()).toList}")
     GameContainerState(
       systemFrame,
       tankMap.values.map(_.getTankState()).toList,

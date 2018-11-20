@@ -84,17 +84,17 @@ trait RoomInfoService extends ServiceUtils with HttpUtil with AuthService{
     parameter(
       'uId.as[String],
       'nickname.as[String],
-      'watchedPlayerId.as[String]
+      'watchedPlayerId.as[String],
 //      'roomId.as[Long]
-//      'accessCode.as[String]
-    ){(uId,nickname,watchedPlayerId) =>
-//      authPlatUser(accessCode){playerInfo =>
-        val playerInfo = PlayerInfo(uId,nickname)
+      'accessCode.as[String]
+    ){(uId,nickname,watchedPlayerId,accessCode) =>
+      authPlatUser(accessCode){playerInfo =>
+//        val playerInfo = PlayerInfo(uId,nickname)
         val userInfo = TankGameUserInfo(playerInfo.playerId, playerInfo.nickname, playerInfo.nickname, true)
         userManager ! UserActor.ChangeWatchedPlayerId(userInfo,watchedPlayerId)
-        complete(SuccessRsp)
+        complete(SuccessRsp())
 
-//      }
+      }
     }
 
   }
