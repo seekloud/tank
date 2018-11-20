@@ -7,7 +7,7 @@ package com.neo.sk.tank.shared.util.canvas
   * 合并两个框架
   */
 trait MiddleFrame {
-  def createCanvas(width: Double, height: Double):MiddleCanvas
+  def createCanvas(width: Double, height: Double): MiddleCanvas
 
-  def createImage(url: String):MiddleImage
+  def createImage(url: String): MiddleImage
 }

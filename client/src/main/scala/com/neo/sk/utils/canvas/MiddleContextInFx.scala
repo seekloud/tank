@@ -129,7 +129,7 @@ class MiddleContextInFx extends MiddleContext {
 
   override def stroke() = context.stroke()
 
-  override def fillText(text: String, x: Double, y: Double, z: Double = 500) = context.fillText(text, x, y, z)
+  override def fillText(text: String, x: Double, y: Double, z: Double = 500) = context.fillText(text, x, y)
 
   override def setFont(f: String, fw: String, s: Double) = context.setFont(Font.font(f, string2FontWeight(fw), s))
 
