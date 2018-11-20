@@ -67,13 +67,13 @@ case class GameContainerServerImpl(
 
     tank.launchBullet()(config) match {
       case Some((bulletDirection,position,damage)) =>
-        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(),tankId,position,damage,position,System.currentTimeMillis(),tank.name,bulletDirection)
+        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(),tankId,position,damage,position,config.getMoveDistanceByFrame(tank.getTankSpeedLevel()),System.currentTimeMillis(),tank.name,bulletDirection)
         transformGenerateBulletEvent(bulletState)
         if(tank.getShotGunState()){
           List(Math.PI / 8, - Math.PI / 8).foreach{ bulletOffsetDirection =>
             val bulletPos = tank.getOtherLaunchBulletPosition(bulletOffsetDirection.toFloat)(config)
             val bulletDir = bulletDirection + bulletOffsetDirection.toFloat
-            val bulletState = BulletState(bulletIdGenerator.getAndIncrement(),tankId,bulletPos,damage,bulletPos,System.currentTimeMillis(),tank.name,bulletDir)
+            val bulletState = BulletState(bulletIdGenerator.getAndIncrement(),tankId,bulletPos,damage,bulletPos,config.getMoveDistanceByFrame(tank.getTankSpeedLevel()),System.currentTimeMillis(),tank.name,bulletDir)
             transformGenerateBulletEvent(bulletState)
           }
         }

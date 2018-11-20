@@ -233,10 +233,9 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         damageNum = e.damageStatistics
         killerName = e.name
         dom.window.cancelAnimationFrame(nextFrame)
-        drawGameStop()
         if(! e.hasLife){
           setGameState(GameState.stop)
-        }
+        }else drawGameStop()
 
       case e:TankGameEvent.Ranks =>
         /**
