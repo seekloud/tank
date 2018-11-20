@@ -44,6 +44,7 @@ object MiddleContextInFx {
 
   implicit def string2TextBaseline(s: String): VPos = {
     s match {
+      case "middle" => VPos.CENTER
       case "top" => VPos.TOP
       case "center" => VPos.CENTER
       case "bottom" => VPos.BOTTOM
