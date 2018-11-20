@@ -180,11 +180,11 @@ class PlayScreenController(
   }
 
   private def addUserActionListenEvent: Unit = {
-    playGameScreen.canvas.requestFocus()
+    playGameScreen.canvas.getCanvas.requestFocus()
     /**
       * 增加鼠标移动操作
       **/
-    playGameScreen.canvas.setOnMouseMoved{ e =>
+    playGameScreen.canvas.getCanvas.setOnMouseMoved{ e =>
       val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(16,16)
       val theta = point.getTheta(playGameScreen.canvasBoundary * playGameScreen.canvasUnit / 2).toFloat
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
@@ -199,7 +199,7 @@ class PlayScreenController(
     /**
       * 增加鼠标点击操作
       **/
-    playGameScreen.canvas.setOnMouseClicked{ e=>
+    playGameScreen.canvas.getCanvas.setOnMouseClicked{ e=>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         bulletMusic.play()
         val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
@@ -210,7 +210,7 @@ class PlayScreenController(
     /**
       * 增加按下按键操作
       **/
-    playGameScreen.canvas.setOnKeyPressed{ e =>
+    playGameScreen.canvas.getCanvas.setOnKeyPressed{ e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
@@ -264,7 +264,7 @@ class PlayScreenController(
     /**
       * 增加松开按键操作
       **/
-    playGameScreen.canvas.setOnKeyReleased { e =>
+    playGameScreen.canvas.getCanvas.setOnKeyReleased { e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode)) {
@@ -289,7 +289,7 @@ class PlayScreenController(
   /**
     * 此处处理消息*/
   def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
-    println(data.getClass)
+//    println(data.getClass)
     App.pushStack2AppThread{
 //      log.debug(s"${data.getClass}")
       data match {
@@ -300,7 +300,7 @@ class PlayScreenController(
           println("start------------")
           gameMusicPlayer.play()
           try {
-            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
+            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.drawFrame,playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
             gameContainerOpt.get.getTankId(e.tankId)
             recvYourInfo = true
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))
@@ -308,7 +308,7 @@ class PlayScreenController(
             case e:Exception=>
               closeHolder
               println(e.getMessage)
-              print("client is stop!!!")
+              println("client is stop!!!")
           }
 
 
@@ -330,8 +330,8 @@ class PlayScreenController(
             deadMusic.play()
           }else animationTimer.stop()
 
-        case e:TankGameEvent.TankReliveInfo =>
-          animationTimer.start()
+//        case e:TankGameEvent.TankReliveInfo =>
+//          animationTimer.start()
 
         case e: TankGameEvent.Ranks =>
 
@@ -368,6 +368,13 @@ class PlayScreenController(
 
         case e: TankGameEvent.GameEvent =>
           e match {
+            case e:TankGameEvent.UserRelive =>
+              gameContainerOpt.foreach(_.receiveGameEvent(e))
+              if(e.userId == gameContainerOpt.get.myId){
+                animationTimer.start()
+//                dom.window.cancelAnimationFrame(nextFrame)
+//                nextFrame = dom.window.requestAnimationFrame(gameRender())
+              }
             case ee:TankGameEvent.GenerateBullet =>
               gameContainerOpt.foreach(_.receiveGameEvent(e))
             case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))

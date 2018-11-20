@@ -5,15 +5,19 @@ import akka.http.scaladsl.server.Directives._
 import akka.actor.typed.scaladsl.AskPattern._
 
 import scala.concurrent.Future
-import com.neo.sk.tank.Boot.{executor, roomManager, scheduler, timeout}
+import com.neo.sk.tank.Boot.{executor, roomManager, scheduler, timeout, userManager}
 import com.neo.sk.tank.protocol.WatchGameProtocol._
-import com.neo.sk.tank.shared.ptcl.ErrorRsp
+import com.neo.sk.tank.shared.ptcl.{ErrorRsp, SuccessRsp}
 import org.slf4j.LoggerFactory
 import akka.util.Timeout
+import com.neo.sk.tank.common.Constants
+import com.neo.sk.tank.core.UserActor
+import com.neo.sk.tank.models.TankGameUserInfo
+import com.neo.sk.tank.protocol.EsheepProtocol.PlayerInfo
 import com.neo.sk.utils.HttpUtil
 
 
-trait RoomInfoService extends ServiceUtils with HttpUtil{
+trait RoomInfoService extends ServiceUtils with HttpUtil with AuthService{
   import io.circe._
   import io.circe.generic.auto._
 
@@ -75,6 +79,25 @@ trait RoomInfoService extends ServiceUtils with HttpUtil{
       }
     }
   }
-  val roomInfoRoute :Route = getRoomList4App ~ getRoomList ~ getRoomId ~ getRoomPlayerList
+
+  private val changeWatchedPlayerId = (path("changeWatchedPlayerId") & get & pathEndOrSingleSlash){
+    parameter(
+      'uId.as[String],
+      'nickname.as[String],
+      'watchedPlayerId.as[String],
+//      'roomId.as[Long]
+      'accessCode.as[String]
+    ){(uId,nickname,watchedPlayerId,accessCode) =>
+      authPlatUser(accessCode){playerInfo =>
+        val playerInfo = PlayerInfo(uId,nickname)
+        val userInfo = TankGameUserInfo(playerInfo.playerId, playerInfo.nickname, playerInfo.nickname, true)
+        userManager ! UserActor.ChangeWatchedPlayerId(userInfo,watchedPlayerId)
+        complete(SuccessRsp())
+
+      }
+    }
+
+  }
+  val roomInfoRoute :Route = getRoomList4App ~ getRoomList ~ getRoomId ~ getRoomPlayerList ~ changeWatchedPlayerId
 
 }

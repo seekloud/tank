@@ -1,21 +1,19 @@
-package com.neo.sk.tank.game.draw
+package com.neo.sk.tank.shared.game.view
 
-import com.neo.sk.tank.App
-import com.neo.sk.tank.game.GameContainerClientImpl
+import com.neo.sk.tank.shared.game.GameContainerImpl
 import com.neo.sk.tank.shared.model.Constants.{GameAnimation, PropAnimation}
 import com.neo.sk.tank.shared.model.Point
-import javafx.scene.image.Image
 
 /**
   * Created by hongruying on 2018/8/29
   */
-trait PropDrawUtil { this: GameContainerClientImpl =>
-  private val bloodPropImg = new Image(App.getClass.getResourceAsStream("/img/xueliang.png"))
-  private val speedPropImg = new Image(App.getClass.getResourceAsStream("/img/sudu.png"))
-  private val bulletPowerPropImg = new Image(App.getClass.getResourceAsStream("/img/qiang.png"))
-  private val medicalPropImg = new Image(App.getClass.getResourceAsStream("/img/yiliao.png"))
-  private val shotgunPropImg = new Image(App.getClass.getResourceAsStream("/img/sandan.png"))
-  private val boomImg = new Image(App.getClass.getResourceAsStream("/img/boom.png"))
+trait PropDrawUtil { this: GameContainerImpl =>
+  private val bloodPropImg =drawFrame.createImage("/img/xueliang.png")
+  private val speedPropImg = drawFrame.createImage("/img/sudu.png")
+  private val bulletPowerPropImg = drawFrame.createImage("/img/qiang.png")
+  private val medicalPropImg =drawFrame.createImage("/img/yiliao.png")
+  private val shotgunPropImg = drawFrame.createImage("/img/sandan.png")
+  private val boomImg = drawFrame.createImage("/img/boom.png")
 
   protected def drawProps(offset: Point, view: Point) = {
     propMap.values.foreach { prop =>
@@ -33,27 +31,27 @@ trait PropDrawUtil { this: GameContainerClientImpl =>
           val mod = prop.getDisappearTime % (PropAnimation.DisappearF2 + PropAnimation.DisplayF2) + 1
           if(mod <= PropAnimation.DisplayF2){
             ctx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
-              prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit)
+              Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
           }
         } else if(prop.getDisappearTime < PropAnimation.DisAniFrame1){
           val mod = prop.getDisappearTime % (PropAnimation.DisappearF1 + PropAnimation.DisplayF1) + 1
           if(mod <= PropAnimation.DisplayF1){
             ctx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
-              prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit)
+              Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
           }
         }else{
           ctx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
-            prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit)
+            Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
         }
 
         if (tankDestroyAnimationMap.contains(prop.pId)) {
           if (tankDestroyAnimationMap(prop.pId) > GameAnimation.tankDestroyAnimationFrame * 2 / 3) {
-            ctx.drawImage(boomImg, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit, prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit)
+            ctx.drawImage(boomImg, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit, Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
           } else if (tankDestroyAnimationMap(prop.pId) > GameAnimation.tankDestroyAnimationFrame / 3) {
-            ctx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit)
+            ctx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit))
           } else if (tankDestroyAnimationMap(prop.pId) > 0) {
             ctx.setGlobalAlpha(0.5)
-            ctx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit)
+            ctx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit))
             ctx.setGlobalAlpha(1)
 
           }
