@@ -278,7 +278,7 @@ class PlayScreenController(
   /**
     * 此处处理消息*/
   def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
-    println(data.getClass)
+//    println(data.getClass)
     App.pushStack2AppThread{
 //      log.debug(s"${data.getClass}")
       data match {
