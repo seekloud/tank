@@ -523,7 +523,7 @@ object UserActor {
 
 
         case unknowMsg =>
-//          log.warn(s"got unknown msg: $unknowMsg")
+          log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
       }
     }
