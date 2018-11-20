@@ -19,7 +19,7 @@ object MiddleContextInFx {
   //todo 匹配所有情况
   def string2FontWeight(s: String): FontWeight = {
     s match {
-      case "blod" => FontWeight.BOLD
+      case "bold" => FontWeight.BOLD
       case "normal" => FontWeight.NORMAL
       case "black" => FontWeight.BLACK
       case "extra_bold" => FontWeight.EXTRA_BOLD
@@ -44,7 +44,6 @@ object MiddleContextInFx {
 
   implicit def string2TextBaseline(s: String): VPos = {
     s match {
-      case "middle" => VPos.CENTER
       case "top" => VPos.TOP
       case "center" => VPos.CENTER
       case "bottom" => VPos.BOTTOM

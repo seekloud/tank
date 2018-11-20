@@ -336,8 +336,8 @@ class GameContainerImpl(
 
   def drawGame(time: Long, networkLatency: Long): Unit = {
     val offsetTime = math.min(time, config.frameDuration)
-    val h = canvasSize.x
-    val w = canvasSize.y
+    val h = canvasSize.y
+    val w = canvasSize.x
     //    val startTime = System.currentTimeMillis()
     if (!waitSyncData) {
       ctx.setLineCap("round")

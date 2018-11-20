@@ -13,16 +13,18 @@ import javafx.scene.image.Image
   * Time at 下午2:54
   */
 object MiddleCanvasInFx {
-  def apply(width: Double, height: Double): MiddleCanvasInFx = new MiddleCanvasInFx(width, height)
+  def apply(width: Float, height: Float): MiddleCanvasInFx = new MiddleCanvasInFx(width, height)
 }
 
 class MiddleCanvasInFx private() extends MiddleCanvas {
 
   private[this] var canvas: Canvas = _
 
-  def this(width: Double, height: Double) = {
+  def this(width: Float, height: Float) = {
     this()
     canvas = new Canvas(width, height)
+    setWidth(width)
+    setHeight(height)
   }
 
   def returnSelf=canvas
@@ -33,9 +35,15 @@ class MiddleCanvasInFx private() extends MiddleCanvas {
 
   override def getHeight = canvas.getHeight
 
-  override def setWidth(h: Any) = canvas.setWidth(h.asInstanceOf[Double])
+  override def setWidth(h: Any) = h match {
+    case d: Float => canvas.setWidth(d)
+    case _ => canvas.setWidth(h.asInstanceOf[Int].toFloat)
+  }
 
-  override def setHeight(h: Any) = canvas.setHeight(h.asInstanceOf[Double])
+  override def setHeight(h: Any) = h match {
+    case d: Float => canvas.setHeight(d)
+    case _ => canvas.setHeight(h.asInstanceOf[Int].toFloat)
+  }
 
   override def change2Image = {
     val params = new SnapshotParameters
