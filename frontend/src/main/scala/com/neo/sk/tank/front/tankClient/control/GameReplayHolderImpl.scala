@@ -31,7 +31,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
   }
 
   def startReplay(option: Option[ReplayInfo]=None)={
-    canvas.returnSelf.focus()
+    canvas.getCanvas.focus()
     if(firstCome){
       setGameState(GameState.loadingPlay)
       webSocketClient.setup(Routes.getReplaySocketUri(option.get))

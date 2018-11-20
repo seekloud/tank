@@ -27,9 +27,9 @@ class MiddleCanvasInFx private() extends MiddleCanvas {
     setHeight(height)
   }
 
-  def returnSelf=canvas
+  def getCanvas = canvas
 
-  override def getCtx =  MiddleContextInFx(this)
+  override def getCtx = MiddleContextInFx(this)
 
   override def getWidth = canvas.getWidth
 

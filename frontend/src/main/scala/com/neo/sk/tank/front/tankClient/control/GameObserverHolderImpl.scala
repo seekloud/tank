@@ -21,7 +21,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
   }
 
   def watchGame() = {
-    canvas.returnSelf.focus()
+    canvas.getCanvas.focus()
     webSocketClient.setup(Routes.getWsSocketUri(roomId, accessCode, playerId))
   }
 

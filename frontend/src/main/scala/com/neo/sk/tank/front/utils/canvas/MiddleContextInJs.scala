@@ -11,24 +11,24 @@ import org.scalajs.dom.html.Canvas
   * Time at 下午1:41
   */
 object MiddleContextInJs {
-  def apply(canvas:MiddleCanvasInJs): MiddleContextInJs = new MiddleContextInJs(canvas)
+  def apply(canvas: MiddleCanvasInJs): MiddleContextInJs = new MiddleContextInJs(canvas)
 }
 
-class MiddleContextInJs extends MiddleContext{
+class MiddleContextInJs extends MiddleContext {
   private[this] var context: dom.CanvasRenderingContext2D = _
 
-  def this(canvas:MiddleCanvasInJs) = {
+  def this(canvas: MiddleCanvasInJs) = {
     this()
-    context = canvas.returnSelf.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+    context = canvas.getCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   }
 
-  def returnContext=context
+  def getContext = context
 
   override def setGlobalAlpha(alpha: Double): Unit = context.globalAlpha = alpha
 
   override def setLineWidth(h: Double) = context.lineWidth = h
 
-  override def setStrokeStyle(color:String): Unit = context.strokeStyle= color
+  override def setStrokeStyle(color: String): Unit = context.strokeStyle = color
 
   override def arc(x: Double, y: Double, radius: Double, startAngle: Double,
                    endAngle: Double) = context.arc(x, y, radius, startAngle, endAngle)
@@ -41,7 +41,7 @@ class MiddleContextInJs extends MiddleContext{
 
   override def moveTo(x: Double, y: Double): Unit = context.moveTo(x, y)
 
-  override def drawImage(image: Any, offsetX: Double, offsetY: Double, size: Option[(Double,Double)]): Unit = {
+  override def drawImage(image: Any, offsetX: Double, offsetY: Double, size: Option[(Double, Double)]): Unit = {
     image match {
       case js: MiddleImageInJs =>
         if (size.isEmpty) {
@@ -49,7 +49,7 @@ class MiddleContextInJs extends MiddleContext{
         } else {
           context.drawImage(js.getImage, offsetX, offsetY, size.get._1, size.get._2)
         }
-      case js:Canvas =>
+      case js: Canvas =>
         if (size.isEmpty) {
           context.drawImage(js, offsetX, offsetY)
         } else {
@@ -58,31 +58,31 @@ class MiddleContextInJs extends MiddleContext{
     }
   }
 
-  override def fillRec(x: Double, y: Double, w: Double, h: Double)=context.fillRect(x,y,w,h)
+  override def fillRec(x: Double, y: Double, w: Double, h: Double) = context.fillRect(x, y, w, h)
 
-  override def clearRect(x: Double, y: Double, w: Double, h: Double) = context.clearRect(x,y,w,h)
+  override def clearRect(x: Double, y: Double, w: Double, h: Double) = context.clearRect(x, y, w, h)
 
   override def beginPath() = context.beginPath()
 
-  override def lineTo(x1: Double, y1: Double) = context.lineTo(x1,y1)
+  override def lineTo(x1: Double, y1: Double) = context.lineTo(x1, y1)
 
   override def stroke() = context.stroke()
 
-  override def fillText(text: String, x: Double, y: Double, z:Double=500) = context.fillText(text,x,y,z)
+  override def fillText(text: String, x: Double, y: Double, z: Double = 500) = context.fillText(text, x, y, z)
 
-  override def setFont(f:String,fw:String,s:Double) = context.font = s"$fw ${s}px $f"
+  override def setFont(f: String, fw: String, s: Double) = context.font = s"$fw ${s}px $f"
 
-  override def setTextAlign(s:String) = context.textAlign = s
+  override def setTextAlign(s: String) = context.textAlign = s
 
-  override def setTextBaseline(s:String)= context.textBaseline = s
+  override def setTextBaseline(s: String) = context.textBaseline = s
 
-  override def setLineCap(s:String) = context.lineCap = s
+  override def setLineCap(s: String) = context.lineCap = s
 
-  override def setLineJoin(s:String) = context.lineJoin = s
+  override def setLineJoin(s: String) = context.lineJoin = s
 
-  override def rect(x: Double, y: Double, w: Double, h: Double) = context.rect(x,y,w,h)
+  override def rect(x: Double, y: Double, w: Double, h: Double) = context.rect(x, y, w, h)
 
-  override def strokeText(text: String, x: Double, y: Double, maxWidth: Double) = context.strokeText(text,x,y,maxWidth)
+  override def strokeText(text: String, x: Double, y: Double, maxWidth: Double) = context.strokeText(text, x, y, maxWidth)
 
   override def save(): Unit = context.save()
 

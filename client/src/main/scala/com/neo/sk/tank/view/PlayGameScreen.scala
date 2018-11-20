@@ -64,7 +64,7 @@ class PlayGameScreen(context: Context) {
 
   def getCanvasContext = canvas.getCtx
 
-  group.getChildren.add(canvas.returnSelf)
+  group.getChildren.add(canvas.getCanvas)
 
   def checkScreenSize() = {
     val newCanvasWidth = context.getStageWidth.toFloat

@@ -9,7 +9,7 @@ package com.neo.sk.tank.shared.util.canvas
   */
 trait MiddleCanvas {
 
-  def getCtx:MiddleContext
+  def getCtx: MiddleContext
 
   def getWidth(): Double
 
@@ -19,5 +19,5 @@ trait MiddleCanvas {
 
   def setHeight(h: Any): Unit //设置高
 
-  def change2Image(): Any  //转换快照
+  def change2Image(): Any //转换快照
 }
