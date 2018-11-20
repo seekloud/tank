@@ -63,36 +63,6 @@ case class GameContainerClientImpl(
       setGameState(GameState.stop)
   }
 
-
-  /**
-    * 游戏画面绘制
-    * */
-/*  def drawGame(time:Long,networkLatency: Long):Unit = {
-    val offsetTime = math.min(time,config.frameDuration)
-    val h = 800
-    val w = 800
-    val startTime = System.currentTimeMillis()
-    if(!waitSyncData){
-      ctx.setLineCap("round")
-      ctx.setLineJoin("round")
-      tankMap.get(myTankId) match {
-        case Some(tank) =>
-//          println(s"---------------------------------------------------------${tank}")
-          val offset = canvasBoundary / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime)
-//          val t1=System.currentTimeMillis()
-          println("----drawBack---")
-          drawBackground(offset)
-          if(tank.cavasFrame >=1) {
-            tank.cavasFrame += 1
-          }
-          val endTime = System.currentTimeMillis()
-          renderTimes += 1
-          renderTime += endTime - startTime
-        case None =>
-      }
-    }
-  }*/
-
   def drawDeadImg(s:String) = {
     ctx.setFill("black")
     ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
