@@ -147,7 +147,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
           e.preventDefault()
-
         }
         else if (keyCode == KeyCode.Space && spaceKeyUpState) {
           audioForBullet.play()

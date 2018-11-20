@@ -12,7 +12,7 @@ import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
-import org.scalajs.dom.raw.MouseEvent
+import org.scalajs.dom.raw.{HTMLElement, MouseEvent}
 
 import scala.collection.mutable
 import scala.xml.Elem
@@ -20,6 +20,7 @@ import scala.xml.Elem
 class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) extends GameHolder(name){
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
   private var spaceKeyUpState = true
+  private var enterKeyUpstate = true
   private var lastMouseMoveTheta:Float = 0
   private val mouseMoveThreshold = math.Pi / 180
   private val poKeyBoardMoveTheta = 2* math.Pi / 72 //炮筒顺时针转
@@ -29,7 +30,10 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   private val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
   private val startGameModal = new StartGameModal(gameStateVar,start, playerInfoOpt)
   private val fakeKeyDownList = List(KeyCode.Up, KeyCode.Right, KeyCode.Down, KeyCode.Left, KeyCode.K, KeyCode.L)
-  private var curKeyDown = 0
+  private var timerForDown = 0
+  private var timerForClick = 0
+
+  private var thisTank = gameContainerOpt.getOrElse(None)
 
   private val watchKeys = Set(
     KeyCode.Left,
@@ -68,13 +72,13 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
   private def start(name:String,roomIdOpt:Option[Long]):Unit = {
     canvas.getCanvas.focus()
+    timerForDown = Shortcut.schedule(() => fakeUserKeyDown,1000)
+    timerForClick = Shortcut.schedule(() => fakeUserMouseClick,1000)
     if(firstCome){
       firstCome = false
       setGameState(GameState.loadingPlay)
       webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, playerInfoOpt,roomIdOpt))
       gameLoop()
-      Shortcut.schedule(() => fakeUserKeyDown,1000)
-      Shortcut.schedule(() => fakeUserMouseClick,1000)
     }else if(webSocketClient.getWsState){
       gameContainerOpt match {
         case Some(gameContainer) =>
@@ -141,7 +145,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
   private def fakeUserKeyDown = {
     val randomKeyCode = (new util.Random).nextInt(4) + 37
-    if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
+    if (gameContainerOpt.nonEmpty && gameState == GameState.play){
       val keyCode = changeKeys(randomKeyCode)
       if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
         myKeySet.add(keyCode)
@@ -170,7 +174,11 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         sendMsg2Server(preExecuteAction) //发送鼠标位置
       }
       Shortcut.scheduleOnce(() => fakeUserKeyUp(keyCode),1000)
-      curKeyDown = (curKeyDown + 1) % fakeKeyDownList.length
+    }
+    else if(gameState == GameState.stop){
+      Shortcut.cancelSchedule(timerForDown)
+      Shortcut.cancelSchedule(timerForClick)
+      Shortcut.scheduleOnce(() => dom.document.getElementById("start_button").asInstanceOf[HTMLElement].click(), 5000)
     }
   }
 
@@ -180,7 +188,26 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
       sendMsg2Server(preExecuteAction) //发送鼠标位置
     }
+    else if(gameState == GameState.stop){
+      Shortcut.cancelSchedule(timerForDown)
+      Shortcut.cancelSchedule(timerForClick)
+      val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, KeyCode.Enter, getActionSerialNum)
+      gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+      sendMsg2Server(preExecuteAction)
+      Shortcut.scheduleOnce(() => fakeUserKeyUp(KeyCode.Enter),1000)
+    }
   }
+
+  private def point2Point(start:Point, end:Point) = {
+    var userActionList = List[(Int, Float)]()
+    val distance = end - start
+    val tankSpeed = //
+    if(distance.x < 0){
+
+    }
+  }
+
+
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
     data match {
@@ -233,12 +260,6 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
       case e:TankGameEvent.GameEvent =>
         e match {
-          case e:TankGameEvent.UserRelive =>
-            gameContainerOpt.foreach(_.receiveGameEvent(e))
-            if(e.userId == gameContainerOpt.get.myId){
-              dom.window.cancelAnimationFrame(nextFrame)
-              nextFrame = dom.window.requestAnimationFrame(gameRender())
-            }
           case ee:TankGameEvent.GenerateBullet =>
             gameContainerOpt.foreach(_.receiveGameEvent(e))
           case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
