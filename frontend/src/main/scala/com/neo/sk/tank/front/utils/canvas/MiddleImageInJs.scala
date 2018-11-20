@@ -1,5 +1,6 @@
 package com.neo.sk.tank.front.utils.canvas
 
+import com.neo.sk.tank.front.common.Routes
 import com.neo.sk.tank.shared.util.canvas.MiddleImage
 import javafx.scene.SnapshotParameters
 import javafx.scene.paint.Color
@@ -19,7 +20,7 @@ class MiddleImageInJs extends MiddleImage {
   def this(url:String)={
     this()
     image=dom.document.createElement("img").asInstanceOf[html.Image]
-    image.setAttribute("src", url)
+    image.setAttribute("src", Routes.base+"/static"+url)
   }
 
   def returnSelf= image

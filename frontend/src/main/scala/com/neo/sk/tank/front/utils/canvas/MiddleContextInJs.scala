@@ -68,7 +68,7 @@ class MiddleContextInJs extends MiddleContext{
 
   override def stroke() = context.stroke()
 
-  override def fillText(text: String, x: Double, y: Double) = context.fillText(text,x,y)
+  override def fillText(text: String, x: Double, y: Double, z:Double=0) = context.fillText(text,x,y,z)
 
   override def setFont(f:String,fw:String,s:Double) = context.font = s"$fw $f ${s}px"
 
@@ -83,4 +83,8 @@ class MiddleContextInJs extends MiddleContext{
   override def rect(x: Double, y: Double, w: Double, h: Double) = context.rect(x,y,w,h)
 
   override def strokeText(text: String, x: Double, y: Double, maxWidth: Double) = context.strokeText(text,x,y,maxWidth)
+
+  override def save(): Unit = context.save()
+
+  override def restore(): Unit = context.restore()
 }

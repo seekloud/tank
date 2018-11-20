@@ -47,6 +47,7 @@ object MiddleContextInFx {
   implicit def string2StrokeLineCap(s:String):StrokeLineCap={
     s match {
       case "round"=>StrokeLineCap.ROUND
+      case "butt" =>StrokeLineCap.BUTT
       case _=>StrokeLineCap.ROUND //设置默认值
     }
   }
@@ -54,6 +55,7 @@ object MiddleContextInFx {
   implicit def string2StrokeLineJoin(s:String):StrokeLineJoin={
     s match {
       case "round"=> StrokeLineJoin.ROUND
+      case "miter"=> StrokeLineJoin.MITER
       case _ => StrokeLineJoin.ROUND
     }
   }
@@ -117,7 +119,7 @@ class MiddleContextInFx extends MiddleContext{
 
   override def stroke() = context.stroke()
 
-  override def fillText(text: String, x: Double, y: Double) = context.fillText(text,x,y)
+  override def fillText(text: String, x: Double, y: Double, z:Double=0) = context.fillText(text,x,y,z)
 
   override def setFont(f:String,fw:String,s:Double) = context.setFont(Font.font(f,string2FontWeight(fw),s))
 
@@ -132,4 +134,8 @@ class MiddleContextInFx extends MiddleContext{
   override def rect(x: Double, y: Double, w: Double, h: Double) = context.rect(x,y,w,h)
 
   override def strokeText(text: String, x: Double, y: Double, maxWidth: Double) = context.strokeText(text,x,y,maxWidth)
+
+  override def save(): Unit = context.save()
+
+  override def restore(): Unit = context.restore()
 }
