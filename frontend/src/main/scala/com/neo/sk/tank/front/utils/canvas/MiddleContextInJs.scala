@@ -42,10 +42,19 @@ class MiddleContextInJs extends MiddleContext{
   override def moveTo(x: Double, y: Double): Unit = context.moveTo(x, y)
 
   override def drawImage(image: Any, offsetX: Double, offsetY: Double, size: Option[(Double,Double)]): Unit = {
-    if(size.isEmpty){
-      context.drawImage(image.asInstanceOf[Canvas],offsetX,offsetY)
-    }else{
-      context.drawImage(image.asInstanceOf[Canvas],offsetX,offsetY,size.get._1,size.get._2)
+    image match {
+      case js: MiddleImageInJs =>
+        if (size.isEmpty) {
+          context.drawImage(js.returnSelf, offsetX, offsetY)
+        } else {
+          context.drawImage(js.returnSelf, offsetX, offsetY, size.get._1, size.get._2)
+        }
+      case js:Canvas =>
+        if (size.isEmpty) {
+          context.drawImage(js, offsetX, offsetY)
+        } else {
+          context.drawImage(js, offsetX, offsetY, size.get._1, size.get._2)
+        }
     }
   }
 

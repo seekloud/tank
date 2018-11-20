@@ -30,6 +30,8 @@ trait MiddleContext {
 
   def drawImage(image: Any, offsetX: Double, offsetY: Double, size:Option[(Double,Double)]=None): Unit
 
+//  def drawImage(image: MiddleImage, offsetX: Double, offsetY: Double, size:Option[(Double,Double)]=None): Unit
+
   def moveTo(x: Double, y: Double): Unit
 
   def fillRec(x: Double, y: Double, w: Double, h: Double):Unit

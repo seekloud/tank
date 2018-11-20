@@ -21,4 +21,7 @@ class MiddleImageInJs extends MiddleImage {
     image=dom.document.createElement("img").asInstanceOf[html.Image]
     image.setAttribute("src", url)
   }
+
+  def returnSelf= image
+
 }

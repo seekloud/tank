@@ -11,9 +11,11 @@ object MiddleImageInFx{
   def apply(url: String): MiddleImageInFx = new MiddleImageInFx(url)
 }
 class MiddleImageInFx extends MiddleImage {
-  private[this] var canvas: Image = _
+  private[this] var image: Image = _
   def this(url:String)={
     this()
-    canvas=new Image(url)
+    image=new Image(url)
   }
+
+  def returnSelf=image
 }

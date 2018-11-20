@@ -103,7 +103,7 @@ case class GameContainerClientImpl(
   /**
     * 游戏画面绘制
     * */
-  def drawGame(time:Long,networkLatency: Long):Unit = {
+/*  def drawGame(time:Long,networkLatency: Long):Unit = {
     val offsetTime = math.min(time,config.frameDuration)
     val h = 800
     val w = 800
@@ -127,7 +127,7 @@ case class GameContainerClientImpl(
         case None =>
       }
     }
-  }
+  }*/
 
   def drawDeadImg(s:String) = {
     ctx.setFill("black")

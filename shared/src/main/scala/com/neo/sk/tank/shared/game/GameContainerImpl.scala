@@ -2,7 +2,7 @@ package com.neo.sk.tank.shared.game
 
 import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.TankGameConfig
-import com.neo.sk.tank.shared.game.view.Background
+import com.neo.sk.tank.shared.game.view.{Background, BulletDrawUtil}
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent._
@@ -26,7 +26,8 @@ class GameContainerImpl(
                          val ctx:MiddleContext,
                          val drawFrame:MiddleFrame
                          ) extends GameContainer with EsRecover
-with Background{
+with Background
+with BulletDrawUtil {
 
   import scala.language.implicitConversions
 
@@ -305,5 +306,48 @@ with Background{
   protected def rollbackUpdate():Unit = {
     super.update()
     if(esRecoverSupport) addGameSnapShot(systemFrame,getGameContainerAllState())
+  }
+
+  def drawGame(time:Long,networkLatency: Long):Unit = {
+    val offsetTime = math.min(time,config.frameDuration)
+    val h = canvasSize.x
+    val w = canvasSize.y
+//    val startTime = System.currentTimeMillis()
+    if(!waitSyncData){
+      ctx.setLineCap("round")
+      ctx.setLineJoin("round")
+      tankMap.get(tId) match {
+        case Some(tank) =>
+          val offset = canvasSize / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime)
+          drawBackground(offset)
+          //          drawObstacles(offset,Point(w,h))
+          //          drawEnvironment(offset,Point(w,h))
+          //          drawProps(offset,Point(w,h))
+          drawBullet(offset,offsetTime, Point(w,h))
+          //          drawTank(offset,offsetTime,Point(w,h))
+          //          drawObstacleBloodSlider(offset)
+          //          drawMyTankInfo(tank.asInstanceOf[TankClientImpl])
+          drawMinimap(tank)
+          drawRank()
+//                    renderFps(networkLatency)
+          //          drawKillInformation()
+          //          drawRoomNumber()
+          //          drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
+
+          if(tank.cavasFrame >=1) {
+            tank.cavasFrame += 1
+          }
+          val endTime = System.currentTimeMillis()
+//          renderTimes += 1
+//          renderTime += endTime - startTime
+
+
+
+        case None =>
+        //          info(s"tankid=${myTankId} has no in tankMap.....................................")
+        //          setGameState(GameState.stop)
+        //          if(isObserve) drawDeadImg()
+      }
+    }
   }
 }
