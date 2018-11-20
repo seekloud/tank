@@ -213,7 +213,7 @@ trait TankDrawUtil{ this:GameContainerImpl =>
     }
     context.setFont("Arial", "bold", 1.8 * canvasUnit)
     context.setTextAlign("center")
-    context.setTextBaseline("center")
+    context.setTextBaseline("middle")
     context.setFill("#FCFCFC")
     context.fillText(name, start.x + length / 2, start.y)
   }
