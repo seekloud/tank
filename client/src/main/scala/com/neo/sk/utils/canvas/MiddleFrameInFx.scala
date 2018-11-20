@@ -6,7 +6,7 @@ import com.neo.sk.tank.shared.util.canvas.{MiddleCanvas, MiddleFrame, MiddleImag
   * Time at 上午11:29
   */
 class MiddleFrameInFx extends MiddleFrame {
-  override def createCanvas(width: Double, height: Double): MiddleCanvasInFx = MiddleCanvasInFx(width,height)
+  override def createCanvas(width: Double, height: Double): MiddleCanvasInFx = MiddleCanvasInFx(width.toFloat,height.toFloat)
 
   override def createImage(url: String): MiddleImage = MiddleImageInFx(url)
 }
