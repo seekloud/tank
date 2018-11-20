@@ -14,75 +14,86 @@ import javafx.scene.text.{Font, FontWeight, TextAlignment}
   * Time at 下午12:53
   */
 object MiddleContextInFx {
-  def apply(canvas:MiddleCanvasInFx): MiddleContextInFx = new MiddleContextInFx(canvas)
+  def apply(canvas: MiddleCanvasInFx): MiddleContextInFx = new MiddleContextInFx(canvas)
 
   //todo 匹配所有情况
-  def string2FontWeight(s:String):FontWeight={
+  def string2FontWeight(s: String): FontWeight = {
     s match {
       case "blod" => FontWeight.BOLD
       case "normal" => FontWeight.NORMAL
+      case "black" => FontWeight.BLACK
+      case "extra_bold" => FontWeight.EXTRA_BOLD
+      case "extra_light" => FontWeight.EXTRA_LIGHT
+      case "light" => FontWeight.LIGHT
+      case "medium" => FontWeight.MEDIUM
+      case "semi_bold" => FontWeight.SEMI_BOLD
+      case "thin" => FontWeight.THIN
       case _ => FontWeight.NORMAL
     }
   }
 
-  implicit def string2TextAlignment(s:String):TextAlignment={
+  implicit def string2TextAlignment(s: String): TextAlignment = {
     s match {
       case "center" => TextAlignment.CENTER
       case "left" => TextAlignment.LEFT
       case "right" => TextAlignment.RIGHT
+      case "justify" => TextAlignment.JUSTIFY
       case _ => TextAlignment.CENTER
     }
   }
 
-  implicit def string2TextBaseline(s:String):VPos={
+  implicit def string2TextBaseline(s: String): VPos = {
     s match {
-      case "middle"=>VPos.CENTER
-      case "top"=>VPos.TOP
-      case "center"=>VPos.CENTER
-      case "bottom"=>VPos.BOTTOM
+      case "middle" => VPos.CENTER
+      case "top" => VPos.TOP
+      case "center" => VPos.CENTER
+      case "bottom" => VPos.BOTTOM
       case _ => VPos.CENTER //设置默认值
     }
   }
 
-  implicit def string2StrokeLineCap(s:String):StrokeLineCap={
+  implicit def string2StrokeLineCap(s: String): StrokeLineCap = {
     s match {
-      case "round"=>StrokeLineCap.ROUND
-      case "butt" =>StrokeLineCap.BUTT
-      case _=>StrokeLineCap.ROUND //设置默认值
+      case "round" => StrokeLineCap.ROUND
+      case "butt" => StrokeLineCap.BUTT
+      case "square" => StrokeLineCap.SQUARE
+      case _ => StrokeLineCap.ROUND //设置默认值
     }
   }
 
-  implicit def string2StrokeLineJoin(s:String):StrokeLineJoin={
+  implicit def string2StrokeLineJoin(s: String): StrokeLineJoin = {
     s match {
-      case "round"=> StrokeLineJoin.ROUND
-      case "miter"=> StrokeLineJoin.MITER
+      case "round" => StrokeLineJoin.ROUND
+      case "miter" => StrokeLineJoin.MITER
+      case "revel" => StrokeLineJoin.BEVEL
       case _ => StrokeLineJoin.ROUND
     }
   }
 }
 
-class MiddleContextInFx extends MiddleContext{
+class MiddleContextInFx extends MiddleContext {
+
   import MiddleContextInFx._
 
   private[this] var context: GraphicsContext = _
 
-  def this(canvas:MiddleCanvasInFx) = {
+  def this(canvas: MiddleCanvasInFx) = {
     this()
     context = canvas.returnSelf.getGraphicsContext2D
   }
 
-  def returnContext=context
+  def returnContext = context
 
   override def setGlobalAlpha(alpha: Double): Unit = context.setGlobalAlpha(alpha)
 
   override def setLineWidth(h: Double) = context.setLineWidth(h)
 
-  override def setStrokeStyle(color:String) = {
+  override def setStrokeStyle(color: String) = {
     context.setStroke(Color.web(color))
   }
 
   override def arc(x: Double, y: Double, radius: Double, startAngle: Double,
-                   endAngle: Double) = context.arc(x, y, radius,radius, startAngle, endAngle)
+                   endAngle: Double) = context.arc(x, y, radius, radius, startAngle, endAngle)
 
   override def fill = context.fill()
 
@@ -92,7 +103,7 @@ class MiddleContextInFx extends MiddleContext{
 
   override def moveTo(x: Double, y: Double): Unit = context.moveTo(x, y)
 
-  override def drawImage(image: Any, offsetX: Double, offsetY: Double, size: Option[(Double,Double)]): Unit = {
+  override def drawImage(image: Any, offsetX: Double, offsetY: Double, size: Option[(Double, Double)]): Unit = {
     image match {
       case js: MiddleImageInFx =>
         if (size.isEmpty) {
@@ -100,7 +111,7 @@ class MiddleContextInFx extends MiddleContext{
         } else {
           context.drawImage(js.returnSelf, offsetX, offsetY, size.get._1, size.get._2)
         }
-      case js:WritableImage =>
+      case js: WritableImage =>
         if (size.isEmpty) {
           context.drawImage(js, offsetX, offsetY)
         } else {
@@ -109,31 +120,31 @@ class MiddleContextInFx extends MiddleContext{
     }
   }
 
-  override def fillRec(x: Double, y: Double, w: Double, h: Double)=context.fillRect(x,y,w,h)
+  override def fillRec(x: Double, y: Double, w: Double, h: Double) = context.fillRect(x, y, w, h)
 
-  override def clearRect(x: Double, y: Double, w: Double, h: Double) = context.clearRect(x,y,w,h)
+  override def clearRect(x: Double, y: Double, w: Double, h: Double) = context.clearRect(x, y, w, h)
 
   override def beginPath() = context.beginPath()
 
-  override def lineTo(x1: Double, y1: Double) = context.lineTo(x1,y1)
+  override def lineTo(x1: Double, y1: Double) = context.lineTo(x1, y1)
 
   override def stroke() = context.stroke()
 
-  override def fillText(text: String, x: Double, y: Double, z:Double=500) = context.fillText(text,x,y,z)
+  override def fillText(text: String, x: Double, y: Double, z: Double = 500) = context.fillText(text, x, y, z)
 
-  override def setFont(f:String,fw:String,s:Double) = context.setFont(Font.font(f,string2FontWeight(fw),s))
+  override def setFont(f: String, fw: String, s: Double) = context.setFont(Font.font(f, string2FontWeight(fw), s))
 
-  override def setTextAlign(s:String) = context.setTextAlign(s)
+  override def setTextAlign(s: String) = context.setTextAlign(s)
 
-  override def setTextBaseline(s:String)= context.setTextBaseline(s)
+  override def setTextBaseline(s: String) = context.setTextBaseline(s)
 
-  override def setLineCap(s:String) = context.setLineCap(s)
+  override def setLineCap(s: String) = context.setLineCap(s)
 
-  override def setLineJoin(s:String) = context.setLineJoin(s)
+  override def setLineJoin(s: String) = context.setLineJoin(s)
 
-  override def rect(x: Double, y: Double, w: Double, h: Double) = context.rect(x,y,w,h)
+  override def rect(x: Double, y: Double, w: Double, h: Double) = context.rect(x, y, w, h)
 
-  override def strokeText(text: String, x: Double, y: Double, maxWidth: Double) = context.strokeText(text,x,y,maxWidth)
+  override def strokeText(text: String, x: Double, y: Double, maxWidth: Double) = context.strokeText(text, x, y, maxWidth)
 
   override def save(): Unit = context.save()
 

@@ -63,16 +63,6 @@ case class GameContainerClientImpl(
       setGameState(GameState.stop)
   }
 
-/*  def updateClientSize(canvasSize:Point, cUnit:Int)={
-    canvasBoundary=canvasSize
-    canvasUnit = cUnit
-    updateBackSize(canvasBoundary)
-//    updateBulletSize(canvasBoundary)
-//    updateFpsSize(canvasBoundary)
-//    updateObstacleSize(canvasBoundary)
-//    updateTankSize(canvasBoundary)
-  }*/
-
 
   /**
     * 游戏画面绘制
