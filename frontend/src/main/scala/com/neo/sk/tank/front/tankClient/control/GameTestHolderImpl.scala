@@ -67,7 +67,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   private def start(name:String,roomIdOpt:Option[Long]):Unit = {
-    canvas.returnSelf.focus()
+    canvas.getCanvas.focus()
     if(firstCome){
       firstCome = false
       setGameState(GameState.loadingPlay)

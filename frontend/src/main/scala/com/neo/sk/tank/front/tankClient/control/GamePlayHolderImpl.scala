@@ -70,7 +70,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   private def start(name:String,roomIdOpt:Option[Long]):Unit = {
-    canvas.returnSelf.focus()
+    canvas.getCanvas.focus()
     if(firstCome){
       firstCome = false
       addUserActionListenEvent()
@@ -95,8 +95,8 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   private def addUserActionListenEvent():Unit = {
-    canvas.returnSelf.focus()
-    canvas.returnSelf.onmousemove = { e: dom.MouseEvent =>
+    canvas.getCanvas.focus()
+    canvas.getCanvas.onmousemove = { e: dom.MouseEvent =>
       val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(16,16)
       val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
@@ -109,7 +109,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         }
       }
     }
-    canvas.returnSelf.onclick = { e: MouseEvent =>
+    canvas.getCanvas.onclick = { e: MouseEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         audioForBullet.play()
         val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
@@ -119,7 +119,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       }
     }
 
-    canvas.returnSelf.onkeydown = { e: dom.KeyboardEvent =>
+    canvas.getCanvas.onkeydown = { e: dom.KeyboardEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         /**
           * 增加按键操作
@@ -179,7 +179,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       }
     }
 
-    canvas.returnSelf.onkeyup = { e: dom.KeyboardEvent =>
+    canvas.getCanvas.onkeyup = { e: dom.KeyboardEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.keyCode)
         if (watchKeys.contains(keyCode)) {

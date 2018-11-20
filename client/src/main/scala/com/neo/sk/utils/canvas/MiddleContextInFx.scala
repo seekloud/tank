@@ -78,10 +78,10 @@ class MiddleContextInFx extends MiddleContext {
 
   def this(canvas: MiddleCanvasInFx) = {
     this()
-    context = canvas.returnSelf.getGraphicsContext2D
+    context = canvas.getCanvas.getGraphicsContext2D
   }
 
-  def returnContext = context
+  def getContext = context
 
   override def setGlobalAlpha(alpha: Double): Unit = context.setGlobalAlpha(alpha)
 

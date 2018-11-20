@@ -13,7 +13,7 @@ import org.scalajs.dom.html
 object MiddleCanvasInJs {
   def apply(width: Double, height: Double): MiddleCanvasInJs = new MiddleCanvasInJs(width, height)
 
-  def apply(name:String,width: Double, height: Double): MiddleCanvasInJs = new MiddleCanvasInJs(name,width, height)
+  def apply(name: String, width: Double, height: Double): MiddleCanvasInJs = new MiddleCanvasInJs(name, width, height)
 }
 
 class MiddleCanvasInJs private() extends MiddleCanvas {
@@ -26,14 +26,14 @@ class MiddleCanvasInJs private() extends MiddleCanvas {
     setHeight(height)
   }
 
-  def this(name:String,width: Double, height: Double) = {
+  def this(name: String, width: Double, height: Double) = {
     this()
     canvas = dom.document.getElementById(name).asInstanceOf[Canvas]
     setWidth(width)
     setHeight(height)
   }
 
-  def returnSelf = canvas
+  def getCanvas = canvas
 
   override def getCtx = MiddleContextInJs(this)
 
