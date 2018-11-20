@@ -68,7 +68,7 @@ case class Bullet(
     if(isFlyEnd(boundary)){
       flyEndCallBack(this)
     } else{
-      if(tankIsMove)this.position = this.position + momentum + tankMomentum.rotate(tankDirection)
+      if(tankIsMove)this.position = this.position + momentum + tankMomentum.rotate(tankDirection).*(0.2f)
       else this.position = this.position + momentum
     }
 
@@ -84,7 +84,7 @@ case class Bullet(
 
 
   def getPosition4Animation(offsetTime:Long) = {
-    if(tankIsMove)this.position + (momentum + tankMomentum.rotate(tankDirection)) / config.frameDuration * offsetTime
+    if(tankIsMove)this.position + (momentum + tankMomentum.rotate(tankDirection).*(0.2f)) / config.frameDuration * offsetTime
     else this.position + momentum / config.frameDuration * offsetTime
   }
 
