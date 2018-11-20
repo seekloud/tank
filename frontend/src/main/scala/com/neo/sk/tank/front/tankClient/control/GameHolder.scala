@@ -129,8 +129,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
         Shortcut.cancelSchedule(timer)
 //        Shortcut.cancelSchedule(reStartTimer)
 //        drawGameStop()
-        Shortcut.scheduleOnce(() => drawCombatGains(), 3000)
-//        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+        Shortcut.scheduleOnce(() => drawCombatGains(), 2000)
 //        drawCombatGains()
 //        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
 
