@@ -248,7 +248,7 @@ trait Background{ this:GameContainerImpl =>
       ctx.beginPath()
       ctx.setStrokeStyle("ragb(0,0,0)")
       ctx.setTextAlign("start")
-      ctx.setFont("微软雅黑","blod",2.5*canvasUnit)
+      ctx.setFont("微软雅黑","bold",2.5*canvasUnit)
       ctx.setLineWidth(1)
 
       killInfoList.foreach{
