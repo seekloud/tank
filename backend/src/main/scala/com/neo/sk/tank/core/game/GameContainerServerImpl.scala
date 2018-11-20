@@ -67,13 +67,13 @@ case class GameContainerServerImpl(
 
     tank.launchBullet()(config) match {
       case Some((bulletDirection,position,damage)) =>
-        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(),tankId,position,damage,position,config.getMoveDistanceByFrame(tank.getTankSpeedLevel()),System.currentTimeMillis(),tank.name,bulletDirection)
+        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(),tankId,position,damage,position,config.getMoveDistanceByFrame(tank.getTankSpeedLevel()),tank.getTankDirection(),tank.getTankIsMove(),System.currentTimeMillis(),tank.name,bulletDirection)
         transformGenerateBulletEvent(bulletState)
         if(tank.getShotGunState()){
           List(Math.PI / 8, - Math.PI / 8).foreach{ bulletOffsetDirection =>
             val bulletPos = tank.getOtherLaunchBulletPosition(bulletOffsetDirection.toFloat)(config)
             val bulletDir = bulletDirection + bulletOffsetDirection.toFloat
-            val bulletState = BulletState(bulletIdGenerator.getAndIncrement(),tankId,bulletPos,damage,bulletPos,config.getMoveDistanceByFrame(tank.getTankSpeedLevel()),System.currentTimeMillis(),tank.name,bulletDir)
+            val bulletState = BulletState(bulletIdGenerator.getAndIncrement(),tankId,bulletPos,damage,bulletPos,config.getMoveDistanceByFrame(tank.getTankSpeedLevel()),tank.getTankDirection(),tank.getTankIsMove(),System.currentTimeMillis(),tank.name,bulletDir)
             transformGenerateBulletEvent(bulletState)
           }
         }
@@ -253,50 +253,6 @@ case class GameContainerServerImpl(
   }
 
   override protected def handleUserJoinRoomEventNow() = {
-
-//    def genATank(userId:String,tankIdOpt:Option[Int],name:String) = {
-//      def genTankPositionRandom():Point = {
-//        Point(random.nextInt(boundary.x.toInt - (2 * config.tankRadius.toInt)) + config.tankRadius.toInt,
-//          random.nextInt(boundary.y.toInt - (2 * config.tankRadius.toInt)) + config.tankRadius.toInt)
-//      }
-//      def genTankServeImpl(tankId:Int,killTankNum:Int,damageStatistics:Int,lives:Int) = {
-//        val position = genTankPositionRandom()
-//        var tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack,config, userId, tankId, name,
-//          config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
-//          config.maxBulletCapacity,lives = lives,None,
-//          killTankNum = killTankNum,damageStatistics = damageStatistics)
-//        var objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
-//        while (tank.isIntersectsObject(objects)){
-//          val position = genTankPositionRandom()
-//          tank = TankServerImpl(fillBulletCallBack,tankShotgunExpireCallBack, config, userId, tankId, name,
-//            config.getTankBloodByLevel(1), TankColor.getRandomColorType(random), position,
-//            config.maxBulletCapacity,lives = lives,None,
-//            killTankNum = killTankNum,damageStatistics = damageStatistics)
-//          objects = quadTree.retrieveFilter(tank).filter(t => t.isInstanceOf[Tank] || t.isInstanceOf[Obstacle])
-//        }
-//        tank
-//      }
-//      tankIdOpt match {
-//        case Some(id) =>
-//          val tankStateOld = tankLivesMap.get(id)
-//          tankStateOld match{
-//            case Some(tankState) =>
-//              if(tankState.lives > 0){//tank复活还有生命
-//                genTankServeImpl(id,tankState.killTankNum,tankState.damageStatistics,tankState.lives)
-//              }else{//tank复活没有生命,更新tankLivesMap
-//                tankLivesMap.remove(id)
-//                val tankId = tankIdGenerator.getAndIncrement()
-//                genTankServeImpl(tankId,0,0,config.getTankLivesLimit)
-//              }
-//            case None =>
-//              genTankServeImpl(id,0,0,config.getTankLivesLimit)
-//          }
-//        case None =>
-//          val tankId = tankIdGenerator.getAndIncrement()
-//          genTankServeImpl(tankId,0,0,config.getTankLivesLimit)
-//      }
-//    }
-
     justJoinUser.foreach{
       case (userId,tankIdOpt,name,ref) =>
         val tank = genATank(userId,tankIdOpt,name)
@@ -328,30 +284,28 @@ case class GameContainerServerImpl(
     val tank = genATank(userId,tankIdOpt,name)
     tankLivesMap.update(tank.tankId,tank.getTankState())
     val event = TankRelive4UserActor(tank,userId,name,roomActorRef,config.getTankGameConfigImpl())
-    //todo
     userMapObserver.get(userId) match{
       case Some(maps) =>
         maps.foreach{p =>
-//          val event1 = UserActor.JoinRoomSuccess4Watch(tank,config.getTankGameConfigImpl(), roomActorRef, TankGameEvent.SyncGameAllState(getGameContainerAllState()))
           p._2 ! event
         }
-
       case None =>
-//        userMapObserver.update(userId,mutable.HashMap.empty)
     }
-//    dispatchTo(userId, TankRelive(tank,userId,name,roomActorRef,config.getTankGameConfigImpl()), getUserActor4WatchGameList(userId))
     log.debug(s"${roomActorRef.path} is processing to generate tank for ${userId} ")
     userManager ! event
+    val userReliveEvent = TankGameEvent.UserRelive(userId,name,tank.getTankState(),systemFrame)
+    dispatch(userReliveEvent)
+    addGameEvent(userReliveEvent)
     tankMap.put(tank.tankId,tank)
     quadTree.insert(tank)
     //无敌时间消除
     tankInvincibleCallBack(tank.tankId)
-//    timer.startSingleTimer(s"TankInvincible_${tank.tankId}",RoomActor.TankInvincible(tank.tankId),config.initInvincibleDuration.millis)
   }
 
   def handleJoinRoom4Watch(userActor4WatchGame:ActorRef[UserActor.Command],uid:String,playerId:String) = {
     tankMap.find(_._2.userId == playerId) match {
       case Some((_, tank)) =>
+        userMapObserver.values.foreach(t => t.remove(uid))
         val playerObserversMap = userMapObserver.getOrElse(playerId, mutable.HashMap[String, ActorRef[UserActor.Command]]())
         playerObserversMap.put(uid, userActor4WatchGame)
         userMapObserver.put(playerId, playerObserversMap)
@@ -389,6 +343,7 @@ case class GameContainerServerImpl(
 
 
   def receiveUserAction(preExecuteUserAction:TankGameEvent.UserActionEvent):Unit = {
+//    println(s"receive user action preExecuteUserAction frame=${preExecuteUserAction.frame}----system fram=${systemFrame}")
     val f = math.max(preExecuteUserAction.frame,systemFrame)
     if(preExecuteUserAction.frame != f){
       log.debug(s"preExecuteUserAction fame=${preExecuteUserAction.frame}, systemFrame=${systemFrame}")

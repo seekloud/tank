@@ -1,31 +1,24 @@
-package com.neo.sk.tank.game.draw
+package com.neo.sk.tank.shared.game.view
 
-import com.neo.sk.tank.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.`object`.AirDropBox
+import com.neo.sk.tank.shared.game.GameContainerImpl
 import com.neo.sk.tank.shared.model.Constants.ObstacleType
 import com.neo.sk.tank.shared.model.Point
-import javafx.scene.SnapshotParameters
-import javafx.scene.canvas.{Canvas, GraphicsContext}
-import javafx.scene.image.Image
-import javafx.scene.paint.Color
-import javafx.scene.shape.StrokeLineCap
-import java.io.File
-
-import com.neo.sk.tank.App
+import com.neo.sk.tank.shared.util.canvas.MiddleContext
 
 import scala.collection.mutable
 
 /**
   * Created by hongruying on 2018/8/29
   */
-trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
+trait ObstacleDrawUtil{ this:GameContainerImpl =>
 
   //fixme 将此处map暴露给子类
-  private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Image]()
+  private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Any]()
 
-  private val steelImg = new Image(App.getClass.getResourceAsStream("/img/钢铁.png"))
-  private val riverImg = new Image(App.getClass.getResourceAsStream("/img/river.png"))
-  private val airBoxImg = new Image(App.getClass.getResourceAsStream("/img/道具.png"))
+  private val steelImg =drawFrame.createImage("/img/钢铁.png")
+  private val riverImg =drawFrame.createImage("/img/river.png")
+  private val airBoxImg =drawFrame.createImage("/img/道具.png")
 
   def updateObstacleSize(canvasSize:Point)={
     obstacleCanvasCacheMap.clear()
@@ -34,19 +27,19 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
   //todo  此处需要调研图片complete
   protected def obstacleImgComplete: Boolean = true
 
-  private def generateObstacleCacheCanvas(width: Float, height: Float, color: Color): Image = {
-    val cacheCanvas = new Canvas((width * canvasUnit).toInt, (height * canvasUnit).toInt)
-    val ctxCache = cacheCanvas.getGraphicsContext2D
+  private def generateObstacleCacheCanvas(width: Float, height: Float, color: String): Any = {
+    val cacheCanvas = drawFrame.createCanvas((width * canvasUnit).toInt, (height * canvasUnit).toInt)
+    val ctxCache = cacheCanvas.getCtx
     drawObstacle(Point(width / 2, height / 2), width, height, 1, color, ctxCache)
-    cacheCanvas.snapshot(new SnapshotParameters(), null)
+    cacheCanvas.change2Image()
   }
 
-  private def drawObstacle(centerPosition:Point, width:Float, height:Float, bloodPercent:Float, color:Color, context:GraphicsContext = ctx):Unit = {
+  private def drawObstacle(centerPosition:Point, width:Float, height:Float, bloodPercent:Float, color:String, context:MiddleContext = ctx):Unit = {
     context.setFill(color)
-    context.setStroke(color)
+    context.setStrokeStyle(color)
     context.setLineWidth(2)
     context.beginPath()
-    context.fillRect((centerPosition.x - width / 2) * canvasUnit, (centerPosition.y + height / 2 - bloodPercent * height) * canvasUnit,
+    context.fillRec((centerPosition.x - width / 2) * canvasUnit, (centerPosition.y + height / 2 - bloodPercent * height) * canvasUnit,
       width * canvasUnit, bloodPercent * height * canvasUnit)
     context.closePath()
     context.beginPath()
@@ -67,27 +60,27 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
           case (ObstacleType.airDropBox, true) =>
             if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
             else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
-            Color.rgb(99, 255, 255, 0.5)
-          case (ObstacleType.airDropBox, false) => Color.rgb(0, 255, 255, 1)
+            "rgba(99, 255, 255, 0.5)"
+          case (ObstacleType.airDropBox, false) => "rgba(0, 255, 255, 1)"
           case (ObstacleType.brick, true) =>
             if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
             else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
-            Color.rgb(139, 105, 105, 0.5)
-          case (ObstacleType.brick, false) => Color.rgb(139, 105, 105, 1)
+            "rgba(139, 105, 105, 0.5)"
+          case (ObstacleType.brick, false) => "rgba(139, 105, 105, 1)"
           case _ =>
             println(s"the obstacle=${obstacle} has not color")
-            Color.rgb(139, 105, 105, 1)
+            "rgba(139, 105, 105, 1)"
         }
         if(obstacle.obstacleType == ObstacleType.airDropBox){
           val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
           if (isAttacked){
             ctx.setGlobalAlpha(0.5)
             ctx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
-              obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit)
+              Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
             ctx.setGlobalAlpha(1)
           } else {
             ctx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
-              obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit)
+              Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
           }
         }else{
           if (obstacle.bloodPercent() > 0.9999999) {
@@ -119,8 +112,8 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
   private def drawLine(startX: Float, startY: Float, lineWidth:Float, lineLen:Float, color:String) = {
     ctx.save()
     ctx.setLineWidth(lineWidth)
-    ctx.setLineCap(StrokeLineCap.ROUND)
-    ctx.setStroke(Color.web(color))
+    ctx.setLineCap("round")
+    ctx.setStrokeStyle(color)
     ctx.beginPath()
     ctx.moveTo(startX, startY)
     ctx.lineTo(startX + lineLen, startY)
@@ -131,23 +124,23 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
 
 
 
-  private def generateEnvironmentCacheCanvas(obstacleType:Byte, obstacleWidth:Float, obstacleHeight:Float,isAttacked:Boolean):Image = {
-    val canvasCache = new Canvas(math.ceil(obstacleWidth * canvasUnit).toInt, math.ceil(obstacleHeight * canvasUnit).toInt)
-    val ctxCache = canvasCache.getGraphicsContext2D
+  private def generateEnvironmentCacheCanvas(obstacleType:Byte, obstacleWidth:Float, obstacleHeight:Float,isAttacked:Boolean):Any = {
+    val canvasCache = drawFrame.createCanvas(math.ceil(obstacleWidth * canvasUnit).toInt, math.ceil(obstacleHeight * canvasUnit).toInt)
+    val ctxCache = canvasCache.getCtx
     val img = obstacleType match {
       case ObstacleType.steel => steelImg
       case ObstacleType.river => riverImg
     }
     if (!isAttacked){
       ctxCache.drawImage(img, 0, 0,
-        obstacleWidth * canvasUnit,obstacleHeight * canvasUnit)
+        Some(obstacleWidth * canvasUnit,obstacleHeight * canvasUnit))
     } else{
       ctxCache.setGlobalAlpha(0.5)
       ctxCache.drawImage(img, 0, 0,
-        obstacleWidth * canvasUnit,obstacleHeight * canvasUnit)
+        Some(obstacleWidth * canvasUnit,obstacleHeight * canvasUnit))
       ctxCache.setGlobalAlpha(1)
     }
-    canvasCache.snapshot(new SnapshotParameters(), null)
+    canvasCache.change2Image()
   }
 
   protected def drawEnvironment(offset:Point,view:Point) = {
@@ -166,7 +159,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
         } else {
           ctx.beginPath()
           ctx.drawImage(img, p.x * canvasUnit, p.y * canvasUnit,
-            obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit)
+            Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
           ctx.fill()
           ctx.stroke()
           ctx.closePath()
