@@ -17,5 +17,5 @@ class MiddleImageInFx extends MiddleImage {
     image=new Image(url)
   }
 
-  def returnSelf=image
+  def getImage=image
 }

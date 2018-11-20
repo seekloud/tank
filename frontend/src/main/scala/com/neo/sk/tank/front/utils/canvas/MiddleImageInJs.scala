@@ -23,6 +23,6 @@ class MiddleImageInJs extends MiddleImage {
     image.setAttribute("src", Routes.base+"/static"+url)
   }
 
-  def returnSelf= image
+  def getImage= image
 
 }
