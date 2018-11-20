@@ -135,7 +135,7 @@ trait Background{ this:GameContainerImpl =>
 
       println(s"rank =${historyRankCanvas.getWidth()}, canvasUnit=${canvasUnit}, unit=${unit}")
 
-      val leftBegin = 4 * unit
+      val leftBegin = 5 * unit
       context.setFont("Arial","bold",12)
       context.clearRect(0,0,currentRankCanvas.getWidth(), currentRankCanvas.getHeight())
 
@@ -160,7 +160,7 @@ trait Background{ this:GameContainerImpl =>
           case _ => None
         }
         imgOpt.foreach{ img =>
-          context.drawImage(img, leftBegin - 4 * unit, (2 * index) * unit, Some(2 * unit,2 * unit))
+          context.drawImage(img, leftBegin - 5 * unit, (2 * index) * unit, Some(2 * unit,2 * unit))
         }
         context.setStrokeStyle(drawColor)
         context.setLineWidth(1.8 * unit)
@@ -169,7 +169,7 @@ trait Background{ this:GameContainerImpl =>
         context.lineTo((rankWidth - 2) * unit,(2 * index + 1) * unit)
         context.stroke()
         context.closePath()
-        context.setTextAlign("start")
+        context.setTextAlign("left")
         if(historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, (2 * index + 1) * unit, context)
         else drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d} lives=${score.l}", leftBegin, (2 * index + 1) * unit, context)
       }
@@ -191,7 +191,7 @@ trait Background{ this:GameContainerImpl =>
     }
     ctx.setGlobalAlpha(0.8)
     ctx.drawImage(currentRankCanvas.change2Image(),0,0)
-    ctx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - historyRankCanvas.getWidth(),0)
+    ctx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,0)
     ctx.setGlobalAlpha(1)
   }
 
@@ -201,7 +201,7 @@ trait Background{ this:GameContainerImpl =>
       val offset = Point(position.x / boundary.x * LittleMap.w, position.y / boundary.y * LittleMap.h)
       context.beginPath()
       context.setFill(color)
-      context.arc(offset.x * canvasUnit + 3, offset.y * canvasUnit + 3, 0.5 * canvasUnit,0,2*Math.PI)
+      context.arc(offset.x * canvasUnit + 3, offset.y * canvasUnit + 3, 0.5 * canvasUnit,0,360)
       context.fill()
       context.closePath()
     }
