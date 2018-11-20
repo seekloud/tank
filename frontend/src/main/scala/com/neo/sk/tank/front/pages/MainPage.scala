@@ -38,7 +38,7 @@ object MainPage extends PageSwitcher {
     case "watchGame" :: roomId :: accessCode :: Nil => new TankObservation(roomId.toLong, accessCode).render
     case "getGameRec" :: Nil => GameRecordPage.render
 
-    case "test" :: Nil => <div>TO BE CONTINUE...</div>
+    case "test" :: Nil => TankTest.render
     case _ => <div>Error Page</div>
   }
 

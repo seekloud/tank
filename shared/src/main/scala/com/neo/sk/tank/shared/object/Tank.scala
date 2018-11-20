@@ -51,6 +51,10 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   def getTankLivesLimit(implicit config: TankGameConfig) = config.getTankLivesLimit
   def getTankSpeedLevel():Byte = speedLevel
 
+  def getTankDirection():Float = direction
+
+  def getTankIsMove():Boolean = isMove
+
   def getShotGunState():Boolean = shotgunState
 
   def isLived() : Boolean = blood > 0

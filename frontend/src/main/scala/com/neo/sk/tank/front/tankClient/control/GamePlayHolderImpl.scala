@@ -51,7 +51,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   private val gunAngleAdjust = Set(
     KeyCode.K,
     KeyCode.L
-
   )
 
   private val myKeySet = mutable.HashSet[Int]()
@@ -112,6 +111,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     }
     canvas.returnSelf.onclick = { e: MouseEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
+        audioForBullet.play()
         val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
         sendMsg2Server(preExecuteAction) //发送鼠标位置
@@ -150,6 +150,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
         }
         else if (keyCode == KeyCode.Space && spaceKeyUpState) {
+          audioForBullet.play()
           spaceKeyUpState = false
           val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
@@ -165,6 +166,15 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
           e.preventDefault()
+        }
+        else if(keyCode == KeyCode.M){
+          if(needBgm){
+            audioForBgm.pause()
+            needBgm = false
+          }else{
+            audioForBgm.play()
+            needBgm = true
+          }
         }
       }
     }
@@ -217,6 +227,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     data match {
       case e:TankGameEvent.YourInfo =>
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
+        audioForBgm.play()
         /**
           * 更新游戏数据
           * */
@@ -233,9 +244,12 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         damageNum = e.damageStatistics
         killerName = e.name
         dom.window.cancelAnimationFrame(nextFrame)
+        drawGameStop()
         if(! e.hasLife){
           setGameState(GameState.stop)
-        }else drawGameStop()
+          audioForBgm.pause()
+          audioForDead.play()
+        }
 
       case e:TankGameEvent.Ranks =>
         /**
@@ -256,10 +270,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         nextFrame = dom.window.requestAnimationFrame(gameRender())
         setGameState(GameState.play)
 
-      case e:TankGameEvent.TankReliveInfo =>
-        dom.window.cancelAnimationFrame(nextFrame)
-        nextFrame = dom.window.requestAnimationFrame(gameRender())
-
       case e:TankGameEvent.UserActionEvent =>
         //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
         gameContainerOpt.foreach(_.receiveUserEvent(e))
@@ -267,6 +277,13 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
       case e:TankGameEvent.GameEvent =>
         e match {
+          case e:TankGameEvent.UserRelive =>
+            gameContainerOpt.foreach(_.receiveGameEvent(e))
+            if(e.userId == gameContainerOpt.get.myId){
+              dom.window.cancelAnimationFrame(nextFrame)
+              nextFrame = dom.window.requestAnimationFrame(gameRender())
+            }
+
           case ee:TankGameEvent.GenerateBullet =>
             gameContainerOpt.foreach(_.receiveGameEvent(e))
           //            if(gameContainerOpt.get.systemFrame > ee.frame)

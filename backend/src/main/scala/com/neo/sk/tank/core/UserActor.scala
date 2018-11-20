@@ -10,7 +10,7 @@ import com.neo.sk.tank.common.Constants
 import com.neo.sk.tank.core.RoomActor.TankRelive
 import com.neo.sk.tank.core.game.TankGameConfigServerImpl
 import com.neo.sk.tank.models.TankGameUserInfo
-import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameRsp, GetUserInRecordRsp, PlayerList, RecordFrameInfo}
+import com.neo.sk.tank.protocol.EsheepProtocol._
 import com.neo.sk.tank.shared.model.Constants.GameState
 import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, ReplayFrameData}
@@ -78,6 +78,8 @@ object UserActor {
   case class  InputRecordByDead(killTankNum:Int,lives:Int,damageStatistics:Int) extends Command
 
   case class InputRecordByLeft(killTankNum:Int,lives:Int,damageStatistics:Int) extends Command
+
+  case class ChangeWatchedPlayerId(playerInfo:TankGameUserInfo,watchedPlayerId: String) extends Command with UserManager.Command
 
   final case class SwitchBehavior(
                                    name: String,
@@ -210,7 +212,7 @@ object UserActor {
 
         case StartObserve(roomId, watchedUserId) =>
           roomManager ! RoomActor.JoinRoom4Watch(uId,roomId,watchedUserId,ctx.self)
-          switchBehavior(ctx, "observeInit", observeInit(uId, userInfo, frontActor))
+          switchBehavior(ctx, "observeInit", observeInit(uId, userInfo,roomId, frontActor))
 
 
         case WebSocketMsg(reqOpt) =>
@@ -298,7 +300,7 @@ object UserActor {
     }
 
 
-  private def observeInit(uId:String, userInfo: TankGameUserInfo, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
+  private def observeInit(uId:String, userInfo: TankGameUserInfo, roomId:Long,frontActor:ActorRef[TankGameEvent.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command],
     sendBuffer:MiddleBufferInJvm
@@ -306,13 +308,13 @@ object UserActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case ChangeUserInfo(info) =>
-          observeInit(uId,info,frontActor)
+          observeInit(uId,info,roomId,frontActor)
 
         case JoinRoomSuccess4Watch(tank, config, roomActor, state) =>
           log.debug(s"${ctx.self.path} first sync gameContainerState")
           frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, tank.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           frontActor ! TankGameEvent.Wrap(state.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
-          switchBehavior(ctx, "observe", observe(uId, userInfo, tank, frontActor, roomActor))
+          switchBehavior(ctx, "observe", observe(uId, userInfo, roomId,tank, frontActor, roomActor))
 
         case JoinRoomFail4Watch(error) =>
           log.debug(s"${ctx.self.path} recv a msg=${msg}")
@@ -321,8 +323,7 @@ object UserActor {
           Behaviors.stopped
 
         case TankRelive4UserActor(tank,userId,name,roomActor,config) =>
-          frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
-          switchBehavior(ctx,"observe",observe(uId,userInfo,tank,frontActor,roomActor))
+          switchBehavior(ctx,"observe",observe(uId,userInfo,roomId,tank,frontActor,roomActor))
 
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
@@ -352,6 +353,7 @@ object UserActor {
   private def observe(
                        uId:String,
                        userInfo: TankGameUserInfo,
+                       roomId:Long,
                        tank:TankServerImpl,
                        frontActor:ActorRef[TankGameEvent.WsMsgSource],
                        roomActor: ActorRef[RoomActor.Command])(
@@ -362,12 +364,12 @@ object UserActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case ChangeUserInfo(info) =>
-          observe(uId,info,tank,frontActor,roomActor)
+          observe(uId,info,roomId,tank,frontActor,roomActor)
 
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
             frontActor ! m
-            switchBehavior(ctx,"observeInit",observeInit(uId, userInfo, frontActor))
+            switchBehavior(ctx,"observeInit",observeInit(uId, userInfo, roomId,frontActor))
           }else{
             frontActor ! m
             Behaviors.same
@@ -382,6 +384,10 @@ object UserActor {
             case _ =>
           }
           Behaviors.same
+
+        case msg: ChangeWatchedPlayerId =>
+          ctx.self ! StartObserve(roomId,msg.watchedPlayerId)
+          switchBehavior(ctx,"idle",idle(uId,userInfo, System.currentTimeMillis(),frontActor))
 
         case ChangeBehaviorToInit=>
           frontActor ! TankGameEvent.Wrap(TankGameEvent.RebuildWebSocket.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
@@ -424,6 +430,7 @@ object UserActor {
           reqOpt match {
             case Some(t:TankGameEvent.UserActionEvent) =>
               //分发数据给roomActor
+//              println(s"${ctx.self.path} websocketmsg---------------${t}")
               roomActor ! RoomActor.WebSocketMsg(uId,tank.tankId,t)
             case Some(t:TankGameEvent.PingPackage) =>
 
@@ -492,9 +499,9 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case TankRelive4UserActor(tank,userId,name,roomActor,config) =>
-          frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
-          switchBehavior(ctx,"play",play(uId,userInfo,tank,startTime,frontActor,roomActor))
+        case TankRelive4UserActor(t,userId,name,roomActor,config) =>
+//          frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          switchBehavior(ctx,"play",play(uId,userInfo,t,startTime,frontActor,roomActor))
 
         /**
           * 本消息内转换为初始状态并给前端发送异地登录消息*/

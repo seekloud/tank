@@ -16,10 +16,11 @@ import scala.xml.Elem
   */
 object TankDemo extends Page{
 
-  private val cannvas = <canvas id ="GameView" tabindex="1"></canvas>
-  private val audio_1 = <audio id = "GameAudioForBgm" src="/tank/static/music/tank.mp3"></audio>
-  private val audio_2 = <audio id = "GameAudioForDead"></audio>
-
+  private val cannvas = <canvas id="GameView" tabindex="1"></canvas>
+  private val audio_1 = <audio id="GameAudioForBgm" src="/tank/static/music/tank.mp3" loop="loop" preload="auto" style="display:none"></audio>
+  private val audio_2 = <audio id="GameAudioForDead" src="/tank/static/music/fail.mp3" preload="auto" style="display:none"></audio>
+  private val audio_3 = <audio id="GameAudioForBullet" src="/tank/static/music/bullet.mp3" preload="auto" style="display:none"></audio>
+//  private val audio_3 = <audio id="GameAudioForBullet" src="/tank/static/music/fail.mp3" preload="auto" style="display:none"></audio>
 //  private val can = cannvas.asInstanceOf[Canvas]
 ////
 //  private var ctx:dom.CanvasRenderingContext2D = null
@@ -42,13 +43,6 @@ object TankDemo extends Page{
 
 
 
-
-
-
-
-
-
-
   override def render: Elem ={
     Shortcut.scheduleOnce(() =>init(),0)
     <div>
@@ -56,6 +50,7 @@ object TankDemo extends Page{
       {cannvas}
       {audio_1}
       {audio_2}
+      {audio_3}
     </div>
   }
 

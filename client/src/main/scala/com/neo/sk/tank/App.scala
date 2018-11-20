@@ -16,11 +16,13 @@ import javafx.application.Application
 import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.Canvas
 import javafx.stage.Stage
+
 import com.neo.sk.tank.controller.{HallScreenController, LoginScreenController}
-import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo, UserInfo}
+import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
 
 import concurrent.duration._
 import javafx.application.Platform
+
 import akka.actor.typed.ActorRef
 import com.neo.sk.tank.actor.{LoginActor, TokenActor}
 /**
@@ -32,14 +34,15 @@ class  App extends Application{
 
   override def start(primaryStage: Stage): Unit = {
     val context = new Context(primaryStage)
-    val playerInfo = PlayerInfo(UserInfo(100,"101","df",100000),"eee","efef","sjfosaj")
-    val gameHallScreen = new GameHallScreen(context,playerInfo)
-    context.switchScene(gameHallScreen.getScene)
-    val gameServerInfo = GameServerInfo("",30369,"flowdev.neoap.com")
-    new HallScreenController(context,gameHallScreen,gameServerInfo,playerInfo)
-//    val loginScreen = new LoginScreen(context)
-//    val l=new LoginScreenController(context, loginScreen)
-//    l.start
+//    val playerInfo = PlayerInfo("eee","101","df")
+//    val gameHallScreen = new GameHallScreen(context,playerInfo)
+//    context.switchScene(gameHallScreen.getScene)
+//    val gameServerInfo = GameServerInfo("",30369,"flowdev.neoap.com")
+//    new HallScreenController(context,gameHallScreen,gameServerInfo,playerInfo)
+    val loginScreen = new LoginScreen(context)
+//    context.switchScene(loginScreen.sence)//这一行不用加，否则会出现开始的闪现的屏幕
+    val l=new LoginScreenController(context, loginScreen)
+    l.start
   }
 
 }
