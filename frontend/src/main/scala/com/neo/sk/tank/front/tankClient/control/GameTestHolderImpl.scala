@@ -71,7 +71,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   private def start(name:String,roomIdOpt:Option[Long]):Unit = {
-    canvas.focus()
+    canvas.getCanvas.focus()
     timerForDown = Shortcut.schedule(() => fakeUserKeyDown,1000)
     timerForClick = Shortcut.schedule(() => fakeUserMouseClick,1000)
     if(firstCome){
@@ -216,7 +216,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         /**
           * 更新游戏数据
           * */
-        gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
 
       case e:TankGameEvent.YouAreKilled =>
@@ -252,10 +252,6 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         dom.window.cancelAnimationFrame(nextFrame)
         nextFrame = dom.window.requestAnimationFrame(gameRender())
         setGameState(GameState.play)
-
-      case e:TankGameEvent.TankReliveInfo =>
-        dom.window.cancelAnimationFrame(nextFrame)
-        nextFrame = dom.window.requestAnimationFrame(gameRender())
 
       case e:TankGameEvent.UserActionEvent =>
         //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
