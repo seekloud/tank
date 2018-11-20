@@ -3,8 +3,6 @@ package com.neo.sk.tank.shared.game.view
 import com.neo.sk.tank.shared.game.GameContainerImpl
 import com.neo.sk.tank.shared.model.Constants.LittleMap
 import com.neo.sk.tank.shared.model.Point
-import javafx.scene.paint.Color
-import javafx.scene.text.Font
 
 /**
   * Created by hongruying on 2018/8/29
