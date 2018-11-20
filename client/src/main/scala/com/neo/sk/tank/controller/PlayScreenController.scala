@@ -17,10 +17,11 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.utils.JavaFxUtil.{changeKeys, keyCode2Int}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
-
 import akka.actor.typed.scaladsl.AskPattern._
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.App
+import com.neo.sk.tank.shared.protocol.TankGameEvent.UserMouseClick
+import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 import javafx.util.Duration
 
 import scala.collection.mutable
@@ -64,6 +65,12 @@ class PlayScreenController(
   private var recvYourInfo: Boolean = false
   private var recvSyncGameAllState: Option[TankGameEvent.SyncGameAllState] = None
 
+  private val gameMusic = new Media(getClass.getResource("/music/bgm.mp3").toString)
+  private val gameMusicPlayer = new MediaPlayer(gameMusic)
+  gameMusicPlayer.setCycleCount(MediaPlayer.INDEFINITE)
+  private val bulletMusic = new AudioClip(getClass.getResource("/music/bullet.mp3").toString)
+  private val deadMusic = new AudioClip(getClass.getResource("/music/fail.mp3").toString)
+  private var needBgm = true
 
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
   private var gameState = GameState.loadingPlay
@@ -123,7 +130,6 @@ class PlayScreenController(
         playGameActor ! PlayGameActor.StartGameLoop
       }
     }
-
   }
 
   private def drawGame(offsetTime: Long) = {
@@ -144,7 +150,6 @@ class PlayScreenController(
           //        println(s"等待同步数据")
           playGameScreen.drawGameLoading()
         case GameState.play =>
-
           /** */
           gameContainerOpt.foreach(_.update())
           logicFrameTime = System.currentTimeMillis()
@@ -196,6 +201,7 @@ class PlayScreenController(
       **/
     playGameScreen.canvas.setOnMouseClicked{ e=>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
+        bulletMusic.play()
         val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
         playGameActor ! DispatchMsg(preExecuteAction)
@@ -243,6 +249,15 @@ class PlayScreenController(
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction)
         }
+        else if(keyCode == KeyCode.M){
+          if(needBgm){
+            gameMusicPlayer.pause()
+            needBgm = false
+          }else{
+            gameMusicPlayer.play()
+            needBgm = true
+          }
+        }
       }
     }
 
@@ -283,6 +298,7 @@ class PlayScreenController(
             * 更新游戏数据
             **/
           println("start------------")
+          gameMusicPlayer.play()
           try {
             gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
             gameContainerOpt.get.getTankId(e.tankId)
@@ -310,6 +326,8 @@ class PlayScreenController(
           playGameScreen.drawGameStop(killerName)
           if(!e.hasLife){
             setGameState(GameState.stop)
+            gameMusicPlayer.pause()
+            deadMusic.play()
           }else animationTimer.stop()
 
 //        case e:TankGameEvent.TankReliveInfo =>
@@ -345,6 +363,7 @@ class PlayScreenController(
 
         case e: TankGameEvent.UserActionEvent =>
           gameContainerOpt.foreach(_.receiveUserEvent(e))
+
 
 
         case e: TankGameEvent.GameEvent =>

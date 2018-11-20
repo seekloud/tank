@@ -50,6 +50,8 @@ case class GameContainerClientImpl(
   private var renderTime:Long = 0
   private var renderTimes = 0
 
+  private var isPlayMusic = true
+
   val timer = new Timer()
   timer.schedule(new TimerTask {
     override def run(): Unit = {
@@ -107,9 +109,6 @@ case class GameContainerClientImpl(
     * */
   def drawGame(time:Long,networkLatency: Long):Unit = {
     val offsetTime = math.min(time,config.frameDuration)
-//    val bounds = Screen.getPrimary.getVisualBounds
-//    val h = bounds.getMaxY.toFloat
-//    val w = bounds.getMaxX.toFloat
     val h = 800
     val w = 800
     val startTime = System.currentTimeMillis()
