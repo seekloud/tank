@@ -171,6 +171,11 @@ class GameContainerImpl(
     tankInvincibleCallBack(e.tankState.tankId)
   }
 
+  override protected def handleUserReliveEvent(e:TankGameEvent.UserRelive):Unit = {
+    super.handleUserReliveEvent(e)
+    tankInvincibleCallBack(e.tankState.tankId)
+  }
+
   protected def handleGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
     systemFrame = gameContainerAllState.f
     quadTree.clear()

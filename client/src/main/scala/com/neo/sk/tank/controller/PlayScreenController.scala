@@ -65,10 +65,12 @@ class PlayScreenController(
   private var recvYourInfo: Boolean = false
   private var recvSyncGameAllState: Option[TankGameEvent.SyncGameAllState] = None
 
-  private val gameMusic = new AudioClip(getClass.getResource("/music/tank.mp3").toString)
-  gameMusic.setCycleCount(AudioClip.INDEFINITE)
-  private val bulletMusic = new AudioClip(getClass.getResource("/music/peng.mp3").toString)
-  private val deadMusic = new AudioClip(getClass.getResource("/music/loss_sound.mp3").toString)
+  private val gameMusic = new Media(getClass.getResource("/music/bgm.mp3").toString)
+  private val gameMusicPlayer = new MediaPlayer(gameMusic)
+  gameMusicPlayer.setCycleCount(MediaPlayer.INDEFINITE)
+  private val bulletMusic = new AudioClip(getClass.getResource("/music/bullet.mp3").toString)
+  private val deadMusic = new AudioClip(getClass.getResource("/music/fail.mp3").toString)
+  private var needBgm = true
 
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
   private var gameState = GameState.loadingPlay
@@ -247,6 +249,15 @@ class PlayScreenController(
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction)
         }
+        else if(keyCode == KeyCode.M){
+          if(needBgm){
+            gameMusicPlayer.pause()
+            needBgm = false
+          }else{
+            gameMusicPlayer.play()
+            needBgm = true
+          }
+        }
       }
     }
 
@@ -287,10 +298,12 @@ class PlayScreenController(
             * 更新游戏数据
             **/
           println("start------------")
+          gameMusicPlayer.play()
           try {
             gameMusic.play()
             println(s"=====${gameMusic.isPlaying}=======")
             gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.drawFrame,playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
+            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
             gameContainerOpt.get.getTankId(e.tankId)
             recvYourInfo = true
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))
@@ -315,13 +328,13 @@ class PlayScreenController(
 //          animationTimer.stop()
           playGameScreen.drawGameStop(killerName)
           if(!e.hasLife){
-            gameMusic.stop()
-            deadMusic.play()
             setGameState(GameState.stop)
+            gameMusicPlayer.pause()
+            deadMusic.play()
           }else animationTimer.stop()
 
-        case e:TankGameEvent.TankReliveInfo =>
-          animationTimer.start()
+//        case e:TankGameEvent.TankReliveInfo =>
+//          animationTimer.start()
 
         case e: TankGameEvent.Ranks =>
 
@@ -358,6 +371,13 @@ class PlayScreenController(
 
         case e: TankGameEvent.GameEvent =>
           e match {
+            case e:TankGameEvent.UserRelive =>
+              gameContainerOpt.foreach(_.receiveGameEvent(e))
+              if(e.userId == gameContainerOpt.get.myId){
+                animationTimer.start()
+//                dom.window.cancelAnimationFrame(nextFrame)
+//                nextFrame = dom.window.requestAnimationFrame(gameRender())
+              }
             case ee:TankGameEvent.GenerateBullet =>
               gameContainerOpt.foreach(_.receiveGameEvent(e))
             case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
