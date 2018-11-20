@@ -246,14 +246,13 @@ object RoomActor {
     }
 
     val isKillMsg = msg.isInstanceOf[TankGameEvent.YouAreKilled]
-    val isReliveMsg = msg.isInstanceOf[TankGameEvent.TankReliveInfo]
-    subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg,isReliveMsg)))
+    subscribers.get(id).foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
     /**
       * 分发数据
       * */
 
     observersByUserId match{
-      case Some(ls) => ls.keys.foreach(uId4WatchGame => observers.get(uId4WatchGame).foreach(t => t ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg,isReliveMsg))))
+      case Some(ls) => ls.keys.foreach(uId4WatchGame => observers.get(uId4WatchGame).foreach(t => t ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg))))
       case None =>
     }
 //    observers.get(id).foreach(_ ! UserActor4WatchGame.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))

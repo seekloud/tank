@@ -168,12 +168,16 @@ object GameRecorder {
         case Save =>
           log.info(s"${ctx.self.path} work get msg save")
           timer.startSingleTimer(SaveDateKey, Save, saveTime)
-          ctx.self ! SaveDate(0)
+          if(userAllMap.nonEmpty){
+            ctx.self ! SaveDate(0)
+          }
           switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
 
         case RoomClose =>
           log.info(s"${ctx.self.path} work get msg save, room close")
-          ctx.self ! SaveDate(1)
+          if(userAllMap.nonEmpty){
+            ctx.self ! SaveDate(1)
+          }
           switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
 
         case unknow =>
@@ -184,6 +188,20 @@ object GameRecorder {
       case (ctx,PostStop) =>
         timer.cancelAll()
         log.info(s"${ctx.self.path} stopping....")
+
+        val gameRecorderBuffer = gameRecordData.gameRecordBuffer
+        //保存剩余gameRecorderBuffer中数据
+        val rs = gameRecorderBuffer.reverse
+        rs.headOption.foreach{ e =>
+          recorder.writeFrame(e.event._1.fillMiddleBuffer(middleBuffer).result(),e.event._2.map(_.fillMiddleBuffer(middleBuffer).result()))
+          rs.tail.foreach{e =>
+            if(e.event._1.nonEmpty){
+              recorder.writeFrame(e.event._1.fillMiddleBuffer(middleBuffer).result())
+            }else{
+              recorder.writeEmptyFrame()
+            }
+          }
+        }
         val mapInfo = essfMap.map{
           essf=>
             if(essf._2.leftF == -1L){
@@ -224,8 +242,22 @@ object GameRecorder {
     import gameRecordData._
     Behaviors.receive{(ctx,msg) =>
       msg match {
+          //fixme 这里存储文件的时候，gameRecordData的buffer数据没存，导致数据丢失
         case s:SaveDate =>
           log.info(s"${ctx.self.path} save get msg saveDate")
+          val gameRecorderBuffer = gameRecordData.gameRecordBuffer
+          //保存剩余gameRecorderBuffer中数据
+          val rs = gameRecorderBuffer.reverse
+          rs.headOption.foreach{ e =>
+            recorder.writeFrame(e.event._1.fillMiddleBuffer(middleBuffer).result(),e.event._2.map(_.fillMiddleBuffer(middleBuffer).result()))
+            rs.tail.foreach{e =>
+              if(e.event._1.nonEmpty){
+                recorder.writeFrame(e.event._1.fillMiddleBuffer(middleBuffer).result())
+              }else{
+                recorder.writeEmptyFrame()
+              }
+            }
+          }
           val mapInfo = essfMap.map{
             essf=>
               if(essf._2.leftF == -1L){
