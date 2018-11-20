@@ -107,9 +107,9 @@ class MiddleContextInFx extends MiddleContext {
     image match {
       case js: MiddleImageInFx =>
         if (size.isEmpty) {
-          context.drawImage(js.returnSelf, offsetX, offsetY)
+          context.drawImage(js.getImage, offsetX, offsetY)
         } else {
-          context.drawImage(js.returnSelf, offsetX, offsetY, size.get._1, size.get._2)
+          context.drawImage(js.getImage, offsetX, offsetY, size.get._1, size.get._2)
         }
       case js: WritableImage =>
         if (size.isEmpty) {

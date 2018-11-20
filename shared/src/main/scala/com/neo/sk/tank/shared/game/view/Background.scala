@@ -142,7 +142,7 @@ trait Background{ this:GameContainerImpl =>
       var index = 0
       context.setFill("black")
       context.setTextAlign("center")
-      minimapCanvas.getCtx.setTextBaseline("middle")
+      minimapCanvas.getCtx.setTextBaseline("center")
       context.setLineCap("round")
       drawTextLine(header, currentRankCanvas.getWidth() / 2 , 1 * unit, context)
       rank.foreach{ score =>

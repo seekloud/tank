@@ -45,9 +45,9 @@ class MiddleContextInJs extends MiddleContext{
     image match {
       case js: MiddleImageInJs =>
         if (size.isEmpty) {
-          context.drawImage(js.returnSelf, offsetX, offsetY)
+          context.drawImage(js.getImage, offsetX, offsetY)
         } else {
-          context.drawImage(js.returnSelf, offsetX, offsetY, size.get._1, size.get._2)
+          context.drawImage(js.getImage, offsetX, offsetY, size.get._1, size.get._2)
         }
       case js:Canvas =>
         if (size.isEmpty) {
@@ -70,7 +70,7 @@ class MiddleContextInJs extends MiddleContext{
 
   override def fillText(text: String, x: Double, y: Double, z:Double=500) = context.fillText(text,x,y,z)
 
-  override def setFont(f:String,fw:String,s:Double) = context.font = s"$fw $f ${s}px"
+  override def setFont(f:String,fw:String,s:Double) = context.font = s"$fw ${s}px $f"
 
   override def setTextAlign(s:String) = context.textAlign = s
 
