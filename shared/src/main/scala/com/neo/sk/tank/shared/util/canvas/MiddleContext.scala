@@ -30,8 +30,6 @@ trait MiddleContext {
 
   def drawImage(image: Any, offsetX: Double, offsetY: Double, size:Option[(Double,Double)]=None): Unit
 
-//  def drawImage(image: MiddleImage, offsetX: Double, offsetY: Double, size:Option[(Double,Double)]=None): Unit
-
   def moveTo(x: Double, y: Double): Unit
 
   def fillRec(x: Double, y: Double, w: Double, h: Double):Unit
@@ -44,7 +42,7 @@ trait MiddleContext {
 
   def stroke():Unit
 
-  def fillText(text: String, x: Double, y: Double, z:Double=0):Unit
+  def fillText(text: String, x: Double, y: Double, z:Double=500):Unit
 
   def setFont(f:String,fw:String,s:Double):Unit
 

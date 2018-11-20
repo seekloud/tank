@@ -86,16 +86,6 @@ trait Background{ this:GameContainerImpl =>
 //    protected def drawBackground(offset:Point) = {
 //      println("---drawBackground")
 //      clearScreen("#FCFCFC",1,canvasBoundary.x,canvasBoundary.y,ctx)
-//  //    ctx.lineWidth = 1
-//  //    ctx.fillStyle = Color.Black.toString()
-//  //    ctx.strokeStyle = Color.Black.toString()
-//  //    for(i <- 0 to(boundary.x.toInt,3)){
-//  //      drawLine(Point(i,0) + offset, Point(i, boundary.y) + offset)
-//  //    }
-//  //
-//  //    for(i <- 0 to(boundary.y.toInt,3)){
-//  //      drawLine(Point(0,i) + offset, Point(boundary.x, i) + offset)
-//  //    }
 //      val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background",generateBackgroundCanvas())
 //      ctx.drawImage(cacheCanvas,(-offset.x + canvasBoundary.x/2) * canvasUnit,( -offset.y+canvasBoundary.y/2 )* canvasUnit,
 //        Some(canvasBoundary.x * canvasUnit,canvasBoundary.y * canvasUnit))
