@@ -503,6 +503,10 @@ object UserActor {
 //          frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId,userInfo,t,startTime,frontActor,roomActor))
 
+        case DispatchMsg(m) =>
+          frontActor ! m
+          Behaviors.same
+
         /**
           * 本消息内转换为初始状态并给前端发送异地登录消息*/
         case ChangeBehaviorToInit=>
