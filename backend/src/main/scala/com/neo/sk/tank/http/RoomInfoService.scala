@@ -83,13 +83,11 @@ trait RoomInfoService extends ServiceUtils with HttpUtil with AuthService{
   private val changeWatchedPlayerId = (path("changeWatchedPlayerId") & get & pathEndOrSingleSlash){
     parameter(
       'uId.as[String],
-      'nickname.as[String],
       'watchedPlayerId.as[String],
-//      'roomId.as[Long]
       'accessCode.as[String]
-    ){(uId,nickname,watchedPlayerId,accessCode) =>
+    ){(uId,watchedPlayerId,accessCode) =>
       authPlatUser(accessCode){playerInfo =>
-        val playerInfo = PlayerInfo(uId,nickname)
+        val playerInfo = PlayerInfo(uId,uId)
         val userInfo = TankGameUserInfo(playerInfo.playerId, playerInfo.nickname, playerInfo.nickname, true)
         userManager ! UserActor.ChangeWatchedPlayerId(userInfo,watchedPlayerId)
         complete(SuccessRsp())
