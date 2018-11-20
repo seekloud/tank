@@ -55,13 +55,14 @@ class GameContainerImpl(
 
   private val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
 
-  def updateClientSize(canvasSize: Point, cUnit: Int) = {
+  def updateClientSize(canvasS: Point, cUnit: Int) = {
     canvasUnit = cUnit
-    updateBackSize(canvasSize)
-    updateBulletSize(canvasSize)
-    updateFpsSize(canvasSize)
-    updateObstacleSize(canvasSize)
-    updateTankSize(canvasSize)
+    canvasSize = canvasS
+    updateBackSize(canvasS)
+    updateBulletSize(canvasS)
+    updateFpsSize(canvasS)
+    updateObstacleSize(canvasS)
+    updateTankSize(canvasS)
   }
 
   override protected def handleObstacleAttacked(e: TankGameEvent.ObstacleAttacked): Unit = {

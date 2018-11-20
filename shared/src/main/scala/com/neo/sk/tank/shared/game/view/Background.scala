@@ -83,13 +83,12 @@ trait Background{ this:GameContainerImpl =>
   }
 
 
-//    protected def drawBackground(offset:Point) = {
-//      println("---drawBackground")
-//      clearScreen("#FCFCFC",1,canvasBoundary.x,canvasBoundary.y,ctx)
-//      val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background",generateBackgroundCanvas())
-//      ctx.drawImage(cacheCanvas,(-offset.x + canvasBoundary.x/2) * canvasUnit,( -offset.y+canvasBoundary.y/2 )* canvasUnit,
-//        Some(canvasBoundary.x * canvasUnit,canvasBoundary.y * canvasUnit))
-//    }
+  /*protected def drawBackground(offset: Point) = {
+    clearScreen("#FCFCFC", 1, canvasBoundary.x, canvasBoundary.y, ctx)
+    val cacheCanvas = cacheCanvasMap.getOrElseUpdate("background", generateBackgroundCanvas())
+    ctx.drawImage(cacheCanvas, (-offset.x + canvasBoundary.x / 2) * canvasUnit, (-offset.y + canvasBoundary.y / 2) * canvasUnit,
+      Some(canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit))
+  }*/
 
   protected def drawBackground(offset:Point) = {
     clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, ctx)
