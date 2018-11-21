@@ -113,8 +113,6 @@ object GamePlayer {
         case msg:InitReplay=>
           log.info("start new replay!")
           timer.cancel(GameLoopKey)
-//          timer.cancel(BehaviorWaitKey)
-//          fileReader.mutableInfoIterable
           userMap.filter(t => t._1.userId == msg.userId && t._2.leftF >= msg.f).sortBy(_._2.joinF).headOption match {
             case Some(u)=>
               dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,metaData.tankConfig))
@@ -140,7 +138,6 @@ object GamePlayer {
               }
             case None=>
               dispatchTo(msg.userActor,TankGameEvent.InitReplayError("本局游戏中不存在该用户！！"))
-//              timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
               Behaviors.stopped
           }
 

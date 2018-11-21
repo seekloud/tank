@@ -81,6 +81,7 @@ class PlayGameScreen(context: Context) {
     }else (Point(0,0), 0)
   }
 
+  //todo 考虑本部分代码移到shared
   def drawGameLoading():Unit = {
     getCanvasContext.setFill("#006699")
     getCanvasContext.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)

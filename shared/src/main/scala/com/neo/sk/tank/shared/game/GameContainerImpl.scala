@@ -167,13 +167,22 @@ class GameContainerImpl(
 
   //客户端增加坦克无敌失效callBack
   override protected def handleUserJoinRoomEvent(e: TankGameEvent.UserJoinRoom): Unit = {
+//    println(s"addininEvent${e.tankState.tankId}")
     super.handleUserJoinRoomEvent(e)
     tankInvincibleCallBack(e.tankState.tankId)
   }
 
   override protected def handleUserReliveEvent(e:TankGameEvent.UserRelive):Unit = {
+//    println(s"addininEvent${e.tankState.tankId}")
     super.handleUserReliveEvent(e)
     tankInvincibleCallBack(e.tankState.tankId)
+  }
+
+  /**同步游戏逻辑产生的延时事件*/
+  def receiveTankFollowEventSnap(snap:TankFollowEventSnap)={
+    snap.invincibleList.foreach(addFollowEvent(_))
+    snap.tankFillList.foreach(addFollowEvent(_))
+    snap.shotExpireList.foreach(addFollowEvent(_))
   }
 
   protected def handleGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
@@ -278,7 +287,6 @@ class GameContainerImpl(
           }
         case None => println(s"judge failed,because tank=${tankState.tankId} not exists....")
       }
-
     }
   }
 
