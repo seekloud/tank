@@ -17,16 +17,18 @@ import scala.collection.mutable
   * 终端
   * 本文件可以合并到GameContainerClientImpl
   */
-class GameContainerImpl(
-                         override val config: TankGameConfig,
-                         myId: String,
-                         myTankId: Int,
-                         myName: String,
-                         var canvasSize: Point,
-                         var canvasUnit: Int,
-                         val ctx: MiddleContext,
-                         val drawFrame: MiddleFrame
-                       ) extends GameContainer with EsRecover
+case class GameContainerClientImpl(
+                              drawFrame: MiddleFrame,
+                              ctx: MiddleContext,
+                              override val config: TankGameConfig,
+                              myId: String,
+                              myTankId: Int,
+                              myName: String,
+                              var canvasSize: Point,
+                              var canvasUnit: Int,
+                              setGameState: Int => Unit,
+                              setKillCallback: (String, Boolean, Int, Int) => Unit = { (_, _, _, _) => }
+                            ) extends GameContainer with EsRecover
   with Background with BulletDrawUtil with FpsComponents with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil {
 
   import scala.language.implicitConversions
@@ -77,6 +79,13 @@ class GameContainerImpl(
     super.handleTankAttacked(e)
     if (tankMap.get(e.tankId).nonEmpty) {
       tankAttackedAnimationMap.put(e.tankId, GameAnimation.bulletHitAnimationFrame)
+    }
+  }
+
+  override protected def dropTankCallback(bulletTankId: Int, bulletTankName: String, tank: Tank) = {
+    if (tank.tankId == tId) {
+      setKillCallback(bulletTankName, tank.lives > 1, tank.killTankNum, tank.damageStatistics)
+      if (tank.lives <= 1) setGameState(GameState.stop)
     }
   }
 
@@ -167,19 +176,19 @@ class GameContainerImpl(
 
   //客户端增加坦克无敌失效callBack
   override protected def handleUserJoinRoomEvent(e: TankGameEvent.UserJoinRoom): Unit = {
-//    println(s"addininEvent${e.tankState.tankId}")
+    //    println(s"addininEvent${e.tankState.tankId}")
     super.handleUserJoinRoomEvent(e)
     tankInvincibleCallBack(e.tankState.tankId)
   }
 
-  override protected def handleUserReliveEvent(e:TankGameEvent.UserRelive):Unit = {
-//    println(s"addininEvent${e.tankState.tankId}")
+  override protected def handleUserReliveEvent(e: TankGameEvent.UserRelive): Unit = {
+    //    println(s"addininEvent${e.tankState.tankId}")
     super.handleUserReliveEvent(e)
     tankInvincibleCallBack(e.tankState.tankId)
   }
 
-  /**同步游戏逻辑产生的延时事件*/
-  def receiveTankFollowEventSnap(snap:TankFollowEventSnap)={
+  /** 同步游戏逻辑产生的延时事件 */
+  def receiveTankFollowEventSnap(snap: TankFollowEventSnap) = {
     snap.invincibleList.foreach(addFollowEvent(_))
     snap.tankFillList.foreach(addFollowEvent(_))
     snap.shotExpireList.foreach(addFollowEvent(_))

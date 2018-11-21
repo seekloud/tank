@@ -1,11 +1,11 @@
 package com.neo.sk.tank.front.tankClient.control
 
 import com.neo.sk.tank.front.common.Routes
-import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.utils.Shortcut
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 
 /**
   * User: sky
@@ -30,7 +30,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
     data match {
       case e:TankGameEvent.YourInfo =>
         //        setGameState(Constants.GameState.loadingPlay)
-        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, true))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
         Shortcut.cancelSchedule(timer)
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
@@ -40,7 +40,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
 
       case e:TankGameEvent.PlayerLeftRoom =>
         Shortcut.cancelSchedule(timer)
-        gameContainerOpt.foreach(_.drawDeadImg(s"玩家已经离开了房间，请重新选择观战对象"))
+        drawDeadImg(s"玩家已经离开了房间，请重新选择观战对象")
 
       case e:TankGameEvent.SyncGameAllState =>
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
@@ -91,9 +91,9 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
         println(s"you are killed")
         killerName = e.name
         if(e.hasLife){
-          gameContainerOpt.foreach(_.drawDeadImg(s"玩家死亡，生命值未用尽，等待玩家复活"))
+          drawDeadImg(s"玩家死亡，生命值未用尽，等待玩家复活")
         }else{
-          gameContainerOpt.foreach(_.drawDeadImg(s"玩家死亡，生命值已经用完啦！可以在此界面等待玩家重新进入房间"))
+          drawDeadImg(s"玩家死亡，生命值已经用完啦！可以在此界面等待玩家重新进入房间")
 
         }
         dom.window.cancelAnimationFrame(nextFrame)

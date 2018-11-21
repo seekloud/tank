@@ -1,16 +1,16 @@
 package com.neo.sk.tank.controller
 
+import java.util.{Timer, TimerTask}
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.tank.App.{executor, materializer, scheduler, system, timeout, tokenActor}
 import com.neo.sk.tank.actor.{PlayGameActor, TokenActor}
 import com.neo.sk.tank.common.Context
-import com.neo.sk.tank.game.{GameContainerClientImpl, NetworkInfo}
+import com.neo.sk.tank.game.NetworkInfo
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo, TokenAndAcessCode, UserInfo}
 import com.neo.sk.tank.view.{GameHallScreen, PlayGameScreen}
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.tank.actor.PlayGameActor.{DispatchMsg, log}
-import com.neo.sk.tank.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -20,6 +20,7 @@ import javafx.scene.input.KeyCode
 import akka.actor.typed.scaladsl.AskPattern._
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.App
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.protocol.TankGameEvent.UserMouseClick
 import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 import javafx.util.Duration
@@ -75,6 +76,24 @@ class PlayScreenController(
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
   private var gameState = GameState.loadingPlay
   private var logicFrameTime = System.currentTimeMillis()
+
+  /**打印渲染时间*/
+  /*private var renderTime:Long = 0
+  private var renderTimes = 0
+
+  val timer = new Timer()
+  timer.schedule(new TimerTask {
+    override def run(): Unit = {
+      if(renderTimes != 0){
+        println(s"render page use avg time:${renderTime / renderTimes}ms")
+      }else{
+        println(s"render page use avg time:0 ms")
+      }
+      renderTime = 0
+      renderTimes = 0
+    }
+  }, 0, 5000)*/
+
   private val animationTimer = new AnimationTimer() {
     override def handle(now: Long): Unit = {
       drawGame(System.currentTimeMillis() - logicFrameTime)

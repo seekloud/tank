@@ -1,13 +1,13 @@
 package com.neo.sk.tank.shared.game.view
 
-import com.neo.sk.tank.shared.game.GameContainerImpl
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.LittleMap
 import com.neo.sk.tank.shared.model.Point
 
 /**
   * Created by hongruying on 2018/8/29
   */
-trait FpsComponents{ this:GameContainerImpl =>
+trait FpsComponents{ this:GameContainerClientImpl =>
   private var lastRenderTime = System.currentTimeMillis()
   private var lastRenderTimes = 0
   private var renderTimes = 0

@@ -1,7 +1,7 @@
 package com.neo.sk.tank.shared.game.view
 
 import com.neo.sk.tank.shared.`object`.Bullet
-import com.neo.sk.tank.shared.game.GameContainerImpl
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Point
 
 import scala.collection.mutable
@@ -9,7 +9,7 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/8/29
   */
-trait BulletDrawUtil { this:GameContainerImpl =>
+trait BulletDrawUtil { this:GameContainerClientImpl =>
 
   private def generateCanvas(bullet:Bullet) = {
     val radius = bullet.getRadius

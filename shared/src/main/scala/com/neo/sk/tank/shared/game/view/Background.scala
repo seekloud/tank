@@ -1,7 +1,7 @@
 package com.neo.sk.tank.shared.game.view
 
 import com.neo.sk.tank.shared.`object`.Tank
-import com.neo.sk.tank.shared.game.GameContainerImpl
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.util.canvas.{MiddleCanvas, MiddleContext, MiddleFrame, MiddleImage}
 import com.neo.sk.tank.shared.model.Constants.LittleMap
 import com.neo.sk.tank.shared.model.{Point, Score}
@@ -11,7 +11,7 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/8/29
   */
-trait Background{ this:GameContainerImpl =>
+trait Background{ this:GameContainerClientImpl =>
 
 //  implicit val drawFrame:MiddleFrame
   //fixme 将此处map暴露给子类

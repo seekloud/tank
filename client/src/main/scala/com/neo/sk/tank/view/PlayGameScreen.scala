@@ -135,6 +135,15 @@ class PlayGameScreen(context: Context) {
       pos = pos + 4 * canvasUnit * r.length}
   }
 
+  def drawDeadImg(s:String) = {
+    getCanvasContext.setFill("black")
+    getCanvasContext.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    getCanvasContext.setFill("red")
+    getCanvasContext.setTextAlign("left")
+    getCanvasContext.setTextBaseline("top")
+    getCanvasContext.setFont("Helvetica","normal",2)
+    getCanvasContext.fillText(s"$s", 150, 180)
+  }
 
 }
 
