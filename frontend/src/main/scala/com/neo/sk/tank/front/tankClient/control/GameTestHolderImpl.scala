@@ -198,15 +198,6 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     }
   }
 
-  private def point2Point(start:Point, end:Point) = {
-    var userActionList = List[(Int, Float)]()
-    val distance = end - start
-    val tankSpeed = //
-    if(distance.x < 0){
-
-    }
-  }
-
 
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
@@ -260,6 +251,13 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
       case e:TankGameEvent.GameEvent =>
         e match {
+          case e:TankGameEvent.UserRelive =>
+            gameContainerOpt.foreach(_.receiveGameEvent(e))
+            if(e.userId == gameContainerOpt.get.myId){
+              dom.window.cancelAnimationFrame(nextFrame)
+              nextFrame = dom.window.requestAnimationFrame(gameRender())
+            }
+
           case ee:TankGameEvent.GenerateBullet =>
             gameContainerOpt.foreach(_.receiveGameEvent(e))
           case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
