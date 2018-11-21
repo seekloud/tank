@@ -151,7 +151,7 @@ class PlayScreenController(
       gameState match {
         case GameState.loadingPlay =>
           //        println(s"等待同步数据")
-          playGameScreen.drawGameLoading()
+          gameContainerOpt.foreach(_.drawGameLoading())
         case GameState.play =>
           /** */
           gameContainerOpt.foreach(_.update())
@@ -328,7 +328,7 @@ class PlayScreenController(
           killerList = killerList :+ e.name
           killerName = e.name
 //          animationTimer.stop()
-          playGameScreen.drawGameStop(killerName)
+          gameContainerOpt.foreach(_.drawGameStop(killerName))
           if(!e.hasLife){
             setGameState(GameState.stop)
             gameMusicPlayer.pause()
@@ -390,7 +390,7 @@ class PlayScreenController(
 
 
         case TankGameEvent.RebuildWebSocket =>
-          playGameScreen.drawReplayMsg("存在异地登录。。")
+          gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
           closeHolder
 
         case _:TankGameEvent.DecodeError=>

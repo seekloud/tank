@@ -40,7 +40,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
 
       case e:TankGameEvent.PlayerLeftRoom =>
         Shortcut.cancelSchedule(timer)
-        drawDeadImg(s"玩家已经离开了房间，请重新选择观战对象")
+        gameContainerOpt.foreach(_.drawDeadImg(s"玩家已经离开了房间，请重新选择观战对象"))
 
       case e:TankGameEvent.SyncGameAllState =>
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
@@ -91,16 +91,16 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
         println(s"you are killed")
         killerName = e.name
         if(e.hasLife){
-          drawDeadImg(s"玩家死亡，生命值未用尽，等待玩家复活")
+          gameContainerOpt.foreach(_.drawDeadImg(s"玩家死亡，生命值未用尽，等待玩家复活"))
         }else{
-          drawDeadImg(s"玩家死亡，生命值已经用完啦！可以在此界面等待玩家重新进入房间")
+          gameContainerOpt.foreach(_.drawDeadImg(s"玩家死亡，生命值已经用完啦！可以在此界面等待玩家重新进入房间"))
 
         }
         dom.window.cancelAnimationFrame(nextFrame)
 //        Shortcut.cancelSchedule(timer)
 
       case TankGameEvent.RebuildWebSocket=>
-        drawReplayMsg("存在异地登录。。")
+        gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
         closeHolder
 
 

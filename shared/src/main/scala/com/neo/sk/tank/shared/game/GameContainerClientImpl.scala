@@ -28,7 +28,7 @@ case class GameContainerClientImpl(
                               setGameState: Int => Unit,
                               setKillCallback: (String, Boolean, Int, Int) => Unit = { (_, _, _, _) => }
                             ) extends GameContainer with EsRecover
-  with Background with BulletDrawUtil with FpsComponents with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil {
+  with BackgroundDrawUtil with BulletDrawUtil with FpsComponentsDrawUtil with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil with InfoDrawUtil {
 
   import scala.language.implicitConversions
 
