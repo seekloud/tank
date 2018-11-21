@@ -12,7 +12,7 @@ import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
-import org.scalajs.dom.raw.{HTMLElement, MouseEvent}
+import org.scalajs.dom.raw.HTMLElement
 
 import scala.collection.mutable
 import scala.xml.Elem
@@ -260,6 +260,13 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
       case e:TankGameEvent.GameEvent =>
         e match {
+          case e:TankGameEvent.UserRelive =>
+            gameContainerOpt.foreach(_.receiveGameEvent(e))
+            if(e.userId == gameContainerOpt.get.myId){
+              dom.window.cancelAnimationFrame(nextFrame)
+              nextFrame = dom.window.requestAnimationFrame(gameRender())
+            }
+
           case ee:TankGameEvent.GenerateBullet =>
             gameContainerOpt.foreach(_.receiveGameEvent(e))
           case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
