@@ -1,9 +1,9 @@
 package com.neo.sk.tank.front.tankClient.control
 
-import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.tankClient.{NetworkInfo, WebSocketClient}
 import com.neo.sk.tank.front.utils.canvas.MiddleFrameInJs
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.model.{Constants, Point}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -68,6 +68,20 @@ abstract class GameHolder(name:String) extends NetworkInfo{
   protected var countDownTimes = countDown
   protected var nextFrame = 0
   protected var logicFrameTime = System.currentTimeMillis()
+
+  //fixme 此处打印渲染时间
+  /*private var renderTime:Long = 0
+  private var renderTimes = 0
+
+  Shortcut.schedule( () =>{
+    if(renderTimes != 0){
+      println(s"render page use avg time:${renderTime / renderTimes}ms")
+    }else{
+      println(s"render page use avg time:0 ms")
+    }
+    renderTime = 0
+    renderTimes = 0
+  }, 5000L)*/
 
 
   def closeHolder={
@@ -178,6 +192,16 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       s"<p>伤害量:<span>${damageNum}</span></p>" +
       s"<p>击杀者ID:" + temp.mkString("、")+ "</p>"
     killerList = List.empty[String]
+  }
+
+  def drawDeadImg(s:String) = {
+    ctx.setFill("rgb(0,0,0)")
+    ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.setFill("rgb(250, 250, 250)")
+    ctx.setTextAlign("left")
+    ctx.setTextBaseline("top")
+    ctx.setFont("Helvetica","normal",36)
+    ctx.fillText(s"$s", 150, 180)
   }
 
 
