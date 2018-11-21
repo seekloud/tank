@@ -11,7 +11,7 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/8/29
   */
-trait Background{ this:GameContainerClientImpl =>
+trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
 //  implicit val drawFrame:MiddleFrame
   //fixme 将此处map暴露给子类

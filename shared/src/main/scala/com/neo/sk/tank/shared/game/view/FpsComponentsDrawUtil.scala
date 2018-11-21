@@ -7,7 +7,7 @@ import com.neo.sk.tank.shared.model.Point
 /**
   * Created by hongruying on 2018/8/29
   */
-trait FpsComponents{ this:GameContainerClientImpl =>
+trait FpsComponentsDrawUtil{ this:GameContainerClientImpl =>
   private var lastRenderTime = System.currentTimeMillis()
   private var lastRenderTimes = 0
   private var renderTimes = 0

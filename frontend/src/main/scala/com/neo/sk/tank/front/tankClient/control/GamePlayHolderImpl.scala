@@ -246,7 +246,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         damageNum = e.damageStatistics
         killerName = e.name
         dom.window.cancelAnimationFrame(nextFrame)
-        drawGameStop()
+        gameContainerOpt.foreach(_.drawGameStop(killerName))
         if(! e.hasLife){
           setGameState(GameState.stop)
           audioForBgm.pause()
@@ -298,7 +298,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         receivePingPackage(e)
 
       case TankGameEvent.RebuildWebSocket=>
-        drawReplayMsg("存在异地登录。。")
+        gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
         closeHolder
 
       case _ => println(s"unknow msg={sss}")

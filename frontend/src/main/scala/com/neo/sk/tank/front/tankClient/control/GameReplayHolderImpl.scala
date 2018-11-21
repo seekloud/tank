@@ -17,18 +17,6 @@ import org.scalajs.dom.ext.Color
 class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) extends GameHolder(name) {
   webSocketClient.setWsReplay(true)
 
-
-  override protected def drawGameStop():Unit = {
-    ctx.setFill("rgb(0,0,0)")
-    ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    ctx.setFill("rgb(250, 250, 250)")
-    ctx.setTextAlign("left")
-    ctx.setTextBaseline("top")
-    ctx.setFont( "Helvetica","normal",3.6*canvasUnit)
-    ctx.fillText(s"玩家已经死亡或离开,被玩家=${killerName}所杀", 150, 180)
-    println()
-  }
-
   def startReplay(option: Option[ReplayInfo]=None)={
     canvas.getCanvas.focus()
     if(firstCome){
@@ -48,7 +36,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
     gameState match {
       case GameState.loadingPlay =>
         println(s"等待同步数据")
-        drawGameLoading()
+        gameContainerOpt.foreach(_.drawGameLoading())
       case GameState.play =>
         /***/
         gameContainerOpt.foreach(_.update())
@@ -58,10 +46,10 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
       case GameState.stop =>
         gameContainerOpt.foreach(_.update())
         logicFrameTime = System.currentTimeMillis()
-        drawGameStop()
+        gameContainerOpt.foreach(_.drawGameStop(killerName))
 
       case GameState.replayLoading =>
-        drawGameLoading()
+        gameContainerOpt.foreach(_.drawGameLoading())
 
       case _ => println(s"state=${gameState} failed")
     }
@@ -161,14 +149,14 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
       case e:TankGameEvent.DecodeError=>
 
       case e:TankGameEvent.InitReplayError=>
-        drawReplayMsg(e.msg)
+        gameContainerOpt.foreach(_.drawReplayMsg(e.msg))
 
       case e:TankGameEvent.ReplayFinish=>
-        drawReplayMsg("游戏回放完毕。。。")
+        gameContainerOpt.foreach(_.drawReplayMsg("游戏回放完毕。。。"))
         closeHolder
 
       case TankGameEvent.RebuildWebSocket=>
-        drawReplayMsg("存在异地登录。。")
+        gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
         closeHolder
 
       case _ => println(s"unknow msg={sss}")
