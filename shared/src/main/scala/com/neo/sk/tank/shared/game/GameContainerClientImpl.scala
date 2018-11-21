@@ -15,7 +15,6 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/8/24
   * 终端
-  * 本文件可以合并到GameContainerClientImpl
   */
 case class GameContainerClientImpl(
                               drawFrame: MiddleFrame,
