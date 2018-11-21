@@ -10,7 +10,7 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
 import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.html.{Audio, Div}
-import org.scalajs.dom.raw.{Event}
+import org.scalajs.dom.raw.Event
 
 /**
   * User: sky
