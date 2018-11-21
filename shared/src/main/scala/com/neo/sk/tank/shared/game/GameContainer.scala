@@ -519,6 +519,10 @@ trait GameContainer extends KillInformation{
   }
 
   final protected def tankShotgunExpireCallBack(tid:Int):Unit={
+    //remind 删除之前的tank散弹失效事件
+    followEventMap.foreach{r=>
+      followEventMap.update(r._1,r._2.filterNot(e=>e.isInstanceOf[TankShotgunExpire]&&e.asInstanceOf[TankShotgunExpire].tankId==tid))
+    }
     addFollowEvent(TankGameEvent.TankShotgunExpire(tid,systemFrame+config.shotgunDuration))
   }
 
