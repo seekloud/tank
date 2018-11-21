@@ -44,9 +44,6 @@ object RoomActor {
   case class JoinRoom4Watch(uid:String,roomId:Long,playerId:String,userActor4Watch: ActorRef[UserActor.Command]) extends Command with  RoomManager.Command
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command with RoomManager.Command
   case object GameLoop extends Command
-  case class ShotgunExpire(tId:Int) extends Command
-  case class TankFillABullet(tId:Int) extends Command
-  case class TankInvincible(tId:Int)extends  Command
   case class TankRelive(userId:String, tankIdOpt:Option[Int],name:String) extends Command
 
 
@@ -188,8 +185,10 @@ object RoomActor {
           //分发新加入坦克的地图全量数据
           justJoinUser.foreach(t => subscribersMap.put(t._1,t._4))
           val gameContainerAllState = gameContainer.getGameContainerAllState()
+          val tankFollowEventSnap = gameContainer.getFollowEventSnap()
           justJoinUser.foreach{t =>
             val ls = gameContainer.getUserActor4WatchGameList(t._1)
+            dispatchTo(subscribersMap,observersMap)(t._1,tankFollowEventSnap,ls)
             dispatchTo(subscribersMap,observersMap)(t._1,TankGameEvent.SyncGameAllState(gameContainerAllState),ls)
           }
           val endTime = System.currentTimeMillis()
@@ -232,6 +231,7 @@ object RoomActor {
   import org.seekloud.byteobject.ByteObject._
 
   def dispatch(subscribers:mutable.HashMap[String,ActorRef[UserActor.Command]],observers:mutable.HashMap[String,ActorRef[UserActor.Command]])( msg:TankGameEvent.WsMsgServer)(implicit sendBuffer:MiddleBufferInJvm) = {
+//    if(msg.isInstanceOf[TankGameEvent.UserJoinRoom]) println(subscribers.keySet)
 //    println(s"+++++++++++++++++${msg.getClass}")
     val isKillMsg = msg.isInstanceOf[TankGameEvent.YouAreKilled]
     subscribers.values.foreach( _ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))

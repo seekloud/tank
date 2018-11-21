@@ -77,24 +77,9 @@ class PlayScreenController(
   private var logicFrameTime = System.currentTimeMillis()
   private val animationTimer = new AnimationTimer() {
     override def handle(now: Long): Unit = {
-//      log.debug(s"draw game ${System.currentTimeMillis()} ${logicFrameTime}")
       drawGame(System.currentTimeMillis() - logicFrameTime)
     }
   }
-//  private val timeline = new Timeline()
-//  private var countDownTimes=3
-//  timeline.setCycleCount(Animation.INDEFINITE)
-//  val keyFrame = new KeyFrame(Duration.millis(1000), { _ =>
-//    if(countDownTimes>0){
-//      playGameScreen.drawGameRestart(countDownTimes,killerName)
-//      countDownTimes-=1
-//    }else{
-//      timeline.stop()
-//      countDownTimes=3
-//      start
-//    }
-//  })
-//  timeline.getKeyFrames.add(keyFrame)
 
   private val watchKeys = Set(
     KeyCode.LEFT,
@@ -133,7 +118,6 @@ class PlayScreenController(
   }
 
   private def drawGame(offsetTime: Long) = {
-//    println(s"game container opt ${gameContainerOpt}")
     gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency))
   }
 
@@ -311,6 +295,8 @@ class PlayScreenController(
               println("client is stop!!!")
           }
 
+        case e:TankGameEvent.TankFollowEventSnap =>
+          gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
         case e: TankGameEvent.YouAreKilled =>
 

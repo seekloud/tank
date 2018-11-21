@@ -35,6 +35,9 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
         Shortcut.cancelSchedule(timer)
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
 
+      case e:TankGameEvent.TankFollowEventSnap =>
+        gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
+
       case e:TankGameEvent.PlayerLeftRoom =>
         Shortcut.cancelSchedule(timer)
         gameContainerOpt.foreach(_.drawDeadImg(s"玩家已经离开了房间，请重新选择观战对象"))

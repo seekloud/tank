@@ -93,6 +93,14 @@ object TankGameEvent {
   final case class GenerateObstacle(override val frame:Long,obstacleState: ObstacleState) extends EnvironmentEvent with WsMsgServer
 
   /**
+    * tank初次进入游戏时用于同步游戏逻辑产生延时事件
+    * */
+  final case class TankFollowEventSnap(override val frame:Long,
+                                       tankFillList:List[TankFillBullet],
+                                       invincibleList:List[TankInvincible],
+                                       shotExpireList:List[TankShotgunExpire]) extends GameEvent with WsMsgServer
+
+  /**
     * 游戏逻辑产生事件
     * */
   final case class TankFillBullet(tankId:Int,override val frame:Long) extends FollowEvent

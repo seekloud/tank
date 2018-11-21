@@ -127,11 +127,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       case GameState.stop =>
         dom.window.cancelAnimationFrame(nextFrame)
         Shortcut.cancelSchedule(timer)
-//        Shortcut.cancelSchedule(reStartTimer)
-//        drawGameStop()
-        Shortcut.scheduleOnce(() => drawCombatGains(), 2000)
-//        drawCombatGains()
-//        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+        Shortcut.scheduleOnce(() => drawCombatGains(), 3000)
 
       case _ => println(s"state=${gameState} failed")
     }
