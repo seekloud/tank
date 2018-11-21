@@ -198,15 +198,6 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     }
   }
 
-  private def point2Point(start:Point, end:Point) = {
-    var userActionList = List[(Int, Float)]()
-    val distance = end - start
-    val tankSpeed = //
-    if(distance.x < 0){
-
-    }
-  }
-
 
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
