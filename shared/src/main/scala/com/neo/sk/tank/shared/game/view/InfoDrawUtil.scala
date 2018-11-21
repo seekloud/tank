@@ -6,6 +6,7 @@ import com.neo.sk.tank.shared.game.GameContainerClientImpl
   * Created by sky
   * Date on 2018/11/21
   * Time at 下午4:03
+  * 本文件中实现canvas绘制提示信息
   */
 trait InfoDrawUtil {this:GameContainerClientImpl =>
 
