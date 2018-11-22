@@ -31,7 +31,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
   protected var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
 
   protected val audioForBgm = dom.document.getElementById("GameAudioForBgm").asInstanceOf[Audio]
-//  audioForBgm.volume = 0.3
+  audioForBgm.volume = 0.3
   protected val audioForDead = dom.document.getElementById("GameAudioForDead").asInstanceOf[Audio]
   protected val audioForBullet = dom.document.getElementById("GameAudioForBullet").asInstanceOf[Audio]
   var needBgm = true
