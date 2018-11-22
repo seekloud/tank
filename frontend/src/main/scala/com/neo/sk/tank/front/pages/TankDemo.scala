@@ -45,7 +45,7 @@ object TankDemo extends Page{
 
 
   override def render: Elem ={
-    Shortcut.scheduleOnce(() =>init(),10000)
+    Shortcut.scheduleOnce(() =>init(),0)
     <div>
       <div >{modal}</div>
       {cannvas}
