@@ -21,4 +21,6 @@ class MiddleImageInFx extends MiddleImage {
   }
 
   def getImage = image
+
+  override def isComplete: Boolean = true
 }
