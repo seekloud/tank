@@ -25,7 +25,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
   }
 
   //todo  此处需要调研图片complete
-  protected def obstacleImgComplete: Boolean = true
+  protected def obstacleImgComplete: Boolean = steelImg.isComplete && riverImg.isComplete
 
   private def generateObstacleCacheCanvas(width: Float, height: Float, color: String): Any = {
     val cacheCanvas = drawFrame.createCanvas((width * canvasUnit).toInt, (height * canvasUnit).toInt)

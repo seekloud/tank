@@ -28,4 +28,6 @@ class MiddleImageInJs extends MiddleImage {
 
   def getImage = image
 
+  override def isComplete: Boolean = image.complete
+
 }
