@@ -46,7 +46,7 @@ object TankDemo extends Page{
 
   override def render: Elem ={
 //    Shortcut.scheduleOnce(() =>init(),10000)
-    <div mhtml-onmount={Shortcut.scheduleOnce(() =>init(),0)}>
+    <div mhtml-onmount={()=> init()}>
       <div >{modal}</div>
       {cannvas}
       {audio_1}
