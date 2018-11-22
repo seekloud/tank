@@ -28,6 +28,7 @@ object TankDemo extends Page{
   private val modal = Var(emptyHTML)
 
   def init() = {
+    print("------1-111")
     val gameHolder = new GamePlayHolderImpl("GameView")
     val startGameModal = gameHolder.getStartGameModal()
     modal := startGameModal
@@ -44,7 +45,7 @@ object TankDemo extends Page{
 
 
   override def render: Elem ={
-    Shortcut.scheduleOnce(() =>init(),50000)
+    Shortcut.scheduleOnce(() =>init(),10000)
     <div>
       <div >{modal}</div>
       {cannvas}
