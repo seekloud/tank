@@ -114,7 +114,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
       case TankGameEvent.StartReplay =>
         println("start replay---")
         setGameState(GameState.play)
-        timer = Shortcut.schedule(gameLoop, gameContainerOpt.get.config.frameDuration)
+        timer = Shortcut.schedule(gameLoop, gameContainerOpt.get.config.frameDuration /  gameContainerOpt.get.config.playRate)
         nextFrame = dom.window.requestAnimationFrame(gameRender())
 
 

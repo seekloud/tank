@@ -216,7 +216,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 //    println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
-        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
+        timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)
         /**
           * 更新游戏数据
           * */

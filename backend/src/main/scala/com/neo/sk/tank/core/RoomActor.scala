@@ -85,7 +85,7 @@ object RoomActor {
             if(AppSettings.gameRecordIsWork){
               getGameRecorder(ctx,gameContainer,roomId,gameContainer.systemFrame)
             }
-            timer.startPeriodicTimer(GameLoopKey,GameLoop,gameContainer.config.frameDuration.millis)
+            timer.startPeriodicTimer(GameLoopKey,GameLoop,(gameContainer.config.frameDuration / gameContainer.config.playRate).millis)
             idle(roomId,Nil,Nil,subscribersMap, observersMap, gameContainer,0L)
         }
     }

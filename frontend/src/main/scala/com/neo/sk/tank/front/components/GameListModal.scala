@@ -60,7 +60,7 @@ object GameListModal extends Component{
         }
       }
     }else{
-      val data = GetGameRecReq(currentPageState * 10, 10).asJson.noSpaces
+      val data = GetGameRecReq(8170, 10).asJson.noSpaces
       Http.postJsonAndParse[GetGameRecRsp](Routes.getRecordListUrl, data).map{rsp =>
         if(rsp.errCode == 0){
           recordTable := rsp.data.get
