@@ -8,7 +8,7 @@ import com.neo.sk.tank.shared.model.Point
   * Created by hongruying on 2018/7/8
   * 子弹
   */
-case class BulletState(bId:Int,tankId:Int,position:Point,damage:Int,startPosition:Point,tankMomentum:Point,createTime:Long, name:String, direction:Float)
+case class BulletState(bId:Int,tankId:Int,position:Point,damage:Int,startPosition:Point,tankMomentum:Point,tankDirection:Float,tankIsMove:Boolean,createTime:Long, name:String, direction:Float)
 
 case class Bullet(
                  config:TankGameConfig,
@@ -16,6 +16,8 @@ case class Bullet(
                  damage:Int, //威力
                  startPosition: model.Point, //起始位置
                  tankMomentum:Point,
+                 tankDirection:Float,
+                 tankIsMove:Boolean,
                  createTime:Long,
                  bId:Int,
                  tankId:Int,
@@ -24,7 +26,7 @@ case class Bullet(
                  ) extends CircleObjectOfGame{
 
   def this(config:TankGameConfig, bulletState: BulletState){
-    this(config,bulletState.position,bulletState.damage,bulletState.startPosition,bulletState.tankMomentum,bulletState.createTime,bulletState.bId,bulletState.tankId,bulletState.name,bulletState.direction)
+    this(config,bulletState.position,bulletState.damage,bulletState.startPosition,bulletState.tankMomentum,bulletState.tankDirection,bulletState.tankIsMove,bulletState.createTime,bulletState.bId,bulletState.tankId,bulletState.name,bulletState.direction)
   }
 
 
@@ -44,7 +46,7 @@ case class Bullet(
 
 
   def getBulletState(): BulletState = {
-    BulletState(bId,tankId,position,damage,startPosition,tankMomentum,createTime,tankName,direction)
+    BulletState(bId,tankId,position,damage,startPosition,tankMomentum,tankDirection,tankIsMove,createTime,tankName,direction)
   }
 
 
@@ -66,7 +68,8 @@ case class Bullet(
     if(isFlyEnd(boundary)){
       flyEndCallBack(this)
     } else{
-      this.position = this.position + momentum + tankMomentum.rotate(this.direction)
+      if(tankIsMove)this.position = this.position + momentum + tankMomentum.rotate(tankDirection).*(0.2f)
+      else this.position = this.position + momentum
     }
 
 
@@ -81,7 +84,8 @@ case class Bullet(
 
 
   def getPosition4Animation(offsetTime:Long) = {
-    this.position + (momentum + tankMomentum.rotate(this.direction)) / config.frameDuration * offsetTime
+    if(tankIsMove)this.position + (momentum + tankMomentum.rotate(tankDirection).*(0.2f)) / config.frameDuration * offsetTime
+    else this.position + momentum / config.frameDuration * offsetTime
   }
 
   def getBulletLevel() = {

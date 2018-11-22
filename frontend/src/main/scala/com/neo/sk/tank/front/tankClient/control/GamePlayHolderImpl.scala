@@ -5,8 +5,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import com.neo.sk.tank.front.common.Routes
 import com.neo.sk.tank.front.components.StartGameModal
 import com.neo.sk.tank.front.model.PlayerInfo
-import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -51,7 +51,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   private val gunAngleAdjust = Set(
     KeyCode.K,
     KeyCode.L
-
   )
 
   private val myKeySet = mutable.HashSet[Int]()
@@ -71,7 +70,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   private def start(name:String,roomIdOpt:Option[Long]):Unit = {
-    canvas.focus()
+    canvas.getCanvas.focus()
     if(firstCome){
       firstCome = false
       addUserActionListenEvent()
@@ -96,8 +95,8 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   private def addUserActionListenEvent():Unit = {
-    canvas.focus()
-    canvas.onmousemove = { e: dom.MouseEvent =>
+    canvas.getCanvas.focus()
+    canvas.getCanvas.onmousemove = { e: dom.MouseEvent =>
       val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(16,16)
       val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
@@ -110,8 +109,9 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         }
       }
     }
-    canvas.onclick = { e: MouseEvent =>
+    canvas.getCanvas.onclick = { e: MouseEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
+        audioForBullet.play()
         val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
         sendMsg2Server(preExecuteAction) //发送鼠标位置
@@ -119,7 +119,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       }
     }
 
-    canvas.onkeydown = { e: dom.KeyboardEvent =>
+    canvas.getCanvas.onkeydown = { e: dom.KeyboardEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         /**
           * 增加按键操作
@@ -147,9 +147,9 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
           e.preventDefault()
-
         }
         else if (keyCode == KeyCode.Space && spaceKeyUpState) {
+          audioForBullet.play()
           spaceKeyUpState = false
           val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
@@ -166,10 +166,19 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           sendMsg2Server(preExecuteAction)
           e.preventDefault()
         }
+        else if(keyCode == KeyCode.M){
+          if(needBgm){
+            audioForBgm.pause()
+            needBgm = false
+          }else{
+            audioForBgm.play()
+            needBgm = true
+          }
+        }
       }
     }
 
-    canvas.onkeyup = { e: dom.KeyboardEvent =>
+    canvas.getCanvas.onkeyup = { e: dom.KeyboardEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.keyCode)
         if (watchKeys.contains(keyCode)) {
@@ -217,11 +226,15 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     data match {
       case e:TankGameEvent.YourInfo =>
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)
+        audioForBgm.play()
         /**
           * 更新游戏数据
           * */
-        gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
+
+      case e:TankGameEvent.TankFollowEventSnap =>
+        gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
       case e:TankGameEvent.YouAreKilled =>
         /**
@@ -233,9 +246,12 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         damageNum = e.damageStatistics
         killerName = e.name
         dom.window.cancelAnimationFrame(nextFrame)
+        gameContainerOpt.foreach(_.drawGameStop(killerName))
         if(! e.hasLife){
           setGameState(GameState.stop)
-        }else drawGameStop()
+          audioForBgm.pause()
+          audioForDead.play()
+        }
 
       case e:TankGameEvent.Ranks =>
         /**
@@ -256,10 +272,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         nextFrame = dom.window.requestAnimationFrame(gameRender())
         setGameState(GameState.play)
 
-      case e:TankGameEvent.TankReliveInfo =>
-        dom.window.cancelAnimationFrame(nextFrame)
-        nextFrame = dom.window.requestAnimationFrame(gameRender())
-
       case e:TankGameEvent.UserActionEvent =>
         //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
         gameContainerOpt.foreach(_.receiveUserEvent(e))
@@ -267,6 +279,13 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
       case e:TankGameEvent.GameEvent =>
         e match {
+          case e:TankGameEvent.UserRelive =>
+            gameContainerOpt.foreach(_.receiveGameEvent(e))
+            if(e.userId == gameContainerOpt.get.myId){
+              dom.window.cancelAnimationFrame(nextFrame)
+              nextFrame = dom.window.requestAnimationFrame(gameRender())
+            }
+
           case ee:TankGameEvent.GenerateBullet =>
             gameContainerOpt.foreach(_.receiveGameEvent(e))
           //            if(gameContainerOpt.get.systemFrame > ee.frame)
@@ -279,7 +298,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         receivePingPackage(e)
 
       case TankGameEvent.RebuildWebSocket=>
-        drawReplayMsg("存在异地登录。。")
+        gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
         closeHolder
 
       case _ => println(s"unknow msg={sss}")

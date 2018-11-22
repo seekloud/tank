@@ -1,15 +1,13 @@
-package com.neo.sk.tank.game.draw
+package com.neo.sk.tank.shared.game.view
 
-import com.neo.sk.tank.game.GameContainerClientImpl
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.LittleMap
 import com.neo.sk.tank.shared.model.Point
-import javafx.scene.text.{Font, FontWeight, TextAlignment}
-import javafx.scene.paint.Color
 
 /**
   * Created by hongruying on 2018/8/29
   */
-trait FpsComponents{ this:GameContainerClientImpl =>
+trait FpsComponentsDrawUtil{ this:GameContainerClientImpl =>
   private var lastRenderTime = System.currentTimeMillis()
   private var lastRenderTimes = 0
   private var renderTimes = 0
@@ -34,9 +32,9 @@ trait FpsComponents{ this:GameContainerClientImpl =>
   protected def renderFps(networkLatency: Long) = {
     addFps()
     if(isRenderFps){
-      ctx.setFont(Font.font("Helvetica", 2 * canvasUnit))
+      ctx.setFont("Helvetica", "normal",2 * canvasUnit)
 //      ctx.setTextAlign(TextAlignment.JUSTIFY)
-      ctx.setFill(Color.BLACK)
+      ctx.setFill("rgb(0,0,0)")
       val fpsString = s"fps : $lastRenderTimes,  ping : ${networkLatency}ms"
       ctx.fillText(fpsString,canvasBoundary.x * canvasUnit - fpsString.length * canvasUnit/1.5,(canvasBoundary.y - LittleMap.h - 2) * canvasUnit)
       //      ctx.fillText(s"ping: ${networkLatency}ms",canvasBoundary.x * canvasUnit - ctx.measureText(),(canvasBoundary.y - LittleMap.h - 2) * canvasUnit,10 * canvasUnit)

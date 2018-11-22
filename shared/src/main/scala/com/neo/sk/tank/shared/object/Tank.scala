@@ -51,6 +51,10 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   def getTankLivesLimit(implicit config: TankGameConfig) = config.getTankLivesLimit
   def getTankSpeedLevel():Byte = speedLevel
 
+  def getTankDirection():Float = direction
+
+  def getTankIsMove():Boolean = isMove
+
   def getShotGunState():Boolean = shotgunState
 
   def isLived() : Boolean = blood > 0
@@ -274,10 +278,12 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
           if (d.x != 0 || d.y != 0) {
             val originPosition = this.position
             this.position = this.position + d
+//            println(s"${this.position}--------------------")
             val movedRec = Rectangle(this.position - Point(radius, radius), this.position + Point(radius, radius))
             val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
             if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
               quadTree.updateObject(this)
+//              println(s"---fa")
             } else {
               this.position = originPosition
             }

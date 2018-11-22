@@ -25,7 +25,7 @@ object GameListModal extends Component{
   private var selectState = 0
   private val recordTable = Var(List.empty[GameRec])
   private var currentPage = Var(1)
-  private var currentPageState = 1
+  private var currentPageState = 100000
 
   def getRecordById():Unit = {
     val id = dom.window.document.getElementById("inputContent").asInstanceOf[Input].value

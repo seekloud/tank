@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
 import com.neo.sk.tank.Boot.{executor, scheduler, timeout}
 import com.neo.sk.tank.common.Constants
 import com.neo.sk.tank.core.RoomActor.TankRelive
-import com.neo.sk.tank.core.UserActor.{ChangeUserInfo, TankRelive4UserActor}
+import com.neo.sk.tank.core.UserActor.{ChangeUserInfo, ChangeWatchedPlayerId, TankRelive4UserActor}
 /**
   * Created by hongruying on 2018/7/9
   */
@@ -112,6 +112,10 @@ object UserManager {
           userActor ! ChangeUserInfo(playerInfo)
           //发送用户观战命令
           userActor ! UserActor.StartObserve(roomId, watchedUserId)
+          Behaviors.same
+
+        case msg:ChangeWatchedPlayerId =>
+          getUserActor(ctx,msg.playerInfo.userId,msg.playerInfo) ! msg
           Behaviors.same
 
         case msg:GetUserInRecordMsg=>

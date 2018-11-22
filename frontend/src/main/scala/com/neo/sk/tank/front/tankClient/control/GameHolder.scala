@@ -1,16 +1,16 @@
 package com.neo.sk.tank.front.tankClient.control
 
-import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.tankClient.{NetworkInfo, WebSocketClient}
+import com.neo.sk.tank.front.utils.canvas.MiddleFrameInJs
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.model.{Constants, Point}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import mhtml.Var
 import org.scalajs.dom
-import org.scalajs.dom.ext.Color
-import org.scalajs.dom.html.{Canvas, Div}
-import org.scalajs.dom.raw.{Event, HTMLElement}
+import org.scalajs.dom.html.{Audio, Div}
+import org.scalajs.dom.raw.Event
 
 /**
   * User: sky
@@ -19,18 +19,22 @@ import org.scalajs.dom.raw.{Event, HTMLElement}
   * 需要构造参数，所以重构为抽象类
   */
 abstract class GameHolder(name:String) extends NetworkInfo{
-  protected val canvas = dom.document.getElementById(name).asInstanceOf[Canvas]
-  protected val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-
+  val drawFrame=new MiddleFrameInJs
   protected var canvasWidth = dom.window.innerWidth.toFloat
   protected var canvasHeight = dom.window.innerHeight.toFloat
+
+  protected val canvas = drawFrame.createCanvas(name,canvasWidth,canvasHeight)
+  protected val ctx = canvas.getCtx
 
 
   protected var canvasUnit = getCanvasUnit(canvasWidth)
   protected var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
-  canvas.width = canvasWidth.toInt
-  canvas.height = canvasHeight.toInt
 
+  protected val audioForBgm = dom.document.getElementById("GameAudioForBgm").asInstanceOf[Audio]
+  audioForBgm.volume = 0.3
+  protected val audioForDead = dom.document.getElementById("GameAudioForDead").asInstanceOf[Audio]
+  protected val audioForBullet = dom.document.getElementById("GameAudioForBullet").asInstanceOf[Audio]
+  var needBgm = true
 
   println(s"test111111111111=${canvasUnit},=${canvasWidth}")
 
@@ -61,6 +65,20 @@ abstract class GameHolder(name:String) extends NetworkInfo{
   protected var countDownTimes = countDown
   protected var nextFrame = 0
   protected var logicFrameTime = System.currentTimeMillis()
+
+  //fixme 此处打印渲染时间
+  /*private var renderTime:Long = 0
+  private var renderTimes = 0
+
+  Shortcut.schedule( () =>{
+    if(renderTimes != 0){
+      println(s"render page use avg time:${renderTime / renderTimes}ms")
+    }else{
+      println(s"render page use avg time:0 ms")
+    }
+    renderTime = 0
+    renderTimes = 0
+  }, 5000L)*/
 
 
   def closeHolder={
@@ -97,8 +115,8 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       canvasUnit = getCanvasUnit(canvasWidth)
       canvasBoundary=Point(canvasWidth, canvasHeight) / canvasUnit
       println(s"update screen=${canvasUnit},=${(canvasWidth,canvasHeight)}")
-      canvas.width = canvasWidth.toInt
-      canvas.height = canvasHeight.toInt
+      canvas.setWidth(canvasWidth.toInt)
+      canvas.setHeight(canvasHeight.toInt)
       gameContainerOpt.foreach{r=>
         r.updateClientSize(canvasBoundary, canvasUnit)
       }
@@ -110,7 +128,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     gameState match {
       case GameState.loadingPlay =>
         println(s"等待同步数据")
-        drawGameLoading()
+        gameContainerOpt.foreach(_.drawGameLoading())
       case GameState.play =>
         /***/
         gameContainerOpt.foreach(_.update())
@@ -120,12 +138,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       case GameState.stop =>
         dom.window.cancelAnimationFrame(nextFrame)
         Shortcut.cancelSchedule(timer)
-//        Shortcut.cancelSchedule(reStartTimer)
-//        drawGameStop()
         Shortcut.scheduleOnce(() => drawCombatGains(), 3000)
-//        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
-//        drawCombatGains()
-//        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
 
       case _ => println(s"state=${gameState} failed")
     }
@@ -135,41 +148,10 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     gameContainerOpt.foreach(_.drawGame(offsetTime,getNetworkLatency))
   }
 
-  protected def drawGameLoading():Unit = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    ctx.fillStyle = "rgb(250, 250, 250)"
-    ctx.textAlign = "left"
-    ctx.textBaseline = "top"
-    ctx.font = "36px Helvetica"
-    ctx.fillText("请稍等，正在连接服务器", 150, 180)
-  }
-
-  protected def drawGameStop():Unit = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    ctx.fillStyle = "rgb(250, 250, 250)"
-    ctx.textAlign = "left"
-    ctx.textBaseline = "top"
-    ctx.font = s"${3.6 * canvasUnit}px Helvetica"
-    ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀,等待倒计时进入游戏", 150, 180)
-    println()
-  }
-
-  protected def drawReplayMsg(m:String):Unit = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    ctx.fillStyle = "rgb(250, 250, 250)"
-    ctx.textAlign = "left"
-    ctx.textBaseline = "top"
-    ctx.font = s"${3.6 * canvasUnit}px Helvetica"
-    ctx.fillText(m, 150, 180)
-    println()
-  }
-
+  //todo 移到shared project
   protected def drawCombatGains(): Unit = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
+    ctx.setFill("rgb(0,0,0)")
+    ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
     val combatGians = dom.document.getElementById("combat_gains").asInstanceOf[Div]
     val temp = killerList.map(r => s"<span>${r.take(3)}</span>")
     combatGians.innerHTML = s"<p>击杀数:<span>${killNum}</span></p>" +
