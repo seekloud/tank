@@ -1,26 +1,28 @@
 package com.neo.sk.tank.controller
 
+import java.util.{Timer, TimerTask}
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.tank.App.{executor, materializer, scheduler, system, timeout, tokenActor}
 import com.neo.sk.tank.actor.{PlayGameActor, TokenActor}
 import com.neo.sk.tank.common.Context
-import com.neo.sk.tank.game.{GameContainerClientImpl, NetworkInfo}
+import com.neo.sk.tank.game.NetworkInfo
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo, TokenAndAcessCode, UserInfo}
 import com.neo.sk.tank.view.{GameHallScreen, PlayGameScreen}
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.tank.actor.PlayGameActor.{DispatchMsg, log}
-import com.neo.sk.tank.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.utils.JavaFxUtil.{changeKeys, keyCode2Int}
 import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
 import javafx.scene.input.KeyCode
-
 import akka.actor.typed.scaladsl.AskPattern._
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.App
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
+import com.neo.sk.tank.shared.protocol.TankGameEvent.UserMouseClick
+import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 import javafx.util.Duration
 
 import scala.collection.mutable
@@ -64,30 +66,39 @@ class PlayScreenController(
   private var recvYourInfo: Boolean = false
   private var recvSyncGameAllState: Option[TankGameEvent.SyncGameAllState] = None
 
+  private val gameMusic = new Media(getClass.getResource("/music/bgm.mp3").toString)
+  private val gameMusicPlayer = new MediaPlayer(gameMusic)
+  gameMusicPlayer.setCycleCount(MediaPlayer.INDEFINITE)
+  private val bulletMusic = new AudioClip(getClass.getResource("/music/bullet.mp3").toString)
+  private val deadMusic = new AudioClip(getClass.getResource("/music/fail.mp3").toString)
+  private var needBgm = true
 
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
   private var gameState = GameState.loadingPlay
   private var logicFrameTime = System.currentTimeMillis()
+
+  /**打印渲染时间*/
+  /*private var renderTime:Long = 0
+  private var renderTimes = 0
+
+  val timer = new Timer()
+  timer.schedule(new TimerTask {
+    override def run(): Unit = {
+      if(renderTimes != 0){
+        println(s"render page use avg time:${renderTime / renderTimes}ms")
+      }else{
+        println(s"render page use avg time:0 ms")
+      }
+      renderTime = 0
+      renderTimes = 0
+    }
+  }, 0, 5000)*/
+
   private val animationTimer = new AnimationTimer() {
     override def handle(now: Long): Unit = {
-//      log.debug(s"draw game ${System.currentTimeMillis()} ${logicFrameTime}")
       drawGame(System.currentTimeMillis() - logicFrameTime)
     }
   }
-//  private val timeline = new Timeline()
-//  private var countDownTimes=3
-//  timeline.setCycleCount(Animation.INDEFINITE)
-//  val keyFrame = new KeyFrame(Duration.millis(1000), { _ =>
-//    if(countDownTimes>0){
-//      playGameScreen.drawGameRestart(countDownTimes,killerName)
-//      countDownTimes-=1
-//    }else{
-//      timeline.stop()
-//      countDownTimes=3
-//      start
-//    }
-//  })
-//  timeline.getKeyFrames.add(keyFrame)
 
   private val watchKeys = Set(
     KeyCode.LEFT,
@@ -123,11 +134,9 @@ class PlayScreenController(
         playGameActor ! PlayGameActor.StartGameLoop
       }
     }
-
   }
 
   private def drawGame(offsetTime: Long) = {
-//    println(s"game container opt ${gameContainerOpt}")
     gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency))
   }
 
@@ -142,9 +151,8 @@ class PlayScreenController(
       gameState match {
         case GameState.loadingPlay =>
           //        println(s"等待同步数据")
-          playGameScreen.drawGameLoading()
+          gameContainerOpt.foreach(_.drawGameLoading())
         case GameState.play =>
-
           /** */
           gameContainerOpt.foreach(_.update())
           logicFrameTime = System.currentTimeMillis()
@@ -175,11 +183,11 @@ class PlayScreenController(
   }
 
   private def addUserActionListenEvent: Unit = {
-    playGameScreen.canvas.requestFocus()
+    playGameScreen.canvas.getCanvas.requestFocus()
     /**
       * 增加鼠标移动操作
       **/
-    playGameScreen.canvas.setOnMouseMoved{ e =>
+    playGameScreen.canvas.getCanvas.setOnMouseMoved{ e =>
       val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(16,16)
       val theta = point.getTheta(playGameScreen.canvasBoundary * playGameScreen.canvasUnit / 2).toFloat
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
@@ -194,8 +202,9 @@ class PlayScreenController(
     /**
       * 增加鼠标点击操作
       **/
-    playGameScreen.canvas.setOnMouseClicked{ e=>
+    playGameScreen.canvas.getCanvas.setOnMouseClicked{ e=>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
+        bulletMusic.play()
         val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
         playGameActor ! DispatchMsg(preExecuteAction)
@@ -204,7 +213,7 @@ class PlayScreenController(
     /**
       * 增加按下按键操作
       **/
-    playGameScreen.canvas.setOnKeyPressed{ e =>
+    playGameScreen.canvas.getCanvas.setOnKeyPressed{ e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
@@ -243,13 +252,22 @@ class PlayScreenController(
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction)
         }
+        else if(keyCode == KeyCode.M){
+          if(needBgm){
+            gameMusicPlayer.pause()
+            needBgm = false
+          }else{
+            gameMusicPlayer.play()
+            needBgm = true
+          }
+        }
       }
     }
 
     /**
       * 增加松开按键操作
       **/
-    playGameScreen.canvas.setOnKeyReleased { e =>
+    playGameScreen.canvas.getCanvas.setOnKeyReleased { e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode)) {
@@ -274,7 +292,7 @@ class PlayScreenController(
   /**
     * 此处处理消息*/
   def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
-    println(data.getClass)
+//    println(data.getClass)
     App.pushStack2AppThread{
 //      log.debug(s"${data.getClass}")
       data match {
@@ -283,8 +301,9 @@ class PlayScreenController(
             * 更新游戏数据
             **/
           println("start------------")
+          gameMusicPlayer.play()
           try {
-            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
+            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.drawFrame,playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
             gameContainerOpt.get.getTankId(e.tankId)
             recvYourInfo = true
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))
@@ -292,9 +311,11 @@ class PlayScreenController(
             case e:Exception=>
               closeHolder
               println(e.getMessage)
-              print("client is stop!!!")
+              println("client is stop!!!")
           }
 
+        case e:TankGameEvent.TankFollowEventSnap =>
+          gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
         case e: TankGameEvent.YouAreKilled =>
 
@@ -307,13 +328,15 @@ class PlayScreenController(
           killerList = killerList :+ e.name
           killerName = e.name
 //          animationTimer.stop()
-          playGameScreen.drawGameStop(killerName)
+          gameContainerOpt.foreach(_.drawGameStop(killerName))
           if(!e.hasLife){
             setGameState(GameState.stop)
+            gameMusicPlayer.pause()
+            deadMusic.play()
           }else animationTimer.stop()
 
-        case e:TankGameEvent.TankReliveInfo =>
-          animationTimer.start()
+//        case e:TankGameEvent.TankReliveInfo =>
+//          animationTimer.start()
 
         case e: TankGameEvent.Ranks =>
 
@@ -347,8 +370,16 @@ class PlayScreenController(
           gameContainerOpt.foreach(_.receiveUserEvent(e))
 
 
+
         case e: TankGameEvent.GameEvent =>
           e match {
+            case e:TankGameEvent.UserRelive =>
+              gameContainerOpt.foreach(_.receiveGameEvent(e))
+              if(e.userId == gameContainerOpt.get.myId){
+                animationTimer.start()
+//                dom.window.cancelAnimationFrame(nextFrame)
+//                nextFrame = dom.window.requestAnimationFrame(gameRender())
+              }
             case ee:TankGameEvent.GenerateBullet =>
               gameContainerOpt.foreach(_.receiveGameEvent(e))
             case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
@@ -359,7 +390,7 @@ class PlayScreenController(
 
 
         case TankGameEvent.RebuildWebSocket =>
-          playGameScreen.drawReplayMsg("存在异地登录。。")
+          gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
           closeHolder
 
         case _:TankGameEvent.DecodeError=>

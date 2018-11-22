@@ -27,7 +27,6 @@ final case class GameContainerAllState(
                                         f:Long,
                                         tanks:List[TankState],
                                         bullet:List[BulletState],
-//                                        followEvent:List[(Long,List[GameEvent])],
                                         props:List[PropState],
                                         obstacle:List[ObstacleState],
                                         environment:List[ObstacleState],
@@ -65,6 +64,8 @@ trait GameContainer extends KillInformation{
   val tankLivesMap:mutable.HashMap[Int,TankState] = mutable.HashMap[Int,TankState]() // tankId -> lives
 //  val tankEatPropMap = mutable.HashMap[Int,mutable.HashSet[Prop]]()//tankId -> Set(propId)
 
+  val maxFollowFrame=math.max(math.max(config.shotgunDuration,config.initInvincibleDuration),config.fillBulletDuration)
+
   var tankId = -1
   var systemFrame:Long = 0L //系统帧数
 
@@ -81,7 +82,7 @@ trait GameContainer extends KillInformation{
 
   protected val gameEventMap = mutable.HashMap[Long,List[GameEvent]]() //frame -> List[GameEvent] 待处理的事件 frame >= curFrame
   protected val actionEventMap = mutable.HashMap[Long,List[UserActionEvent]]() //frame -> List[UserActionEvent]
-  protected val followEventMap = mutable.HashMap[Long,List[GameEvent]]()  // 记录游戏逻辑中产生事件
+  protected val followEventMap = mutable.HashMap[Long,List[FollowEvent]]()  // 记录游戏逻辑中产生事件
   protected val myTankAction = mutable.HashMap[Long,List[UserActionEvent]]()
   final protected def handleUserJoinRoomEvent(l:List[UserJoinRoom]) :Unit = {
     l foreach handleUserJoinRoomEvent
@@ -102,6 +103,24 @@ trait GameContainer extends KillInformation{
   protected def handleUserJoinRoomEventNow() = {
     gameEventMap.get(systemFrame).foreach{ events =>
       handleUserJoinRoomEvent(events.filter(_.isInstanceOf[UserJoinRoom]).map(_.asInstanceOf[UserJoinRoom]).reverse)
+    }
+  }
+
+  final protected def handleUserReliveEvent(l:List[UserRelive]):Unit = {
+    l foreach handleUserReliveEvent
+  }
+
+  protected def handleUserReliveEvent(e:UserRelive):Unit = {
+    val t = e.tankState
+    if(!tankMap.exists(_._1 == t.tankId)){
+      tankMap.put(t.tankId,t)
+      quadTree.insert(t)
+    }
+  }
+
+  protected def handleUserReliveNow() = {
+    gameEventMap.get(systemFrame).foreach{events =>
+      handleUserReliveEvent(events.filter(_.isInstanceOf[UserRelive]).map(_.asInstanceOf[UserRelive]).reverse)
     }
   }
 
@@ -370,6 +389,7 @@ trait GameContainer extends KillInformation{
 
 
   protected def handleTankInvincible(e:TankInvincible) :Unit = {
+//    println(s"removeininEvent${e.tankId}")
     tankMap.get(e.tankId).foreach{ tank =>
       tank.clearInvincibleState()
     }
@@ -380,6 +400,7 @@ trait GameContainer extends KillInformation{
   }
 
   final protected def handleTankInvincibleNow() :Unit = {
+//    println(s"---------------------------------------invicible")
     followEventMap.get(systemFrame).foreach{ events =>
       handleTankInvincible(events.filter(_.isInstanceOf[TankInvincible]).map(_.asInstanceOf[TankInvincible]).reverse)
     }
@@ -423,7 +444,8 @@ trait GameContainer extends KillInformation{
     bulletMap.toList.sortBy(_._1).map(_._2).foreach{ bullet =>
       val objects = quadTree.retrieveFilter(bullet)
       objects.filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]).filter(_.tankId != bullet.tankId)
-        .foreach(t => bullet.checkAttackObject(t,attackTankCallBack(bullet)))
+        .foreach{t =>
+          bullet.checkAttackObject(t,attackTankCallBack(bullet))}
       objects.filter(t => t.isInstanceOf[ObstacleBullet] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
         .foreach(t => bullet.checkAttackObject(t,attackObstacleCallBack(bullet)))
       bullet.move(boundary,removeBullet)
@@ -481,7 +503,7 @@ trait GameContainer extends KillInformation{
     }
   }
 
-  protected final def addFollowEvent(event:GameEvent):Unit = {
+  protected final def addFollowEvent(event:FollowEvent):Unit = {
     followEventMap.get(event.frame) match {
       case Some(events) => followEventMap.put(event.frame, event :: events)
       case None => followEventMap.put(event.frame,List(event))
@@ -497,6 +519,10 @@ trait GameContainer extends KillInformation{
   }
 
   final protected def tankShotgunExpireCallBack(tid:Int):Unit={
+    //remind 删除之前的tank散弹失效事件
+    followEventMap.foreach{r=>
+      followEventMap.update(r._1,r._2.filterNot(e=>e.isInstanceOf[TankShotgunExpire]&&e.asInstanceOf[TankShotgunExpire].tankId==tid))
+    }
     addFollowEvent(TankGameEvent.TankShotgunExpire(tid,systemFrame+config.shotgunDuration))
   }
 
@@ -533,6 +559,7 @@ trait GameContainer extends KillInformation{
     handleGeneratePropNow()
     handleGenerateBulletNow()
     handleUserJoinRoomEventNow()
+    handleUserReliveNow()
 
     quadTree.refresh(quadTree)
     updateKillInformation()
@@ -543,6 +570,7 @@ trait GameContainer extends KillInformation{
   protected def clearEventWhenUpdate():Unit = {
     gameEventMap -= systemFrame
     actionEventMap -= systemFrame
+    followEventMap -= systemFrame-maxFollowFrame
     systemFrame += 1
   }
 

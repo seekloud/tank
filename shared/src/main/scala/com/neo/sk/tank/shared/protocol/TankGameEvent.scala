@@ -32,7 +32,7 @@ object TankGameEvent {
   final case class WsMsgErrorRsp(errCode:Int, msg:String) extends WsMsgServer
   //  final case class GameConfig(config:TankGameConfigImpl) extends WsMsgServer
   final case class YourInfo(userId:String,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
-  final case class TankReliveInfo(config:TankGameConfigImpl) extends WsMsgServer
+//  final case class TankReliveInfo(config:TankGameConfigImpl) extends WsMsgServer
 //  final case class YouAreKilled(tankId:Int,name:String) extends WsMsgServer //可能会丢弃
 //  final case class PlayerAreKilled(tankId:Int,name:String) extends WsMsgServer
   final case class YouAreKilled(tankId:Int,name:String, hasLife:Boolean,killTankNum:Int,lives:Int,damageStatistics:Int) extends WsMsgServer //可能会丢弃
@@ -73,6 +73,7 @@ object TankGameEvent {
   final case class DecodeError() extends WsMsgServer
 
   final case class UserJoinRoom(userId:String, name:String, tankState:TankState, override val frame: Long) extends  UserEvent with WsMsgServer
+  final case class UserRelive(userId:String,name:String,tankState: TankState,override val frame:Long) extends UserEvent with WsMsgServer
   final case class UserLeftRoom(userId:String, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer
   final case class PlayerLeftRoom(userId:String,name:String,tankId:Int,override val frame:Long) extends UserEvent with WsMsgServer
   final case class UserMouseMove(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
@@ -87,10 +88,17 @@ object TankGameEvent {
   final case class TankEatProp(tankId:Int,propId:Int,propType:Byte,frame:Long) extends GameEvent with WsMsgServer
   /**生成道具*/
   final case class GenerateProp(override val frame:Long,propState: PropState,generateType:Byte = 0) extends EnvironmentEvent with WsMsgServer
-
   @deprecated final case class GenerateBullet(override val frame:Long,bullet:BulletState) extends EnvironmentEvent with WsMsgServer
   /**生成河流，钢铁*/
   final case class GenerateObstacle(override val frame:Long,obstacleState: ObstacleState) extends EnvironmentEvent with WsMsgServer
+
+  /**
+    * tank初次进入游戏时用于同步游戏逻辑产生延时事件
+    * */
+  final case class TankFollowEventSnap(override val frame:Long,
+                                       tankFillList:List[TankFillBullet],
+                                       invincibleList:List[TankInvincible],
+                                       shotExpireList:List[TankShotgunExpire]) extends GameEvent with WsMsgServer
 
   /**
     * 游戏逻辑产生事件
