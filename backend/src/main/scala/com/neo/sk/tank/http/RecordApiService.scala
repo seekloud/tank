@@ -16,14 +16,16 @@ import java.io.File
 
 import com.neo.sk.tank.Boot.{esheepSyncClient, executor, scheduler, timeout, userManager}
 import com.neo.sk.tank.core.EsheepSyncClient
-import com.neo.sk.tank.shared.ptcl.{CommonRsp, ErrorRsp}
+import com.neo.sk.tank.shared.ptcl.{CommonRsp, ErrorRsp, SuccessRsp}
 
 import scala.concurrent.Future
 import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.tank.core.EsheepSyncClient
-import com.neo.sk.tank.protocol.EsheepProtocol.{GetRecordFrameReq, GetRecordFrameRsp, GetUserInRecordReq, GetUserInRecordRsp}
+import com.neo.sk.tank.protocol.EsheepProtocol._
+import com.neo.sk.tank.protocol.ReplayProtocol.ChangeRecordMsg
 import com.neo.sk.utils.SecureUtil.generateSignature
-import scala.util.{Success, Failure}
+
+import scala.util.{Failure, Success}
 
 
 /**
@@ -164,6 +166,17 @@ trait RecordApiService extends ServiceUtils {
     ))
   }
 
+
+  private val changeRecord = (path("changeRecord") & post) {
+    entity(as[Either[Error, ChangeRecordReq]]) {
+      case Right(req) =>
+        userManager ! ChangeRecordMsg(req.recordId, req.watchId, req.frame)
+        complete(SuccessRsp())
+      case Left(e) =>
+        complete(CommonErrorCode.parseJsonError)
+    }
+  }
+
   private val getRecordFrame = (path("getRecordFrame") & post) {
     dealPostReq[GetRecordFrameReq] { req =>
       val flowFuture: Future[CommonRsp] = userManager ? (ReplayProtocol.GetRecordFrameMsg(req.recordId, req.playerId, _))
@@ -227,5 +240,5 @@ trait RecordApiService extends ServiceUtils {
 
 
   val GameRecRoutes: Route =
-    getRecordList ~ getRecordListByTime ~ getRecordListByPlayer ~ downloadRecord ~ token2Code ~ getRecordFrame ~ getRecordPlayerList
+    getRecordList ~ getRecordListByTime ~ getRecordListByPlayer ~ downloadRecord ~ token2Code ~ changeRecord ~ getRecordFrame ~ getRecordPlayerList
 }

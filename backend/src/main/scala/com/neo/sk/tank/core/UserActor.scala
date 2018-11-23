@@ -11,6 +11,7 @@ import com.neo.sk.tank.core.RoomActor.TankRelive
 import com.neo.sk.tank.core.game.TankGameConfigServerImpl
 import com.neo.sk.tank.models.TankGameUserInfo
 import com.neo.sk.tank.protocol.EsheepProtocol._
+import com.neo.sk.tank.protocol.ReplayProtocol.ChangeRecordMsg
 import com.neo.sk.tank.shared.model.Constants.GameState
 import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, ReplayFrameData}
@@ -284,6 +285,10 @@ object UserActor {
           }
 
           Behaviors.same
+
+        case msg:ChangeRecordMsg=>
+          ctx.self ! UserActor.StartReplay(msg.rid,msg.watchId,msg.f)
+          switchBehavior(ctx,"idle",idle(uId,userInfo, startTime,frontActor))
 
         case msg:GetRecordFrameMsg=>
           log.debug(s"${ctx.self.path} recv a msg=${msg}")
