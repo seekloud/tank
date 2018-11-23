@@ -69,6 +69,10 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
     data match {
       case e:TankGameEvent.YourInfo =>
         println("----Start!!!!!")
+        if(nextFrame!=0){
+          dom.window.cancelAnimationFrame(nextFrame)
+          Shortcut.cancelSchedule(timer)
+        }
         //        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
         gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, setKillCallback = setKillCallback))
         gameContainerOpt.get.getTankId(e.tankId)
@@ -85,7 +89,6 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
           gameContainerOpt.foreach(_.update())
 //          nextFrame = dom.window.requestAnimationFrame(gameRender())
         }else{
-          //fixme 此处存在重复操作
           //remind here allState change into state
           gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks,e.gState.props,e.gState.obstacle,e.gState.tankMoveAction)))
         }
