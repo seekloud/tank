@@ -72,8 +72,6 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
   private def start(name:String,roomIdOpt:Option[Long]):Unit = {
     canvas.getCanvas.focus()
-    timerForDown = Shortcut.schedule(() => fakeUserKeyDown,1000)
-    timerForClick = Shortcut.schedule(() => fakeUserMouseClick,1000)
     if(firstCome){
       firstCome = false
       setGameState(GameState.loadingPlay)
@@ -246,6 +244,8 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         dom.window.cancelAnimationFrame(nextFrame)
         nextFrame = dom.window.requestAnimationFrame(gameRender())
         setGameState(GameState.play)
+        timerForDown = Shortcut.schedule(() => fakeUserKeyDown,1000)
+        timerForClick = Shortcut.schedule(() => fakeUserMouseClick,1000)
 
       case e:TankGameEvent.UserActionEvent =>
         //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
