@@ -211,17 +211,17 @@ object RoomActor {
             }
           }
           //remind 错峰发送
-          /*val state = gameContainer.getGameContainerState()
+          val state = gameContainer.getGameContainerState()
           userGroup.get(tickCount%classify).foreach{s=>
             if(s.nonEmpty){
 //              println(tickCount,subscribersMap.filter(r=>s.contains(r._1)).keySet, observersMap.filter(r=>s.contains(r._1)).keySet)
               dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(state))
             }
-          }*/
-          if(tickCount%classify==5){
+          }
+          /*if(tickCount%classify==5){
             val state = gameContainer.getGameContainerState()
             dispatch(subscribersMap, observersMap)(TankGameEvent.SyncGameState(state))
-          }
+          }*/
           val count=tickCount%20
           for(i <- count*10 until (count+1)*10){
             userGroup.get(i).foreach { s =>
