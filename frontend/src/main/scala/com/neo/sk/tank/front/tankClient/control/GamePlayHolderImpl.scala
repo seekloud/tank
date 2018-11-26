@@ -127,7 +127,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         val keyCode = changeKeys(e.keyCode)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
           myKeySet.add(keyCode)
-          println(s"key down: [${e.keyCode}]")
+//          println(s"key down: [${e.keyCode}]")
           val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
@@ -138,7 +138,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         }
         if (gunAngleAdjust.contains(keyCode) && poKeyBoardFrame != gameContainerOpt.get.systemFrame) {
           myKeySet.remove(keyCode)
-          println(s"key down: [${e.keyCode}]")
+//          println(s"key down: [${e.keyCode}]")
           poKeyBoardFrame = gameContainerOpt.get.systemFrame
           val Theta =
             if(keyCode == KeyCode.K) poKeyBoardMoveTheta
