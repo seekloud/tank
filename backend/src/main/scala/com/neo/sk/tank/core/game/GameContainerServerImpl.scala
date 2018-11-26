@@ -446,6 +446,7 @@ case class GameContainerServerImpl(
     //    if(gameEventSize + actionEventSize > 0){
     //      log.info(s"tank systemFrame=${systemFrame}, gameEvents=${gameEventSize}, actionEvents=${actionEventSize}")
     //    }
+    super.clearEventWhenUpdate()
     gameEventMap -= systemFrame - 1
     actionEventMap -= systemFrame - 1
     followEventMap -= systemFrame-maxFollowFrame -1

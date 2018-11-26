@@ -571,10 +571,6 @@ trait GameContainer extends KillInformation{
     if(systemFrame%50==0){
       println(s"systemFrame----$systemFrame")
     }
-    gameEventMap -= systemFrame
-    actionEventMap -= systemFrame
-    followEventMap -= systemFrame-maxFollowFrame
-    systemFrame += 1
   }
 
   def getGameContainerAllState():GameContainerAllState = {
