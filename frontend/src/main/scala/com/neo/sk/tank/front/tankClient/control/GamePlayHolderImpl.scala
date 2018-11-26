@@ -183,7 +183,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         val keyCode = changeKeys(e.keyCode)
         if (watchKeys.contains(keyCode)) {
           myKeySet.remove(keyCode)
-          println(s"key up: [${e.keyCode}]")
+//          println(s"key up: [${e.keyCode}]")
           val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)

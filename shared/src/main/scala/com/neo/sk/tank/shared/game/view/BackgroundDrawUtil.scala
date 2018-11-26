@@ -247,7 +247,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
       var offsetY = canvasBoundary.y - 30
       ctx.beginPath()
       ctx.setStrokeStyle("rgb(0,0,0)")
-      ctx.setTextAlign("start")
+      ctx.setTextAlign("left")
       ctx.setFont("微软雅黑","bold",2.5*canvasUnit)
       ctx.setLineWidth(1)
 
