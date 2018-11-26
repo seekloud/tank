@@ -147,7 +147,7 @@ case class GameContainerClientImpl(
       if (e.frame >= systemFrame) {
         addUserAction(e)
       } else if (esRecoverSupport) {
-        rollback4GameEvent(e)
+        rollback4UserActionEvent(e)
       }
     }
   }
