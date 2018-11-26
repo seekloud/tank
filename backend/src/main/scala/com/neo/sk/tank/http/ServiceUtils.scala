@@ -123,8 +123,6 @@ trait ServiceUtils extends CirceSupport with SessionBase{
 //        }
 
       case Left(e) =>
-        log.error(s"${e.getMessage}")
-        log.error(s"${e.getClass}")
         log.error(s"json parse PostEnvelope error: ${e}")
         complete(parseJsonError)
     }
