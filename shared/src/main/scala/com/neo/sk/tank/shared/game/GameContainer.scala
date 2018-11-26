@@ -571,7 +571,7 @@ trait GameContainer extends KillInformation{
     //fixme forTest
     if(systemFrame%50==0){
       println(s"systemFrame----$systemFrame")
-      println(tankMap.toList.map(r=>(r._1,r._2.curBulletNum)))
+      println(tankMap.toList.map(r=>(r._1,r._2.returnCurNum)))
     }
   }
 

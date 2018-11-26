@@ -33,7 +33,8 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   protected var speedLevel:Byte //移动速度等级
   protected var bulletLevel:Byte //子弹等级
 
-  var curBulletNum:Int
+  protected var curBulletNum:Int
+  def returnCurNum = curBulletNum
   protected var direction:Float //移动方向
   protected var gunDirection:Float
   var cavasFrame = 0
