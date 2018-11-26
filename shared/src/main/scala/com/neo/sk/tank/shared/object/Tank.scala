@@ -86,8 +86,8 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   }
 
   private def getTankBulletDamage()(implicit config:TankGameConfig):Int = {
-    if(getShotGunState() && bulletLevel > 3) 3 else
-    config.getBulletDamage(bulletLevel)
+    if(getShotGunState() && bulletLevel > 3) config.getBulletDamage(3)
+    else config.getBulletDamage(bulletLevel)
   }
 
   def fillABullet():Unit = {
