@@ -52,7 +52,7 @@ trait RecordApiService extends ServiceUtils {
         var tempList = List.empty[GameRec]
         for ((k, v) <- temp) {
           if (v.head._2.nonEmpty)
-            tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
+            tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => (r._2.get.userId,r._2.get.userNickname)))
           else tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
         }
         complete(GetGameRecRsp(Some(tempList.sortBy(_.recordId))))
@@ -71,7 +71,7 @@ trait RecordApiService extends ServiceUtils {
         var tempList = List.empty[GameRec]
         for ((k, v) <- temp) {
           if (v.head._2.nonEmpty)
-            tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
+            tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length,  v.map(r => (r._2.get.userId,r._2.get.userNickname)))
           else tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
         }
         complete(GetGameRecRsp(Some(tempList.sortBy(_.recordId))))
@@ -90,7 +90,7 @@ trait RecordApiService extends ServiceUtils {
         var tempList = List.empty[GameRec]
         for ((k, v) <- temp) {
           if (v.head._2.nonEmpty)
-            tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length, v.map(r => r._2.get.userId))
+            tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, v.length,  v.map(r => (r._2.get.userId,r._2.get.userNickname)))
           else tempList = tempList :+ GameRec(k.recordId, k.roomId, k.startTime, k.endTime, 0, List())
         }
         complete(GetGameRecRsp(Some(tempList.sortBy(_.recordId))))
