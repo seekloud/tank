@@ -28,6 +28,7 @@ trait RoomInfoService extends ServiceUtils with HttpUtil with AuthService{
   private val getRoomId = (path("getRoomId") & post){
     entity(as[Either[Error,GetRoomIdReq]]){
       case Right(req) =>
+        log.debug(s"获取用户的信息&&&&${req.playerId}******")
         dealFutureResult{
           val resFuture:Future[RoomIdRsp] = roomManager ? (GetRoomId(req.playerId,_))
           resFuture.map{res =>
@@ -39,8 +40,8 @@ trait RoomInfoService extends ServiceUtils with HttpUtil with AuthService{
           }
         }
       case Left(e) =>
-        log.debug(s"获取用户对应的房间号失败，recover error:$e")
-        complete(getRoomIdErrorRsp(s"获取用户对应的房间号失败，recover error:$e"))
+        log.debug(s"获取用户对应的房间号失败，error:$e")
+        complete(getRoomIdErrorRsp(s"获取用户对应的房间号失败，error:$e"))
     }
 //    dealPostReq[GetRoomIdReq]{req =>
 //      val resFuture:Future[RoomIdRsp] = roomManager ? (GetRoomId(req.playerId,_))
