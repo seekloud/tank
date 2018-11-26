@@ -57,32 +57,32 @@ trait RoomInfoService extends ServiceUtils with HttpUtil with AuthService{
 //  /{游戏名}/getRoomPlayerList
   private def getRoomPlayerListErrorRsp(msg:String) = ErrorRsp(100003,msg)
   private val getRoomPlayerList = (path("getRoomPlayerList") & post){
-    entity(as[Either[Error,GetUserInfoListReq]]){
-      case Right(req) =>
-        dealFutureResult{
-          val resFuture:Future[UserInfoListByRoomIdRsp] = roomManager ? (GetUserInfoList(req.roomId,_))
-          resFuture.map{res =>
-            complete(res)
-          }.recover{
-            case e:Exception =>
-              log.debug(s"获取房间号对应的玩家列表失败，error:$e")
-              complete(getRoomPlayerListErrorRsp(s"获取房间号对应的玩家列表失败，error:$e"))
-          }
-        }
-      case Left(e) =>
-        log.debug(s"获取房间号对应的玩家列表失败，error:$e")
-        complete(getRoomPlayerListErrorRsp(s"获取房间号对应的玩家列表失败，error:$e"))
-    }
-//    dealPostReq[GetUserInfoListReq]{req =>
-//      val resFuture:Future[UserInfoListByRoomIdRsp] = roomManager ? (GetUserInfoList(req.roomId,_))
-//      resFuture.map{res =>
-//        complete(res)
-//      }.recover{
-//        case e:Exception =>
-//          log.debug(s"获取房间号对应的玩家列表失败，error:$e")
-//          complete(getRoomPlayerListErrorRsp(s"获取房间号对应的玩家列表失败，error:$e"))
-//      }
+//    entity(as[Either[Error,GetUserInfoListReq]]){
+//      case Right(req) =>
+//        dealFutureResult{
+//          val resFuture:Future[UserInfoListByRoomIdRsp] = roomManager ? (GetUserInfoList(req.roomId,_))
+//          resFuture.map{res =>
+//            complete(res)
+//          }.recover{
+//            case e:Exception =>
+//              log.debug(s"获取房间号对应的玩家列表失败，error:$e")
+//              complete(getRoomPlayerListErrorRsp(s"获取房间号对应的玩家列表失败，error:$e"))
+//          }
+//        }
+//      case Left(e) =>
+//        log.debug(s"获取房间号对应的玩家列表失败，error:$e")
+//        complete(getRoomPlayerListErrorRsp(s"获取房间号对应的玩家列表失败，error:$e"))
 //    }
+    dealPostReq[GetUserInfoListReq]{req =>
+      val resFuture:Future[UserInfoListByRoomIdRsp] = roomManager ? (GetUserInfoList(req.roomId,_))
+      resFuture.map{res =>
+        complete(res)
+      }.recover{
+        case e:Exception =>
+          log.debug(s"获取房间号对应的玩家列表失败，error:$e")
+          complete(getRoomPlayerListErrorRsp(s"获取房间号对应的玩家列表失败，error:$e"))
+      }
+    }
   }
 
 
