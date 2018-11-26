@@ -32,15 +32,15 @@ class  App extends Application{
 
   override def start(primaryStage: Stage): Unit = {
     val context = new Context(primaryStage)
-    val playerInfo = PlayerInfo(UserInfo(100,"eee","101",100),"df","hahha","jasiohfis")
-    val gameHallScreen = new GameHallScreen(context,playerInfo)
-    context.switchScene(gameHallScreen.getScene)
-    val gameServerInfo = GameServerInfo("",30369,"flowdev.neoap.com")
-    new HallScreenController(context,gameHallScreen,gameServerInfo,playerInfo)
-//    val loginScreen = new LoginScreen(context)
-//    context.switchScene(loginScreen.sence)//这一行不用加，否则会出现开始的闪现的屏幕
-//    val l=new LoginScreenController(context, loginScreen)
-//    l.start
+//    val playerInfo = PlayerInfo(UserInfo(100,"eee","101",100),"df","hahha","jasiohfis")
+//    val gameHallScreen = new GameHallScreen(context,playerInfo)
+//    context.switchScene(gameHallScreen.getScene)
+//    val gameServerInfo = GameServerInfo("",30369,"flowdev.neoap.com")
+//    new HallScreenController(context,gameHallScreen,gameServerInfo,playerInfo)
+    val loginScreen = new LoginScreen(context)
+    context.switchScene(loginScreen.sence)//这一行不用加，否则会出现开始的闪现的屏幕
+    val l=new LoginScreenController(context, loginScreen)
+    l.start
   }
 
 }
