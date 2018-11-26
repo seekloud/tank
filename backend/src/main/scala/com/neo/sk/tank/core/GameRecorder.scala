@@ -106,7 +106,7 @@ object GameRecorder {
 
   private def work(gameRecordData: GameRecorderData,
                    essfMap: mutable.HashMap[EssfMapKey,EssfMapJoinLeftInfo],
-                   userAllMap: mutable.HashMap[String,(Int,String)],
+                   userAllMap: mutable.HashMap[String,(Int,String)], //userId,(tankId,name)
                    userMap: mutable.HashMap[String,(Int,String)],
                    startF: Long,
                    endF: Long
@@ -226,7 +226,7 @@ object GameRecorder {
         val list = ListBuffer[rUserRecordMap]()
         userAllMap.foreach{
           userRecord =>
-            list.append(rUserRecordMap(userRecord._1, recordId, roomId))
+            list.append(rUserRecordMap(userRecord._1, recordId, roomId, userRecord._2._2))
         }
         Await.result(RecordDAO.insertUserRecordList(list.toList), 2.minute)
         Behaviors.stopped
@@ -285,7 +285,7 @@ object GameRecorder {
               val list = ListBuffer[rUserRecordMap]()
               userAllMap.foreach{
                 userRecord =>
-                  list.append(rUserRecordMap(userRecord._1, recordId, roomId))
+                  list.append(rUserRecordMap(userRecord._1, recordId, roomId, userRecord._2._2))
               }
               RecordDAO.insertUserRecordList(list.toList).onComplete{
                 case Success(_) =>
