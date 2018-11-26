@@ -133,7 +133,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
       //绘制当前排行榜
       val unit = currentRankCanvas.getWidth() / rankWidth
 
-      println(s"rank =${historyRankCanvas.getWidth()}, canvasUnit=${canvasUnit}, unit=${unit}")
+//      println(s"rank =${historyRankCanvas.getWidth()}, canvasUnit=${canvasUnit}, unit=${unit}")
 
       val leftBegin = 5 * unit
       context.setFont("Arial","bold",12)

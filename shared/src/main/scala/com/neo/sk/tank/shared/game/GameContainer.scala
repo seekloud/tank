@@ -568,6 +568,9 @@ trait GameContainer extends KillInformation{
   }
 
   protected def clearEventWhenUpdate():Unit = {
+    if(systemFrame%50==0){
+      println(s"systemFrame----$systemFrame")
+    }
     gameEventMap -= systemFrame
     actionEventMap -= systemFrame
     followEventMap -= systemFrame-maxFollowFrame
