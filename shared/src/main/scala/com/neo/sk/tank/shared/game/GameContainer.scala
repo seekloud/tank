@@ -569,10 +569,10 @@ trait GameContainer extends KillInformation{
 
   protected def clearEventWhenUpdate():Unit = {
     //fixme forTest
-    if(systemFrame%50==0){
+    /*if(systemFrame%50==0){
       println(s"systemFrame----$systemFrame")
       println(tankMap.toList.map(r=>(r._1,r._2.returnCurNum)))
-    }
+    }*/
   }
 
   def getGameContainerAllState():GameContainerAllState = {
