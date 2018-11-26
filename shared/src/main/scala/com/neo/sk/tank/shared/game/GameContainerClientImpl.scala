@@ -147,7 +147,6 @@ case class GameContainerClientImpl(
       if (e.frame >= systemFrame) {
         addUserAction(e)
       } else if (esRecoverSupport) {
-        println(s"rollback-frame=${e.frame},curFrame=${this.systemFrame},e=${e}")
         rollback4GameEvent(e)
       }
     }
@@ -250,7 +249,7 @@ case class GameContainerClientImpl(
     }
     val endTime = System.currentTimeMillis()
     if (curFrame < gameContainerState.f) {
-      println(s"handleGameContainerState update to now use Time=${endTime - startTime}")
+      println(s"handleGameContainerState update to now use Time=${endTime - startTime} and systemFrame=${systemFrame} sysFrame=${gameContainerState.f}")
     }
     systemFrame = gameContainerState.f
     judge(gameContainerState)
@@ -346,6 +345,7 @@ case class GameContainerClientImpl(
     }
     gameEventMap -= systemFrame
     actionEventMap -= systemFrame
+    followEventMap -= systemFrame-maxFollowFrame
     systemFrame += 1
   }
 

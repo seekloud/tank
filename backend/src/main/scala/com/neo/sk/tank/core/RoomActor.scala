@@ -30,7 +30,7 @@ object RoomActor {
 
   private final val InitTime = Some(5.minutes)
 
-  private final val classify=200
+  private final val classify=50
 
   private final case object BehaviorChangeKey
 
@@ -122,7 +122,7 @@ object RoomActor {
             case Some(s)=> userGroup.update(index%classify,s+uid)
             case None => userGroup.put(index%classify,Set(uid))
           }
-          idle(index + 1, roomId, (uid, tankIdOpt, startTime, userActor) :: justJoinUser, (uid, tankIdOpt, name, startTime, index%20) :: userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount)
+          idle(index + 1, roomId, (uid, tankIdOpt, startTime, userActor) :: justJoinUser, (uid, tankIdOpt, name, startTime, index%classify) :: userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount)
 
         case JoinRoom4Watch(uid, _, playerId, userActor4Watch) =>
           log.debug(s"${ctx.self.path} recv a msg=${msg}")
@@ -211,12 +211,16 @@ object RoomActor {
             }
           }
           //remind 错峰发送
-          val state = gameContainer.getGameContainerState()
+          /*val state = gameContainer.getGameContainerState()
           userGroup.get(tickCount%classify).foreach{s=>
             if(s.nonEmpty){
 //              println(tickCount,subscribersMap.filter(r=>s.contains(r._1)).keySet, observersMap.filter(r=>s.contains(r._1)).keySet)
               dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(state))
             }
+          }*/
+          if(tickCount%classify==5){
+            val state = gameContainer.getGameContainerState()
+            dispatch(subscribersMap, observersMap)(TankGameEvent.SyncGameState(state))
           }
           val count=tickCount%20
           for(i <- count*10 until (count+1)*10){
