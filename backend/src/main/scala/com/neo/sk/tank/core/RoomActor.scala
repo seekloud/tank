@@ -211,9 +211,9 @@ object RoomActor {
             }
           }
           //remind 错峰发送
+          val state = gameContainer.getGameContainerState()
           userGroup.get(tickCount%classify).foreach{s=>
             if(s.nonEmpty){
-              val state = gameContainer.getGameContainerState()
 //              println(tickCount,subscribersMap.filter(r=>s.contains(r._1)).keySet, observersMap.filter(r=>s.contains(r._1)).keySet)
               dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(state))
             }
