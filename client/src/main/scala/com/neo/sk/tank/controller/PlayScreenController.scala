@@ -79,7 +79,26 @@ class PlayScreenController(
 
 
   /**阻塞时间*/
-  val timer = new Timeline()
+  private val timeline = new Timeline()
+  timeline.setCycleCount(Animation.INDEFINITE)
+  val keyFrame = new KeyFrame(Duration.millis(5000), { _ =>
+    App.pushStack2AppThread{
+      killerList = List.empty[String]
+      val gameHallScreen = new GameHallScreen(context, playerInfo)
+      context.switchScene(gameHallScreen.getScene,resize = true)
+      val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
+      accessCodeInfo.map{
+        info =>
+          if(info.token != ""){
+            val newUserInfo = UserInfo(playerInfo.userInfo.userId,playerInfo.userInfo.nickname,info.token, info.expireTime)
+            val newPlayerInfo = PlayerInfo(newUserInfo,playerInfo.playerId, playerInfo.nickName, info.accessCode)
+            new HallScreenController(context, gameHallScreen, gameServerInfo, newPlayerInfo)
+          }
+      }
+    }
+    timeline.stop()
+  })
+  timeline.getKeyFrames.add(keyFrame)
 
   private val animationTimer = new AnimationTimer() {
     override def handle(now: Long): Unit = {
@@ -150,18 +169,8 @@ class PlayScreenController(
 //          playGameScreen.drawGameStop(killerName)
           //todo 死亡结算
           playGameScreen.drawCombatGains(killNum, damageNum, killerList)
-          killerList = List.empty[String]
-          val gameHallScreen = new GameHallScreen(context, playerInfo)
-          context.switchScene(gameHallScreen.getScene,resize = true)
-          val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
-          accessCodeInfo.map{
-            info =>
-              if(info.token != ""){
-                val newUserInfo = UserInfo(playerInfo.userInfo.userId,playerInfo.userInfo.nickname,info.token, info.expireTime)
-                val newPlayerInfo = PlayerInfo(newUserInfo,playerInfo.playerId, playerInfo.nickName, info.accessCode)
-                new HallScreenController(context, gameHallScreen, gameServerInfo, newPlayerInfo)
-              }
-          }
+          timeline.play()
+
 
         case _ => log.info(s"state=${gameState} failed")
       }
