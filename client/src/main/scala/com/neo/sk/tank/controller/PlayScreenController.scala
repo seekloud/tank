@@ -79,24 +79,7 @@ class PlayScreenController(
 
 
   /**阻塞时间*/
-  /*val timer = new Timer()
-  timer.schedule(new TimerTask {
-    override def run(): Unit = {
-      println("-----hahahhhaha")
-      killerList = List.empty[String]
-      val gameHallScreen = new GameHallScreen(context, playerInfo)
-      context.switchScene(gameHallScreen.getScene,resize = true)
-      val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
-      accessCodeInfo.map{
-        info =>
-          if(info.token != ""){
-            val newUserInfo = UserInfo(playerInfo.userInfo.userId,playerInfo.userInfo.nickname,info.token, info.expireTime)
-            val newPlayerInfo = PlayerInfo(newUserInfo,playerInfo.playerId, playerInfo.nickName, info.accessCode)
-            new HallScreenController(context, gameHallScreen, gameServerInfo, newPlayerInfo)
-          }
-      }
-    }
-  }, 5000, 1)*/
+  val timer = new Timeline()
 
   private val animationTimer = new AnimationTimer() {
     override def handle(now: Long): Unit = {
