@@ -77,22 +77,26 @@ class PlayScreenController(
   private var gameState = GameState.loadingPlay
   private var logicFrameTime = System.currentTimeMillis()
 
-  /**打印渲染时间*/
-  /*private var renderTime:Long = 0
-  private var renderTimes = 0
 
-  val timer = new Timer()
+  /**阻塞时间*/
+  /*val timer = new Timer()
   timer.schedule(new TimerTask {
     override def run(): Unit = {
-      if(renderTimes != 0){
-        println(s"render page use avg time:${renderTime / renderTimes}ms")
-      }else{
-        println(s"render page use avg time:0 ms")
+      println("-----hahahhhaha")
+      killerList = List.empty[String]
+      val gameHallScreen = new GameHallScreen(context, playerInfo)
+      context.switchScene(gameHallScreen.getScene,resize = true)
+      val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
+      accessCodeInfo.map{
+        info =>
+          if(info.token != ""){
+            val newUserInfo = UserInfo(playerInfo.userInfo.userId,playerInfo.userInfo.nickname,info.token, info.expireTime)
+            val newPlayerInfo = PlayerInfo(newUserInfo,playerInfo.playerId, playerInfo.nickName, info.accessCode)
+            new HallScreenController(context, gameHallScreen, gameServerInfo, newPlayerInfo)
+          }
       }
-      renderTime = 0
-      renderTimes = 0
     }
-  }, 0, 5000)*/
+  }, 5000, 1)*/
 
   private val animationTimer = new AnimationTimer() {
     override def handle(now: Long): Unit = {
@@ -164,7 +168,6 @@ class PlayScreenController(
           //todo 死亡结算
           playGameScreen.drawCombatGains(killNum, damageNum, killerList)
           killerList = List.empty[String]
-          Thread.sleep(5000)
           val gameHallScreen = new GameHallScreen(context, playerInfo)
           context.switchScene(gameHallScreen.getScene,resize = true)
           val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
