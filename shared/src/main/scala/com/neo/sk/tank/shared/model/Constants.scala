@@ -80,6 +80,7 @@ object Constants {
     val stop = 3
     val loadingPlay = 4
     val replayLoading = 5
+    val leave = 6
   }
 
 
