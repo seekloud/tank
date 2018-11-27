@@ -7,7 +7,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.{ActorContext, StashBuffer, TimerScheduler}
 import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.shared.protocol.TankGameEvent
-import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameInformation, TankGameSnapshot, UserJoinRoom, UserLeftRoom}
+import com.neo.sk.tank.shared.protocol.TankGameEvent._
 import com.neo.sk.tank.models.SlickTables._
 import com.neo.sk.tank.models.DAO.RecordDAO
 import org.seekloud.byteobject.MiddleBufferInJvm
@@ -137,12 +137,19 @@ object GameRecorder {
                      essfMap.put(EssfMapKey(tankId, userId,name), EssfMapJoinLeftInfo(startF,frame))
                    }
 
+                 case UserLeftRoomByKill(userId, name, tankId,frame) =>
+                   userMap.remove(userId)
+                   if(essfMap.get(EssfMapKey(tankId, userId, name)).isDefined){
+                     val startF = essfMap(EssfMapKey(tankId, userId, name)).joinF
+                     essfMap.put(EssfMapKey(tankId, userId,name), EssfMapJoinLeftInfo(startF,frame))
+                   }
+
 
                  case _ =>
 
           }
 
-          gameRecordBuffer = t :: gameRecordBuffer
+          gameRecordBuffer = t.copy(event = (wsMsg.filterNot(_.isInstanceOf[UserLeftRoomByKill]), t.event._2)) :: gameRecordBuffer
           val newEndF = t.event._2.get match {
             case tank:TankGameSnapshot =>
               tank.state.f
