@@ -1,17 +1,16 @@
 package com.neo.sk.tank.front.tankClient.control
 
-import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.tankClient.{NetworkInfo, WebSocketClient}
 import com.neo.sk.tank.front.utils.canvas.MiddleFrameInJs
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.model.{Constants, Point}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import mhtml.Var
 import org.scalajs.dom
-import org.scalajs.dom.ext.Color
-import org.scalajs.dom.html.{Audio, Canvas, Div}
-import org.scalajs.dom.raw.{Event, HTMLElement}
+import org.scalajs.dom.html.{Audio, Div}
+import org.scalajs.dom.raw.Event
 
 /**
   * User: sky
@@ -30,8 +29,6 @@ abstract class GameHolder(name:String) extends NetworkInfo{
 
   protected var canvasUnit = getCanvasUnit(canvasWidth)
   protected var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
-//  canvas.width = canvasWidth.toInt
-//  canvas.height = canvasHeight.toInt
 
   protected val audioForBgm = dom.document.getElementById("GameAudioForBgm").asInstanceOf[Audio]
   audioForBgm.volume = 0.3
@@ -68,6 +65,20 @@ abstract class GameHolder(name:String) extends NetworkInfo{
   protected var countDownTimes = countDown
   protected var nextFrame = 0
   protected var logicFrameTime = System.currentTimeMillis()
+
+  //fixme 此处打印渲染时间
+  /*private var renderTime:Long = 0
+  private var renderTimes = 0
+
+  Shortcut.schedule( () =>{
+    if(renderTimes != 0){
+      println(s"render page use avg time:${renderTime / renderTimes}ms")
+    }else{
+      println(s"render page use avg time:0 ms")
+    }
+    renderTime = 0
+    renderTimes = 0
+  }, 5000L)*/
 
 
   def closeHolder={
@@ -117,7 +128,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     gameState match {
       case GameState.loadingPlay =>
         println(s"等待同步数据")
-        drawGameLoading()
+        gameContainerOpt.foreach(_.drawGameLoading())
       case GameState.play =>
         /***/
         gameContainerOpt.foreach(_.update())
@@ -127,11 +138,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       case GameState.stop =>
         dom.window.cancelAnimationFrame(nextFrame)
         Shortcut.cancelSchedule(timer)
-//        Shortcut.cancelSchedule(reStartTimer)
-//        drawGameStop()
-        Shortcut.scheduleOnce(() => drawCombatGains(), 2000)
-//        drawCombatGains()
-//        dom.document.getElementById("start_button").asInstanceOf[HTMLElement].focus()
+        Shortcut.scheduleOnce(() => drawCombatGains(), 3000)
 
       case _ => println(s"state=${gameState} failed")
     }
@@ -141,38 +148,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     gameContainerOpt.foreach(_.drawGame(offsetTime,getNetworkLatency))
   }
 
-  protected def drawGameLoading():Unit = {
-    ctx.setFill("rgb(0,0,0)")
-    ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    ctx.setFill("rgb(250, 250, 250)")
-    ctx.setTextAlign("left")
-    ctx.setTextBaseline("top")
-    ctx.setFont(s"Helvetica","normal",3.6 * canvasUnit)
-    ctx.fillText("请稍等，正在连接服务器", 150, 180)
-  }
-
-  protected def drawGameStop():Unit = {
-    ctx.setFill("rgb(0,0,0)")
-    ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    ctx.setFill("rgb(250, 250, 250)")
-    ctx.setTextAlign("left")
-    ctx.setTextBaseline("top")
-    ctx.setFont(s"Helvetica","normal",3.6 * canvasUnit)
-    ctx.fillText(s"您已经死亡,被玩家=${killerName}所杀,等待倒计时进入游戏", 150, 180)
-    println()
-  }
-
-  protected def drawReplayMsg(m:String):Unit = {
-    ctx.setFill("rgb(0,0,0)")
-    ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    ctx.setFill("rgb(250, 250, 250)")
-    ctx.setTextAlign("left")
-    ctx.setTextBaseline("top")
-    ctx.setFont(s"Helvetica","normal",3.6 * canvasUnit)
-    ctx.fillText(m, 150, 180)
-    println()
-  }
-
+  //todo 移到shared project
   protected def drawCombatGains(): Unit = {
     ctx.setFill("rgb(0,0,0)")
     ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)

@@ -6,4 +6,6 @@ package com.neo.sk.tank.shared.util.canvas
   * Time at 下午4:48
   * 合并框架中的image
   */
-trait MiddleImage
+trait MiddleImage {
+  def isComplete: Boolean
+}

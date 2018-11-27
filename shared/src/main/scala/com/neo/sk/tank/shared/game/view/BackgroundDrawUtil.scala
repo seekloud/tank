@@ -1,7 +1,7 @@
 package com.neo.sk.tank.shared.game.view
 
 import com.neo.sk.tank.shared.`object`.Tank
-import com.neo.sk.tank.shared.game.GameContainerImpl
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.util.canvas.{MiddleCanvas, MiddleContext, MiddleFrame, MiddleImage}
 import com.neo.sk.tank.shared.model.Constants.LittleMap
 import com.neo.sk.tank.shared.model.{Point, Score}
@@ -11,7 +11,7 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/8/29
   */
-trait Background{ this:GameContainerImpl =>
+trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
 //  implicit val drawFrame:MiddleFrame
   //fixme 将此处map暴露给子类
@@ -133,7 +133,7 @@ trait Background{ this:GameContainerImpl =>
       //绘制当前排行榜
       val unit = currentRankCanvas.getWidth() / rankWidth
 
-      println(s"rank =${historyRankCanvas.getWidth()}, canvasUnit=${canvasUnit}, unit=${unit}")
+//      println(s"rank =${historyRankCanvas.getWidth()}, canvasUnit=${canvasUnit}, unit=${unit}")
 
       val leftBegin = 5 * unit
       context.setFont("Arial","bold",12)
@@ -246,8 +246,8 @@ trait Background{ this:GameContainerImpl =>
     if(killInfoList.nonEmpty){
       var offsetY = canvasBoundary.y - 30
       ctx.beginPath()
-      ctx.setStrokeStyle("rgba(0,0,0)")
-      ctx.setTextAlign("start")
+      ctx.setStrokeStyle("rgb(0,0,0)")
+      ctx.setTextAlign("left")
       ctx.setFont("微软雅黑","bold",2.5*canvasUnit)
       ctx.setLineWidth(1)
 

@@ -1,16 +1,16 @@
 package com.neo.sk.tank.controller
 
+import java.util.{Timer, TimerTask}
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.tank.App.{executor, materializer, scheduler, system, timeout, tokenActor}
 import com.neo.sk.tank.actor.{PlayGameActor, TokenActor}
 import com.neo.sk.tank.common.Context
-import com.neo.sk.tank.game.{GameContainerClientImpl, NetworkInfo}
+import com.neo.sk.tank.game.NetworkInfo
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo, TokenAndAcessCode, UserInfo}
 import com.neo.sk.tank.view.{GameHallScreen, PlayGameScreen}
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.tank.actor.PlayGameActor.{DispatchMsg, log}
-import com.neo.sk.tank.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -20,6 +20,7 @@ import javafx.scene.input.KeyCode
 import akka.actor.typed.scaladsl.AskPattern._
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.App
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.protocol.TankGameEvent.UserMouseClick
 import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 import javafx.util.Duration
@@ -75,26 +76,29 @@ class PlayScreenController(
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
   private var gameState = GameState.loadingPlay
   private var logicFrameTime = System.currentTimeMillis()
+
+  /**打印渲染时间*/
+  /*private var renderTime:Long = 0
+  private var renderTimes = 0
+
+  val timer = new Timer()
+  timer.schedule(new TimerTask {
+    override def run(): Unit = {
+      if(renderTimes != 0){
+        println(s"render page use avg time:${renderTime / renderTimes}ms")
+      }else{
+        println(s"render page use avg time:0 ms")
+      }
+      renderTime = 0
+      renderTimes = 0
+    }
+  }, 0, 5000)*/
+
   private val animationTimer = new AnimationTimer() {
     override def handle(now: Long): Unit = {
-//      log.debug(s"draw game ${System.currentTimeMillis()} ${logicFrameTime}")
       drawGame(System.currentTimeMillis() - logicFrameTime)
     }
   }
-//  private val timeline = new Timeline()
-//  private var countDownTimes=3
-//  timeline.setCycleCount(Animation.INDEFINITE)
-//  val keyFrame = new KeyFrame(Duration.millis(1000), { _ =>
-//    if(countDownTimes>0){
-//      playGameScreen.drawGameRestart(countDownTimes,killerName)
-//      countDownTimes-=1
-//    }else{
-//      timeline.stop()
-//      countDownTimes=3
-//      start
-//    }
-//  })
-//  timeline.getKeyFrames.add(keyFrame)
 
   private val watchKeys = Set(
     KeyCode.LEFT,
@@ -133,7 +137,6 @@ class PlayScreenController(
   }
 
   private def drawGame(offsetTime: Long) = {
-//    println(s"game container opt ${gameContainerOpt}")
     gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency))
   }
 
@@ -148,7 +151,7 @@ class PlayScreenController(
       gameState match {
         case GameState.loadingPlay =>
           //        println(s"等待同步数据")
-          playGameScreen.drawGameLoading()
+          gameContainerOpt.foreach(_.drawGameLoading())
         case GameState.play =>
           /** */
           gameContainerOpt.foreach(_.update())
@@ -311,6 +314,8 @@ class PlayScreenController(
               println("client is stop!!!")
           }
 
+        case e:TankGameEvent.TankFollowEventSnap =>
+          gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
         case e: TankGameEvent.YouAreKilled =>
 
@@ -323,7 +328,7 @@ class PlayScreenController(
           killerList = killerList :+ e.name
           killerName = e.name
 //          animationTimer.stop()
-          playGameScreen.drawGameStop(killerName)
+          gameContainerOpt.foreach(_.drawGameStop(killerName))
           if(!e.hasLife){
             setGameState(GameState.stop)
             gameMusicPlayer.pause()
@@ -385,7 +390,7 @@ class PlayScreenController(
 
 
         case TankGameEvent.RebuildWebSocket =>
-          playGameScreen.drawReplayMsg("存在异地登录。。")
+          gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
           closeHolder
 
         case _:TankGameEvent.DecodeError=>

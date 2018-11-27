@@ -88,9 +88,17 @@ object TankGameEvent {
   final case class TankEatProp(tankId:Int,propId:Int,propType:Byte,frame:Long) extends GameEvent with WsMsgServer
   /**生成道具*/
   final case class GenerateProp(override val frame:Long,propState: PropState,generateType:Byte = 0) extends EnvironmentEvent with WsMsgServer
-  @deprecated final case class GenerateBullet(override val frame:Long,bullet:BulletState) extends EnvironmentEvent with WsMsgServer
+  final case class GenerateBullet(override val frame:Long,bullet:BulletState) extends EnvironmentEvent with WsMsgServer
   /**生成河流，钢铁*/
   final case class GenerateObstacle(override val frame:Long,obstacleState: ObstacleState) extends EnvironmentEvent with WsMsgServer
+
+  /**
+    * tank初次进入游戏时用于同步游戏逻辑产生延时事件
+    * */
+  final case class TankFollowEventSnap(override val frame:Long,
+                                       tankFillList:List[TankFillBullet],
+                                       invincibleList:List[TankInvincible],
+                                       shotExpireList:List[TankShotgunExpire]) extends GameEvent with WsMsgServer
 
   /**
     * 游戏逻辑产生事件

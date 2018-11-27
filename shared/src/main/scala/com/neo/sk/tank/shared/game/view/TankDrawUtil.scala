@@ -1,6 +1,6 @@
 package com.neo.sk.tank.shared.game.view
 
-import com.neo.sk.tank.shared.game.{GameContainerImpl, TankClientImpl}
+import com.neo.sk.tank.shared.game.{GameContainerClientImpl, TankClientImpl}
 import com.neo.sk.tank.shared.model.Constants.{InvincibleSize, SmallBullet}
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.util.canvas.MiddleContext
@@ -10,7 +10,7 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/8/29
   */
-trait TankDrawUtil{ this:GameContainerImpl =>
+trait TankDrawUtil{ this:GameContainerClientImpl =>
 
 
   //fixme 将此处map暴露给子类
