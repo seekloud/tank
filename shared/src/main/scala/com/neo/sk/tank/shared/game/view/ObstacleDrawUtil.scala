@@ -1,7 +1,7 @@
 package com.neo.sk.tank.shared.game.view
 
 import com.neo.sk.tank.shared.`object`.AirDropBox
-import com.neo.sk.tank.shared.game.GameContainerImpl
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.ObstacleType
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.util.canvas.MiddleContext
@@ -11,7 +11,7 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/8/29
   */
-trait ObstacleDrawUtil{ this:GameContainerImpl =>
+trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
 
   //fixme 将此处map暴露给子类
   private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Any]()
@@ -25,7 +25,7 @@ trait ObstacleDrawUtil{ this:GameContainerImpl =>
   }
 
   //todo  此处需要调研图片complete
-  protected def obstacleImgComplete: Boolean = true
+  protected def obstacleImgComplete: Boolean = steelImg.isComplete && riverImg.isComplete
 
   private def generateObstacleCacheCanvas(width: Float, height: Float, color: String): Any = {
     val cacheCanvas = drawFrame.createCanvas((width * canvasUnit).toInt, (height * canvasUnit).toInt)

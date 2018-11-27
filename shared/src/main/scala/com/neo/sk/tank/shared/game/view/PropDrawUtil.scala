@@ -1,13 +1,13 @@
 package com.neo.sk.tank.shared.game.view
 
-import com.neo.sk.tank.shared.game.GameContainerImpl
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.{GameAnimation, PropAnimation}
 import com.neo.sk.tank.shared.model.Point
 
 /**
   * Created by hongruying on 2018/8/29
   */
-trait PropDrawUtil { this: GameContainerImpl =>
+trait PropDrawUtil { this: GameContainerClientImpl =>
   private val bloodPropImg =drawFrame.createImage("/img/xueliang.png")
   private val speedPropImg = drawFrame.createImage("/img/sudu.png")
   private val bulletPowerPropImg = drawFrame.createImage("/img/qiang.png")

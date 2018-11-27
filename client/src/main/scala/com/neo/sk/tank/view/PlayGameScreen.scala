@@ -81,43 +81,7 @@ class PlayGameScreen(context: Context) {
     }else (Point(0,0), 0)
   }
 
-  def drawGameLoading():Unit = {
-    getCanvasContext.setFill("#006699")
-    getCanvasContext.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    getCanvasContext.setTextAlign("center")
-    getCanvasContext.setFont("楷体", "normal", 5 * canvasUnit)
-    getCanvasContext.setFill("rgb(0,0,0)")
-    getCanvasContext.fillText("请稍等，正在连接服务器", 300, 180)
-  }
-
-  def drawGameStop(killerName:String):Unit = {
-    getCanvasContext.setFill("#006699")
-    getCanvasContext.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    getCanvasContext.setTextAlign("center")
-    getCanvasContext.setFont("楷体", "normal", 5 * canvasUnit)
-    getCanvasContext.setFill("rgb(0,0,0)")
-    getCanvasContext.fillText(s"您已经死亡,被玩家=${killerName}所杀", 300, 180)
-  }
-
-  def drawReplayMsg(m:String):Unit = {
-    getCanvasContext.setFill("#006699")
-    getCanvasContext.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    getCanvasContext.setTextAlign("center")
-    getCanvasContext.setFont("楷体", "normal", 5 * canvasUnit)
-    getCanvasContext.setFill("rgb(0,0,0)")
-    getCanvasContext.fillText(m, 300, 180)
-  }
-
-  def drawGameRestart(countDownTimes:Int,killerName:String): Unit = {
-    getCanvasContext.setFill("#006699")
-    getCanvasContext.setTextAlign("center")
-    getCanvasContext.setFont("楷体", "normal", 5 * canvasUnit)
-    getCanvasContext.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    getCanvasContext.setFill("rgb(0,0,0)")
-    getCanvasContext.fillText(s"重新进入房间，倒计时：${countDownTimes}", 300, 100)
-    getCanvasContext.fillText(s"您已经死亡,被玩家=${killerName}所杀", 300, 180)
-  }
-
+  //todo 考虑本部分代码移到shared
   def drawCombatGains(killNum:Int, damageNum:Int, killerList:List[String]):Unit = {
     getCanvasContext.setFont("楷体", "normal", 5 * canvasUnit)
     getCanvasContext.setFill("rgb(0,0,0)")
@@ -133,7 +97,6 @@ class PlayGameScreen(context: Context) {
       getCanvasContext.fillText(s"${r}", pos, 400)
       pos = pos + 4 * canvasUnit * r.length}
   }
-
 
 }
 

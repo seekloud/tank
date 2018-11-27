@@ -2,7 +2,7 @@ package com.neo.sk.utils.canvas
 
 import com.neo.sk.tank.shared.util.canvas.MiddleContext
 import javafx.geometry.VPos
-import javafx.scene.image.{Image, WritableImage}
+import javafx.scene.image.{WritableImage}
 import javafx.scene.paint.Color
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.shape.{StrokeLineCap, StrokeLineJoin}

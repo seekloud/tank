@@ -15,19 +15,20 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/8/24
   * 终端
-  * 本文件可以合并到GameContainerClientImpl
   */
-class GameContainerImpl(
-                         override val config: TankGameConfig,
-                         myId: String,
-                         myTankId: Int,
-                         myName: String,
-                         var canvasSize: Point,
-                         var canvasUnit: Int,
-                         val ctx: MiddleContext,
-                         val drawFrame: MiddleFrame
-                       ) extends GameContainer with EsRecover
-  with Background with BulletDrawUtil with FpsComponents with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil {
+case class GameContainerClientImpl(
+                              drawFrame: MiddleFrame,
+                              ctx: MiddleContext,
+                              override val config: TankGameConfig,
+                              myId: String,
+                              myTankId: Int,
+                              myName: String,
+                              var canvasSize: Point,
+                              var canvasUnit: Int,
+                              setGameState: Int => Unit,
+                              setKillCallback: (String, Boolean, Int, Int) => Unit = { (_, _, _, _) => }
+                            ) extends GameContainer with EsRecover
+  with BackgroundDrawUtil with BulletDrawUtil with FpsComponentsDrawUtil with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil with InfoDrawUtil {
 
   import scala.language.implicitConversions
 
@@ -77,6 +78,13 @@ class GameContainerImpl(
     super.handleTankAttacked(e)
     if (tankMap.get(e.tankId).nonEmpty) {
       tankAttackedAnimationMap.put(e.tankId, GameAnimation.bulletHitAnimationFrame)
+    }
+  }
+
+  override protected def dropTankCallback(bulletTankId: Int, bulletTankName: String, tank: Tank) = {
+    if (tank.tankId == tId) {
+      setKillCallback(bulletTankName, tank.lives > 1, tank.killTankNum, tank.damageStatistics)
+      if (tank.lives <= 1) setGameState(GameState.stop)
     }
   }
 
@@ -139,8 +147,7 @@ class GameContainerImpl(
       if (e.frame >= systemFrame) {
         addUserAction(e)
       } else if (esRecoverSupport) {
-        println(s"rollback-frame=${e.frame},curFrame=${this.systemFrame},e=${e}")
-        rollback4GameEvent(e)
+        rollback4UserActionEvent(e)
       }
     }
   }
@@ -167,13 +174,22 @@ class GameContainerImpl(
 
   //客户端增加坦克无敌失效callBack
   override protected def handleUserJoinRoomEvent(e: TankGameEvent.UserJoinRoom): Unit = {
+    //    println(s"addininEvent${e.tankState.tankId}")
     super.handleUserJoinRoomEvent(e)
     tankInvincibleCallBack(e.tankState.tankId)
   }
 
-  override protected def handleUserReliveEvent(e:TankGameEvent.UserRelive):Unit = {
+  override protected def handleUserReliveEvent(e: TankGameEvent.UserRelive): Unit = {
+    //    println(s"addininEvent${e.tankState.tankId}")
     super.handleUserReliveEvent(e)
     tankInvincibleCallBack(e.tankState.tankId)
+  }
+
+  /** 同步游戏逻辑产生的延时事件 */
+  def receiveTankFollowEventSnap(snap: TankFollowEventSnap) = {
+    snap.invincibleList.foreach(addFollowEvent(_))
+    snap.tankFillList.foreach(addFollowEvent(_))
+    snap.shotExpireList.foreach(addFollowEvent(_))
   }
 
   protected def handleGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
@@ -233,7 +249,7 @@ class GameContainerImpl(
     }
     val endTime = System.currentTimeMillis()
     if (curFrame < gameContainerState.f) {
-      println(s"handleGameContainerState update to now use Time=${endTime - startTime}")
+      println(s"handleGameContainerState update to now use Time=${endTime - startTime} and systemFrame=${systemFrame} sysFrame=${gameContainerState.f}")
     }
     systemFrame = gameContainerState.f
     judge(gameContainerState)
@@ -278,7 +294,6 @@ class GameContainerImpl(
           }
         case None => println(s"judge failed,because tank=${tankState.tankId} not exists....")
       }
-
     }
   }
 
@@ -325,11 +340,13 @@ class GameContainerImpl(
   }
 
   override protected def clearEventWhenUpdate(): Unit = {
+    super.clearEventWhenUpdate()
     if (esRecoverSupport) {
       addEventHistory(systemFrame, gameEventMap.getOrElse(systemFrame, Nil), actionEventMap.getOrElse(systemFrame, Nil))
     }
     gameEventMap -= systemFrame
     actionEventMap -= systemFrame
+    followEventMap -= systemFrame-maxFollowFrame
     systemFrame += 1
   }
 

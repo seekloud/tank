@@ -5,8 +5,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import com.neo.sk.tank.front.common.Routes
 import com.neo.sk.tank.front.components.StartGameModal
 import com.neo.sk.tank.front.model.PlayerInfo
-import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -127,7 +127,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         val keyCode = changeKeys(e.keyCode)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
           myKeySet.add(keyCode)
-          println(s"key down: [${e.keyCode}]")
+//          println(s"key down: [${e.keyCode}]")
           val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
@@ -138,7 +138,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         }
         if (gunAngleAdjust.contains(keyCode) && poKeyBoardFrame != gameContainerOpt.get.systemFrame) {
           myKeySet.remove(keyCode)
-          println(s"key down: [${e.keyCode}]")
+//          println(s"key down: [${e.keyCode}]")
           poKeyBoardFrame = gameContainerOpt.get.systemFrame
           val Theta =
             if(keyCode == KeyCode.K) poKeyBoardMoveTheta
@@ -183,7 +183,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         val keyCode = changeKeys(e.keyCode)
         if (watchKeys.contains(keyCode)) {
           myKeySet.remove(keyCode)
-          println(s"key up: [${e.keyCode}]")
+//          println(s"key up: [${e.keyCode}]")
           val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
@@ -225,13 +225,16 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 //    println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
-        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
+        timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)
         audioForBgm.play()
         /**
           * 更新游戏数据
           * */
         gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
+
+      case e:TankGameEvent.TankFollowEventSnap =>
+        gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
       case e:TankGameEvent.YouAreKilled =>
         /**
@@ -243,7 +246,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         damageNum = e.damageStatistics
         killerName = e.name
         dom.window.cancelAnimationFrame(nextFrame)
-        drawGameStop()
+        gameContainerOpt.foreach(_.drawGameStop(killerName))
         if(! e.hasLife){
           setGameState(GameState.stop)
           audioForBgm.pause()
@@ -295,7 +298,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         receivePingPackage(e)
 
       case TankGameEvent.RebuildWebSocket=>
-        drawReplayMsg("存在异地登录。。")
+        gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
         closeHolder
 
       case _ => println(s"unknow msg={sss}")
