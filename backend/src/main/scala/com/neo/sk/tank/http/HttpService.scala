@@ -15,8 +15,8 @@ import akka.actor.typed.scaladsl.AskPattern._
 import com.neo.sk.tank.Boot.roomManager
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
-import com.neo.sk.tank.Boot.{executor, scheduler, timeout, userManager}
-import com.neo.sk.tank.core.UserManager
+import com.neo.sk.tank.Boot.{botManager, executor, scheduler, timeout, userManager}
+import com.neo.sk.tank.core.{BotManager, UserManager}
 import com.neo.sk.tank.protocol.WatchGameProtocol.{GetUserInfoList, UserInfoListByRoomIdRsp}
 import com.neo.sk.tank.shared.ptcl.ErrorRsp
 
@@ -169,6 +169,7 @@ trait HttpService
             'roomId.as[Long].?
           ){ (name,roomIdOpt) =>
             val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_,None,roomIdOpt))
+            botManager ! BotManager.CreateABot(6)
             dealFutureResult(
               flowFuture.map(t => handleWebSocketMessages(t))
             )
@@ -188,7 +189,6 @@ trait HttpService
             }
           }
         } ~ playRoute
-
       }
   }
 

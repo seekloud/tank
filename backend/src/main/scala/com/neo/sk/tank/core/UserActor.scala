@@ -146,6 +146,7 @@ object UserActor {
           ctx.watchWith(frontActor,UserLeft(frontActor))
           switchBehavior(ctx,"idle",idle(uId, userInfo,System.currentTimeMillis(), frontActor))
 
+
         case ChangeUserInfo(info) =>
           init(uId,info)
 
