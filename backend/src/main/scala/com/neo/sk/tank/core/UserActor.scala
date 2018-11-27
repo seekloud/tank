@@ -287,7 +287,7 @@ object UserActor {
           Behaviors.same
 
         case msg:ChangeRecordMsg=>
-          ctx.self ! UserActor.StartReplay(msg.rid,msg.watchId,msg.f)
+          ctx.self ! UserActor.StartReplay(msg.rid,msg.playerId,msg.f)
           switchBehavior(ctx,"idle",idle(uId,userInfo, startTime,frontActor))
 
         case msg:GetRecordFrameMsg=>

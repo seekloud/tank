@@ -72,6 +72,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
         if(nextFrame!=0){
           dom.window.cancelAnimationFrame(nextFrame)
           Shortcut.cancelSchedule(timer)
+          firstCome = true
         }
         //        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
         gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, setKillCallback = setKillCallback))
