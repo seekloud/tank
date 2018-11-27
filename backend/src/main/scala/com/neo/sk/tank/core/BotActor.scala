@@ -107,7 +107,7 @@ object BotActor {
 
         case StartAGame() =>
           scheduler.scheduleOnce(1 seconds){botControl.sendMsg2Actor}
-          scheduler.scheduleOnce(1 seconds){botControl.findTarget}
+//          scheduler.scheduleOnce(1 seconds){botControl.findTarget}
           Behaviors.same
 
         case unknowMsg =>

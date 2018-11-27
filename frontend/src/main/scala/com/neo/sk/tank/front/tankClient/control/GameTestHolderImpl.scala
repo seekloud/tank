@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import com.neo.sk.tank.front.common.Routes
 import com.neo.sk.tank.front.components.StartGameModal
 import com.neo.sk.tank.front.model.PlayerInfo
-import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.game.TankClientImpl
@@ -267,7 +267,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         damageNum = e.damageStatistics
         killerName = e.name
         dom.window.cancelAnimationFrame(nextFrame)
-        drawGameStop()
+        gameContainerOpt.foreach(_.drawGameStop(killerName))
         if(! e.hasLife){
           setGameState(GameState.stop)
         }
@@ -314,7 +314,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         receivePingPackage(e)
 
       case TankGameEvent.RebuildWebSocket=>
-        drawReplayMsg("存在异地登录。。")
+        gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
         closeHolder
 
       case _ => println(s"unknow msg={sss}")

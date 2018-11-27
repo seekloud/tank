@@ -113,8 +113,10 @@ class BotControl(name:String, actor:ActorRef[UserActor.Command]) {
 
     if(gameContainerOpt.nonEmpty && gameState == GameState.play){
 
-      if(!isMove){
-        clickTime = Some(scheduler.schedule(0 milliseconds, 150 milliseconds){userClick(currentMouseMOveTheta)})
+      log.debug(s"${actor.path} sendmsg===========")
+
+      if(true){
+        clickTime = Some(scheduler.schedule(0 milliseconds, 500 milliseconds){userClick(currentMouseMOveTheta)})
         scheduler.scheduleOnce(1 seconds){sendMsg2Actor}
         isMove = true
       }
@@ -132,6 +134,7 @@ class BotControl(name:String, actor:ActorRef[UserActor.Command]) {
     if(com.neo.sk.tank.shared.model.Constants.fakeRender){
       gameContainerOpt.get.addMyAction(preExecuteAction)
     }
+    log.debug(s"${preExecuteAction} ==${gameContainerOpt.get.systemFrame}")
     actor ! WebSocketMsg(Some(preExecuteAction))
   }
 
@@ -141,12 +144,14 @@ class BotControl(name:String, actor:ActorRef[UserActor.Command]) {
     if(com.neo.sk.tank.shared.model.Constants.fakeRender){
       gameContainerOpt.get.addMyAction(preExecuteAction)
     }
+    log.debug(s"${preExecuteAction} ==${gameContainerOpt.get.systemFrame}")
     actor ! WebSocketMsg(Some(preExecuteAction))
   }
 
   private def userMouseClick = {
     val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
     gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+    log.debug(s"${preExecuteAction} ==${gameContainerOpt.get.systemFrame}")
     actor ! WebSocketMsg(Some(preExecuteAction))
   }
 
@@ -202,7 +207,7 @@ class BotControl(name:String, actor:ActorRef[UserActor.Command]) {
       currentMouseMOveTheta = pos.getTheta(thisTank.getTankState().position).toFloat
       isMove = false
     }
-    scheduler.scheduleOnce(1 seconds){findTarget}
+    scheduler.scheduleOnce(800 milliseconds){findTarget}
   }
 
   private def jugeTheDistance(p:Point, q:Point) = {
