@@ -1,33 +1,25 @@
-package com.neo.sk.tank.shared.game
+package com.neo.sk.tank.core.game
 
 import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.TankGameConfig
-import com.neo.sk.tank.shared.game.view._
+import com.neo.sk.tank.shared.game._
 import com.neo.sk.tank.shared.model.Constants.{GameAnimation, GameState, PropGenerateType}
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
-import com.neo.sk.tank.shared.protocol.TankGameEvent._
-import com.neo.sk.tank.shared.util.canvas.{MiddleCanvas, MiddleContext, MiddleFrame}
+import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameEvent, UserActionEvent}
+import com.neo.sk.tank.shared.util.canvas.{MiddleContext, MiddleFrame}
 
 import scala.collection.mutable
 
-
-/**
-  * Created by hongruying on 2018/8/24
-  * 终端
-  * 本文件可以合并到GameContainerClientImpl
-  */
-class GameContainerImpl(
-                         override val config: TankGameConfig,
-                         myId: String,
-                         myTankId: Int,
-                         myName: String,
-                         var canvasSize: Point,
-                         var canvasUnit: Int,
-                         val ctx: MiddleContext,
-                         val drawFrame: MiddleFrame
-                       ) extends GameContainer with EsRecover
-  with Background with BulletDrawUtil with FpsComponents with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil {
+case class GameContainerTestImpl(
+                                  override val config:TankGameConfig,
+                                  myId:String,
+                                  myTankId:Int,
+                                  myName:String,
+                                  setGameState:Int => Unit,
+                                  isObserve: Boolean = false,
+                                  setKillCallback: (String, Boolean, Int, Int) => Unit = {(_,_,_,_) =>}
+                                ) extends GameContainer with EsRecoverForTest {
 
   import scala.language.implicitConversions
 
@@ -54,16 +46,6 @@ class GameContainerImpl(
   protected var waitSyncData: Boolean = true
 
   private val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
-
-  def updateClientSize(canvasS: Point, cUnit: Int) = {
-    canvasUnit = cUnit
-    canvasSize = canvasS
-    updateBackSize(canvasS)
-    updateBulletSize(canvasS)
-    updateFpsSize(canvasS)
-    updateObstacleSize(canvasS)
-    updateTankSize(canvasS)
-  }
 
   override protected def handleObstacleAttacked(e: TankGameEvent.ObstacleAttacked): Unit = {
     super.handleObstacleAttacked(e)
@@ -159,12 +141,6 @@ class GameContainerImpl(
     }
   }
 
-  //  def setUserInfo(name:String,userId:Long,tankId:Int) = {
-  //    myName = name
-  //    myId = userId
-  //    myTankId = tankId
-  //  }
-
   //客户端增加坦克无敌失效callBack
   override protected def handleUserJoinRoomEvent(e: TankGameEvent.UserJoinRoom): Unit = {
     super.handleUserJoinRoomEvent(e)
@@ -185,10 +161,6 @@ class GameContainerImpl(
     tankMoveAction.clear()
     bulletMap.clear()
     environmentMap.clear()
-
-    //remind 重置followEventMap
-    //    followEventMap.clear()
-    //    gameContainerAllState.followEvent.foreach{t=>followEventMap.put(t._1,t._2)}
 
     gameContainerAllState.tanks.foreach { t =>
       val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
@@ -338,47 +310,6 @@ class GameContainerImpl(
     if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
   }
 
-  def drawGame(time: Long, networkLatency: Long): Unit = {
-    val offsetTime = math.min(time, config.frameDuration)
-    val h = canvasSize.y
-    val w = canvasSize.x
-    //    val startTime = System.currentTimeMillis()
-    if (!waitSyncData) {
-      ctx.setLineCap("round")
-      ctx.setLineJoin("round")
-      tankMap.get(tId) match {
-        case Some(tank) =>
-          val offset = canvasSize / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime)
-          drawBackground(offset)
-          drawObstacles(offset, Point(w, h))
-          drawEnvironment(offset, Point(w, h))
-          drawProps(offset, Point(w, h))
-          drawBullet(offset, offsetTime, Point(w, h))
-          drawTank(offset, offsetTime, Point(w, h))
-          drawObstacleBloodSlider(offset)
-          drawMyTankInfo(tank.asInstanceOf[TankClientImpl])
-          drawMinimap(tank)
-          drawRank()
-          renderFps(networkLatency)
-          drawKillInformation()
-          drawRoomNumber()
-          drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
-
-          if (tank.cavasFrame >= 1) {
-            tank.cavasFrame += 1
-          }
-          val endTime = System.currentTimeMillis()
-        //          renderTimes += 1
-        //          renderTime += endTime - startTime
-
-
-        case None =>
-        //          info(s"tankid=${myTankId} has no in tankMap.....................................")
-        //          setGameState(GameState.stop)
-        //          if(isObserve) drawDeadImg()
-      }
-    }
-  }
 
   def findAllTank(thisTank:Int) = {
     quadTree.retrieve(tankMap(thisTank)).filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank])
@@ -392,6 +323,12 @@ class GameContainerImpl(
     quadTree.retrieveFilter(thisTank).filter(_.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
   }
 
-
+  override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
+    if(tank.tankId == tId){
+      setKillCallback(bulletTankName, tank.lives > 1, tank.killTankNum, tank.damageStatistics)
+      if (tank.lives <= 1) setGameState(GameState.stop)
+    }
+  }
 
 }
+

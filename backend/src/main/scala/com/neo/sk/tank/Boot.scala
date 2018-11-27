@@ -18,7 +18,7 @@ import akka.stream.scaladsl._
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.actor.typed.scaladsl.adapter._
-import com.neo.sk.tank.core.{EsheepSyncClient, RoomActor, RoomManager, UserManager}
+import com.neo.sk.tank.core._
 
 import scala.concurrent.duration._
 
@@ -51,6 +51,8 @@ object Boot extends HttpService {
   val roomManager:ActorRef[RoomManager.Command] = system.spawn(RoomManager.create(),"roomManager")
 
   val userManager:ActorRef[UserManager.Command] = system.spawn(UserManager.create(),"userManager")
+
+  val botManager:ActorRef[BotManager.Command] = system.spawn(BotManager.create(),"BotManager")
 
   val esheepSyncClient:ActorRef[EsheepSyncClient.Command] = system.spawn(EsheepSyncClient.create,"esheepSyncClient")
 

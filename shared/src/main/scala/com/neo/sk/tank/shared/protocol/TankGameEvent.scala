@@ -23,7 +23,7 @@ object TankGameEvent {
   final case class RestartGame(tankIdOpt:Option[Int],name:String) extends WsMsgFront
 
   /**后台建立WebSocket*/
-  sealed trait WsMsgSource
+  trait WsMsgSource
   case object CompleteMsgServer extends WsMsgSource
   case class FailMsgServer(ex: Exception) extends WsMsgSource
 

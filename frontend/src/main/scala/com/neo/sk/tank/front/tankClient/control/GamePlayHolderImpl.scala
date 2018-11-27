@@ -82,7 +82,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     }else if(webSocketClient.getWsState){
       gameContainerOpt match {
         case Some(gameContainer) =>
-          webSocketClient.sendMsg(TankGameEvent.RestartGame(Some(gameContainer.myTankId),name))
+          webSocketClient.sendMsg(TankGameEvent. RestartGame(Some(gameContainer.myTankId),name))
         case None =>
           webSocketClient.sendMsg(TankGameEvent.RestartGame(None,name))
       }

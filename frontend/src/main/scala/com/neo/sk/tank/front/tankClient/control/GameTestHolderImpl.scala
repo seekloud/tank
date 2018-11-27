@@ -7,12 +7,15 @@ import com.neo.sk.tank.front.components.StartGameModal
 import com.neo.sk.tank.front.model.PlayerInfo
 import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
-import com.neo.sk.tank.shared.model.Constants.GameState
+import com.neo.sk.tank.shared.`object`.Tank
+import com.neo.sk.tank.shared.game.TankClientImpl
+import com.neo.sk.tank.shared.model.Constants.{GameState, ObstacleType}
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.raw.HTMLElement
+import sun.text.resources.sr.FormatData_sr_Latn
 
 import scala.collection.mutable
 import scala.xml.Elem
@@ -22,6 +25,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   private var spaceKeyUpState = true
   private var enterKeyUpstate = true
   private var lastMouseMoveTheta:Float = 0
+  private var currentMouseMOveTheta:Float = 0
   private val mouseMoveThreshold = math.Pi / 180
   private val poKeyBoardMoveTheta = 2* math.Pi / 72 //炮筒顺时针转
   private val neKeyBoardMoveTheta = -2* math.Pi / 72 //炮筒逆时针转
@@ -29,9 +33,9 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   private var eKeyBoardState4AddBlood = true
   private val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
   private val startGameModal = new StartGameModal(gameStateVar,start, playerInfoOpt)
-  private val fakeKeyDownList = List(KeyCode.Up, KeyCode.Right, KeyCode.Down, KeyCode.Left, KeyCode.K, KeyCode.L)
-  private var timerForDown = 0
   private var timerForClick = 0
+  private var thisTankId = 0
+  private var isMove = true
 
   private var thisTank = gameContainerOpt.getOrElse(None)
 
@@ -72,8 +76,8 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
   private def start(name:String,roomIdOpt:Option[Long]):Unit = {
     canvas.getCanvas.focus()
-    timerForDown = Shortcut.schedule(() => fakeUserKeyDown,1000)
-    timerForClick = Shortcut.schedule(() => fakeUserMouseClick,1000)
+    Shortcut.scheduleOnce(() => userAction,1000)
+    Shortcut.scheduleOnce(() => findTarget, 1500)
     if(firstCome){
       firstCome = false
       setGameState(GameState.loadingPlay)
@@ -90,22 +94,6 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       gameLoop()
     }else{
       JsFunc.alert("网络连接失败，请重新刷新")
-    }
-  }
-
-  private def fakeUserKeyUp(keyCode:Int) = {
-    if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
-      if (watchKeys.contains(keyCode)) {
-        myKeySet.remove(keyCode)
-        val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
-        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-        sendMsg2Server(preExecuteAction)
-        if (com.neo.sk.tank.shared.model.Constants.fakeRender) {
-          gameContainerOpt.get.addMyAction(preExecuteAction)
-        }
-      }else if (keyCode == KeyCode.Space) {
-        spaceKeyUpState = true
-      }
     }
   }
 
@@ -143,59 +131,117 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 //    }
 //  }
 
-  private def fakeUserKeyDown = {
-    val randomKeyCode = (new util.Random).nextInt(4) + 37
-    if (gameContainerOpt.nonEmpty && gameState == GameState.play){
-      val keyCode = changeKeys(randomKeyCode)
-      if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
-        myKeySet.add(keyCode)
-        val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
-        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-        sendMsg2Server(preExecuteAction)
-        if (com.neo.sk.tank.shared.model.Constants.fakeRender) {
-          gameContainerOpt.get.addMyAction(preExecuteAction)
-        }
-      }
-      if (gunAngleAdjust.contains(keyCode) && poKeyBoardFrame != gameContainerOpt.get.systemFrame) {
-        myKeySet.remove(keyCode)
-        poKeyBoardFrame = gameContainerOpt.get.systemFrame
-        val Theta =
-          if (keyCode == KeyCode.K) poKeyBoardMoveTheta
-          else neKeyBoardMoveTheta
-        val preExecuteAction = TankGameEvent.UserKeyboardMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, Theta.toFloat, getActionSerialNum)
-        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-        sendMsg2Server(preExecuteAction)
+  private def userAction:Unit = {
+    Shortcut.cancelSchedule(timerForClick)
+    if(gameContainerOpt.nonEmpty && gameState == GameState.play){
 
+      if(!isMove){
+        timerForClick = Shortcut.schedule(() => userClick(currentMouseMOveTheta), 150)
+        Shortcut.scheduleOnce(() => userAction, 1000)
+        isMove = true
       }
-      else if (keyCode == KeyCode.Space && spaceKeyUpState) {
-        spaceKeyUpState = false
-        val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
-        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-        sendMsg2Server(preExecuteAction) //发送鼠标位置
+
+      if(isMove){
+        userMove
+        Shortcut.scheduleOnce(() => userAction, 1000)
       }
-      Shortcut.scheduleOnce(() => fakeUserKeyUp(keyCode),1000)
     }
     else if(gameState == GameState.stop){
-      Shortcut.cancelSchedule(timerForDown)
-      Shortcut.cancelSchedule(timerForClick)
       Shortcut.scheduleOnce(() => dom.document.getElementById("start_button").asInstanceOf[HTMLElement].click(), 5000)
     }
   }
 
-  private def fakeUserMouseClick = {
-    if (gameContainerOpt.nonEmpty && gameState == GameState.play){
-      val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
-      gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-      sendMsg2Server(preExecuteAction) //发送鼠标位置
+
+
+  private def findTarget:Unit = {
+
+    val gameContainer = gameContainerOpt.get
+
+    val tankList = gameContainer.findAllTank(thisTankId)
+    val thisTank = tankList.filter(_.tankId == thisTankId).head
+
+    val obstacleList = gameContainer.findOtherObstacle(thisTank)
+    val airDropList = obstacleList.filter(r => r.obstacleType == ObstacleType.airDropBox)
+    val brickList = obstacleList.filter(r => r.obstacleType == ObstacleType.brick)
+
+    val offset = canvasBoundary / 2 - thisTank.getTankState().position
+
+    if(tankList.exists(r => r.tankId != thisTankId && jugeTheDistance(r.getTankState().position + offset))){
+      val attackTank = tankList.filter(_.tankId != thisTankId).find(r => jugeTheDistance(r.getTankState().position + offset)).get
+      val pos = (attackTank.getTankState().position + offset) * canvasUnit
+      currentMouseMOveTheta = pos.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+      isMove = false
     }
-    else if(gameState == GameState.stop){
-      Shortcut.cancelSchedule(timerForDown)
-      Shortcut.cancelSchedule(timerForClick)
-      val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, KeyCode.Enter, getActionSerialNum)
+    else if(airDropList.exists(r => jugeTheDistance(r.getObstacleState().p + offset))){
+      val attackAir = airDropList.find(r => jugeTheDistance(r.getObstacleState().p + offset)).get
+      val pos = (attackAir.getObstacleState().p + offset) * canvasUnit
+      currentMouseMOveTheta = pos.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+      isMove = false
+    }
+    else if(brickList.exists(r => jugeTheDistance(r.getObstacleState().p + offset))){
+      val attackBrick = brickList.find(r => jugeTheDistance(r.getObstacleState().p + offset)).get
+      val pos = (attackBrick.getObstacleState().p + offset) * canvasUnit
+      currentMouseMOveTheta = pos.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+      isMove = false
+    }
+    Shortcut.scheduleOnce(() => findTarget, 1000)
+  }
+
+  private def jugeTheDistance(p:Point) = {
+    if((p * canvasUnit).distance(canvasBoundary * canvasUnit / 2) <= 70 * canvasUnit)
+      true
+    else
+      false
+  }
+
+
+  //模拟坦克移动
+  private def userMove:Unit = {
+    val randomKeyCode = (new util.Random).nextInt(4) + 37
+    val keyCode = changeKeys(randomKeyCode)
+    if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
+      myKeySet.add(keyCode)
+      val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
       sendMsg2Server(preExecuteAction)
-      Shortcut.scheduleOnce(() => fakeUserKeyUp(KeyCode.Enter),1000)
+      if (com.neo.sk.tank.shared.model.Constants.fakeRender) {
+        gameContainerOpt.get.addMyAction(preExecuteAction)
+      }
     }
+    Shortcut.scheduleOnce(() => fakeUserKeyUp(keyCode),1000)
+  }
+
+  private def userClick(theta:Float):Unit = {
+    if(math.abs(theta - lastMouseMoveTheta) >= mouseMoveThreshold) {
+      lastMouseMoveTheta = theta
+      fakeUserMouseMove(theta)
+    }
+    fakeUserMouseClick
+  }
+
+  //模拟鼠标点击
+  private def fakeUserMouseClick = {
+    val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
+    gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+    sendMsg2Server(preExecuteAction)
+  }
+
+  private def fakeUserKeyUp(keyCode:Int) = {
+    if (watchKeys.contains(keyCode)){
+      myKeySet.remove(keyCode)
+      val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
+      gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+      sendMsg2Server(preExecuteAction)
+      if (com.neo.sk.tank.shared.model.Constants.fakeRender) {
+        gameContainerOpt.get.addMyAction(preExecuteAction)
+      }
+    }
+  }
+
+  private def fakeUserMouseMove(theta:Float) = {
+    val preExecuteAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+    gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+    sendMsg2Server(preExecuteAction)
   }
 
 
@@ -209,6 +255,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           * */
         gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
+        thisTankId = e.tankId
 
       case e:TankGameEvent.YouAreKilled =>
         /**
