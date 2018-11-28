@@ -1,5 +1,7 @@
 package com.neo.sk.tank.view
 
+import java.io.File
+
 import com.neo.sk.tank.App
 import com.neo.sk.tank.common.Context
 import com.neo.sk.tank.shared.model.Point
@@ -49,7 +51,9 @@ class PlayGameScreen(context: Context) {
 //  var canvasUnit = getCanvasUnit(canvas.getWidth.toFloat)
 //  var canvasBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat) / canvasUnit
   def setCursor={
+  println(App.getClass)
     val image = new Image(App.getClass.getResourceAsStream("/img/瞄准.png"))
+  println(s"${App.getClass}---------")
     scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))
   }
 
@@ -85,7 +89,11 @@ class PlayGameScreen(context: Context) {
   def drawCombatGains(killNum:Int, damageNum:Int, killerList:List[String]):Unit = {
     getCanvasContext.setFont("楷体", "normal", 5 * canvasUnit)
     getCanvasContext.setFill("rgb(0,0,0)")
+    getCanvasContext.fillRec(0,0,canvasBoundary.x * canvasUnit,canvasBoundary.y * canvasUnit)
+    val img = drawFrame.createImage("/img/dead.png")
+    getCanvasContext.drawImage(img,450,250,Some(370,2700))
     getCanvasContext.setTextAlign("left")
+    getCanvasContext.setFill("#FFFFFF")
     getCanvasContext.fillText(s"击杀者：", 500, 300)
     getCanvasContext.fillText(s"伤害量：", 500, 350)
     getCanvasContext.fillText(s"击杀者ID：", 500, 400)
