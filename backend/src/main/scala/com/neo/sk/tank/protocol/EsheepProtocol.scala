@@ -84,6 +84,7 @@ object EsheepProtocol {
   case class ChangeRecordReq(
                             recordId:Long,
                             watchId:String,
+                            playerId:String,
                             frame:Int
                             )
 

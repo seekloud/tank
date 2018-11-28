@@ -141,16 +141,16 @@ object RoomActor {
         case LeftRoom(uid, tankId, name, uidSet, roomId) =>
           log.debug(s"roomActor left room:${uid}")
           //上报战绩
-          if (userMap.exists(_._1 == uid)) {
-            val startTime = userMap.filter(_._1 == uid).head._4
-            val tank = gameContainer.tankMap.filter(_._2.userId == uid).head._2
-            if (!uid.contains(Constants.TankGameUserIdPrefix)) {
-              val endTime = System.currentTimeMillis()
-              val killed = gameContainer.config.getTankLivesLimit - tank.lives
-              log.debug(s"input record ${EsheepSyncClient.InputRecord(uid, name, tank.killTankNum, killed, tank.damageStatistics, startTime, endTime)}")
-              esheepSyncClient ! EsheepSyncClient.InputRecord(uid, name, tank.killTankNum, killed, tank.damageStatistics, startTime, endTime)
+            if (userMap.exists(_._1 == uid) && gameContainer.tankMap.exists(_._2.userId == uid)) {
+              val startTime = userMap.filter(_._1 == uid).head._4
+              val tank = gameContainer.tankMap.filter(_._2.userId == uid).head._2
+              if (!uid.contains(Constants.TankGameUserIdPrefix)) {
+                val endTime = System.currentTimeMillis()
+                val killed = gameContainer.config.getTankLivesLimit - tank.lives
+                log.debug(s"input record ${EsheepSyncClient.InputRecord(uid, name, tank.killTankNum, killed, tank.damageStatistics, startTime, endTime)}")
+                esheepSyncClient ! EsheepSyncClient.InputRecord(uid, name, tank.killTankNum, killed, tank.damageStatistics, startTime, endTime)
+              }
             }
-          }
           subscribersMap.remove(uid)
           gameContainer.leftGame(uid, name, tankId)
           userMap.filter(_._1==uid).foreach{u=>
