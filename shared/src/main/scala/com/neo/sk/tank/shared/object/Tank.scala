@@ -34,6 +34,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   protected var bulletLevel:Byte //子弹等级
 
   protected var curBulletNum:Int
+  def returnCurNum = curBulletNum
   protected var direction:Float //移动方向
   protected var gunDirection:Float
   var cavasFrame = 0
@@ -86,8 +87,8 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   }
 
   private def getTankBulletDamage()(implicit config:TankGameConfig):Int = {
-    if(getShotGunState() && bulletLevel > 3) 3 else
-    config.getBulletDamage(bulletLevel)
+    if(getShotGunState() && bulletLevel > 3) config.getBulletDamage(3)
+    else config.getBulletDamage(bulletLevel)
   }
 
   def fillABullet():Unit = {
@@ -278,10 +279,12 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
           if (d.x != 0 || d.y != 0) {
             val originPosition = this.position
             this.position = this.position + d
+//            println(s"${this.position}--------------------")
             val movedRec = Rectangle(this.position - Point(radius, radius), this.position + Point(radius, radius))
             val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
             if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
               quadTree.updateObject(this)
+//              println(s"---fa")
             } else {
               this.position = originPosition
             }

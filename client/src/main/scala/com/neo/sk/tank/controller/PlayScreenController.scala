@@ -1,16 +1,16 @@
 package com.neo.sk.tank.controller
 
+import java.util.{Timer, TimerTask}
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.tank.App.{executor, materializer, scheduler, system, timeout, tokenActor}
 import com.neo.sk.tank.actor.{PlayGameActor, TokenActor}
 import com.neo.sk.tank.common.Context
-import com.neo.sk.tank.game.{GameContainerClientImpl, NetworkInfo}
+import com.neo.sk.tank.game.NetworkInfo
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo, TokenAndAcessCode, UserInfo}
 import com.neo.sk.tank.view.{GameHallScreen, PlayGameScreen}
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.tank.actor.PlayGameActor.{DispatchMsg, log}
-import com.neo.sk.tank.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -20,6 +20,7 @@ import javafx.scene.input.KeyCode
 import akka.actor.typed.scaladsl.AskPattern._
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.App
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.protocol.TankGameEvent.UserMouseClick
 import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 import javafx.util.Duration
@@ -75,26 +76,35 @@ class PlayScreenController(
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
   private var gameState = GameState.loadingPlay
   private var logicFrameTime = System.currentTimeMillis()
+
+
+  /**阻塞时间*/
+  private val timeline = new Timeline()
+  timeline.setCycleCount(Animation.INDEFINITE)
+  val keyFrame = new KeyFrame(Duration.millis(5000), { _ =>
+    App.pushStack2AppThread{
+      killerList = List.empty[String]
+      val gameHallScreen = new GameHallScreen(context, playerInfo)
+      context.switchScene(gameHallScreen.getScene,resize = true)
+      val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
+      accessCodeInfo.map{
+        info =>
+          if(info.token != ""){
+            val newUserInfo = UserInfo(playerInfo.userInfo.userId,playerInfo.userInfo.nickname,info.token, info.expireTime)
+            val newPlayerInfo = PlayerInfo(newUserInfo,playerInfo.playerId, playerInfo.nickName, info.accessCode)
+            new HallScreenController(context, gameHallScreen, gameServerInfo, newPlayerInfo)
+          }
+      }
+    }
+    timeline.stop()
+  })
+  timeline.getKeyFrames.add(keyFrame)
+
   private val animationTimer = new AnimationTimer() {
     override def handle(now: Long): Unit = {
-//      log.debug(s"draw game ${System.currentTimeMillis()} ${logicFrameTime}")
       drawGame(System.currentTimeMillis() - logicFrameTime)
     }
   }
-//  private val timeline = new Timeline()
-//  private var countDownTimes=3
-//  timeline.setCycleCount(Animation.INDEFINITE)
-//  val keyFrame = new KeyFrame(Duration.millis(1000), { _ =>
-//    if(countDownTimes>0){
-//      playGameScreen.drawGameRestart(countDownTimes,killerName)
-//      countDownTimes-=1
-//    }else{
-//      timeline.stop()
-//      countDownTimes=3
-//      start
-//    }
-//  })
-//  timeline.getKeyFrames.add(keyFrame)
 
   private val watchKeys = Set(
     KeyCode.LEFT,
@@ -133,7 +143,6 @@ class PlayScreenController(
   }
 
   private def drawGame(offsetTime: Long) = {
-//    println(s"game container opt ${gameContainerOpt}")
     gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency))
   }
 
@@ -148,7 +157,7 @@ class PlayScreenController(
       gameState match {
         case GameState.loadingPlay =>
           //        println(s"等待同步数据")
-          playGameScreen.drawGameLoading()
+          gameContainerOpt.foreach(_.drawGameLoading())
         case GameState.play =>
           /** */
           gameContainerOpt.foreach(_.update())
@@ -160,19 +169,8 @@ class PlayScreenController(
 //          playGameScreen.drawGameStop(killerName)
           //todo 死亡结算
           playGameScreen.drawCombatGains(killNum, damageNum, killerList)
-          killerList = List.empty[String]
-          Thread.sleep(5000)
-          val gameHallScreen = new GameHallScreen(context, playerInfo)
-          context.switchScene(gameHallScreen.getScene,resize = true)
-          val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
-          accessCodeInfo.map{
-            info =>
-              if(info.token != ""){
-                val newUserInfo = UserInfo(playerInfo.userInfo.userId,playerInfo.userInfo.nickname,info.token, info.expireTime)
-                val newPlayerInfo = PlayerInfo(newUserInfo,playerInfo.playerId, playerInfo.nickName, info.accessCode)
-                new HallScreenController(context, gameHallScreen, gameServerInfo, newPlayerInfo)
-              }
-          }
+          timeline.play()
+
 
         case _ => log.info(s"state=${gameState} failed")
       }
@@ -180,11 +178,11 @@ class PlayScreenController(
   }
 
   private def addUserActionListenEvent: Unit = {
-    playGameScreen.canvas.requestFocus()
+    playGameScreen.canvas.getCanvas.requestFocus()
     /**
       * 增加鼠标移动操作
       **/
-    playGameScreen.canvas.setOnMouseMoved{ e =>
+    playGameScreen.canvas.getCanvas.setOnMouseMoved{ e =>
       val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(16,16)
       val theta = point.getTheta(playGameScreen.canvasBoundary * playGameScreen.canvasUnit / 2).toFloat
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
@@ -199,7 +197,7 @@ class PlayScreenController(
     /**
       * 增加鼠标点击操作
       **/
-    playGameScreen.canvas.setOnMouseClicked{ e=>
+    playGameScreen.canvas.getCanvas.setOnMouseClicked{ e=>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         bulletMusic.play()
         val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
@@ -210,7 +208,7 @@ class PlayScreenController(
     /**
       * 增加按下按键操作
       **/
-    playGameScreen.canvas.setOnKeyPressed{ e =>
+    playGameScreen.canvas.getCanvas.setOnKeyPressed{ e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
@@ -264,7 +262,7 @@ class PlayScreenController(
     /**
       * 增加松开按键操作
       **/
-    playGameScreen.canvas.setOnKeyReleased { e =>
+    playGameScreen.canvas.getCanvas.setOnKeyReleased { e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode)) {
@@ -289,7 +287,7 @@ class PlayScreenController(
   /**
     * 此处处理消息*/
   def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
-    println(data.getClass)
+//    println(data.getClass)
     App.pushStack2AppThread{
 //      log.debug(s"${data.getClass}")
       data match {
@@ -300,7 +298,7 @@ class PlayScreenController(
           println("start------------")
           gameMusicPlayer.play()
           try {
-            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
+            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.drawFrame,playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
             gameContainerOpt.get.getTankId(e.tankId)
             recvYourInfo = true
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))
@@ -308,9 +306,11 @@ class PlayScreenController(
             case e:Exception=>
               closeHolder
               println(e.getMessage)
-              print("client is stop!!!")
+              println("client is stop!!!")
           }
 
+        case e:TankGameEvent.TankFollowEventSnap =>
+          gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
         case e: TankGameEvent.YouAreKilled =>
 
@@ -323,7 +323,7 @@ class PlayScreenController(
           killerList = killerList :+ e.name
           killerName = e.name
 //          animationTimer.stop()
-          playGameScreen.drawGameStop(killerName)
+          gameContainerOpt.foreach(_.drawGameStop(killerName))
           if(!e.hasLife){
             setGameState(GameState.stop)
             gameMusicPlayer.pause()
@@ -385,7 +385,7 @@ class PlayScreenController(
 
 
         case TankGameEvent.RebuildWebSocket =>
-          playGameScreen.drawReplayMsg("存在异地登录。。")
+          gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
           closeHolder
 
         case _:TankGameEvent.DecodeError=>

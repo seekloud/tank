@@ -111,6 +111,7 @@ object RoomManager {
           Behaviors.same
 
         case WatchGameProtocol.GetRoomId(playerId,replyTo) =>
+          log.debug(s"请求房间id，${roomInUse}")
           roomInUse.map{p =>(p._1,p._2.exists(t => t._1 == playerId))}
             .find(_._2 == true) match{
             case Some((roomId,playerIsIn)) =>replyTo ! WatchGameProtocol.RoomIdRsp(WatchGameProtocol.RoomInfo(roomId))

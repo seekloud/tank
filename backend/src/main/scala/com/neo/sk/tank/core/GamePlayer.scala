@@ -24,6 +24,7 @@ import scala.concurrent.Future
 import com.neo.sk.utils.ESSFSupport.{initFileReader => _, metaDataDecode => _, userMapDecode => _, _}
 import com.neo.sk.tank.protocol.ReplayProtocol.{GetRecordFrameMsg, GetUserInRecordMsg}
 import com.neo.sk.tank.Boot.executor
+import com.neo.sk.tank.shared.config.TankGameConfigImpl
 import com.neo.sk.tank.shared.ptcl.ErrorRsp
 import com.neo.sk.utils.ESSFSupport
 /**
@@ -113,11 +114,14 @@ object GamePlayer {
         case msg:InitReplay=>
           log.info("start new replay!")
           timer.cancel(GameLoopKey)
-//          timer.cancel(BehaviorWaitKey)
-//          fileReader.mutableInfoIterable
           userMap.filter(t => t._1.userId == msg.userId && t._2.leftF >= msg.f).sortBy(_._2.joinF).headOption match {
             case Some(u)=>
-              dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,metaData.tankConfig))
+              //val tankCofig = metaData.tankConfig.copy(frameDuration = 50L)
+              val replayRate = AppSettings.tankGameConfig.getTankGameConfigImpl().replayRate
+              val tankConfig = metaData.tankConfig.copy(playRate = replayRate)
+              //dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,metaData.tankConfig))
+              dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,tankConfig))
+
               log.info(s" set replay from frame=${msg.f}")
               fileReader.gotoSnapshot(msg.f)
               log.info(s"replay from frame=${fileReader.getFramePosition}")
@@ -133,14 +137,13 @@ object GamePlayer {
               dispatchTo(msg.userActor, TankGameEvent.StartReplay)
 
               if(fileReader.hasMoreFrame){
-                timer.startPeriodicTimer(GameLoopKey, GameLoop, metaData.tankConfig.frameDuration.millis)
+                timer.startPeriodicTimer(GameLoopKey, GameLoop, (metaData.tankConfig.frameDuration / replayRate).millis)
                 work(fileReader,metaData,initStateFrame,frameCount,userMap,Some(msg.userActor))
               }else{
                 Behaviors.stopped
               }
             case None=>
               dispatchTo(msg.userActor,TankGameEvent.InitReplayError("本局游戏中不存在该用户！！"))
-//              timer.startSingleTimer(BehaviorWaitKey,TimeOut("wait time out"),waitTime)
               Behaviors.stopped
           }
 

@@ -80,6 +80,14 @@ object EsheepProtocol {
 
   case class RecordFrameInfo(frame:Int,frameNum:Long)
 
+  /**更改观看内容*/
+  case class ChangeRecordReq(
+                            recordId:Long,
+                            watchId:String,
+                            playerId:String,
+                            frame:Int
+                            )
+
 //战绩信息
   case class BatRecordInfo(
                            playerId: String,
