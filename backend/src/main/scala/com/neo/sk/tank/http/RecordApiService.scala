@@ -170,7 +170,7 @@ trait RecordApiService extends ServiceUtils {
   private val changeRecord = (path("changeRecord") & post) {
     entity(as[Either[Error, ChangeRecordReq]]) {
       case Right(req) =>
-        userManager ! ChangeRecordMsg(req.recordId, req.watchId, req.frame)
+        userManager ! ChangeRecordMsg(req.recordId, req.watchId, req.playerId, req.frame)
         complete(SuccessRsp())
       case Left(e) =>
         complete(CommonErrorCode.parseJsonError)

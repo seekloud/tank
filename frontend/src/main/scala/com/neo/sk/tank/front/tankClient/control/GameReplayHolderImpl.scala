@@ -48,6 +48,11 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
         logicFrameTime = System.currentTimeMillis()
         gameContainerOpt.foreach(_.drawGameStop(killerName))
 
+      case GameState.leave =>
+        gameContainerOpt.foreach(_.update())
+        logicFrameTime = System.currentTimeMillis()
+        gameContainerOpt.foreach(_.drawUserLeftGame)
+
       case GameState.replayLoading =>
         gameContainerOpt.foreach(_.drawGameLoading())
 
@@ -72,6 +77,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
         if(nextFrame!=0){
           dom.window.cancelAnimationFrame(nextFrame)
           Shortcut.cancelSchedule(timer)
+          firstCome = true
         }
         //        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
         gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, setKillCallback = setKillCallback))
@@ -133,7 +139,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
           case t: TankGameEvent.UserLeftRoom =>
             if(t.userId == gameContainerOpt.get.myId) {
               println(s"recv userLeft=${t},set stop")
-              setGameState(GameState.stop)
+              setGameState(GameState.leave)
             }
 
           case _ =>
