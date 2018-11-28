@@ -4,10 +4,8 @@ import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.TankGameConfig
 import com.neo.sk.tank.shared.game._
 import com.neo.sk.tank.shared.model.Constants.{GameAnimation, GameState, PropGenerateType}
-import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
-import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameEvent, UserActionEvent}
-import com.neo.sk.tank.shared.util.canvas.{MiddleContext, MiddleFrame}
+import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameEvent, TankFollowEventSnap, UserActionEvent}
 
 import scala.collection.mutable
 
@@ -20,6 +18,7 @@ case class GameContainerTestImpl(
                                   isObserve: Boolean = false,
                                   setKillCallback: (String, Boolean, Int, Int) => Unit = {(_,_,_,_) =>}
                                 ) extends GameContainer with EsRecoverForTest {
+
 
   import scala.language.implicitConversions
 
@@ -47,6 +46,7 @@ case class GameContainerTestImpl(
 
   private val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
 
+
   override protected def handleObstacleAttacked(e: TankGameEvent.ObstacleAttacked): Unit = {
     super.handleObstacleAttacked(e)
     if (obstacleMap.get(e.obstacleId).nonEmpty || environmentMap.get(e.obstacleId).nonEmpty) {
@@ -54,11 +54,17 @@ case class GameContainerTestImpl(
     }
   }
 
-
   override protected def handleTankAttacked(e: TankGameEvent.TankAttacked): Unit = {
     super.handleTankAttacked(e)
     if (tankMap.get(e.tankId).nonEmpty) {
       tankAttackedAnimationMap.put(e.tankId, GameAnimation.bulletHitAnimationFrame)
+    }
+  }
+
+  override protected def dropTankCallback(bulletTankId: Int, bulletTankName: String, tank: Tank) = {
+    if (tank.tankId == tId) {
+      setKillCallback(bulletTankName, tank.lives > 1, tank.killTankNum, tank.damageStatistics)
+      if (tank.lives <= 1) setGameState(GameState.stop)
     }
   }
 
@@ -121,8 +127,7 @@ case class GameContainerTestImpl(
       if (e.frame >= systemFrame) {
         addUserAction(e)
       } else if (esRecoverSupport) {
-        println(s"rollback-frame=${e.frame},curFrame=${this.systemFrame},e=${e}")
-        rollback4GameEvent(e)
+        rollback4UserActionEvent(e)
       }
     }
   }
@@ -141,15 +146,21 @@ case class GameContainerTestImpl(
     }
   }
 
-  //客户端增加坦克无敌失效callBack
   override protected def handleUserJoinRoomEvent(e: TankGameEvent.UserJoinRoom): Unit = {
     super.handleUserJoinRoomEvent(e)
     tankInvincibleCallBack(e.tankState.tankId)
   }
 
-  override protected def handleUserReliveEvent(e:TankGameEvent.UserRelive):Unit = {
+  override protected def handleUserReliveEvent(e: TankGameEvent.UserRelive): Unit = {
     super.handleUserReliveEvent(e)
     tankInvincibleCallBack(e.tankState.tankId)
+  }
+
+  /** 同步游戏逻辑产生的延时事件 */
+  def receiveTankFollowEventSnap(snap: TankFollowEventSnap) = {
+    snap.invincibleList.foreach(addFollowEvent(_))
+    snap.tankFillList.foreach(addFollowEvent(_))
+    snap.shotExpireList.foreach(addFollowEvent(_))
   }
 
   protected def handleGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
@@ -161,6 +172,10 @@ case class GameContainerTestImpl(
     tankMoveAction.clear()
     bulletMap.clear()
     environmentMap.clear()
+
+    //remind 重置followEventMap
+    //    followEventMap.clear()
+    //    gameContainerAllState.followEvent.foreach{t=>followEventMap.put(t._1,t._2)}
 
     gameContainerAllState.tanks.foreach { t =>
       val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
@@ -205,7 +220,7 @@ case class GameContainerTestImpl(
     }
     val endTime = System.currentTimeMillis()
     if (curFrame < gameContainerState.f) {
-      println(s"handleGameContainerState update to now use Time=${endTime - startTime}")
+      println(s"handleGameContainerState update to now use Time=${endTime - startTime} and systemFrame=${systemFrame} sysFrame=${gameContainerState.f}")
     }
     systemFrame = gameContainerState.f
     judge(gameContainerState)
@@ -250,7 +265,6 @@ case class GameContainerTestImpl(
           }
         case None => println(s"judge failed,because tank=${tankState.tankId} not exists....")
       }
-
     }
   }
 
@@ -269,7 +283,6 @@ case class GameContainerTestImpl(
       info(s"收到同步数据，但未同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
     }
   }
-
 
   override def update(): Unit = {
     //    val startTime = System.currentTimeMillis()
@@ -297,11 +310,13 @@ case class GameContainerTestImpl(
   }
 
   override protected def clearEventWhenUpdate(): Unit = {
+    super.clearEventWhenUpdate()
     if (esRecoverSupport) {
       addEventHistory(systemFrame, gameEventMap.getOrElse(systemFrame, Nil), actionEventMap.getOrElse(systemFrame, Nil))
     }
     gameEventMap -= systemFrame
     actionEventMap -= systemFrame
+    followEventMap -= systemFrame-maxFollowFrame
     systemFrame += 1
   }
 
@@ -310,24 +325,18 @@ case class GameContainerTestImpl(
     if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
   }
 
-
   def findAllTank(thisTank:Int) = {
-    quadTree.retrieve(tankMap(thisTank)).filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank])
+    if(tankMap.contains(thisTank))
+      Some(quadTree.retrieve(tankMap(thisTank)).filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]))
+    else None
   }
 
-  def findOtherBullet(thisTank:Int) = {
-    quadTree.retrieveFilter(tankMap(thisTank)).filter(_.isInstanceOf[Bullet]).map(_.asInstanceOf[Bullet])
-  }
+//  def findOtherBullet(thisTank:Int) = {
+//    quadTree.retrieveFilter(tankMap(thisTank)).filter(_.isInstanceOf[Bullet]).map(_.asInstanceOf[Bullet])
+//  }
 
   def findOtherObstacle(thisTank:Tank) = {
     quadTree.retrieveFilter(thisTank).filter(_.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
-  }
-
-  override protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank) = {
-    if(tank.tankId == tId){
-      setKillCallback(bulletTankName, tank.lives > 1, tank.killTankNum, tank.damageStatistics)
-      if (tank.lives <= 1) setGameState(GameState.stop)
-    }
   }
 
 }

@@ -251,6 +251,7 @@ object RoomActor {
           Behaviors.same
 
         case TankRelive(userId, tankIdOpt, name) =>
+          log.debug(s"${userId}")
           gameContainer.handleTankRelive(userId, tankIdOpt, name)
           val state = gameContainer.getGameContainerState()
           dispatch(subscribersMap, observersMap)(TankGameEvent.SyncGameState(state))

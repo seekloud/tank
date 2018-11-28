@@ -35,7 +35,6 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   private val startGameModal = new StartGameModal(gameStateVar,start, playerInfoOpt)
   private var timerForClick = 0
   private var thisTankId = 0
-  private var isMove = true
 
   private var thisTank = gameContainerOpt.getOrElse(None)
 
@@ -77,7 +76,6 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   private def start(name:String,roomIdOpt:Option[Long]):Unit = {
     canvas.getCanvas.focus()
     Shortcut.scheduleOnce(() => userAction,1000)
-    Shortcut.scheduleOnce(() => findTarget, 1500)
     if(firstCome){
       firstCome = false
       setGameState(GameState.loadingPlay)
@@ -135,13 +133,11 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     Shortcut.cancelSchedule(timerForClick)
     if(gameContainerOpt.nonEmpty && gameState == GameState.play){
 
-      if(!isMove){
-        timerForClick = Shortcut.schedule(() => userClick(currentMouseMOveTheta), 150)
+      if(findTarget){
+        timerForClick = Shortcut.schedule(() => userClick(currentMouseMOveTheta), 500)
         Shortcut.scheduleOnce(() => userAction, 1000)
-        isMove = true
       }
-
-      if(isMove){
+      else{
         userMove
         Shortcut.scheduleOnce(() => userAction, 1000)
       }
@@ -151,40 +147,43 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     }
   }
 
-
-
-  private def findTarget:Unit = {
+  private def findTarget = {
 
     val gameContainer = gameContainerOpt.get
 
-    val tankList = gameContainer.findAllTank(thisTankId)
-    val thisTank = tankList.filter(_.tankId == thisTankId).head
+    val tankListOpt = gameContainer.findAllTank(thisTankId)
+    val tankList = tankListOpt.getOrElse(List())
 
-    val obstacleList = gameContainer.findOtherObstacle(thisTank)
-    val airDropList = obstacleList.filter(r => r.obstacleType == ObstacleType.airDropBox)
-    val brickList = obstacleList.filter(r => r.obstacleType == ObstacleType.brick)
+    if(tankList.nonEmpty){
+      val thisTank = tankList.filter(_.tankId == thisTankId).head
 
-    val offset = canvasBoundary / 2 - thisTank.getTankState().position
+      val obstacleList = gameContainer.findOtherObstacle(thisTank)
+      val airDropList = obstacleList.filter(r => r.obstacleType == ObstacleType.airDropBox)
+      val brickList = obstacleList.filter(r => r.obstacleType == ObstacleType.brick)
 
-    if(tankList.exists(r => r.tankId != thisTankId && jugeTheDistance(r.getTankState().position + offset))){
-      val attackTank = tankList.filter(_.tankId != thisTankId).find(r => jugeTheDistance(r.getTankState().position + offset)).get
-      val pos = (attackTank.getTankState().position + offset) * canvasUnit
-      currentMouseMOveTheta = pos.getTheta(canvasBoundary * canvasUnit / 2).toFloat
-      isMove = false
+      val offset = canvasBoundary / 2 - thisTank.getTankState().position
+
+      if(tankList.exists(r => r.tankId != thisTankId && jugeTheDistance(r.getTankState().position + offset))){
+        val attackTank = tankList.filter(_.tankId != thisTankId).find(r => jugeTheDistance(r.getTankState().position + offset)).get
+        val pos = (attackTank.getTankState().position + offset) * canvasUnit
+        currentMouseMOveTheta = pos.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+        true
+      }
+      else if(airDropList.exists(r => jugeTheDistance(r.getObstacleState().p + offset))){
+        val attackAir = airDropList.find(r => jugeTheDistance(r.getObstacleState().p + offset)).get
+        val pos = (attackAir.getObstacleState().p + offset) * canvasUnit
+        currentMouseMOveTheta = pos.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+        true
+      }
+      else if(brickList.exists(r => jugeTheDistance(r.getObstacleState().p + offset))){
+        val attackBrick = brickList.find(r => jugeTheDistance(r.getObstacleState().p + offset)).get
+        val pos = (attackBrick.getObstacleState().p + offset) * canvasUnit
+        currentMouseMOveTheta = pos.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+        true
+      }
+      else false
     }
-    else if(airDropList.exists(r => jugeTheDistance(r.getObstacleState().p + offset))){
-      val attackAir = airDropList.find(r => jugeTheDistance(r.getObstacleState().p + offset)).get
-      val pos = (attackAir.getObstacleState().p + offset) * canvasUnit
-      currentMouseMOveTheta = pos.getTheta(canvasBoundary * canvasUnit / 2).toFloat
-      isMove = false
-    }
-    else if(brickList.exists(r => jugeTheDistance(r.getObstacleState().p + offset))){
-      val attackBrick = brickList.find(r => jugeTheDistance(r.getObstacleState().p + offset)).get
-      val pos = (attackBrick.getObstacleState().p + offset) * canvasUnit
-      currentMouseMOveTheta = pos.getTheta(canvasBoundary * canvasUnit / 2).toFloat
-      isMove = false
-    }
-    Shortcut.scheduleOnce(() => findTarget, 1000)
+    else false
   }
 
   private def jugeTheDistance(p:Point) = {
@@ -193,7 +192,6 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     else
       false
   }
-
 
   //模拟坦克移动
   private def userMove:Unit = {

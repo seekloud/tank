@@ -530,8 +530,6 @@ object UserActor {
           frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,t.tankId, userInfo.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId, userInfo,t,startTime,frontActor,roomActor))
 
-
-
         case unknowMsg =>
           log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
