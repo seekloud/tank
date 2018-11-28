@@ -107,8 +107,9 @@ case class GameContainerServerImpl(
     val tankState = tank.getTankState()
     val killEvent = TankGameEvent.YouAreKilled(bulletTankId, bulletTankName, tankState.lives > 1, tank.killTankNum, tank.lives, tank.damageStatistics)
     if (tank.lives > 1) {
-      log.debug(s"${roomActorRef.path} timer for relive is starting...")
+      log.debug(s"${roomActorRef.path} timer for relive is starting...the tank is ${tank.tankId}==${tank.userId}")
       timer.startSingleTimer(s"TankRelive_${tank.tankId}", RoomActor.TankRelive(tank.userId, Some(tank.tankId), tank.name), config.getTankReliveDuration.millis)
+      log.debug(s"send the relive msg")
     }
     dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
     //后台增加一个玩家离开消息（不传给前端）,以便录像的时候记录玩家死亡和websocket断开的情况。

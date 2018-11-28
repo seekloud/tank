@@ -398,7 +398,9 @@ case class GameContainerClientImpl(
   }
 
   def findAllTank(thisTank:Int) = {
-    quadTree.retrieve(tankMap(thisTank)).filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank])
+    if(tankMap.contains(thisTank))
+      Some(quadTree.retrieve(tankMap(thisTank)).filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]))
+    else None
   }
 
   def findOtherBullet(thisTank:Int) = {

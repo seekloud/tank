@@ -31,7 +31,8 @@ trait HttpService
     with PlayService
     with RoomInfoService
     with RecordApiService
-    with GameRecService{
+    with GameRecService
+    with BotControlService{
 
   import akka.actor.typed.scaladsl.AskPattern._
   import com.neo.sk.utils.CirceSupport._
@@ -157,7 +158,7 @@ trait HttpService
 
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath){
-    resourceRoutes ~ GameRecRoutes ~ GameRecRoutesLocal ~roomInfoRoute ~ platEnterRoute ~
+    resourceRoutes ~ GameRecRoutes ~ GameRecRoutesLocal ~roomInfoRoute ~ BotRoutes ~ platEnterRoute ~
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
@@ -169,7 +170,6 @@ trait HttpService
             'roomId.as[Long].?
           ){ (name,roomIdOpt) =>
             val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_,None,roomIdOpt))
-            botManager ! BotManager.CreateABot(6)
             dealFutureResult(
               flowFuture.map(t => handleWebSocketMessages(t))
             )

@@ -6,7 +6,7 @@ import akka.actor.PoisonPill
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, TimerScheduler}
 import com.neo.sk.tank.common.Constants
-import com.neo.sk.tank.core.BotActor.{ConnectToUserActor, StartAGame}
+import com.neo.sk.tank.core.BotActor.{ConnectToUserActor}
 import com.neo.sk.tank.core.UserManager.{ChildDead, Command}
 import com.neo.sk.tank.core.game.BotControl
 import com.neo.sk.tank.models.TankGameUserInfo
@@ -19,8 +19,8 @@ object BotManager {
 
   trait Command
 
-  final case class CreateABot(length:Int) extends Command
-  final case class DeleteChild() extends Command
+  final case class CreateABot(length:Int, count:Int) extends Command
+  case object DeleteChild extends Command
   final case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
   private val log = LoggerFactory.getLogger(this.getClass)
@@ -43,8 +43,8 @@ object BotManager {
                   ): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case CreateABot(len) =>
-          for(i <- 1 to 1){
+        case CreateABot(len,count) =>
+          for(i <- 1 to count){
             val botName = generateAName(len)
             val botActor = getBotActor(ctx, uidGenerator.getAndIncrement().toString, botName, None)
             childList = childList :+ botActor
@@ -52,7 +52,7 @@ object BotManager {
           }
           Behaviors.same
 
-        case DeleteChild() =>
+        case DeleteChild =>
           childList.foreach(r => ctx.stop(r))
           childList = List.empty[ActorRef[WsMsgSource]]
           Behaviors.same

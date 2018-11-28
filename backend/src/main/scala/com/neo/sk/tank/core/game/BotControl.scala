@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.Cancellable
 import akka.actor.typed.ActorRef
 import com.neo.sk.tank.Boot.{executor, scheduler}
+import com.neo.sk.tank.core.BotActor._
 import com.neo.sk.tank.core.UserActor
 import com.neo.sk.tank.core.UserActor.WebSocketMsg
 import com.neo.sk.tank.shared.model.Constants.{GameState, ObstacleType}
@@ -16,7 +17,7 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class BotControl(name:String, actor:ActorRef[UserActor.Command]) {
+class BotControl(name:String, actor:ActorRef[WsMsgSource]) {
 
   private val log = LoggerFactory.getLogger(this.getClass)
   var gameState:Int = GameState.loadingPlay
@@ -25,8 +26,6 @@ class BotControl(name:String, actor:ActorRef[UserActor.Command]) {
   private var currentMouseMOveTheta:Float = 0
   private val mouseMoveThreshold = math.Pi / 180
   private var isMove = true
-  private var clickTime:Option[Cancellable] = None
-  private var gameLoopKey:Option[Cancellable] = None
 
   private val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
   private val actionSerialNumGenerator = new AtomicInteger(0)
@@ -47,12 +46,8 @@ class BotControl(name:String, actor:ActorRef[UserActor.Command]) {
         gameContainerOpt.foreach(_.update())
 
       case GameState.stop =>
-        if(gameLoopKey.nonEmpty)
-          gameLoopKey.get.cancel()
-        scheduler.scheduleOnce(1 seconds){
-          if(gameContainerOpt.nonEmpty)
-            actor ! WebSocketMsg(Some(TankGameEvent.RestartGame(Some(gameContainerOpt.get.myTankId), name)))
-        }
+        actor ! StopGameLoop
+        actor ! RestartAGame
 
       case _ =>
         println(s"state=${gameState} failed")
@@ -64,7 +59,8 @@ class BotControl(name:String, actor:ActorRef[UserActor.Command]) {
   def wsMsgHandler(tankGameEvent: TankGameEvent.WsMsgServer) = {
     tankGameEvent match{
       case e: TankGameEvent.YourInfo =>
-        gameLoopKey = Some(scheduler.schedule(0 milliseconds, 100 milliseconds){gameLoop()})
+        actor ! StartGameLoop
+        actor ! StartUserAction
         gameContainerOpt = Some(GameContainerTestImpl(e.config,e.userId,e.tankId,e.name,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
 
@@ -105,109 +101,88 @@ class BotControl(name:String, actor:ActorRef[UserActor.Command]) {
 
   }
 
-  def sendMsg2Actor:Unit = {
-    if(clickTime.nonEmpty){
-      clickTime.get.cancel()
-      clickTime = None
-    }
+  def sendMsg2Actor(userActor:ActorRef[UserActor.Command]):Unit = {
 
     if(gameContainerOpt.nonEmpty && gameState == GameState.play){
-
-      log.debug(s"${actor.path} sendmsg===========")
-
-      if(true){
-        clickTime = Some(scheduler.schedule(0 milliseconds, 500 milliseconds){userClick(currentMouseMOveTheta)})
-        scheduler.scheduleOnce(1 seconds){sendMsg2Actor}
-        isMove = true
+      if(findTarget){
+        if(math.abs(currentMouseMOveTheta - lastMouseMoveTheta) >= mouseMoveThreshold) {
+          lastMouseMoveTheta = currentMouseMOveTheta
+          userMouseMove(currentMouseMOveTheta, userActor)
+        }
+        userMouseClick(userActor)
       }
       else{
-        userMove
-        scheduler.scheduleOnce(1 seconds){sendMsg2Actor}
+        val randomKeyCode = (new util.Random).nextInt(4) + 37
+        userKeyDown(randomKeyCode, userActor)
+        actor ! StartUserKeyUp(randomKeyCode)
       }
     }
-
   }
 
-  private def userKeyDown(keyCode:Int) = {
+  private def userKeyDown(keyCode:Int, userActor:ActorRef[UserActor.Command]) = {
     val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
     gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
     if(com.neo.sk.tank.shared.model.Constants.fakeRender){
       gameContainerOpt.get.addMyAction(preExecuteAction)
     }
-    log.debug(s"${preExecuteAction} ==${gameContainerOpt.get.systemFrame}")
-    actor ! WebSocketMsg(Some(preExecuteAction))
+    userActor ! WebSocketMsg(Some(preExecuteAction))
   }
 
-  private def userKeyUp(keyCode:Int) = {
+  def userKeyUp(keyCode:Int, userActor:ActorRef[UserActor.Command]) = {
     val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
     gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
     if(com.neo.sk.tank.shared.model.Constants.fakeRender){
       gameContainerOpt.get.addMyAction(preExecuteAction)
     }
-    log.debug(s"${preExecuteAction} ==${gameContainerOpt.get.systemFrame}")
-    actor ! WebSocketMsg(Some(preExecuteAction))
+    userActor ! WebSocketMsg(Some(preExecuteAction))
   }
 
-  private def userMouseClick = {
+  private def userMouseClick(userActor:ActorRef[UserActor.Command]) = {
     val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
     gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-    log.debug(s"${preExecuteAction} ==${gameContainerOpt.get.systemFrame}")
-    actor ! WebSocketMsg(Some(preExecuteAction))
+    userActor ! WebSocketMsg(Some(preExecuteAction))
   }
 
-  private def userMouseMove(theta:Float) = {
+  private def userMouseMove(theta:Float, userActor:ActorRef[UserActor.Command]) = {
     val preExecuteAction= TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
     gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-    actor ! WebSocketMsg(Some(preExecuteAction))
+    userActor ! WebSocketMsg(Some(preExecuteAction))
   }
 
-  private def userMove:Unit = {
-    val randomKeyCode = (new util.Random).nextInt(4) + 37
-    if(gameState == GameState.play && gameContainerOpt.nonEmpty){
-      userKeyDown(randomKeyCode)
-      scheduler.scheduleOnce(1 seconds){userKeyUp(randomKeyCode)}
-    }
-  }
-
-  private def userClick(theta:Float):Unit = {
-    if(math.abs(theta - lastMouseMoveTheta) >= mouseMoveThreshold) {
-      lastMouseMoveTheta = theta
-      userMouseMove(theta)
-    }
-    userMouseClick
-  }
-
-  def findTarget:Unit = {
+  def findTarget = {
 
     val gameContainer = gameContainerOpt.get
 
-    val tankList = gameContainer.findAllTank(gameContainer.myTankId)
-    val thisTank = tankList.filter(_.tankId == gameContainer.myTankId).head
+    val tankListOpt = gameContainer.findAllTank(gameContainer.myTankId)
+    val tankList = tankListOpt.getOrElse(List())
 
-    val obstacleList = gameContainer.findOtherObstacle(thisTank)
-    val airDropList = obstacleList.filter(r => r.obstacleType == ObstacleType.airDropBox)
-    val brickList = obstacleList.filter(r => r.obstacleType == ObstacleType.brick)
+    if(tankList.nonEmpty){
+      val thisTank = tankList.filter(_.tankId == gameContainer.myTankId).head
+      val obstacleList = gameContainer.findOtherObstacle(thisTank)
+      val airDropList = obstacleList.filter(r => r.obstacleType == ObstacleType.airDropBox)
+      val brickList = obstacleList.filter(r => r.obstacleType == ObstacleType.brick)
 
-
-    if(tankList.exists(r => r.tankId != gameContainer.myTankId && jugeTheDistance(r.getTankState().position, thisTank.getTankState().position))){
-      val attackTank = tankList.filter(_.tankId != gameContainer.myTankId).find(r => jugeTheDistance(r.getTankState().position, thisTank.getTankState().position)).get
-      val pos = attackTank.getTankState().position
-      currentMouseMOveTheta = pos.getTheta(thisTank.getTankState().position).toFloat
-      isMove = false
+      if(tankList.exists(r => r.tankId != gameContainer.myTankId && jugeTheDistance(r.getTankState().position, thisTank.getTankState().position))){
+        val attackTank = tankList.filter(_.tankId != gameContainer.myTankId).find(r => jugeTheDistance(r.getTankState().position, thisTank.getTankState().position)).get
+        val pos = attackTank.getTankState().position
+        currentMouseMOveTheta = pos.getTheta(thisTank.getTankState().position).toFloat
+        true
+      }
+      else if(airDropList.exists(r => jugeTheDistance(r.getObstacleState().p, thisTank.getTankState().position))){
+        val attackAir = airDropList.find(r => jugeTheDistance(r.getObstacleState().p, thisTank.getTankState().position)).get
+        val pos = attackAir.getObstacleState().p
+        currentMouseMOveTheta = pos.getTheta(thisTank.getTankState().position).toFloat
+        true
+      }
+      else if(brickList.exists(r => jugeTheDistance(r.getObstacleState().p, thisTank.getTankState().position))){
+        val attackBrick = brickList.find(r => jugeTheDistance(r.getObstacleState().p, thisTank.getTankState().position)).get
+        val pos = attackBrick.getObstacleState().p
+        currentMouseMOveTheta = pos.getTheta(thisTank.getTankState().position).toFloat
+        true
+      }
+      else false
     }
-    else if(airDropList.exists(r => jugeTheDistance(r.getObstacleState().p, thisTank.getTankState().position))){
-      val attackAir = airDropList.find(r => jugeTheDistance(r.getObstacleState().p, thisTank.getTankState().position)).get
-      val pos = attackAir.getObstacleState().p
-      currentMouseMOveTheta = pos.getTheta(thisTank.getTankState().position).toFloat
-      isMove = false
-    }
-    else if(brickList.exists(r => jugeTheDistance(r.getObstacleState().p, thisTank.getTankState().position))){
-      val attackBrick = brickList.find(r => jugeTheDistance(r.getObstacleState().p, thisTank.getTankState().position)).get
-      val pos = attackBrick.getObstacleState().p
-      currentMouseMOveTheta = pos.getTheta(thisTank.getTankState().position).toFloat
-      isMove = false
-    }
-    scheduler.scheduleOnce(800 milliseconds){findTarget}
+    else false
   }
 
   private def jugeTheDistance(p:Point, q:Point) = {
@@ -215,6 +190,10 @@ class BotControl(name:String, actor:ActorRef[UserActor.Command]) {
       true
     else
       false
+  }
+
+  def reStart(userActor:ActorRef[UserActor.Command]) = {
+    userActor ! WebSocketMsg(Some(TankGameEvent.RestartGame(Some(gameContainerOpt.get.myTankId), name)))
   }
 
 }
