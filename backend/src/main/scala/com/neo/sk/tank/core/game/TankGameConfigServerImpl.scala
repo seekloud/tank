@@ -27,6 +27,11 @@ final case class TankGameConfigServerImpl(
 
   private[this] val gameFameDuration = config.getLong("tankGame.frameDuration")
     .requiring(t => t >= 1l,"minimum game frame duration is 1 ms")
+  private[this] val gamePlayRate = config.getInt("tankGame.playRate")
+    .requiring(t => t >= 1,"minimum game playRate duration is 1")
+  private[this] val gameReplayRate = config.getInt("tankGame.replayRate")
+    .requiring(t => t >= 1,"minimum game playRate duration is 1")
+
   private[this] val bulletRadius = config.getDoubleList("tankGame.bullet.bulletRadius")
     .requiring(_.size() >= 3,"bullet radius size has 3 type").asScala.toList.map(_.toFloat)
   private[this] val bulletDamage = config.getIntList("tankGame.bullet.bulletDamage")
@@ -143,7 +148,7 @@ final case class TankGameConfigServerImpl(
   private val tankParameters = TankParameters(TankMoveSpeed(tankSpeedLevel,accelerationTime,decelerationTime),tankBloodLevel,tankLivesLimit,tankMedicalLimit,
     tankRadiusData,tankGunWidthData,tankGunHeightData,tankMaxBulletCapacity,tankFillBulletDuration,tankInvincibleDuration,tankReliveDuration)
 
-  private val tankGameConfig = TankGameConfigImpl(gridBoundary,gameFameDuration,bulletParameters,obstacleParameters,propParameters,tankParameters)
+  private val tankGameConfig = TankGameConfigImpl(gridBoundary,gameFameDuration,gamePlayRate,gameReplayRate,bulletParameters,obstacleParameters,propParameters,tankParameters)
 
 
   def getTankGameConfig:TankGameConfigImpl = tankGameConfig
@@ -156,6 +161,8 @@ final case class TankGameConfigServerImpl(
 
 
   def frameDuration:Long = tankGameConfig.frameDuration
+  def playRate:Int = tankGameConfig.playRate
+  def replayRate:Int = tankGameConfig.replayRate
 
   def getBulletRadius(l:Byte):Float = tankGameConfig.getBulletRadius(l)
   def getBulletDamage(l:Byte):Int = tankGameConfig.getBulletDamage(l)

@@ -11,7 +11,7 @@ import akka.stream.scaladsl.Flow
 import akka.util.ByteString
 import com.neo.sk.tank.models.TankGameUserInfo
 import com.neo.sk.tank.protocol.EsheepProtocol
-import com.neo.sk.tank.protocol.ReplayProtocol.{GetRecordFrameMsg, GetUserInRecordMsg}
+import com.neo.sk.tank.protocol.ReplayProtocol.{ChangeRecordMsg, GetRecordFrameMsg, GetUserInRecordMsg}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import io.circe.{Decoder, Encoder}
 import org.slf4j.LoggerFactory
@@ -118,6 +118,11 @@ object UserManager {
           getUserActor(ctx,msg.playerInfo.userId,msg.playerInfo) ! msg
           Behaviors.same
 
+        case msg:ChangeRecordMsg=>
+          getUserActor(ctx,msg.watchId,TankGameUserInfo(msg.watchId,
+            msg.watchId.toString,msg.watchId.toString,false)) ! msg
+          Behaviors.same
+
         case msg:GetUserInRecordMsg=>
           getUserActor(ctx,msg.watchId,
             TankGameUserInfo(msg.watchId,
@@ -204,8 +209,7 @@ object UserManager {
 
 
 
-
-
+  //todo 修改userActor初始化userInfo
   private def getUserActor(ctx: ActorContext[Command],id:String, userInfo: TankGameUserInfo):ActorRef[UserActor.Command] = {
     val childName = s"UserActor-${id}"
     ctx.child(childName).getOrElse{

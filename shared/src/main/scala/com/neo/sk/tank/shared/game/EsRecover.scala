@@ -9,7 +9,7 @@ import scala.collection.mutable
   * 中间会记录所有的事件数据和快照数据，但是当同步全量数据时会将历史的事件数据更新掉，并且丢掉快照数据
   * 可支持回溯
   */
-trait EsRecover { this:GameContainerImpl =>
+trait EsRecover { this:GameContainerClientImpl =>
 
   private val gameEventHistoryMap = mutable.HashMap[Long,List[GameEvent]]()
   private val actionEventHistoryMap = mutable.HashMap[Long,List[UserActionEvent]]()
@@ -55,13 +55,13 @@ trait EsRecover { this:GameContainerImpl =>
   }
 
   def rollback4GameEvent(e:GameEvent) = {
-    println(s"roll back to frame=${e.frame},nowFrame=${systemFrame} because event:${e}")
+    println(s"roll back4GameEvent to frame=${e.frame},nowFrame=${systemFrame} because event:${e}")
     gameEventHistoryMap.put(e.frame, e :: gameEventHistoryMap.getOrElse(e.frame, Nil))
     rollback(e.frame)
   }
 
   def rollback4UserActionEvent(e:UserActionEvent) = {
-    println(s"roll back to frame=${e.frame},nowFrame=${systemFrame} because event:${e}")
+    println(s"roll back4UserAction to frame=${e.frame},nowFrame=${systemFrame} because event:${e}")
     actionEventHistoryMap.put(e.frame, e :: actionEventHistoryMap.getOrElse(e.frame, Nil))
     rollback(e.frame)
   }

@@ -11,6 +11,7 @@ import com.neo.sk.tank.core.RoomActor.TankRelive
 import com.neo.sk.tank.core.game.TankGameConfigServerImpl
 import com.neo.sk.tank.models.TankGameUserInfo
 import com.neo.sk.tank.protocol.EsheepProtocol._
+import com.neo.sk.tank.protocol.ReplayProtocol.ChangeRecordMsg
 import com.neo.sk.tank.shared.model.Constants.GameState
 import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, ReplayFrameData}
@@ -285,6 +286,10 @@ object UserActor {
 
           Behaviors.same
 
+        case msg:ChangeRecordMsg=>
+          ctx.self ! UserActor.StartReplay(msg.rid,msg.playerId,msg.f)
+          switchBehavior(ctx,"idle",idle(uId,userInfo, startTime,frontActor))
+
         case msg:GetRecordFrameMsg=>
           log.debug(s"${ctx.self.path} recv a msg=${msg}")
           if(msg.recordId!=recordId){
@@ -503,6 +508,10 @@ object UserActor {
 //          frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId,userInfo,t,startTime,frontActor,roomActor))
 
+        case DispatchMsg(m) =>
+          frontActor ! m
+          Behaviors.same
+
         /**
           * 本消息内转换为初始状态并给前端发送异地登录消息*/
         case ChangeBehaviorToInit=>
@@ -523,7 +532,7 @@ object UserActor {
 
 
         case unknowMsg =>
-//          log.warn(s"got unknown msg: $unknowMsg")
+          log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
       }
     }

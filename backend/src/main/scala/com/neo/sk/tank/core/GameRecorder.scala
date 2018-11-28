@@ -7,7 +7,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.{ActorContext, StashBuffer, TimerScheduler}
 import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.shared.protocol.TankGameEvent
-import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameInformation, TankGameSnapshot, UserJoinRoom, UserLeftRoom}
+import com.neo.sk.tank.shared.protocol.TankGameEvent._
 import com.neo.sk.tank.models.SlickTables._
 import com.neo.sk.tank.models.DAO.RecordDAO
 import org.seekloud.byteobject.MiddleBufferInJvm
@@ -41,6 +41,7 @@ object GameRecorder {
 
   final case class GameRecord(event:(List[TankGameEvent.WsMsgServer],Option[TankGameEvent.GameSnapshot])) extends Command
   final case class SaveDate(stop:Int) extends Command
+  final case class SaveEmpty(stop: Int, fileName: String) extends Command
   final case object Save extends Command
   final case object RoomClose extends Command
   final case object StopRecord extends Command
@@ -105,7 +106,7 @@ object GameRecorder {
 
   private def work(gameRecordData: GameRecorderData,
                    essfMap: mutable.HashMap[EssfMapKey,EssfMapJoinLeftInfo],
-                   userAllMap: mutable.HashMap[String,(Int,String)],
+                   userAllMap: mutable.HashMap[String,(Int,String)], //userId,(tankId,name)
                    userMap: mutable.HashMap[String,(Int,String)],
                    startF: Long,
                    endF: Long
@@ -136,12 +137,19 @@ object GameRecorder {
                      essfMap.put(EssfMapKey(tankId, userId,name), EssfMapJoinLeftInfo(startF,frame))
                    }
 
+                 case UserLeftRoomByKill(userId, name, tankId,frame) =>
+                   userMap.remove(userId)
+                   if(essfMap.get(EssfMapKey(tankId, userId, name)).isDefined){
+                     val startF = essfMap(EssfMapKey(tankId, userId, name)).joinF
+                     essfMap.put(EssfMapKey(tankId, userId,name), EssfMapJoinLeftInfo(startF,frame))
+                   }
+
 
                  case _ =>
 
           }
 
-          gameRecordBuffer = t :: gameRecordBuffer
+          gameRecordBuffer = t.copy(event = (wsMsg.filterNot(_.isInstanceOf[UserLeftRoomByKill]), t.event._2)) :: gameRecordBuffer
           val newEndF = t.event._2.get match {
             case tank:TankGameSnapshot =>
               tank.state.f
@@ -166,17 +174,23 @@ object GameRecorder {
           }
 
         case Save =>
+          val file = AppSettings.gameDataDirectoryPath + fileName + s"_$fileIndex"
           log.info(s"${ctx.self.path} work get msg save")
           timer.startSingleTimer(SaveDateKey, Save, saveTime)
           if(userAllMap.nonEmpty){
             ctx.self ! SaveDate(0)
+          }else{
+            ctx.self ! SaveEmpty(0,file)
           }
           switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
 
         case RoomClose =>
+          val file = AppSettings.gameDataDirectoryPath + fileName + s"_$fileIndex"
           log.info(s"${ctx.self.path} work get msg save, room close")
           if(userAllMap.nonEmpty){
             ctx.self ! SaveDate(1)
+          }else{
+            ctx.self ! SaveEmpty(1,file)
           }
           switchBehavior(ctx,"save",save(gameRecordData,essfMap,userAllMap,userMap,startF,endF))
 
@@ -186,7 +200,7 @@ object GameRecorder {
       }
     }.receiveSignal{
       case (ctx,PostStop) =>
-        timer.cancelAll()
+        timer.cancel(SaveDateKey)
         log.info(s"${ctx.self.path} stopping....")
 
         val gameRecorderBuffer = gameRecordData.gameRecordBuffer
@@ -219,7 +233,7 @@ object GameRecorder {
         val list = ListBuffer[rUserRecordMap]()
         userAllMap.foreach{
           userRecord =>
-            list.append(rUserRecordMap(userRecord._1, recordId, roomId))
+            list.append(rUserRecordMap(userRecord._1, recordId, roomId, userRecord._2._2))
         }
         Await.result(RecordDAO.insertUserRecordList(list.toList), 2.minute)
         Behaviors.stopped
@@ -278,7 +292,7 @@ object GameRecorder {
               val list = ListBuffer[rUserRecordMap]()
               userAllMap.foreach{
                 userRecord =>
-                  list.append(rUserRecordMap(userRecord._1, recordId, roomId))
+                  list.append(rUserRecordMap(userRecord._1, recordId, roomId, userRecord._2._2))
               }
               RecordDAO.insertUserRecordList(list.toList).onComplete{
                 case Success(_) =>
@@ -298,6 +312,28 @@ object GameRecorder {
 
           }
             switchBehavior(ctx,"busy",busy())
+
+        case s:SaveEmpty =>
+          log.info(s"${ctx.self.path} save get msg SaveEmpty")
+          val mapInfo = essfMap.map{
+            essf=>
+              if(essf._2.leftF == -1L){
+                (essf._1,EssfMapJoinLeftInfo(essf._2.joinF,endF))
+              }else{
+                essf
+              }
+          }
+          recorder.putMutableInfo(AppSettings.essfMapKeyName,userMapEncode(mapInfo))
+          recorder.finish()
+          val deleteFile = new File(s.fileName)
+          if(deleteFile.isFile && deleteFile.exists()){
+            deleteFile.delete()
+          }else{
+            log.error(s"delete file error, file is ${s.fileName}")
+          }
+          if(s.stop == 1) ctx.self ! StopRecord
+          initRecorder(roomId,gameRecordData.fileName,fileIndex,gameInformation, userMap)
+
         case unknow =>
           log.warn(s"${ctx} save got unknow msg ${unknow}")
           Behaviors.same

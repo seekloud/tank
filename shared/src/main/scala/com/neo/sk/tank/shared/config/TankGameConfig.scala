@@ -123,6 +123,8 @@ final case class BulletParameters(
 
 trait TankGameConfig{
   def frameDuration:Long
+  def playRate:Int
+  def replayRate:Int
 
   def getBulletRadius(l:Byte):Float
   def getBulletDamage(l:Byte):Int
@@ -185,6 +187,8 @@ trait TankGameConfig{
 case class TankGameConfigImpl(
                                gridBoundary: GridBoundary,
                                frameDuration:Long,
+                               playRate: Int,
+                               replayRate: Int,
                                bulletParameters: BulletParameters,
                                obstacleParameters: ObstacleParameters,
                                propParameters: PropParameters,

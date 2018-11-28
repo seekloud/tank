@@ -1,11 +1,11 @@
 package com.neo.sk.tank.front.tankClient.control
 
 import com.neo.sk.tank.front.common.Routes
-import com.neo.sk.tank.front.tankClient.game.GameContainerClientImpl
 import com.neo.sk.tank.front.utils.Shortcut
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
 
 /**
   * User: sky
@@ -21,7 +21,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
   }
 
   def watchGame() = {
-    canvas.focus()
+    canvas.getCanvas.focus()
     webSocketClient.setup(Routes.getWsSocketUri(roomId, accessCode, playerId))
   }
 
@@ -30,10 +30,13 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
     data match {
       case e:TankGameEvent.YourInfo =>
         //        setGameState(Constants.GameState.loadingPlay)
-        gameContainerOpt = Some(GameContainerClientImpl(ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, true))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
         gameContainerOpt.get.getTankId(e.tankId)
         Shortcut.cancelSchedule(timer)
-        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
+        timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)
+
+      case e:TankGameEvent.TankFollowEventSnap =>
+        gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
       case e:TankGameEvent.PlayerLeftRoom =>
         Shortcut.cancelSchedule(timer)
@@ -97,7 +100,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
 //        Shortcut.cancelSchedule(timer)
 
       case TankGameEvent.RebuildWebSocket=>
-        drawReplayMsg("存在异地登录。。")
+        gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
         closeHolder
 
 
