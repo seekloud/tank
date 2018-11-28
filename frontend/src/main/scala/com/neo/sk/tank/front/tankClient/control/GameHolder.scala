@@ -38,16 +38,16 @@ abstract class GameHolder(name:String) extends NetworkInfo{
 
   println(s"test111111111111=${canvasUnit},=${canvasWidth}")
 
-  protected var killNum:Int = 0
-  protected var damageNum:Int = 0
-  var killerList = List.empty[String] //（击杀者）
+//  protected var killNum:Int = 0
+//  protected var damageNum:Int = 0
+//  var killerList = List.empty[String] //（击杀者）
 
   protected var firstCome = true
 
   protected val gameStateVar:Var[Int] = Var(GameState.firstCome)
   protected var gameState:Int = GameState.firstCome
 
-  protected var killerName:String = ""
+//  protected var killerName:String = ""
 
 
   protected var gameContainerOpt : Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
@@ -138,7 +138,7 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       case GameState.stop =>
         dom.window.cancelAnimationFrame(nextFrame)
         Shortcut.cancelSchedule(timer)
-        Shortcut.scheduleOnce(() => drawCombatGains(), 3000)
+        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.drawCombatGains()), 3000)
 
       case _ => println(s"state=${gameState} failed")
     }
@@ -146,18 +146,6 @@ abstract class GameHolder(name:String) extends NetworkInfo{
 
   private def drawGame(offsetTime:Long) = {
     gameContainerOpt.foreach(_.drawGame(offsetTime,getNetworkLatency))
-  }
-
-  //todo 移到shared project
-  protected def drawCombatGains(): Unit = {
-    ctx.setFill("rgb(0,0,0)")
-    ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    val combatGians = dom.document.getElementById("combat_gains").asInstanceOf[Div]
-    val temp = killerList.map(r => s"<span>${r.take(3)}</span>")
-    combatGians.innerHTML = s"<p>击杀数:<span>${killNum}</span></p>" +
-      s"<p>伤害量:<span>${damageNum}</span></p>" +
-      s"<p>击杀者ID:" + temp.mkString("、")+ "</p>"
-    killerList = List.empty[String]
   }
 
 

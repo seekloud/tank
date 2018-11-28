@@ -216,12 +216,9 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           * 死亡重玩
           * */
         println(s"you are killed")
-        killNum = e.killTankNum
-        killerList = killerList :+ e.name
-        damageNum = e.damageStatistics
-        killerName = e.name
+        gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum,e.name,e.damageStatistics))
         dom.window.cancelAnimationFrame(nextFrame)
-        gameContainerOpt.foreach(_.drawGameStop(killerName))
+        gameContainerOpt.foreach(_.drawGameStop())
         if(! e.hasLife){
           setGameState(GameState.stop)
         }

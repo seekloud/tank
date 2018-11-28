@@ -53,7 +53,6 @@ class PlayGameScreen(context: Context) {
   def setCursor={
   println(App.getClass)
     val image = new Image(App.getClass.getResourceAsStream("/img/瞄准.png"))
-  println(s"${App.getClass}---------")
     scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))
   }
 

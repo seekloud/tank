@@ -47,10 +47,10 @@ class PlayScreenController(
   val playGameActor = system.spawn(PlayGameActor.create(this), "PlayGameActor")
 
   protected var firstCome = true
-  protected var killerName:String = ""
-  protected var killNum:Int = 0
-  protected var damageNum:Int = 0
-  protected var killerList = List.empty[String]
+//  protected var killerName:String = ""
+//  protected var killNum:Int = 0
+//  protected var damageNum:Int = 0
+//  protected var killerList = List.empty[String]
 
 
   private val actionSerialNumGenerator = new AtomicInteger(0)
@@ -83,7 +83,7 @@ class PlayScreenController(
   timeline.setCycleCount(Animation.INDEFINITE)
   val keyFrame = new KeyFrame(Duration.millis(5000), { _ =>
     App.pushStack2AppThread{
-      killerList = List.empty[String]
+//      killerList = List.empty[String]
       val gameHallScreen = new GameHallScreen(context, playerInfo)
       context.switchScene(gameHallScreen.getScene,resize = true)
       val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
@@ -168,7 +168,7 @@ class PlayScreenController(
           closeHolder
 //          playGameScreen.drawGameStop(killerName)
           //todo 死亡结算
-          playGameScreen.drawCombatGains(killNum, damageNum, killerList)
+          gameContainerOpt.foreach(_.drawCombatGains())
           timeline.play()
 
 
@@ -318,12 +318,13 @@ class PlayScreenController(
             * 死亡重玩
             **/
           println(s"you are killed")
-          killNum = e.killTankNum
-          damageNum = e.damageStatistics
-          killerList = killerList :+ e.name
-          killerName = e.name
+          gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum,e.name,e.damageStatistics))
+//          killNum = e.killTankNum
+//          damageNum = e.damageStatistics
+//          killerList = killerList :+ e.name
+//          killerName = e.name
 //          animationTimer.stop()
-          gameContainerOpt.foreach(_.drawGameStop(killerName))
+          gameContainerOpt.foreach(_.drawGameStop())
           if(!e.hasLife){
             setGameState(GameState.stop)
             gameMusicPlayer.pause()
