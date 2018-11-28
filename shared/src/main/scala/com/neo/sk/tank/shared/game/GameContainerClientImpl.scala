@@ -36,10 +36,21 @@ case class GameContainerClientImpl(
   protected val tankAttackedAnimationMap = mutable.HashMap[Int, Int]()
   protected val tankDestroyAnimationMap = mutable.HashMap[Int, Int]() //prop ->
 
+  protected var killerList = List.empty[String]
+  protected var killNum:Int = 0
+  protected var damageNum:Int = 0
+  protected var killerName:String = ""
+
   protected var tId: Int = myTankId
 
   def changeTankId(id: Int) = tId = id
 
+  def updateDamageInfo(myKillNum:Int,name:String,myDamageNum:Int):Unit = {
+    killerList = killerList :+ name
+    killerName = name
+    killNum = myKillNum
+    damageNum = myDamageNum
+  }
 
   override def debug(msg: String): Unit = {}
 
