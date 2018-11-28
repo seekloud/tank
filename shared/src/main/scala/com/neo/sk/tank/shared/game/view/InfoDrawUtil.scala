@@ -75,25 +75,23 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
   }
 
   def drawCombatGains():Unit = {
-    ctx.setFont("楷体", "normal", 5 * canvasUnit)
+    ctx.setFont("楷体", "normal", 4 * canvasUnit)
     ctx.setFill("rgb(0,0,0)")
     ctx.fillRec(0,0,canvasSize.x * canvasUnit,canvasSize.y * canvasUnit)
-//    val img = this.drawFrame.createImage("/img/dead.png")
     val combatImg = drawFrame.createImage("/img/dead.png")
-    ctx.setGlobalAlpha(0.9)
-    ctx.drawImage(combatImg,550,70,Some(500,160))
     ctx.setGlobalAlpha(1)
+    ctx.drawImage(combatImg,0.25 * canvasSize.x * canvasUnit,0.1 * canvasSize.y * canvasUnit,Some(0.5* canvasSize.x * canvasUnit,0.22 * canvasSize.y * canvasUnit))
     ctx.setTextAlign("left")
     ctx.setFill("#FFFFFF")
-    ctx.fillText(s"击杀量：", 650, 90)
-    ctx.fillText(s"伤害量：", 650, 140)
-    ctx.fillText(s"击杀者ID：",650, 190)
+    ctx.fillText(s"击杀量：",0.4 * canvasSize.x * canvasUnit, 0.13 * canvasSize.y * canvasUnit)
+    ctx.fillText(s"伤害量：", 0.4 * canvasSize.x * canvasUnit, 0.2 * canvasSize.y * canvasUnit)
+    ctx.fillText(s"击杀者ID：",0.4 * canvasSize.x * canvasUnit, 0.26 * canvasSize.y * canvasUnit)
     ctx.setFill("rgb(255,0,0)")
-    ctx.fillText(s"${this.killNum}", 850, 90)
-    ctx.fillText(s"${this.damageNum}", 850, 140)
-    var pos = 850
+    ctx.fillText(s"${this.killNum}", 0.5 * canvasSize.x * canvasUnit, 0.13 * canvasSize.y * canvasUnit)
+    ctx.fillText(s"${this.damageNum}",0.5 * canvasSize.x * canvasUnit, 0.2 * canvasSize.y * canvasUnit)
+    var pos = 0.5 * canvasSize.x * canvasUnit
     this.killerList.foreach{r =>
-      ctx.fillText(s"${r}", pos, 190)
+      ctx.fillText(s"${r}", pos, 0.26 * canvasSize.y * canvasUnit)
       pos = pos + 4 * canvasUnit * r.length}
   }
 }
