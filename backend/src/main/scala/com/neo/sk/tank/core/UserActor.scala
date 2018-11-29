@@ -381,11 +381,16 @@ object UserActor {
           }
 
         case WebSocketMsg(reqOpt) =>
-          reqOpt match {
-            case Some(t:TankGameEvent.UserActionEvent) =>
-              roomActor ! RoomActor.WebSocketMsg(uId,tank.tankId,t)
-            case Some(t:TankGameEvent.PingPackage) =>
+          reqOpt.foreach {
+            case t:TankGameEvent.UserActionEvent =>
+              //分发数据给roomActor
+              //              println(s"${ctx.self.path} websocketmsg---------------${t}")
+              roomActor ! RoomActor.WebSocketMsg(uId, tank.tankId, t)
+            case t: TankGameEvent.PingPackage =>
               frontActor ! TankGameEvent.Wrap(t.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+
+            case TankGameEvent.GetSyncGameState =>
+              roomActor ! RoomActor.GetSyncState(uId)
             case _ =>
           }
           Behaviors.same
@@ -432,17 +437,17 @@ object UserActor {
           play(uId,info,tank,startTime,frontActor,roomActor)
 
         case WebSocketMsg(reqOpt) =>
-          reqOpt match {
-            case Some(t:TankGameEvent.UserActionEvent) =>
+          reqOpt.foreach {
+            case t:TankGameEvent.UserActionEvent =>
               //分发数据给roomActor
-//              println(s"${ctx.self.path} websocketmsg---------------${t}")
-              roomActor ! RoomActor.WebSocketMsg(uId,tank.tankId,t)
-            case Some(t:TankGameEvent.PingPackage) =>
+              //              println(s"${ctx.self.path} websocketmsg---------------${t}")
+              roomActor ! RoomActor.WebSocketMsg(uId, tank.tankId, t)
+            case t: TankGameEvent.PingPackage =>
+              frontActor ! TankGameEvent.Wrap(t.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
 
-              frontActor !TankGameEvent.Wrap(t.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
-
+            case TankGameEvent.GetSyncGameState =>
+              roomActor ! RoomActor.GetSyncState(uId)
             case _ =>
-
           }
           Behaviors.same
 
