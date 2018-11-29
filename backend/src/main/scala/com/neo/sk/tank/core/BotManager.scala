@@ -2,24 +2,21 @@ package com.neo.sk.tank.core
 
 import java.util.concurrent.atomic.AtomicLong
 
-import akka.actor.PoisonPill
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, TimerScheduler}
-import com.neo.sk.tank.common.Constants
 import com.neo.sk.tank.core.BotActor.{ConnectToUserActor}
-import com.neo.sk.tank.core.UserManager.{ChildDead, Command}
-import com.neo.sk.tank.core.game.BotControl
-import com.neo.sk.tank.models.TankGameUserInfo
 import com.neo.sk.tank.shared.protocol.TankGameEvent.WsMsgSource
 import org.slf4j.LoggerFactory
+import scala.collection.mutable.Map
 
 object BotManager {
 
-  private var childList = List[ActorRef[WsMsgSource]]()
+  private var childList = Map[Long, ActorRef[WsMsgSource]]()
 
   trait Command
 
-  final case class CreateABot(length:Int, count:Int) extends Command
+  final case class CreateABot(count:Int) extends Command
+  final case class DeleteChild(botId:Long) extends Command
   case object DeleteChild extends Command
   final case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
@@ -43,18 +40,25 @@ object BotManager {
                   ): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case CreateABot(len,count) =>
+        case CreateABot(count) =>
           for(i <- 1 to count){
-            val botName = generateAName(len)
-            val botActor = getBotActor(ctx, uidGenerator.getAndIncrement().toString, botName, None)
-            childList = childList :+ botActor
-            botActor ! ConnectToUserActor(botName, None)
+            val botId = uidGenerator.getAndIncrement()
+            val botActor = getBotActor(ctx, botId.toString, None)
+            childList(botId) = botActor
+            botActor ! ConnectToUserActor
           }
           Behaviors.same
 
         case DeleteChild =>
-          childList.foreach(r => ctx.stop(r))
-          childList = List.empty[ActorRef[WsMsgSource]]
+          childList.foreach(r => ctx.stop(r._2))
+          childList = Map.empty[Long, ActorRef[WsMsgSource]]
+          Behaviors.same
+
+        case DeleteChild(botId) =>
+          if(childList.contains(botId)){
+            ctx.stop(childList(botId))
+            childList -= botId
+          }
           Behaviors.same
 
         case ChildDead(child, childRef) =>
@@ -68,23 +72,14 @@ object BotManager {
     }
   }
 
-  private def getBotActor(ctx: ActorContext[Command], id:String, name:String, roomId:Option[Long] = None):ActorRef[WsMsgSource] = {
+  private def getBotActor(ctx: ActorContext[Command], id:String, roomId:Option[Long] = None):ActorRef[WsMsgSource] = {
     val childName = s"BotActor-${id}"
+    val botName = s"tankBot-${id}"
     ctx.child(childName).getOrElse{
-      val actor = ctx.spawn(BotActor.create(id, name, roomId), childName)
+      val actor = ctx.spawn(BotActor.create(id, botName, roomId), childName)
       ctx.watchWith(actor, ChildDead(childName, actor))
       actor
     }.upcast[WsMsgSource]
-  }
-
-  private def generateAName(len:Int):String = {
-    var name = ""
-    for(i <- 0 to len){
-      val ch = (new util.Random).nextInt(26) + 65
-      name = name + ch.toChar
-    }
-    println(s"the name is ${name}")
-    name
   }
 
 }

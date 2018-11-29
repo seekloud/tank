@@ -26,7 +26,7 @@ object BotActor {
   private val log = LoggerFactory.getLogger(this.getClass)
   private final val InitTime = Some(5.minutes)
 
-  final case class ConnectToUserActor(name: String, roomId: Option[Long] = None) extends WsMsgSource
+  case object ConnectToUserActor extends WsMsgSource
   final case class GetMsgFromUserManager(userActor:ActorRef[UserActor.Command]) extends WsMsgSource
 
   case class StartUserKeyUp(keyCode:Int) extends WsMsgSource
@@ -90,7 +90,7 @@ object BotActor {
   ): Behavior[WsMsgSource] =
     Behaviors.receive[WsMsgSource] { (ctx, msg) =>
       msg match{
-        case ConnectToUserActor(name, roomId) =>
+        case ConnectToUserActor =>
           log.debug(s"the path is ${ctx.self.path}")
           userManager ! GetMsgFromBot(name, roomId, ctx.self)
           Behaviors.same
