@@ -102,9 +102,9 @@ class BotControl(name:String, actor:ActorRef[WsMsgSource]) {
   }
 
   def sendMsg2Actor(userActor:ActorRef[UserActor.Command]):Unit = {
-
+    val ratio = (new util.Random).nextInt(10)
     if(gameContainerOpt.nonEmpty && gameState == GameState.play){
-      if(findTarget){
+      if(findTarget && ratio > 2){
         if(math.abs(currentMouseMOveTheta - lastMouseMoveTheta) >= mouseMoveThreshold) {
           lastMouseMoveTheta = currentMouseMOveTheta
           userMouseMove(currentMouseMOveTheta, userActor)

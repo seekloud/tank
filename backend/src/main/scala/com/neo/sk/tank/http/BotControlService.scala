@@ -17,9 +17,13 @@ trait BotControlService extends ServiceUtils {
 
   private val log = LoggerFactory.getLogger(getClass)
 
-  private val createBots = (path("createBots") & get) {
-    botManager ! BotManager.CreateABot(6, 3)
-    complete(SuccessRsp(0, "create Bot successfully"))
+  private val createBots = (path("createBots") & get){
+    parameter(
+    'count.as[Int]){count =>
+      botManager ! BotManager.CreateABot(count)
+      complete(SuccessRsp(0, "create Bot successfully"))
+    }
+
   }
 
   private val delBots = (path("delBots") & get){
@@ -27,5 +31,14 @@ trait BotControlService extends ServiceUtils {
     complete(SuccessRsp(0, "delete Bot successfully"))
   }
 
-  val BotRoutes: Route = createBots ~ delBots
+  private val delBotsById = (path("delBotsById") & get){
+    parameters(
+      'botId.as[Long]
+    ){botId =>
+      botManager ! DeleteChild(botId)
+      complete(SuccessRsp(0, "delete Bot"))
+    }
+  }
+
+  val BotRoutes: Route = createBots ~ delBots ~ delBotsById
 }
