@@ -21,6 +21,7 @@ object TankGameEvent {
     * 携带原来tankId
     * */
   final case class RestartGame(tankIdOpt:Option[Int],name:String) extends WsMsgFront
+  final case object GetSyncGameState extends WsMsgFront
 
   /**后台建立WebSocket*/
   trait WsMsgSource

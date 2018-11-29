@@ -10,7 +10,7 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
 import mhtml.Var
 import org.scalajs.dom
 import org.scalajs.dom.html.{Audio, Div}
-import org.scalajs.dom.raw.Event
+import org.scalajs.dom.raw.{Event, TouchEvent, VisibilityState}
 
 /**
   * User: sky
@@ -18,12 +18,12 @@ import org.scalajs.dom.raw.Event
   * Time: 12:47
   * 需要构造参数，所以重构为抽象类
   */
-abstract class GameHolder(name:String) extends NetworkInfo{
-  val drawFrame=new MiddleFrameInJs
+abstract class GameHolder(name: String) extends NetworkInfo {
+  val drawFrame = new MiddleFrameInJs
   protected var canvasWidth = dom.window.innerWidth.toFloat
   protected var canvasHeight = dom.window.innerHeight.toFloat
 
-  protected val canvas = drawFrame.createCanvas(name,canvasWidth,canvasHeight)
+  protected val canvas = drawFrame.createCanvas(name, canvasWidth, canvasHeight)
   protected val ctx = canvas.getCtx
 
 
@@ -38,28 +38,28 @@ abstract class GameHolder(name:String) extends NetworkInfo{
 
   println(s"test111111111111=${canvasUnit},=${canvasWidth}")
 
-  protected var killNum:Int = 0
-  protected var damageNum:Int = 0
-  var killerList = List.empty[String] //（击杀者）
+  //  protected var killNum:Int = 0
+  //  protected var damageNum:Int = 0
+  //  var killerList = List.empty[String] //（击杀者）
 
   protected var firstCome = true
 
-  protected val gameStateVar:Var[Int] = Var(GameState.firstCome)
-  protected var gameState:Int = GameState.firstCome
+  protected val gameStateVar: Var[Int] = Var(GameState.firstCome)
+  protected var gameState: Int = GameState.firstCome
 
-  protected var killerName:String = ""
-
-
-  protected var gameContainerOpt : Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
-
-  protected val webSocketClient: WebSocketClient = WebSocketClient(wsConnectSuccess,wsConnectError, wsMessageHandler, wsConnectClose)
+  //  protected var killerName:String = ""
 
 
-  protected var timer:Int = 0
-//  protected var reStartTimer:Int = 0
+  protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
+
+  protected val webSocketClient: WebSocketClient = WebSocketClient(wsConnectSuccess, wsConnectError, wsMessageHandler, wsConnectClose)
+
+
+  protected var timer: Int = 0
+  //  protected var reStartTimer:Int = 0
   /**
     * 倒计时，config
-    * */
+    **/
   protected val reStartInterval = 1000
   protected val countDown = 3
   protected var countDownTimes = countDown
@@ -80,14 +80,28 @@ abstract class GameHolder(name:String) extends NetworkInfo{
     renderTimes = 0
   }, 5000L)*/
 
+  private def onVisibilityChanged = { e: Event =>
+    if (dom.document.visibilityState == VisibilityState.visible) {
+      println("change tab into current")
+      onCurTabEventCallback
+    } else {
+      println("has change tab")
+    }
+  }
 
-  def closeHolder={
+  protected def onCurTabEventCallback={
+    webSocketClient.sendMsg(TankGameEvent.GetSyncGameState)
+  }
+
+  dom.window.addEventListener("visibilitychange", onVisibilityChanged, false)
+
+  def closeHolder = {
     dom.window.cancelAnimationFrame(nextFrame)
     Shortcut.cancelSchedule(timer)
     webSocketClient.closeWs
   }
 
-  protected def gameRender():Double => Unit = {d =>
+  protected def gameRender(): Double => Unit = { d =>
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
     drawGame(offsetTime)
@@ -95,42 +109,43 @@ abstract class GameHolder(name:String) extends NetworkInfo{
   }
 
 
-  protected def setGameState(s:Int):Unit = {
+  protected def setGameState(s: Int): Unit = {
     gameStateVar := s
     gameState = s
   }
 
-  protected def sendMsg2Server(msg:TankGameEvent.WsMsgFront):Unit ={
-    if(gameState == GameState.play)
+  protected def sendMsg2Server(msg: TankGameEvent.WsMsgFront): Unit = {
+    if (gameState == GameState.play)
       webSocketClient.sendMsg(msg)
   }
 
-  protected def checkScreenSize={
-    val newWidth=dom.window.innerWidth.toFloat
-    val newHeight=dom.window.innerHeight.toFloat
-    if(newWidth!=canvasWidth||newHeight!=canvasHeight){
+  protected def checkScreenSize = {
+    val newWidth = dom.window.innerWidth.toFloat
+    val newHeight = dom.window.innerHeight.toFloat
+    if (newWidth != canvasWidth || newHeight != canvasHeight) {
       println("the screen size is change")
-      canvasWidth=newWidth
-      canvasHeight=newHeight
+      canvasWidth = newWidth
+      canvasHeight = newHeight
       canvasUnit = getCanvasUnit(canvasWidth)
-      canvasBoundary=Point(canvasWidth, canvasHeight) / canvasUnit
-      println(s"update screen=${canvasUnit},=${(canvasWidth,canvasHeight)}")
+      canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+      println(s"update screen=${canvasUnit},=${(canvasWidth, canvasHeight)}")
       canvas.setWidth(canvasWidth.toInt)
       canvas.setHeight(canvasHeight.toInt)
-      gameContainerOpt.foreach{r=>
+      gameContainerOpt.foreach { r =>
         r.updateClientSize(canvasBoundary, canvasUnit)
       }
     }
   }
 
-  protected def gameLoop():Unit = {
+  protected def gameLoop(): Unit = {
     checkScreenSize
     gameState match {
       case GameState.loadingPlay =>
         println(s"等待同步数据")
         gameContainerOpt.foreach(_.drawGameLoading())
       case GameState.play =>
-        /***/
+
+        /** */
         gameContainerOpt.foreach(_.update())
         logicFrameTime = System.currentTimeMillis()
         ping()
@@ -138,49 +153,36 @@ abstract class GameHolder(name:String) extends NetworkInfo{
       case GameState.stop =>
         dom.window.cancelAnimationFrame(nextFrame)
         Shortcut.cancelSchedule(timer)
-        Shortcut.scheduleOnce(() => drawCombatGains(), 3000)
+        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.drawCombatGains()), 3000)
 
       case _ => println(s"state=${gameState} failed")
     }
   }
 
-  private def drawGame(offsetTime:Long) = {
-    gameContainerOpt.foreach(_.drawGame(offsetTime,getNetworkLatency))
-  }
-
-  //todo 移到shared project
-  protected def drawCombatGains(): Unit = {
-    ctx.setFill("rgb(0,0,0)")
-    ctx.fillRec(0, 0, canvasBoundary.x * canvasUnit, canvasBoundary.y * canvasUnit)
-    val combatGians = dom.document.getElementById("combat_gains").asInstanceOf[Div]
-    val temp = killerList.map(r => s"<span>${r.take(3)}</span>")
-    combatGians.innerHTML = s"<p>击杀数:<span>${killNum}</span></p>" +
-      s"<p>伤害量:<span>${damageNum}</span></p>" +
-      s"<p>击杀者ID:" + temp.mkString("、")+ "</p>"
-    killerList = List.empty[String]
+  private def drawGame(offsetTime: Long) = {
+    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency))
   }
 
 
+  //  protected def drawGameRestart()
 
-//  protected def drawGameRestart()
-
-  protected def wsConnectSuccess(e:Event) = {
+  protected def wsConnectSuccess(e: Event) = {
     println(s"连接服务器成功")
     e
   }
 
-  protected def wsConnectError(e:Event) = {
+  protected def wsConnectError(e: Event) = {
     JsFunc.alert("网络连接失败，请重新刷新")
     e
   }
 
-  protected def wsConnectClose(e:Event) = {
+  protected def wsConnectClose(e: Event) = {
     JsFunc.alert("网络连接失败，请重新刷新")
     e
   }
 
-  protected def wsMessageHandler(data:TankGameEvent.WsMsgServer)
+  protected def wsMessageHandler(data: TankGameEvent.WsMsgServer)
 
 
-  protected def getCanvasUnit(canvasWidth:Float):Int = (canvasWidth / Constants.WindowView.x).toInt
+  protected def getCanvasUnit(canvasWidth: Float): Int = (canvasWidth / Constants.WindowView.x).toInt
 }
