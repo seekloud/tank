@@ -3,12 +3,11 @@ import sbtcrossproject.{crossProject, CrossType}
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 
-
 val scalaV = "2.12.6"
 //val scalaV = "2.11.8"
 
 val projectName = "tank"
-val projectVersion = "2018.11.26"
+val projectVersion = "2018.11.27"
 
 resolvers += Resolver.sonatypeRepo("snapshots")
 

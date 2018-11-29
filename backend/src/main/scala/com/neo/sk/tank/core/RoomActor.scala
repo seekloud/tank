@@ -38,6 +38,8 @@ object RoomActor {
 
   sealed trait Command
 
+  case class GetSyncState(uid:String) extends Command
+
   case class JoinRoom(uid: String, tankIdOpt: Option[Int], name: String, startTime: Long, userActor: ActorRef[UserActor.Command], roomId: Long) extends Command
 
   case class WebSocketMsg(uid: String, tankId: Int, req: TankGameEvent.UserActionEvent) extends Command with RoomManager.Command
@@ -256,6 +258,11 @@ object RoomActor {
           dispatch(subscribersMap, observersMap)(TankGameEvent.SyncGameState(state))
           Behaviors.same
 
+        case m:GetSyncState=>
+          val state = gameContainer.getGameContainerState()
+          dispatchOnlyTo(subscribersMap, observersMap,m.uid, TankGameEvent.SyncGameState(state))
+          Behaviors.same
+
         case _ =>
           log.warn(s"${ctx.self.path} recv a unknow msg=${msg}")
           Behaviors.same
@@ -296,6 +303,12 @@ object RoomActor {
       case None =>
     }
     //    observers.get(id).foreach(_ ! UserActor4WatchGame.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),isKillMsg)))
+  }
+
+  def dispatchOnlyTo(subscribers: mutable.HashMap[String, ActorRef[UserActor.Command]], observers: mutable.HashMap[String, ActorRef[UserActor.Command]], id: String, msg: TankGameEvent.WsMsgServer)(implicit sendBuffer: MiddleBufferInJvm) = {
+    //    println(s"$id--------------${msg.getClass}")
+    subscribers.get(id).foreach(_ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(), false)))
+    observers.get(id).foreach(_ ! UserActor.DispatchMsg(TankGameEvent.Wrap(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(), false)))
   }
 
 
