@@ -3,12 +3,11 @@ import sbtcrossproject.{crossProject, CrossType}
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 
-
 val scalaV = "2.12.6"
 //val scalaV = "2.11.8"
 
 val projectName = "tank"
-val projectVersion = "2018.11.26"
+val projectVersion = "2018.11.27"
 
 resolvers += Resolver.sonatypeRepo("snapshots")
 
@@ -81,6 +80,11 @@ lazy val client = project.in(file("client")).enablePlugins(PackPlugin)
   )
   .settings(
     libraryDependencies ++= Dependencies.clientDependencies
+  )
+  .settings(
+    PB.targets in Compile := Seq(
+      scalapb.gen() -> (sourceManaged in Compile).value
+    )
   )
   .dependsOn(sharedJvm)
 

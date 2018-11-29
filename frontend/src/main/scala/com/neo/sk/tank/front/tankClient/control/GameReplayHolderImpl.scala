@@ -46,7 +46,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
       case GameState.stop =>
         gameContainerOpt.foreach(_.update())
         logicFrameTime = System.currentTimeMillis()
-        gameContainerOpt.foreach(_.drawGameStop(killerName))
+        gameContainerOpt.foreach(_.drawGameStop())
 
       case GameState.leave =>
         gameContainerOpt.foreach(_.update())
@@ -63,10 +63,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
 
   private def setKillCallback(name:String, hasLife:Boolean, killTankNum:Int, damage:Int) = {
     println(s"you are killed")
-    killNum = killTankNum
-    killerList = killerList :+ name
-    damageNum = damage
-    killerName = name
+    gameContainerOpt.foreach(_.updateDamageInfo(killTankNum,name,damage))
   }
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {

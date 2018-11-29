@@ -89,7 +89,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
           * 死亡重玩
           * */
         println(s"you are killed")
-        killerName = e.name
+        gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum,e.name,e.damageStatistics))
         if(e.hasLife){
           gameContainerOpt.foreach(_.drawDeadImg(s"玩家死亡，生命值未用尽，等待玩家复活"))
         }else{
