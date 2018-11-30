@@ -171,7 +171,16 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
         context.closePath()
         context.setTextAlign("left")
         if(historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, (2 * index + 1) * unit, context)
-        else drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d} lives=${score.l}", leftBegin, (2 * index + 1) * unit, context)
+        else {
+          val scoreText=if(score.d>=1000){
+            val a=score.d.toFloat/1000
+            a.formatted("%.1f")+"k"
+          }else{
+            score.d.toString
+          }
+          drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=$scoreText lives=${score.l}", leftBegin, (2 * index + 1) * unit, context)
+        }
+
       }
 //      drawTextLine(s"当前房间人数 ${index}", 28*canvasUnit, (2 * index + 1) * canvasUnit, context)
 
