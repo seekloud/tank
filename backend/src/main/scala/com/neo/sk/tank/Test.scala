@@ -17,7 +17,6 @@ import akka.util.ByteString
 import com.neo.sk.utils.SecureUtil.nonceStr
 object Test {
 
-
   def main(args: Array[String]): Unit = {
     val a = nonceStr(1)
     val b = nonceStr(10)
@@ -41,9 +40,5 @@ object Test {
     after = System.currentTimeMillis()
     println(after - before)
   }
-
-
-
-
 
 }
