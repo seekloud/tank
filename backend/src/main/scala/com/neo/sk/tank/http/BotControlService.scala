@@ -15,7 +15,6 @@ trait BotControlService extends ServiceUtils {
   import io.circe._
   import io.circe.generic.auto._
 
-  private val log = LoggerFactory.getLogger(getClass)
 
   private val createBots = (path("createBots") & get){
     parameter(

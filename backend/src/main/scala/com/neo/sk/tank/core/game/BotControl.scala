@@ -2,19 +2,16 @@ package com.neo.sk.tank.core.game
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import akka.actor.Cancellable
 import akka.actor.typed.ActorRef
-import com.neo.sk.tank.Boot.{executor, scheduler}
 import com.neo.sk.tank.core.BotActor._
 import com.neo.sk.tank.core.UserActor
 import com.neo.sk.tank.core.UserActor.WebSocketMsg
+import com.neo.sk.tank.shared.`object`.{Prop, Tank}
 import com.neo.sk.tank.shared.model.Constants.{GameState, ObstacleType}
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.WsMsgSource
 import org.slf4j.LoggerFactory
-
-import scala.concurrent.duration._
 import scala.language.postfixOps
 
 class BotControl(name:String, actor:ActorRef[WsMsgSource]) {
@@ -25,7 +22,11 @@ class BotControl(name:String, actor:ActorRef[WsMsgSource]) {
   private var lastMouseMoveTheta:Float = 0
   private var currentMouseMOveTheta:Float = 0
   private val mouseMoveThreshold = math.Pi / 180
-  private var isMove = true
+  private val clickRatio = 2
+  private val eatRatio = 2
+  private var isEatProp = false
+  private var turnMsg = 0
+
 
   private val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
   private val actionSerialNumGenerator = new AtomicInteger(0)
@@ -102,30 +103,49 @@ class BotControl(name:String, actor:ActorRef[WsMsgSource]) {
   }
 
   def sendMsg2Actor(userActor:ActorRef[UserActor.Command]):Unit = {
-    val ratio = (new util.Random).nextInt(10)
+    val click = (new util.Random).nextInt(10)
+    val eat = (new util.Random).nextInt(10)
     if(gameContainerOpt.nonEmpty && gameState == GameState.play){
-      if(findTarget && ratio > 2){
+      val isHaveTarget = findTarget
+      if(isHaveTarget && !isEatProp && click > clickRatio){
         if(math.abs(currentMouseMOveTheta - lastMouseMoveTheta) >= mouseMoveThreshold) {
           lastMouseMoveTheta = currentMouseMOveTheta
-          userMouseMove(currentMouseMOveTheta, userActor)
+          userActor ! userMouseMove(currentMouseMOveTheta)
         }
-        userMouseClick(userActor)
+        userActor ! userMouseClick
+      }
+      else if(isHaveTarget && isEatProp && eat > eatRatio){
+        if(turnMsg > 0){
+          log.debug(s"${userActor.path} begin to do to eat the prop ${turnMsg}")
+          userActor ! userKeyDown(turnMsg)
+          actor ! StartUserKeyUp(turnMsg)
+        }
       }
       else{
         val randomKeyCode = (new util.Random).nextInt(4) + 37
-        userKeyDown(randomKeyCode, userActor)
+        userActor ! userKeyDown(randomKeyCode)
         actor ! StartUserKeyUp(randomKeyCode)
       }
     }
   }
 
-  private def userKeyDown(keyCode:Int, userActor:ActorRef[UserActor.Command]) = {
+  private def chooseTheDirection(p:Point, q:Point) = {
+    val x_dis = p.x - q.x
+    val y_dis = p.y - q.y
+    if(x_dis < -2.5) 39
+    else if(x_dis > 2.5)  37
+    else if(y_dis < -2.5) 40
+    else if(y_dis > 2.5)  38
+    else 0
+  }
+
+  private def userKeyDown(keyCode:Int) = {
     val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
     gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
     if(com.neo.sk.tank.shared.model.Constants.fakeRender){
       gameContainerOpt.get.addMyAction(preExecuteAction)
     }
-    userActor ! WebSocketMsg(Some(preExecuteAction))
+    WebSocketMsg(Some(preExecuteAction))
   }
 
   def userKeyUp(keyCode:Int, userActor:ActorRef[UserActor.Command]) = {
@@ -137,19 +157,20 @@ class BotControl(name:String, actor:ActorRef[WsMsgSource]) {
     userActor ! WebSocketMsg(Some(preExecuteAction))
   }
 
-  private def userMouseClick(userActor:ActorRef[UserActor.Command]) = {
+  private def userMouseClick = {
     val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
     gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-    userActor ! WebSocketMsg(Some(preExecuteAction))
+    WebSocketMsg(Some(preExecuteAction))
   }
 
-  private def userMouseMove(theta:Float, userActor:ActorRef[UserActor.Command]) = {
+  private def userMouseMove(theta:Float) = {
     val preExecuteAction= TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
     gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-    userActor ! WebSocketMsg(Some(preExecuteAction))
+    WebSocketMsg(Some(preExecuteAction))
   }
 
   def findTarget = {
+    isEatProp = false
 
     val gameContainer = gameContainerOpt.get
 
@@ -158,26 +179,38 @@ class BotControl(name:String, actor:ActorRef[WsMsgSource]) {
 
     if(tankList.nonEmpty){
       val thisTank = tankList.filter(_.tankId == gameContainer.myTankId).head
+      val thisTankPos = thisTank.getTankState().position
       val obstacleList = gameContainer.findOtherObstacle(thisTank)
       val airDropList = obstacleList.filter(r => r.obstacleType == ObstacleType.airDropBox)
       val brickList = obstacleList.filter(r => r.obstacleType == ObstacleType.brick)
+      val propList = gameContainer.findOtherProp(thisTank)
 
-      if(tankList.exists(r => r.tankId != gameContainer.myTankId && jugeTheDistance(r.getTankState().position, thisTank.getTankState().position))){
-        val attackTank = tankList.filter(_.tankId != gameContainer.myTankId).find(r => jugeTheDistance(r.getTankState().position, thisTank.getTankState().position)).get
-        val pos = attackTank.getTankState().position
-        currentMouseMOveTheta = pos.getTheta(thisTank.getTankState().position).toFloat
+      if(tankList.exists(r => r.tankId != gameContainer.myTankId && jugeTheDistance(r.getTankState().position, thisTank.getTankState().position, 70))){
+        val attackTankList = tankList.filter(_.tankId != gameContainer.myTankId).filter(r => jugeTheDistance(r.getTankState().position, thisTankPos, 70))
+        val attakTank = attackTankList.minBy(tank => tank.getTankState().position.distance(thisTankPos))
+        val pos = attakTank.getTankState().position
+        currentMouseMOveTheta = pos.getTheta(thisTankPos).toFloat
         true
       }
-      else if(airDropList.exists(r => jugeTheDistance(r.getObstacleState().p, thisTank.getTankState().position))){
-        val attackAir = airDropList.find(r => jugeTheDistance(r.getObstacleState().p, thisTank.getTankState().position)).get
+      else if(propList.exists(r => jugeTheDistance(r.position, thisTankPos, 70))){
+        val eatPropList = propList.filter(r => jugeTheDistance(r.position, thisTankPos, 70))
+        val eatProp = eatPropList.minBy(p => p.position.distance(thisTankPos))
+        turnMsg = chooseTheDirection(thisTankPos, eatProp.position)
+        isEatProp = true
+        true
+      }
+      else if(airDropList.exists(r => jugeTheDistance(r.getObstacleState().p, thisTankPos, 70))){
+        val attackAirList = airDropList.filter(r => jugeTheDistance(r.getObstacleState().p, thisTankPos, 70))
+        val attackAir = attackAirList.minBy(air => air.getObstacleState().p.distance(thisTankPos))
         val pos = attackAir.getObstacleState().p
-        currentMouseMOveTheta = pos.getTheta(thisTank.getTankState().position).toFloat
+        currentMouseMOveTheta = pos.getTheta(thisTankPos).toFloat
         true
       }
-      else if(brickList.exists(r => jugeTheDistance(r.getObstacleState().p, thisTank.getTankState().position))){
-        val attackBrick = brickList.find(r => jugeTheDistance(r.getObstacleState().p, thisTank.getTankState().position)).get
+      else if(brickList.exists(r => jugeTheDistance(r.getObstacleState().p, thisTankPos, 70))){
+        val attackBrickList = brickList.filter(r => jugeTheDistance(r.getObstacleState().p, thisTankPos, 70))
+        val attackBrick = attackBrickList.minBy(brick => brick.getObstacleState().p.distance(thisTankPos))
         val pos = attackBrick.getObstacleState().p
-        currentMouseMOveTheta = pos.getTheta(thisTank.getTankState().position).toFloat
+        currentMouseMOveTheta = pos.getTheta(thisTankPos).toFloat
         true
       }
       else false
@@ -185,8 +218,8 @@ class BotControl(name:String, actor:ActorRef[WsMsgSource]) {
     else false
   }
 
-  private def jugeTheDistance(p:Point, q:Point) = {
-    if(p.distance(q) <= 70)
+  private def jugeTheDistance(p:Point, q:Point, dis:Int) = {
+    if(p.distance(q) <= dis)
       true
     else
       false

@@ -331,9 +331,9 @@ case class GameContainerTestImpl(
     else None
   }
 
-//  def findOtherBullet(thisTank:Int) = {
-//    quadTree.retrieveFilter(tankMap(thisTank)).filter(_.isInstanceOf[Bullet]).map(_.asInstanceOf[Bullet])
-//  }
+  def findOtherProp(thisTank:Tank) = {
+    quadTree.retrieveFilter(thisTank).filter(_.isInstanceOf[Prop]).map(_.asInstanceOf[Prop])
+  }
 
   def findOtherObstacle(thisTank:Tank) = {
     quadTree.retrieveFilter(thisTank).filter(_.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
