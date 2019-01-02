@@ -53,8 +53,8 @@ object UserActor {
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
 
-  case class StartGame(roomId:Option[Long]) extends Command
-  case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None) extends Command with RoomManager.Command
+  case class StartGame(roomId:Option[Long], password:Option[String]) extends Command
+  case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None, passwordOpt:Option[String] = None) extends Command with RoomManager.Command
 
   case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:String,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
 
@@ -188,11 +188,11 @@ object UserActor {
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case StartGame(roomIdOpt) =>
+        case StartGame(roomIdOpt, passwordOpt) =>
           /**换成给roomManager发消息,告知uId,name
             * 还要给userActor发送回带roomId的数据
             * */
-          roomManager ! JoinRoom(uId,None,userInfo.name,startTime,ctx.self, roomIdOpt)
+          roomManager ! JoinRoom(uId,None,userInfo.name,startTime,ctx.self, roomIdOpt, passwordOpt)
           Behaviors.same
 
         case ChangeUserInfo(info) =>
