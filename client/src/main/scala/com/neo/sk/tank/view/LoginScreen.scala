@@ -31,7 +31,7 @@ object LoginScene {
 class LoginScreen(context: Context) {
 
   val group = new Group()
-  val sence = new Scene(group)
+  val scene = new Scene(group)
   var loginSceneListener: LoginSceneListener = _
 
   def showScanUrl(scanUrl:String) = {
@@ -85,6 +85,8 @@ class LoginScreen(context: Context) {
     val senceNew = new Scene(group,500,500)
     context.switchScene(senceNew)
   }
+
+  def getScene = this.scene
 
   def setLoginSceneListener(listener: LoginSceneListener) {
     loginSceneListener = listener
