@@ -71,8 +71,8 @@ trait GameContainer extends KillInformation{
 
   val tankMap = mutable.HashMap[Int,Tank]() //tankId -> Tank
   val bulletMap = mutable.HashMap[Int,Bullet]() //bulletId -> Bullet
-  val obstacleMap = mutable.HashMap[Int,Obstacle]() //obstacleId -> Obstacle
-  val environmentMap = mutable.HashMap[Int,Obstacle]() //obstacleId -> steel and river
+  val obstacleMap = mutable.HashMap[Int,Obstacle]() //obstacleId -> Obstacle  可打击的砖头
+  val environmentMap = mutable.HashMap[Int,Obstacle]() //obstacleId -> steel and river  不可打击
   val propMap = mutable.HashMap[Int,Prop]() //propId -> prop 道具信息
 
   val tankMoveAction = mutable.HashMap[Int,mutable.HashSet[Int]]() //tankId -> pressed direction key code

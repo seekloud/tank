@@ -1,3 +1,4 @@
+
 package com.neo.sk.tank.front.tankClient.control
 
 import com.neo.sk.tank.front.tankClient.{NetworkInfo, WebSocketClient}
@@ -9,7 +10,7 @@ import com.neo.sk.tank.shared.model.{Constants, Point}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import mhtml.Var
 import org.scalajs.dom
-import org.scalajs.dom.html.{Audio, Div}
+import org.scalajs.dom.html.{Audio, Div, Script}
 import org.scalajs.dom.raw.{Event, TouchEvent, VisibilityState}
 
 /**
@@ -41,6 +42,18 @@ abstract class GameHolder(name: String) extends NetworkInfo {
   //  protected var killNum:Int = 0
   //  protected var damageNum:Int = 0
   //  var killerList = List.empty[String] //（击杀者）
+  var versionInfoOpt:Option[String]=None
+  val versionScript=dom.document.getElementById("js-version")
+  try {
+    versionScript match {
+      case script: Script =>
+        versionInfoOpt=Some(script.src.split("id=")(1))
+      case _ =>
+    }
+  }catch {case exception: Exception=>
+      println(exception.getCause)
+  }
+
 
   protected var firstCome = true
 
