@@ -279,6 +279,8 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     ctx.setLineWidth(1)
     val offsetX = canvasBoundary.x - 20
     ctx.strokeText(s"当前在线人数： ${tankMap.size}", offsetX*canvasUnit,(canvasBoundary.y - LittleMap.h -6) * canvasUnit , 20 * canvasUnit)
+
+    ctx.beginPath()
     ctx.setFont("Helvetica", "normal",2 * canvasUnit)
     //      ctx.setTextAlign(TextAlignment.JUSTIFY)
     ctx.setFill("rgb(0,0,0)")
