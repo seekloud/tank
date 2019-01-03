@@ -79,8 +79,9 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
     ctx.setFill("rgb(0,0,0)")
     ctx.fillRec(0,0,canvasSize.x * canvasUnit,canvasSize.y * canvasUnit)
     val combatImg = drawFrame.createImage("/img/dead.png")
+    ctx.setGlobalAlpha(0.7)
+//    ctx.drawImage(combatImg,0.25 * canvasSize.x * canvasUnit,0.1 * canvasSize.y * canvasUnit,Some(0.5* canvasSize.x * canvasUnit,0.22 * canvasSize.y * canvasUnit))
     ctx.setGlobalAlpha(1)
-    ctx.drawImage(combatImg,0.25 * canvasSize.x * canvasUnit,0.1 * canvasSize.y * canvasUnit,Some(0.5* canvasSize.x * canvasUnit,0.22 * canvasSize.y * canvasUnit))
     ctx.setTextAlign("left")
     ctx.setFill("#FFFFFF")
     ctx.fillText(s"击杀量：",0.4 * canvasSize.x * canvasUnit, 0.13 * canvasSize.y * canvasUnit)
@@ -91,7 +92,10 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
     ctx.fillText(s"${this.damageNum}",0.5 * canvasSize.x * canvasUnit, 0.2 * canvasSize.y * canvasUnit)
     var pos = 0.5 * canvasSize.x * canvasUnit
     this.killerList.foreach{r =>
-      ctx.fillText(s"${r}", pos, 0.26 * canvasSize.y * canvasUnit)
-      pos = pos + 4 * canvasUnit * r.length}
+      ctx.fillText(s"【${r}】", pos, 0.26 * canvasSize.y * canvasUnit)
+      pos = pos + 2 * canvasUnit * s"【${r}】".length + 1 * canvasUnit}
+    ctx.drawImage(combatImg,0.25 * canvasSize.x * canvasUnit,0.1 * canvasSize.y * canvasUnit,Some(pos - 0.25 * canvasSize.x * canvasUnit + 2 * canvasUnit,0.22 * canvasSize.y * canvasUnit))
+    //    ctx.drawImage(combatImg,0.25 * canvasSize.x * canvasUnit,0.1 * canvasSize.y * canvasUnit,Some(0.5* canvasSize.x * canvasUnit,0.22 * canvasSize.y * canvasUnit))
+
   }
 }

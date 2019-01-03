@@ -7,16 +7,14 @@ import akka.event.{Logging, LoggingAdapter}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.neo.sk.tank.common.Context
-import com.neo.sk.tank.view.LoginScreen
-import com.neo.sk.tank.view.{GameHallScreen, LoginScreen}
+import com.neo.sk.tank.view.{EnterScreen, GameHallScreen, LoginScreen}
 import akka.actor.typed.scaladsl.adapter._
-import com.neo.sk.tank.controller.LoginScreenController
+import com.neo.sk.tank.controller.{EnterScreenController, HallScreenController, LoginScreenController}
 import javafx.animation.{Animation, AnimationTimer}
 import javafx.application.Application
 import javafx.scene.{Group, Scene}
 import javafx.scene.canvas.Canvas
 import javafx.stage.Stage
-import com.neo.sk.tank.controller.{HallScreenController, LoginScreenController}
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo, UserInfo}
 
 import concurrent.duration._
@@ -37,10 +35,9 @@ class  App extends Application{
 //    context.switchScene(gameHallScreen.getScene)
 //    val gameServerInfo = GameServerInfo("",30369,"flowdev.neoap.com")
 //    new HallScreenController(context,gameHallScreen,gameServerInfo,playerInfo)
-    val loginScreen = new LoginScreen(context)
-//    context.switchScene(loginScreen.sence)//这一行不用加，否则会出现开始的闪现的屏幕
-    val l=new LoginScreenController(context, loginScreen)
-    l.start
+    val enterScreen = new EnterScreen(context)
+    context.switchScene(enterScreen.getScene,resize = true)
+    new EnterScreenController(context, enterScreen)
   }
 
 }
