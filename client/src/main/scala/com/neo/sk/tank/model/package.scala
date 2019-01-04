@@ -54,6 +54,21 @@ package object model {
   case object WsSendComplete extends WsSendMsg
   case class WsSendFailed(ex: Throwable) extends WsSendMsg
 
+  //esheep邮箱登录
+  final case class LoginReq(
+                             email: String,
+                             password: String
+                           )
+  final case class ESheepUserInfoRsp(
+                                      userName: String ,
+                                      userId: Long ,
+                                      headImg: String ,
+                                      token: String ,
+                                      gender: Int,
+                                      errCode: Int = 0,
+                                      msg: String = "ok"
+                                    ) extends CommonRsp
+
   //esheep连接游戏
   case class GameServerData(
                              accessCode: String,

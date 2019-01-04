@@ -21,8 +21,7 @@ object EsheepClient extends HttpUtil {
 
 //  private val baseUrl = s"${AppSettings.esheepProtocol}://${AppSettings.esheepHost}:${AppSettings.esheepPort}"
   private val baseUrl = s"http://flow.neoap.com"
-  println(baseUrl)
-//  private val appId = AppSettings.esheepAppId
+  //  private val appId = AppSettings.esheepAppId
 //  private val secureKey = AppSettings.esheepSecureKey
 
 //  private val gameId = AppSettings.esheepGameId
@@ -49,6 +48,31 @@ object EsheepClient extends HttpUtil {
         }
       case Left(error) =>
         log.info(s"${methodName}  failed,error:${error.getMessage}")
+        Left(ErrorRsp(-1,error.getMessage))
+    }
+  }
+
+  def validateByEmail(mail:String, pwd:String) = {
+    val methodName = s"validate email"
+    val url = s"$baseUrl/esheep//rambler/login"
+    val data = LoginReq(mail, pwd).asJson.noSpaces
+
+    postJsonRequestSend(methodName,url,Nil,data).map{
+      case Right(jsonStr) =>
+        decode[ESheepUserInfoRsp](jsonStr) match {
+          case Right(rsp) =>
+            if(rsp.errCode == 0){
+              Right(rsp)
+            }else{
+              log.debug(s"$methodName failed,error:${rsp.msg}")
+              Left(ErrorRsp(rsp.errCode, rsp.msg))
+            }
+          case Left(error) =>
+            println(s"$methodName parse json error:${error.getMessage}")
+            Left(ErrorRsp(-1, error.getMessage))
+        }
+      case Left(error) =>
+        println(s"$methodName  failed,error:${error.getMessage}")
         Left(ErrorRsp(-1,error.getMessage))
     }
   }

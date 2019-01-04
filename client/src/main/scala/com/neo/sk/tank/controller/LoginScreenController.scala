@@ -20,19 +20,26 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
   import com.neo.sk.tank.App._
 
   val loginActor: ActorRef[LoginActor.Command] = system.spawn(LoginActor.create(this),"LoginManager")
-
   loginActor ! LoginActor.Login
 
-
-  def start={
-   // joinGame(PlayerInfo("test","test","sgadga"),GameServerInfo("","",""))
-  }
+  def start={}
 
   loginScreen.setLoginSceneListener(new LoginScene.LoginSceneListener {
     override def onButtonConnect(): Unit = {
-      loginActor ! LoginActor.GetImage
+      loginActor ! LoginActor.QrLogin
     }
 
+    override def onButtonEmail(mail: String, pwd: String): Unit = {
+      loginActor ! LoginActor.EmailLogin(mail,pwd)
+    }
+
+    override def onLinkToEmail(): Unit = {
+      loginActor ! LoginActor.EmailLogin
+    }
+
+    override def onLinkToQr(): Unit = {
+      loginActor ! LoginActor.QrLogin
+    }
   })
 
   /**
@@ -49,6 +56,11 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
 
   def showLoginError(error: String)={
     App.pushStack2AppThread(loginScreen.getImgError(error))
+  }
+
+  //显示邮箱登录
+  def showEmailLogin() = {
+    App.pushStack2AppThread(loginScreen.emailLogin())
   }
 
 
