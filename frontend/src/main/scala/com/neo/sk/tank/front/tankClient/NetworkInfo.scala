@@ -17,9 +17,8 @@ trait NetworkInfo {
   private val PingTimes = 10
   private var latency: Long = 0L
   private var receiveNetworkLatencyList: List[NetworkLatency] = Nil
-  private var receiveDateList: List[Double] = Nil
 
-  var dateSize: Double = 0
+  var dateSize: String = ""
 
   def ping(): Unit = {
     val curTime = System.currentTimeMillis()
@@ -45,12 +44,8 @@ trait NetworkInfo {
 
   protected def getNetworkLatency = latency
 
-  protected def setDateSize(d: Double) = {
-    receiveDateList= d::receiveDateList
-    if(receiveDateList.size==PingTimes){
-      dateSize=receiveDateList.sum
-      receiveDateList=Nil
-    }
+  protected def setDateSize(d: String) = {
+    dateSize=d
   }
 
 }
