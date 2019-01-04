@@ -54,16 +54,16 @@ object UserActor {
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
 
   case class StartGame(roomId:Option[Long], password:Option[String]) extends Command
+
   case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None, passwordOpt:Option[String] = None) extends Command with RoomManager.Command
-
   case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:String,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
-
   case class TankRelive4UserActor(tank:TankServerImpl,userId:String,name:String,roomActor:ActorRef[RoomActor.Command], config:TankGameConfigImpl) extends Command with UserManager.Command
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
-
+  case class CreateRoom(password: String) extends Command
   case class StartReplay(rid:Long, wid:String, f:Int) extends Command
 
   case class ChangeUserInfo(info:TankGameUserInfo) extends Command
+  case class JoinGame(roomIdOpt:Option[Long] = None, passwordOpt:Option[String] = None,info:TankGameUserInfo) extends Command
 
   final case class StartObserve(roomId:Long, watchedUserId:String) extends Command
 
@@ -197,6 +197,16 @@ object UserActor {
 
         case ChangeUserInfo(info) =>
           idle(uId,info,startTime,frontActor)
+
+        case JoinGame(roomIdOpt, passwordOpt, info)=>
+          ctx.self ! ChangeUserInfo(info)
+          ctx.self ! UserActor.StartGame(roomIdOpt,passwordOpt)
+          Behaviors.same
+
+        case CreateRoom(password) =>
+          roomManager ! RoomManager.CreateRoom(uId,None,userInfo.name,startTime,ctx.self, password)
+          Behaviors.same
+
 
         case StartReplay(rid,uid,f) =>
           getGameReplay(ctx,rid) ! GamePlayer.InitReplay(frontActor,uid,f)
