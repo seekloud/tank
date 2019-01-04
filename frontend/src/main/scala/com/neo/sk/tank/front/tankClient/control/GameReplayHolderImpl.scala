@@ -94,7 +94,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
 //          nextFrame = dom.window.requestAnimationFrame(gameRender())
         }else{
           //remind here allState change into state
-          gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks,e.gState.props,e.gState.obstacle,e.gState.tankMoveAction)))
+          gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks/*,e.gState.props,e.gState.obstacle,e.gState.tankMoveAction*/)))
         }
 
       case e:TankGameEvent.Ranks =>

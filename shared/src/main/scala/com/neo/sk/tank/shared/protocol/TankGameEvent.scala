@@ -22,9 +22,9 @@ object TankGameEvent {
   case class GameContainerState(
                                  f:Long,
                                  tanks:List[TankState],
-                                 props:List[PropState],
-                                 obstacle:List[ObstacleState],
-                                 tankMoveAction:List[(Int,List[Int])]
+//                                 props:List[PropState],
+//                                 obstacle:List[ObstacleState],
+//                                 tankMoveAction:List[(Int,List[Int])]
                                )
 
   /**前端建立WebSocket*/
