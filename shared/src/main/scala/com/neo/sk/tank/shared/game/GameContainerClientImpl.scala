@@ -370,8 +370,8 @@ case class GameContainerClientImpl(
     if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
   }
 
-  def drawGame(time: Long, networkLatency: Long, dataSize:String): Unit = {
-  def drawGame(time: Long, networkLatency: Long,supportLiveLimit:Boolean = false): Unit = {
+//  def drawGame(time: Long, networkLatency: Long, dataSize:String): Unit = {
+  def drawGame(time: Long, networkLatency: Long,dataSize:String,supportLiveLimit:Boolean = false): Unit = {
     val offsetTime = math.min(time, config.frameDuration)
     val h = canvasSize.y
     val w = canvasSize.x
@@ -391,7 +391,7 @@ case class GameContainerClientImpl(
           drawObstacleBloodSlider(offset)
           drawMyTankInfo(tank.asInstanceOf[TankClientImpl],supportLiveLimit)
           drawMinimap(tank)
-          drawRank()
+          drawRank(supportLiveLimit)
           renderFps(networkLatency,dataSize)
           drawKillInformation()
           drawRoomNumber()

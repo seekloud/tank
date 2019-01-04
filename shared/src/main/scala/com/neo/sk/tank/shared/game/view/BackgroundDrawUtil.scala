@@ -124,7 +124,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
   }
 
-  protected def drawRank():Unit = {
+  protected def drawRank(supportLiveLimit:Boolean):Unit = {
     def drawTextLine(str: String, x: Double, y: Double, context:MiddleContext) = {
       context.fillText(str, x, y)
     }
@@ -178,7 +178,8 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
           }else{
             score.d.toString
           }
-          drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=$scoreText lives=${score.l}", leftBegin, (2 * index + 1) * unit, context)
+          val liveInfo = if(supportLiveLimit) s"lives=${score.l}" else ""
+          drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=$scoreText ${liveInfo}", leftBegin, (2 * index + 1) * unit, context)
         }
 
       }
