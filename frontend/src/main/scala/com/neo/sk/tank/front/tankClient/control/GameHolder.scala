@@ -115,9 +115,10 @@ abstract class GameHolder(name: String) extends NetworkInfo {
   }
 
   protected def gameRender(): Double => Unit = { d =>
+    import com.neo.sk.tank.front.common.Constants
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
-    drawGame(offsetTime)
+    drawGame(offsetTime,Constants.supportLiveLimit)
     nextFrame = dom.window.requestAnimationFrame(gameRender())
   }
 
@@ -172,8 +173,8 @@ abstract class GameHolder(name: String) extends NetworkInfo {
     }
   }
 
-  private def drawGame(offsetTime: Long) = {
-    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency))
+  private def drawGame(offsetTime: Long,supportLiveLimit:Boolean = false) = {
+    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency,supportLiveLimit))
   }
 
 
