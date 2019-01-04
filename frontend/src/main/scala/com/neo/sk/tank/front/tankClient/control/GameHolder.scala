@@ -65,7 +65,7 @@ abstract class GameHolder(name: String) extends NetworkInfo {
 
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
 
-  protected val webSocketClient: WebSocketClient = WebSocketClient(wsConnectSuccess, wsConnectError, wsMessageHandler, wsConnectClose)
+  protected val webSocketClient: WebSocketClient = WebSocketClient(wsConnectSuccess, wsConnectError, wsMessageHandler, wsConnectClose, setDateSize )
 
 
   protected var timer: Int = 0
@@ -173,7 +173,7 @@ abstract class GameHolder(name: String) extends NetworkInfo {
   }
 
   private def drawGame(offsetTime: Long) = {
-    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency))
+    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency, dateSize))
   }
 
 

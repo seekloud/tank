@@ -2,7 +2,6 @@ package com.neo.sk.tank.shared.protocol
 
 import com.neo.sk.tank.shared.`object`.{BulletState, ObstacleState, PropState, TankState}
 import com.neo.sk.tank.shared.config.{TankGameConfig, TankGameConfigImpl}
-import com.neo.sk.tank.shared.game.{GameContainerAllState, GameContainerState}
 import com.neo.sk.tank.shared.model.Score
 import com.neo.sk.tank.shared.protocol.TankGameEvent.UserEvent
 
@@ -10,6 +9,23 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent.UserEvent
   * Created by hongruying on 2018/8/28
   */
 object TankGameEvent {
+  final case class GameContainerAllState(
+                                          f:Long,
+                                          tanks:List[TankState],
+                                          bullet:List[BulletState],
+                                          props:List[PropState],
+                                          obstacle:List[ObstacleState],
+                                          environment:List[ObstacleState],
+                                          tankMoveAction:List[(Int,List[Int])]
+                                        )
+
+  case class GameContainerState(
+                                 f:Long,
+                                 tanks:List[TankState],
+                                 props:List[PropState],
+                                 obstacle:List[ObstacleState],
+                                 tankMoveAction:List[(Int,List[Int])]
+                               )
 
   /**前端建立WebSocket*/
   sealed trait WsMsgFrontSource

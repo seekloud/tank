@@ -23,25 +23,6 @@ import scala.collection.mutable
   * 用户生成子弹事件
   * 用户加入游戏事件的处理
   */
-final case class GameContainerAllState(
-                                        f:Long,
-                                        tanks:List[TankState],
-                                        bullet:List[BulletState],
-                                        props:List[PropState],
-                                        obstacle:List[ObstacleState],
-                                        environment:List[ObstacleState],
-                                        tankMoveAction:List[(Int,List[Int])]
-                                      )
-
-case class GameContainerState(
-                               f:Long,
-                               tanks:List[TankState],
-                               props:List[PropState],
-                               obstacle:List[ObstacleState],
-                               tankMoveAction:List[(Int,List[Int])]
-                             )
-
-
 
 trait GameContainer extends KillInformation{
 

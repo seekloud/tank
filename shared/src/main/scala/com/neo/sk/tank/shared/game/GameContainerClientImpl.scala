@@ -368,7 +368,7 @@ case class GameContainerClientImpl(
     if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
   }
 
-  def drawGame(time: Long, networkLatency: Long): Unit = {
+  def drawGame(time: Long, networkLatency: Long, dataSize:Double): Unit = {
     val offsetTime = math.min(time, config.frameDuration)
     val h = canvasSize.y
     val w = canvasSize.x
@@ -389,7 +389,7 @@ case class GameContainerClientImpl(
           drawMyTankInfo(tank.asInstanceOf[TankClientImpl])
           drawMinimap(tank)
           drawRank()
-          renderFps(networkLatency)
+          renderFps(networkLatency,dataSize)
           drawKillInformation()
           drawRoomNumber()
           drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
