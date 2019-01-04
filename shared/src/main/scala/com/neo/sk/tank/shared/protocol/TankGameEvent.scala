@@ -109,6 +109,8 @@ object TankGameEvent {
   final case class GenerateBullet(override val frame:Long,bullet:BulletState) extends EnvironmentEvent with WsMsgServer
   /**生成河流，钢铁*/
   final case class GenerateObstacle(override val frame:Long,obstacleState: ObstacleState) extends EnvironmentEvent with WsMsgServer
+  /**砖块消失事件*/
+  final case class ObstacleRemove(obstacleId:Int, override val frame:Long) extends EnvironmentEvent with WsMsgServer
 
   /**
     * tank初次进入游戏时用于同步游戏逻辑产生延时事件

@@ -253,10 +253,10 @@ trait GameContainer extends KillInformation{
     bulletMap.remove(e.bulletId)
     obstacleMap.get(e.obstacleId).foreach{ obstacle =>
       obstacle.attackDamage(e.damage)
-      if(!obstacle.isLived()){
+      /*if(!obstacle.isLived()){
         quadTree.remove(obstacle)
         obstacleMap.remove(e.obstacleId)
-      }
+      }*/
     }
   }
 
@@ -308,7 +308,6 @@ trait GameContainer extends KillInformation{
     quadTree.insert(bullet)
   }
 
-
   protected final def handleGenerateBullet(es:List[GenerateBullet]) :Unit = {
     es foreach handleGenerateBullet
   }
@@ -349,6 +348,23 @@ trait GameContainer extends KillInformation{
   final protected def handleGenerateObstacleNow() = {
     gameEventMap.get(systemFrame).foreach{ events =>
       handleGenerateObstacle(events.filter(_.isInstanceOf[GenerateObstacle]).map(_.asInstanceOf[GenerateObstacle]).reverse)
+    }
+  }
+
+  protected def handleObstacleRemove(e:ObstacleRemove) :Unit = {
+    obstacleMap.get(e.obstacleId).foreach{ obstacle =>
+      quadTree.remove(obstacle)
+      obstacleMap.remove(e.obstacleId)
+    }
+  }
+
+  protected final def handleObstacleRemove(es:List[ObstacleRemove]) :Unit = {
+    es foreach handleObstacleRemove
+  }
+
+  protected def handleObstacleRemoveNow()={
+    gameEventMap.get(systemFrame).foreach{events=>
+      handleObstacleRemove(events.filter(_.isInstanceOf[ObstacleRemove]).map(_.asInstanceOf[ObstacleRemove]).reverse)
     }
   }
 
@@ -536,6 +552,7 @@ trait GameContainer extends KillInformation{
 
     handlePropLifecycleNow()
 
+    handleGenerateBulletNow()
     handleGenerateObstacleNow()
     handleGeneratePropNow()
     handleGenerateBulletNow()
