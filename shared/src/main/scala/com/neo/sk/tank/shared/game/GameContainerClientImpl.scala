@@ -371,6 +371,7 @@ case class GameContainerClientImpl(
   }
 
   def drawGame(time: Long, networkLatency: Long, dataSize:String): Unit = {
+  def drawGame(time: Long, networkLatency: Long,supportLiveLimit:Boolean = false): Unit = {
     val offsetTime = math.min(time, config.frameDuration)
     val h = canvasSize.y
     val w = canvasSize.x
@@ -388,7 +389,7 @@ case class GameContainerClientImpl(
           drawBullet(offset, offsetTime, Point(w, h))
           drawTank(offset, offsetTime, Point(w, h))
           drawObstacleBloodSlider(offset)
-          drawMyTankInfo(tank.asInstanceOf[TankClientImpl])
+          drawMyTankInfo(tank.asInstanceOf[TankClientImpl],supportLiveLimit)
           drawMinimap(tank)
           drawRank()
           renderFps(networkLatency,dataSize)
