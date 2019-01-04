@@ -463,9 +463,9 @@ case class GameContainerServerImpl(
     GameContainerState(
       systemFrame,
       tankMap.values.map(_.getTankState()).toList,
-      propMap.values.map(_.getPropState).toList,
-      obstacleMap.values.map(_.getObstacleState()).toList,
-      tankMoveAction = tankMoveAction.toList.map(t => (t._1, t._2.toList))
+//      propMap.values.map(_.getPropState).toList,
+//      obstacleMap.values.map(_.getObstacleState()).toList,
+//      tankMoveAction = tankMoveAction.toList.map(t => (t._1, t._2.toList))
     )
   }
 
