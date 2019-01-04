@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import com.neo.sk.tank.core.RoomActor.{LeftRoomByKilled, WebSocketMsg}
-import com.neo.sk.tank.core.UserActor.{JoinRoom, TimeOut}
+import com.neo.sk.tank.core.UserActor.{ JoinRoom, TimeOut}
 import com.neo.sk.tank.core.game.TankServerImpl
 import com.neo.sk.tank.shared.config.TankGameConfigImpl
 import org.slf4j.LoggerFactory
@@ -33,8 +33,9 @@ object RoomManager {
   private final case object BehaviorChangeKey
   private case class TimeOut(msg:String) extends Command
   private case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
-
+  case class CreateRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], password:String) extends Command
   case class LeftRoom(uid:String,tankId:Int,name:String,userOpt: Option[String]) extends Command
+
 
   def create():Behavior[Command] = {
     log.debug(s"RoomManager start...")
@@ -43,30 +44,30 @@ object RoomManager {
         implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
         Behaviors.withTimers[Command]{implicit timer =>
           val roomIdGenerator = new AtomicLong(1L)
-          val password:Option[String] = None
-          val roomInUse = mutable.HashMap((1l,(password,List.empty[(String,String)])))
+          val roomInUse = mutable.HashMap((1l,("",List.empty[(String,String)])))
           idle(roomIdGenerator,roomInUse)
         }
     }
   }
 
   def idle(roomIdGenerator:AtomicLong,
-           roomInUse:mutable.HashMap[Long,(Option[String],List[(String,String)])]) // roomId => (password,List[userId, userName])
+           roomInUse:mutable.HashMap[Long,(String,List[(String,String)])]) // roomId => (password,List[userId, userName])
           (implicit stashBuffer: StashBuffer[Command],timer:TimerScheduler[Command]) = {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {
         case JoinRoom(uid,tankIdOpt,name,startTime,userActor, roomIdOpt,passwordOpt) =>
+          val pw = passwordOpt.getOrElse("")
           roomIdOpt match{
             case Some(roomId) =>
               roomInUse.get(roomId) match{
                 case Some(ls) =>
-                 if(passwordOpt == ls._1){
-                   roomInUse.put(roomId,(passwordOpt,(uid,name):: ls._2))
+                 if(pw == ls._1){
+                   roomInUse.put(roomId,(pw,(uid,name):: ls._2))
                  } else{
                    //密码不正确
                  }
 
-                case None => roomInUse.put(roomId,(None,List((uid,name))))
+                case None => roomInUse.put(roomId,("",List((uid,name))))
               }
               getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
             case None =>
@@ -77,11 +78,17 @@ object RoomManager {
                 case None =>
                   var roomId = roomIdGenerator.getAndIncrement()
                   while(roomInUse.exists(_._1 == roomId))roomId = roomIdGenerator.getAndIncrement()
-                  roomInUse.put(roomId,(None,List((uid,name))))
+                  roomInUse.put(roomId,("",List((uid,name))))
                   getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
               }
           }
           log.debug(s"now roomInUse:$roomInUse")
+          Behaviors.same
+
+        case CreateRoom(uid,tankIdOpt,name,startTime,userActor,passwordOpt) =>
+          val roomId = roomIdGenerator.getAndIncrement()
+          roomInUse.put(roomId,(passwordOpt,List((uid,name))))
+          getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
           Behaviors.same
 
 
