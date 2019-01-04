@@ -275,21 +275,21 @@ case class GameContainerClientImpl(
       quadTree.insert(tank)
       tankMap.put(t.tankId, tank)
     }
-    gameContainerState.obstacle.foreach { o =>
-      val obstacle = Obstacle(config, o)
-      quadTree.insert(obstacle)
-      obstacleMap.put(o.oId, obstacle)
-    }
-    gameContainerState.props.foreach { t =>
-      val prop = Prop(t, config.propRadius)
-      quadTree.insert(prop)
-      propMap.put(t.pId, prop)
-    }
-    gameContainerState.tankMoveAction.foreach { t =>
-      val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Int]())
-      t._2.foreach(set.add)
-      tankMoveAction.put(t._1, set)
-    }
+//    gameContainerState.obstacle.foreach { o =>
+//      val obstacle = Obstacle(config, o)
+//      quadTree.insert(obstacle)
+//      obstacleMap.put(o.oId, obstacle)
+//    }
+//    gameContainerState.props.foreach { t =>
+//      val prop = Prop(t, config.propRadius)
+//      quadTree.insert(prop)
+//      propMap.put(t.pId, prop)
+//    }
+//    gameContainerState.tankMoveAction.foreach { t =>
+//      val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Int]())
+//      t._2.foreach(set.add)
+//      tankMoveAction.put(t._1, set)
+//    }
     environmentMap.values.foreach(quadTree.insert)
     bulletMap.values.foreach { bullet =>
       quadTree.insert(bullet)
@@ -368,8 +368,7 @@ case class GameContainerClientImpl(
     if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
   }
 
-  def drawGame(time: Long, networkLatency: Long,supportLiveLimit:Boolean = false): Unit = {
-  def drawGame(time: Long, networkLatency: Long, dataSize:String): Unit = {
+  def drawGame(time: Long, networkLatency: Long,dataSize:String,supportLiveLimit:Boolean = false): Unit = {
     val offsetTime = math.min(time, config.frameDuration)
     val h = canvasSize.y
     val w = canvasSize.x
