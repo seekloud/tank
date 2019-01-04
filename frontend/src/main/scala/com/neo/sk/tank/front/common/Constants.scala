@@ -12,6 +12,8 @@ object Constants {
     val other = Color.Yellow.toString()
   }
 
+  val supportLiveLimit = false
+
 //  object GameState{
 //    val firstCome = 1
 //    val play = 2

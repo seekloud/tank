@@ -1,6 +1,6 @@
 package com.neo.sk.tank.front.tankClient.control
 
-import com.neo.sk.tank.front.common.Routes
+import com.neo.sk.tank.front.common.{Constants, Routes}
 import com.neo.sk.tank.front.utils.Shortcut
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
@@ -90,7 +90,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
           * */
         println(s"you are killed")
         gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum,e.name,e.damageStatistics))
-        if(e.hasLife){
+        if(e.hasLife && Constants.supportLiveLimit){
           gameContainerOpt.foreach(_.drawDeadImg(s"玩家死亡，生命值未用尽，等待玩家复活"))
         }else{
           gameContainerOpt.foreach(_.drawDeadImg(s"玩家死亡，生命值已经用完啦！可以在此界面等待玩家重新进入房间"))
