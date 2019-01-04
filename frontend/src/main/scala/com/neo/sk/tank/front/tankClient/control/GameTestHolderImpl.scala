@@ -2,7 +2,7 @@ package com.neo.sk.tank.front.tankClient.control
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.neo.sk.tank.front.common.Routes
+import com.neo.sk.tank.front.common.{Constants, Routes}
 import com.neo.sk.tank.front.components.StartGameModal
 import com.neo.sk.tank.front.model.PlayerInfo
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
@@ -80,7 +80,11 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     }else if(webSocketClient.getWsState){
       gameContainerOpt match {
         case Some(gameContainer) =>
-          webSocketClient.sendMsg(TankGameEvent.RestartGame(Some(gameContainer.myTankId),name))
+          if(Constants.supportLiveLimit){
+            webSocketClient.sendMsg(TankGameEvent.RestartGame(Some(gameContainer.myTankId),name))
+          }else{
+            webSocketClient.sendMsg(TankGameEvent.RestartGame(None,name))
+          }
         case None =>
           webSocketClient.sendMsg(TankGameEvent.RestartGame(None,name))
       }
@@ -219,7 +223,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum,e.name,e.damageStatistics))
         dom.window.cancelAnimationFrame(nextFrame)
         gameContainerOpt.foreach(_.drawGameStop())
-        if(! e.hasLife){
+        if((Constants.supportLiveLimit && ! e.hasLife) || (! Constants.supportLiveLimit)){
           setGameState(GameState.stop)
         }
 
