@@ -181,8 +181,12 @@ case class GameContainerServerImpl(
     obstacleMap.get(e.obstacleId).foreach { obstacle =>
       obstacle.attackDamage(e.damage)
       if (!obstacle.isLived()) {
-        quadTree.remove(obstacle)
-        obstacleMap.remove(e.obstacleId)
+//        quadTree.remove(obstacle)
+//        obstacleMap.remove(e.obstacleId)
+        //砖块消失
+        val event = TankGameEvent.ObstacleRemove(e.obstacleId, systemFrame)
+        dispatch(event)
+        addGameEvent(event)
 
         val obstacleOpt = obstacle.obstacleType match {
           case ObstacleType.airDropBox =>
