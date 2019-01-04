@@ -252,7 +252,9 @@ trait GameContainer extends KillInformation{
     bulletMap.get(e.bulletId).foreach(quadTree.remove)
     bulletMap.remove(e.bulletId)
     obstacleMap.get(e.obstacleId).foreach{ obstacle =>
-      obstacle.attackDamage(e.damage)
+      if(obstacle.isLived()){
+        obstacle.attackDamage(e.damage)
+      }
       /*if(!obstacle.isLived()){
         quadTree.remove(obstacle)
         obstacleMap.remove(e.obstacleId)
@@ -552,7 +554,7 @@ trait GameContainer extends KillInformation{
 
     handlePropLifecycleNow()
 
-    handleGenerateBulletNow()
+    handleObstacleRemoveNow()
     handleGenerateObstacleNow()
     handleGeneratePropNow()
     handleGenerateBulletNow()
