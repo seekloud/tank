@@ -7,10 +7,11 @@ import akka.actor.typed.scaladsl.TimerScheduler
 import com.neo.sk.tank.core.{RoomActor, UserActor}
 import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.{TankGameConfig, TankGameConfigImpl}
-import com.neo.sk.tank.shared.game.{GameContainer, GameContainerAllState, GameContainerState}
+import com.neo.sk.tank.shared.game.GameContainer
 import com.neo.sk.tank.shared.model.Constants.{ObstacleType, PropGenerateType, TankColor}
 import com.neo.sk.tank.shared.model.{Point, Score}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
+import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameContainerState,GameContainerAllState}
 import org.slf4j.Logger
 
 import concurrent.duration._

@@ -10,30 +10,34 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
   */
 final case class NetworkLatency(latency: Long)
 
-trait NetworkInfo { this:GameHolder =>
+trait NetworkInfo {
+  this: GameHolder =>
 
   private var lastPingTime = System.currentTimeMillis()
   private val PingTimes = 10
-  private var latency : Long = 0L
-  private var receiveNetworkLatencyList : List[NetworkLatency] = Nil
+  private var latency: Long = 0L
+  private var receiveNetworkLatencyList: List[NetworkLatency] = Nil
+  private var receiveDateList: List[Double] = Nil
 
-  def ping():Unit = {
+  var dateSize: Double = 0
+
+  def ping(): Unit = {
     val curTime = System.currentTimeMillis()
-    if(curTime - lastPingTime > 1000){
+    if (curTime - lastPingTime > 1000) {
       startPing()
       lastPingTime = curTime
     }
   }
 
-  private def startPing():Unit = {
+  private def startPing(): Unit = {
     this.sendMsg2Server(TankGameEvent.PingPackage(System.currentTimeMillis()))
   }
 
-  protected def receivePingPackage(p:TankGameEvent.PingPackage):Unit = {
+  protected def receivePingPackage(p: TankGameEvent.PingPackage): Unit = {
     receiveNetworkLatencyList = NetworkLatency(System.currentTimeMillis() - p.sendTime) :: receiveNetworkLatencyList
-    if(receiveNetworkLatencyList.size < PingTimes){
-      Shortcut.scheduleOnce(() => startPing(),10)
-    }else{
+    if (receiveNetworkLatencyList.size < PingTimes) {
+      Shortcut.scheduleOnce(() => startPing(), 10)
+    } else {
       latency = receiveNetworkLatencyList.map(_.latency).sum / receiveNetworkLatencyList.size
       receiveNetworkLatencyList = Nil
     }
@@ -41,6 +45,12 @@ trait NetworkInfo { this:GameHolder =>
 
   protected def getNetworkLatency = latency
 
-
+  protected def setDateSize(d: Double) = {
+    receiveDateList= d::receiveDateList
+    if(receiveDateList.size==PingTimes){
+      dateSize=receiveDateList.sum
+      receiveDateList=Nil
+    }
+  }
 
 }
