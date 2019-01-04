@@ -65,6 +65,7 @@ object RoomManager {
                    roomInUse.put(roomId,(pw,(uid,name):: ls._2))
                  } else{
                    //密码不正确
+                   userActor ! UserActor.JoinRoomFail("密码错误！")
                  }
 
                 case None => roomInUse.put(roomId,("",List((uid,name))))

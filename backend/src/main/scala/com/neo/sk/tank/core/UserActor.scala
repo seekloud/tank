@@ -57,6 +57,7 @@ object UserActor {
 
   case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None, passwordOpt:Option[String] = None) extends Command with RoomManager.Command
   case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:String,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
+  case class JoinRoomFail(msg:String) extends Command
   case class TankRelive4UserActor(tank:TankServerImpl,userId:String,name:String,roomActor:ActorRef[RoomActor.Command], config:TankGameConfigImpl) extends Command with UserManager.Command
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
   case class CreateRoom(password: String) extends Command
@@ -205,6 +206,10 @@ object UserActor {
 
         case CreateRoom(password) =>
           roomManager ! RoomManager.CreateRoom(uId,None,userInfo.name,startTime,ctx.self, password)
+          Behaviors.same
+
+        case JoinRoomFail(msg) =>
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.WsMsgErrorRsp(10001, msg).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           Behaviors.same
 
 
