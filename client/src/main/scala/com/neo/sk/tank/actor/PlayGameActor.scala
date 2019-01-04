@@ -247,8 +247,8 @@ object PlayGameActor {
     * 链接由从平台获得IP和端口后拼接*/
   def getWebSocketUri(info:ConnectGame): String = {
     //todo 更改为目标端口
-    val host = "localhost:30369"
-//    val host = info.gameInfo.domain
+//    val host = "localhost:30369"
+    val host = info.gameInfo.domain
     Route.getUserJoinGameWebSocketUri(info.playInfo.nickName,host,info.playInfo,info.roomInfo)
 //    Route.getJoinGameWebSocketUri(info.playInfo.nickName,host,info.roomInfo)
   }

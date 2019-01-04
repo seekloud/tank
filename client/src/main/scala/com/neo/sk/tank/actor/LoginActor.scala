@@ -1,5 +1,7 @@
 package com.neo.sk.tank.actor
 
+import java.net.URLEncoder
+
 import akka.actor.ActorSystem
 import akka.actor.typed._
 import akka.actor.typed.scaladsl.{Behaviors, TimerScheduler}
@@ -13,12 +15,14 @@ import com.neo.sk.tank.model._
 import org.slf4j.LoggerFactory
 import io.circe.parser.decode
 import io.circe.generic.auto._
+
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import com.neo.sk.tank.App.{executor, materializer, system, tokenActor}
+import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.controller.LoginScreenController
 import com.neo.sk.utils.EsheepClient
 
@@ -31,9 +35,12 @@ object LoginActor {
 
   final case object Login extends Command
   final case class WSLogin(url:String) extends Command
-  final case object GetImage extends Command
+  final case object QrLogin extends Command
+  final case object EmailLogin extends Command
+  final case class EmailLogin(mail:String, pwd:String) extends Command
   final case class Request(m: String) extends Command
   final case object StopWs extends Command
+
   private val log = LoggerFactory.getLogger(this.getClass)
   private final case object RefreshTokenKey
   private final val refreshTime = 1.hour
@@ -42,7 +49,8 @@ object LoginActor {
     Behaviors.receive[Command]{ (ctx, msg) =>
       msg match {
         case Login =>
-           ctx.self ! GetImage
+//           ctx.self ! QrLogin
+          ctx.self ! EmailLogin
            idle(controller)
         case _=>
           Behaviors.same
@@ -53,30 +61,53 @@ object LoginActor {
 
   def idle(controller: LoginScreenController): Behavior[Command] = {
     Behaviors.receive[Command]{ (ctx, msg) =>
-      println("idle")
       msg match {
-        case GetImage =>
+        case QrLogin =>
+          println("qrcode")
           EsheepClient.getLoginInfo().onComplete{
             case Success(rst) =>
               rst match {
                 case Right(value) =>
                   controller.showScanUrl(value.scanUrl)
-                  //controller.showLoginError("获取二维码失败")
                   ctx.self ! WSLogin(value.wsUrl)
                 case Left(error) =>
-                  //异常
-                  println(error)
+                  log.error(s"获取二维码失败$error")
                   controller.showLoginError("获取二维码失败")
               }
             case Failure(exception) =>
-              //异常
               log.warn(s"${ctx.self.path} VerifyAccessCode failed, error:${exception.getMessage}")
               controller.showLoginError("获取二维码失败")
           }
           Behaviors.same
 
+        case EmailLogin =>
+          println("email")
+          controller.showEmailLogin()
+          Behaviors.same
+
+        case EmailLogin(mail, pwd) =>
+          EsheepClient.validateByEmail(mail, pwd).map{
+            case Right(validateRst) =>
+              EsheepClient.linkGameAgent(validateRst.token,s"user${validateRst.userId}").map{
+                case Right(linkRst) =>
+                  tokenActor ! TokenActor.InitToken(validateRst.token,7200,s"user${validateRst.userId}")
+                  val userInfo = UserInfo(validateRst.userId,validateRst.userName, validateRst.token, 7200)
+                  val playerInfo= PlayerInfo(userInfo,s"user${validateRst.userId}", validateRst.userName, linkRst.accessCode)
+                  val gameServerInfo = GameServerInfo(linkRst.gsPrimaryInfo.ip, linkRst.gsPrimaryInfo.port, linkRst.gsPrimaryInfo.domain)
+                  controller.showSuccess()
+                  controller.joinGame(playerInfo, gameServerInfo)
+                case Left(error) =>
+                  controller.showLoginError("登录失败")
+                  println(error)
+              }
+            case Left(exception) =>
+              log.warn(s"${ctx.self.path} VerifyAccessCode failed, error:$exception")
+              controller.showLoginError("邮箱登录失败")
+          }
+          Behaviors.same
+
         case WSLogin(url) =>
-          println(s"i got msg ${url}")
+          println(s"i got msg $url")
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(url))
           val incoming = getSink(controller)
           val ((stream, response), closed) =
@@ -153,6 +184,14 @@ object LoginActor {
       case unknown =>
         log.error(s"wsclient receive unknown message:$unknown")
     }
+
+//  def getWebSocketUri(playerId: String, playerName: String, accessCode: String): String = {
+////    val wsProtocol = AppSettings.
+////    val domain = AppSettings
+//    val playerIdEncoder = URLEncoder.encode(playerId, "UTF-8")
+//    val playerNameEncoder = URLEncoder.encode(playerName, "UTF-8")
+//    s"$wsProtocol://$domain/tank/link/playGameClient?playerId=$playerIdEncoder&playerName=$playerNameEncoder&accessCode=$accessCode"
+//  }
 
 
 
