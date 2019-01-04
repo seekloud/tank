@@ -159,23 +159,26 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
   }
 
-  private def generateMyTankInfoCanvas(tank:TankClientImpl):Any = {
+  private def generateMyTankInfoCanvas(tank:TankClientImpl,supportLiveLimit:Boolean):Any = {
     myTankInfoCacheMap.clear()
     val canvasCache = drawFrame.createCanvas(30 * canvasUnit, 20 * canvasUnit)
     val ctxCache = canvasCache.getCtx
     drawLevel(tank.getBloodLevel,config.getTankBloodMaxLevel(),"血量等级",Point(5,20 - 12) * canvasUnit,20 * canvasUnit,"#FF3030",ctxCache)
     drawLevel(tank.getSpeedLevel,config.getTankSpeedMaxLevel(),"速度等级",Point(5,20 - 8) * canvasUnit,20 * canvasUnit,"#66CD00",ctxCache)
     drawLevel(tank.getBulletLevel,config.getBulletMaxLevel(),"炮弹等级",Point(5,20 - 4) * canvasUnit,20 * canvasUnit,"#1C86EE",ctxCache)
-    drawLevel(tank.lives.toByte,config.getTankLivesLimit.toByte,s"生命值",Point(5,20-16) * canvasUnit,20 * canvasUnit,"#FFA500",ctxCache)
+    if(supportLiveLimit){
+      drawLevel(tank.lives.toByte,config.getTankLivesLimit.toByte,s"生命值",Point(5,20-16) * canvasUnit,20 * canvasUnit,"#FFA500",ctxCache)
+    }
     canvasCache.change2Image()
   }
 
-  protected def drawMyTankInfo(tank:TankClientImpl) = {
-    val cache = myTankInfoCacheMap.getOrElseUpdate((tank.getBloodLevel,tank.getSpeedLevel,tank.getBulletLevel),generateMyTankInfoCanvas(tank))
+  protected def drawMyTankInfo(tank:TankClientImpl,supportLiveLimit:Boolean) = {
+    val cache = myTankInfoCacheMap.getOrElseUpdate((tank.getBloodLevel,tank.getSpeedLevel,tank.getBulletLevel),generateMyTankInfoCanvas(tank,supportLiveLimit))
     ctx.drawImage(cache,0,(canvasBoundary.y - 20) * canvasUnit)
   }
 
   def drawLevel(level:Byte,maxLevel:Byte,name:String,start:Point,length:Float,color:String, context:MiddleContext) = {
+    println(s"${level}")
     context.setStrokeStyle("#4D4D4D")
     context.setLineCap("round")
     context.setLineWidth(3 * canvasUnit)
