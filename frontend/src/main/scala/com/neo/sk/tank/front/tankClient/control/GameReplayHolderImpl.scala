@@ -3,7 +3,8 @@ package com.neo.sk.tank.front.tankClient.control
 import com.neo.sk.tank.front.common.Routes
 import com.neo.sk.tank.front.model.{PlayerInfo, ReplayInfo}
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
-import com.neo.sk.tank.shared.game.{GameContainerClientImpl, GameContainerState}
+import com.neo.sk.tank.shared.game.GameContainerClientImpl
+import com.neo.sk.tank.shared.protocol.TankGameEvent.GameContainerState
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
@@ -93,7 +94,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
 //          nextFrame = dom.window.requestAnimationFrame(gameRender())
         }else{
           //remind here allState change into state
-          gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks,e.gState.props,e.gState.obstacle,e.gState.tankMoveAction)))
+          gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks/*,e.gState.props,e.gState.obstacle,e.gState.tankMoveAction*/)))
         }
 
       case e:TankGameEvent.Ranks =>

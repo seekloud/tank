@@ -1,7 +1,6 @@
 package com.neo.sk.tank.front.tankClient
 
 import com.neo.sk.tank.front.common.Routes
-import com.neo.sk.tank.shared.game.GameContainerAllState
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import com.neo.sk.tank.shared.protocol.TankGameEvent.SyncGameAllState
 import org.scalajs.dom
@@ -21,6 +20,7 @@ case class WebSocketClient(
                        connectErrorCallback:Event => Unit,
                        messageHandler:TankGameEvent.WsMsgServer => Unit,
                        closeCallback:Event => Unit,
+                       setDateSize: String => Unit
                      ) {
 
 
@@ -29,7 +29,7 @@ case class WebSocketClient(
 
   private var replay:Boolean = false
 
-  private var websocketStreamOpt : Option[WebSocket] = None
+  private var webSocketStreamOpt : Option[WebSocket] = None
 
   def getWsState = wsSetup
 
@@ -39,7 +39,7 @@ case class WebSocketClient(
 
   def sendMsg(msg:TankGameEvent.WsMsgFront) = {
     import org.seekloud.byteobject.ByteObject._
-    websocketStreamOpt.foreach{s =>
+    webSocketStreamOpt.foreach{ s =>
       s.send(msg.fillMiddleBuffer(sendBuffer).result())
     }
   }
@@ -51,14 +51,14 @@ case class WebSocketClient(
     }else{
       val websocketStream = new WebSocket(wsUrl)
 
-      websocketStreamOpt = Some(websocketStream)
+      webSocketStreamOpt = Some(websocketStream)
       websocketStream.onopen = { event: Event =>
         wsSetup = true
         connectSuccessCallback(event)
       }
       websocketStream.onerror = { event: Event =>
         wsSetup = false
-        websocketStreamOpt = None
+        webSocketStreamOpt = None
         connectErrorCallback(event)
       }
 
@@ -71,7 +71,7 @@ case class WebSocketClient(
             fr.onloadend = { _: Event =>
               val buf = fr.result.asInstanceOf[ArrayBuffer]
               if(replay) messageHandler(replayEventDecode(buf))
-              else messageHandler(wsByteDecode(buf))
+              else messageHandler(wsByteDecode(buf,blobMsg.size))
             }
           case jsonStringMsg:String =>
             import io.circe.generic.auto._
@@ -85,7 +85,7 @@ case class WebSocketClient(
 
       websocketStream.onclose = { event: Event =>
         wsSetup = false
-        websocketStreamOpt = None
+        webSocketStreamOpt = None
         closeCallback(event)
       }
     }
@@ -93,16 +93,19 @@ case class WebSocketClient(
 
   def closeWs={
     wsSetup = false
-    websocketStreamOpt.foreach(_.close())
-    websocketStreamOpt = None
+    webSocketStreamOpt.foreach(_.close())
+    webSocketStreamOpt = None
   }
 
   import org.seekloud.byteobject.ByteObject._
 
-  private def wsByteDecode(a:ArrayBuffer):TankGameEvent.WsMsgServer={
+  private def wsByteDecode(a:ArrayBuffer,s:Double):TankGameEvent.WsMsgServer={
     val middleDataInJs = new MiddleBufferInJs(a)
     bytesDecode[TankGameEvent.WsMsgServer](middleDataInJs) match {
       case Right(r) =>
+        try {
+          setDateSize(s"${r.getClass.toString.split("TankGameEvent").last.drop(1)}"+s": ${(s/1024).formatted("%.2f")}kb")
+        }catch {case exception: Exception=> println(exception.getCause)}
         r
       case Left(e) =>
         println(e.message)

@@ -7,10 +7,11 @@ import akka.actor.typed.scaladsl.TimerScheduler
 import com.neo.sk.tank.core.{RoomActor, UserActor}
 import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.{TankGameConfig, TankGameConfigImpl}
-import com.neo.sk.tank.shared.game.{GameContainer, GameContainerAllState, GameContainerState}
+import com.neo.sk.tank.shared.game.GameContainer
 import com.neo.sk.tank.shared.model.Constants.{ObstacleType, PropGenerateType, TankColor}
 import com.neo.sk.tank.shared.model.{Point, Score}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
+import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameContainerState,GameContainerAllState}
 import org.slf4j.Logger
 
 import concurrent.duration._
@@ -180,8 +181,12 @@ case class GameContainerServerImpl(
     obstacleMap.get(e.obstacleId).foreach { obstacle =>
       obstacle.attackDamage(e.damage)
       if (!obstacle.isLived()) {
-        quadTree.remove(obstacle)
-        obstacleMap.remove(e.obstacleId)
+//        quadTree.remove(obstacle)
+//        obstacleMap.remove(e.obstacleId)
+        //砖块消失
+        val event = TankGameEvent.ObstacleRemove(e.obstacleId, systemFrame)
+        dispatch(event)
+        addGameEvent(event)
 
         val obstacleOpt = obstacle.obstacleType match {
           case ObstacleType.airDropBox =>
@@ -462,9 +467,9 @@ case class GameContainerServerImpl(
     GameContainerState(
       systemFrame,
       tankMap.values.map(_.getTankState()).toList,
-      propMap.values.map(_.getPropState).toList,
-      obstacleMap.values.map(_.getObstacleState()).toList,
-      tankMoveAction = tankMoveAction.toList.map(t => (t._1, t._2.toList))
+//      propMap.values.map(_.getPropState).toList,
+//      obstacleMap.values.map(_.getObstacleState()).toList,
+//      tankMoveAction = tankMoveAction.toList.map(t => (t._1, t._2.toList))
     )
   }
 
