@@ -26,7 +26,8 @@ case class GameContainerClientImpl(
                               var canvasSize: Point,
                               var canvasUnit: Int,
                               setGameState: Int => Unit,
-                              setKillCallback: (String, Boolean, Int, Int) => Unit = { (_, _, _, _) => }
+                              setKillCallback: (String, Boolean, Int, Int) => Unit = { (_, _, _, _) => },
+                              versionInfo:Option[String]=None
                             ) extends GameContainer with EsRecover
   with BackgroundDrawUtil with BulletDrawUtil with FpsComponentsDrawUtil with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil with InfoDrawUtil {
 
