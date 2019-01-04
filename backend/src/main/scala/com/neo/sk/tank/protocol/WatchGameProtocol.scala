@@ -34,14 +34,7 @@ object WatchGameProtocol {
                          errCode:Int = 0,
                          msg:String = "ok")
 
-  //创建房间
-  case class CreateRoomReq(
-                          password: String
-                          )
-  case class CreateRoomRsp(
-                            errCode:Int = 0,
-                            msg:String = "ok"
-                          )
+
 
 
 }
