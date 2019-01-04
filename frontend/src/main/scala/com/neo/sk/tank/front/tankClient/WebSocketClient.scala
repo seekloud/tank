@@ -20,7 +20,7 @@ case class WebSocketClient(
                        connectErrorCallback:Event => Unit,
                        messageHandler:TankGameEvent.WsMsgServer => Unit,
                        closeCallback:Event => Unit,
-                       setDateSize: Double => Unit
+                       setDateSize: String => Unit
                      ) {
 
 
@@ -66,13 +66,12 @@ case class WebSocketClient(
         //        println(s"recv msg:${event.data.toString}")
         event.data match {
           case blobMsg:Blob =>
-            setDateSize(blobMsg.size)
             val fr = new FileReader()
             fr.readAsArrayBuffer(blobMsg)
             fr.onloadend = { _: Event =>
               val buf = fr.result.asInstanceOf[ArrayBuffer]
               if(replay) messageHandler(replayEventDecode(buf))
-              else messageHandler(wsByteDecode(buf))
+              else messageHandler(wsByteDecode(buf,blobMsg.size))
             }
           case jsonStringMsg:String =>
             import io.circe.generic.auto._
@@ -100,10 +99,13 @@ case class WebSocketClient(
 
   import org.seekloud.byteobject.ByteObject._
 
-  private def wsByteDecode(a:ArrayBuffer):TankGameEvent.WsMsgServer={
+  private def wsByteDecode(a:ArrayBuffer,s:Double):TankGameEvent.WsMsgServer={
     val middleDataInJs = new MiddleBufferInJs(a)
     bytesDecode[TankGameEvent.WsMsgServer](middleDataInJs) match {
       case Right(r) =>
+        try {
+          setDateSize(s"${r.getClass.toString.split("TankGameEvent").last.drop(1)}"+s": ${(s/1024).formatted("%.2f")}kb")
+        }catch {case exception: Exception=> println(exception.getCause)}
         r
       case Left(e) =>
         println(e.message)
