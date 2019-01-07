@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.tank.App.{executor, materializer, scheduler, system, timeout, tokenActor}
 import com.neo.sk.tank.actor.{PlayGameActor, TokenActor}
-import com.neo.sk.tank.common.Context
+import com.neo.sk.tank.common.{Constants, Context}
 import com.neo.sk.tank.game.NetworkInfo
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo, TokenAndAcessCode, UserInfo}
 import com.neo.sk.tank.view.{GameHallScreen, PlayGameScreen}
@@ -143,7 +143,8 @@ class PlayScreenController(
   }
 
   private def drawGame(offsetTime: Long) = {
-    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency))
+//    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency,Constants.supportLiveLimit))
+    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency, "",Constants.supportLiveLimit))
   }
 
   def logicLoop() = {
@@ -325,7 +326,7 @@ class PlayScreenController(
 //          killerName = e.name
 //          animationTimer.stop()
           gameContainerOpt.foreach(_.drawGameStop())
-          if(!e.hasLife){
+          if(!e.hasLife || !Constants.supportLiveLimit){
             setGameState(GameState.stop)
             gameMusicPlayer.pause()
             deadMusic.play()

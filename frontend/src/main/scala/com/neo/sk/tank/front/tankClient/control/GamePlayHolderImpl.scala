@@ -2,7 +2,7 @@ package com.neo.sk.tank.front.tankClient.control
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.neo.sk.tank.front.common.Routes
+import com.neo.sk.tank.front.common.{Constants, Routes}
 import com.neo.sk.tank.front.components.StartGameModal
 import com.neo.sk.tank.front.model.PlayerInfo
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
@@ -82,7 +82,12 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     }else if(webSocketClient.getWsState){
       gameContainerOpt match {
         case Some(gameContainer) =>
-          webSocketClient.sendMsg(TankGameEvent.RestartGame(Some(gameContainer.myTankId),name))
+          if(Constants.supportLiveLimit){
+            webSocketClient.sendMsg(TankGameEvent.RestartGame(Some(gameContainer.myTankId),name))
+          }else{
+            webSocketClient.sendMsg(TankGameEvent.RestartGame(None,name))
+          }
+
         case None =>
           webSocketClient.sendMsg(TankGameEvent.RestartGame(None,name))
       }
@@ -225,12 +230,13 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 //    println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
+        println(s"玩家信息${e}")
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)
         audioForBgm.play()
         /**
           * 更新游戏数据
           * */
-        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState,versionInfo = versionInfoOpt))
         gameContainerOpt.get.getTankId(e.tankId)
 
       case e:TankGameEvent.TankFollowEventSnap =>
@@ -244,7 +250,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum,e.name,e.damageStatistics))
         dom.window.cancelAnimationFrame(nextFrame)
         gameContainerOpt.foreach(_.drawGameStop())
-        if(! e.hasLife){
+        if((Constants.supportLiveLimit && ! e.hasLife) || (! Constants.supportLiveLimit)){
           setGameState(GameState.stop)
           audioForBgm.pause()
           audioForDead.play()

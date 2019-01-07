@@ -7,10 +7,11 @@ import akka.actor.typed.scaladsl.TimerScheduler
 import com.neo.sk.tank.core.{RoomActor, UserActor}
 import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.{TankGameConfig, TankGameConfigImpl}
-import com.neo.sk.tank.shared.game.{GameContainer, GameContainerAllState, GameContainerState}
+import com.neo.sk.tank.shared.game.GameContainer
 import com.neo.sk.tank.shared.model.Constants.{ObstacleType, PropGenerateType, TankColor}
 import com.neo.sk.tank.shared.model.{Point, Score}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
+import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameContainerState,GameContainerAllState}
 import org.slf4j.Logger
 
 import concurrent.duration._
@@ -19,6 +20,7 @@ import collection.mutable
 import com.neo.sk.tank.shared.`object`.TankState
 import com.neo.sk.tank.Boot.roomManager
 import com.neo.sk.tank.Boot.userManager
+import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.core.UserActor.TankRelive4UserActor
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{TankFillBullet, TankFollowEventSnap, TankInvincible}
 
@@ -106,24 +108,27 @@ case class GameContainerServerImpl(
   override protected def dropTankCallback(bulletTankId: Int, bulletTankName: String, tank: Tank) = {
     val tankState = tank.getTankState()
     val killEvent = TankGameEvent.YouAreKilled(bulletTankId, bulletTankName, tankState.lives > 1, tank.killTankNum, tank.lives, tank.damageStatistics)
-    if (tank.lives > 1) {
+    if (tank.lives > 1 && AppSettings.supportLiveLimit) {
       log.debug(s"${roomActorRef.path} timer for relive is starting...")
       timer.startSingleTimer(s"TankRelive_${tank.tankId}", RoomActor.TankRelive(tank.userId, Some(tank.tankId), tank.name), config.getTankReliveDuration.millis)
     }
     dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
     //后台增加一个玩家离开消息（不传给前端）,以便录像的时候记录玩家死亡和websocket断开的情况。
-    if (tankState.lives <= 1) {
+    if (tankState.lives <= 1 || (! AppSettings.supportLiveLimit)) {
       val event = TankGameEvent.UserLeftRoomByKill(tank.userId, tank.name, tank.tankId, systemFrame)
       addGameEvent(event)
     }
-    val curTankState = TankState(tankState.userId, tankState.tankId, tankState.direction, tankState.gunDirection, tankState.blood, tankState.bloodLevel, tankState.speedLevel, tankState.curBulletNum,
-      tankState.position, tankState.bulletPowerLevel, tankState.tankColorType, tankState.name, tankState.lives - 1, None, tankState.killTankNum, tankState.damageTank, tankState.invincible,
-      tankState.shotgunState, tankState.speed, tankState.isMove)
-    tankLivesMap.get(tankState.tankId) match {
-      case Some(tankStateOld) =>
-        tankLivesMap.update(tankState.tankId, curTankState)
-      case None =>
-        tankLivesMap += (tankState.tankId -> tankState)
+    if(AppSettings.supportLiveLimit){
+      val curTankState = TankState(tankState.userId, tankState.tankId, tankState.direction, tankState.gunDirection, tankState.blood, tankState.bloodLevel, tankState.speedLevel, tankState.curBulletNum,
+        tankState.position, tankState.bulletPowerLevel, tankState.tankColorType, tankState.name, tankState.lives - 1, None, tankState.killTankNum, tankState.damageTank, tankState.invincible,
+        tankState.shotgunState, tankState.speed, tankState.isMove)
+      tankLivesMap.get(tankState.tankId) match {
+        case Some(tankStateOld) =>
+          log.debug(s"${roomActorRef.path}更新生命值信息")
+          tankLivesMap.update(tankState.tankId, curTankState)
+        case None =>
+          tankLivesMap += (tankState.tankId -> tankState)
+      }
     }
     val totalScore = tankState.bulletPowerLevel.toInt + tankState.bloodLevel.toInt + tankState.speedLevel.toInt - 2
     val propType: Byte = random.nextInt(4 + totalScore) + 1 match {
@@ -180,8 +185,12 @@ case class GameContainerServerImpl(
     obstacleMap.get(e.obstacleId).foreach { obstacle =>
       obstacle.attackDamage(e.damage)
       if (!obstacle.isLived()) {
-        quadTree.remove(obstacle)
-        obstacleMap.remove(e.obstacleId)
+//        quadTree.remove(obstacle)
+//        obstacleMap.remove(e.obstacleId)
+        //砖块消失
+        val event = TankGameEvent.ObstacleRemove(e.obstacleId, systemFrame)
+        dispatch(event)
+        addGameEvent(event)
 
         val obstacleOpt = obstacle.obstacleType match {
           case ObstacleType.airDropBox =>
@@ -240,6 +249,7 @@ case class GameContainerServerImpl(
           case Some(tankState) =>
             if (tankState.lives > 0) {
               //tank复活还有生命
+              log.debug(s"${roomActorRef.path}坦克${tankState.tankId}的当前生命值${tankState.lives}")
               genTankServeImpl(id, tankState.killTankNum, tankState.damageStatistics, tankState.lives)
             } else {
               //tank复活没有生命,更新tankLivesMap
@@ -248,9 +258,11 @@ case class GameContainerServerImpl(
               genTankServeImpl(tankId, 0, 0, config.getTankLivesLimit)
             }
           case None =>
+            log.debug(s"${roomActorRef.path}没有该坦克信息")
             genTankServeImpl(id, 0, 0, config.getTankLivesLimit)
         }
       case None =>
+        log.debug(s"${roomActorRef.path}没有携带坦克id重新生成")
         val tankId = tankIdGenerator.getAndIncrement()
         genTankServeImpl(tankId, 0, 0, config.getTankLivesLimit)
     }
@@ -261,7 +273,9 @@ case class GameContainerServerImpl(
       case (userId, tankIdOpt, name, ref) =>
         val tank = genATank(userId, tankIdOpt, name)
         //        tankEatPropMap.update(tank.tankId,mutable.HashSet())
-        tankLivesMap.update(tank.tankId, tank.getTankState())
+        if(AppSettings.supportLiveLimit){
+          tankLivesMap.update(tank.tankId, tank.getTankState())
+        }
         val event = TankGameEvent.UserJoinRoom(userId, name, tank.getTankState(), systemFrame)
         dispatch(event)
         addGameEvent(event)
@@ -462,9 +476,9 @@ case class GameContainerServerImpl(
     GameContainerState(
       systemFrame,
       tankMap.values.map(_.getTankState()).toList,
-      propMap.values.map(_.getPropState).toList,
-      obstacleMap.values.map(_.getObstacleState()).toList,
-      tankMoveAction = tankMoveAction.toList.map(t => (t._1, t._2.toList))
+//      propMap.values.map(_.getPropState).toList,
+//      obstacleMap.values.map(_.getObstacleState()).toList,
+//      tankMoveAction = tankMoveAction.toList.map(t => (t._1, t._2.toList))
     )
   }
 

@@ -1,3 +1,4 @@
+
 package com.neo.sk.tank.front.tankClient.control
 
 import com.neo.sk.tank.front.tankClient.{NetworkInfo, WebSocketClient}
@@ -9,7 +10,7 @@ import com.neo.sk.tank.shared.model.{Constants, Point}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import mhtml.Var
 import org.scalajs.dom
-import org.scalajs.dom.html.{Audio, Div}
+import org.scalajs.dom.html.{Audio, Div, Script}
 import org.scalajs.dom.raw.{Event, TouchEvent, VisibilityState}
 
 /**
@@ -41,6 +42,18 @@ abstract class GameHolder(name: String) extends NetworkInfo {
   //  protected var killNum:Int = 0
   //  protected var damageNum:Int = 0
   //  var killerList = List.empty[String] //（击杀者）
+  var versionInfoOpt:Option[String]=None
+  val versionScript=dom.document.getElementById("js-version")
+  try {
+    versionScript match {
+      case script: Script =>
+        versionInfoOpt=Some(script.src.split("id=")(1))
+      case _ =>
+    }
+  }catch {case exception: Exception=>
+      println(exception.getCause)
+  }
+
 
   protected var firstCome = true
 
@@ -52,7 +65,7 @@ abstract class GameHolder(name: String) extends NetworkInfo {
 
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
 
-  protected val webSocketClient: WebSocketClient = WebSocketClient(wsConnectSuccess, wsConnectError, wsMessageHandler, wsConnectClose)
+  protected val webSocketClient: WebSocketClient = WebSocketClient(wsConnectSuccess, wsConnectError, wsMessageHandler, wsConnectClose, setDateSize )
 
 
   protected var timer: Int = 0
@@ -102,9 +115,10 @@ abstract class GameHolder(name: String) extends NetworkInfo {
   }
 
   protected def gameRender(): Double => Unit = { d =>
+    import com.neo.sk.tank.front.common.Constants
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
-    drawGame(offsetTime)
+    drawGame(offsetTime,Constants.supportLiveLimit)
     nextFrame = dom.window.requestAnimationFrame(gameRender())
   }
 
@@ -159,8 +173,10 @@ abstract class GameHolder(name: String) extends NetworkInfo {
     }
   }
 
-  private def drawGame(offsetTime: Long) = {
-    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency))
+//  private def drawGame(offsetTime: Long) = {
+//    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency, dateSize))
+  private def drawGame(offsetTime: Long,supportLiveLimit:Boolean = false) = {
+    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency,dateSize,supportLiveLimit))
   }
 
 
