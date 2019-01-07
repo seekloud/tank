@@ -49,8 +49,8 @@ object LoginActor {
     Behaviors.receive[Command]{ (ctx, msg) =>
       msg match {
         case Login =>
-//           ctx.self ! QrLogin
-          ctx.self ! EmailLogin
+           ctx.self ! QrLogin
+//          ctx.self ! EmailLogin
            idle(controller)
         case _=>
           Behaviors.same
@@ -63,7 +63,6 @@ object LoginActor {
     Behaviors.receive[Command]{ (ctx, msg) =>
       msg match {
         case QrLogin =>
-          println("qrcode")
           EsheepClient.getLoginInfo().onComplete{
             case Success(rst) =>
               rst match {
@@ -81,7 +80,6 @@ object LoginActor {
           Behaviors.same
 
         case EmailLogin =>
-          println("email")
           controller.showEmailLogin()
           Behaviors.same
 
@@ -96,18 +94,18 @@ object LoginActor {
                   val gameServerInfo = GameServerInfo(linkRst.gsPrimaryInfo.ip, linkRst.gsPrimaryInfo.port, linkRst.gsPrimaryInfo.domain)
                   controller.showSuccess()
                   controller.joinGame(playerInfo, gameServerInfo)
-                case Left(error) =>
-                  controller.showLoginError("登录失败")
-                  println(error)
+                case Left(e) =>
+                  log.warn(s"${ctx.self.path} VerifyAccessCode failed, error:$e")
+                  controller.showLoginError("邮箱登录失败")
               }
-            case Left(exception) =>
-              log.warn(s"${ctx.self.path} VerifyAccessCode failed, error:$exception")
+            case Left(e) =>
+              log.warn(s"${ctx.self.path} VerifyAccessCode failed, error:$e")
               controller.showLoginError("邮箱登录失败")
           }
           Behaviors.same
 
         case WSLogin(url) =>
-          println(s"i got msg $url")
+//          println(s"i got msg $url")
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(url))
           val incoming = getSink(controller)
           val ((stream, response), closed) =
@@ -153,7 +151,7 @@ object LoginActor {
       case TextMessage.Strict(msg) =>
         decode[Ws4AgentRsp](msg) match {
           case Right(rsp) =>
-            println(rsp)
+//            println(rsp)
             val data = rsp.Ws4AgentRsp.data
             EsheepClient.linkGameAgent(data.token,s"user${data.userId}").onComplete{
               case Success(rst) =>
@@ -185,13 +183,6 @@ object LoginActor {
         log.error(s"wsclient receive unknown message:$unknown")
     }
 
-//  def getWebSocketUri(playerId: String, playerName: String, accessCode: String): String = {
-////    val wsProtocol = AppSettings.
-////    val domain = AppSettings
-//    val playerIdEncoder = URLEncoder.encode(playerId, "UTF-8")
-//    val playerNameEncoder = URLEncoder.encode(playerName, "UTF-8")
-//    s"$wsProtocol://$domain/tank/link/playGameClient?playerId=$playerIdEncoder&playerName=$playerNameEncoder&accessCode=$accessCode"
-//  }
 
 
 

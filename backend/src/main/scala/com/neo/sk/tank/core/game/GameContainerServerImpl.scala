@@ -266,6 +266,7 @@ case class GameContainerServerImpl(
         val event = TankGameEvent.UserJoinRoom(userId, name, tank.getTankState(), systemFrame)
         dispatch(event)
         addGameEvent(event)
+        println(s"the path is $ref")
         ref ! UserActor.JoinRoomSuccess(tank, config.getTankGameConfigImpl(), userId, roomActor = roomActorRef)
         userMapObserver.get(userId) match {
           case Some(maps) =>

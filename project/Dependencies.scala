@@ -72,7 +72,7 @@ object Dependencies {
   val grpc = "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion
   val scalaPB = "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
 //  val scalaFx = "org.scalafx" %% "scalafx" % "10.0.2-R15"
-
+  val asynchttpclientspecial = "org.asynchttpclient" % "async-http-client" % "2.5.2"
 
 
   val backendDependencies =
@@ -111,7 +111,7 @@ object Dependencies {
         Dependencies.nscalaTime,
         Dependencies.codec,
         Dependencies.logback,
-        Dependencies.asynchttpclient,
+        Dependencies.asynchttpclientspecial,
         Dependencies.essf,
         Dependencies.byteobject,
         Dependencies.scalaPB,

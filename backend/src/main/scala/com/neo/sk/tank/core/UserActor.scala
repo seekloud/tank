@@ -208,6 +208,7 @@ object UserActor {
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
 //          println("渲染数据")
+          println(s"send the info ${tank.tankId}")
           frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, userInfo.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId, userInfo,tank,startTime,frontActor,roomActor))
 
@@ -448,6 +449,13 @@ object UserActor {
 
             case TankGameEvent.GetSyncGameState =>
               roomActor ! RoomActor.GetSyncState(uId)
+
+            case t:TankGameEvent.RestartGame =>
+              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
+              val newStartTime = System.currentTimeMillis()
+              roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,newStartTime,ctx.self)
+              switchBehavior(ctx,"idle",idle(uId,userInfo.copy(name = t.name),newStartTime,frontActor))
+
             case _ =>
           }
           Behaviors.same
@@ -458,16 +466,18 @@ object UserActor {
             println(s"${ctx.self.path} tank 当前生命值${tank.getTankState().lives}")
             if (tank.lives > 1){
               //玩家进入复活状态
-//              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
               switchBehavior(ctx,"waitRestartWhenPlay",waitRestartWhenPlay(uId,userInfo,startTime,frontActor, tank))
-            } else {
-              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
-              switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
             }
+            Behaviors.same
+//            else {
+//              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
+//              switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
+//            }
           }else{
               frontActor ! m
               Behaviors.same
           }
+
 
         case ChangeBehaviorToInit=>
           frontActor ! TankGameEvent.Wrap(TankGameEvent.RebuildWebSocket.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
@@ -490,7 +500,7 @@ object UserActor {
           Behaviors.same
 
         case unknowMsg =>
-//          log.warn(s"got unknown msg: $unknowMsg")
+          log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
       }
     }
