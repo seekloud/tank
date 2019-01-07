@@ -1,5 +1,6 @@
 package com.neo.sk.tank.shared.protocol
 
+
 import com.neo.sk.tank.shared.`object`.{BulletState, ObstacleState, PropState, TankState}
 import com.neo.sk.tank.shared.config.{TankGameConfig, TankGameConfigImpl}
 import com.neo.sk.tank.shared.game.{GameContainerAllState, GameContainerState}
@@ -32,6 +33,8 @@ object TankGameEvent {
 
   final case class WsMsgErrorRsp(errCode:Int, msg:String) extends WsMsgServer
   //  final case class GameConfig(config:TankGameConfigImpl) extends WsMsgServer
+  final case class WsSuccess(roomId:Option[Long],password:Option[String]) extends WsMsgServer
+  final case class StartGame(roomId:Option[Long],password:Option[String]) extends WsMsgFront
   final case class YourInfo(userId:String,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
 //  final case class TankReliveInfo(config:TankGameConfigImpl) extends WsMsgServer
 //  final case class YouAreKilled(tankId:Int,name:String) extends WsMsgServer //可能会丢弃

@@ -52,7 +52,7 @@ object UserActor {
   case class UserFrontActor(actor:ActorRef[TankGameEvent.WsMsgSource]) extends Command
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
-
+  case class WsSuccess(roomId:Option[Long], password:Option[String]) extends Command
   case class StartGame(roomId:Option[Long], password:Option[String]) extends Command
 
   case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None, passwordOpt:Option[String] = None) extends Command with RoomManager.Command
@@ -64,7 +64,7 @@ object UserActor {
   case class StartReplay(rid:Long, wid:String, f:Int) extends Command
 
   case class ChangeUserInfo(info:TankGameUserInfo) extends Command
-  case class JoinGame(roomIdOpt:Option[Long] = None, passwordOpt:Option[String] = None,info:TankGameUserInfo) extends Command
+  case class JoinGame(roomIdOpt:Option[Long] = None, passwordOpt:Option[String] = None) extends Command
 
   final case class StartObserve(roomId:Long, watchedUserId:String) extends Command
 
@@ -199,8 +199,14 @@ object UserActor {
         case ChangeUserInfo(info) =>
           idle(uId,info,startTime,frontActor)
 
-        case JoinGame(roomIdOpt, passwordOpt, info)=>
-          ctx.self ! ChangeUserInfo(info)
+        case WsSuccess(roomIdOpt, passwordOpt) =>
+         frontActor ! TankGameEvent.Wrap(TankGameEvent.WsSuccess(roomIdOpt, passwordOpt).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+         Behaviors.same
+
+
+        case JoinGame(roomIdOpt, passwordOpt)=>
+          log.info("userActor joingame")
+          ctx.self ! ChangeUserInfo(userInfo)
           ctx.self ! UserActor.StartGame(roomIdOpt,passwordOpt)
           Behaviors.same
 
@@ -237,6 +243,10 @@ object UserActor {
               val newStartTime = System.currentTimeMillis()
               roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,newStartTime,ctx.self)
               idle(uId,userInfo.copy(name = t.name),newStartTime,frontActor)
+            case Some(t:TankGameEvent.StartGame) =>
+              log.info("get ws msg startGame")
+              ctx.self ! JoinGame(t.roomId,t.password)
+              idle(uId,userInfo,startTime,frontActor)
             case _ =>
               Behaviors.same
           }

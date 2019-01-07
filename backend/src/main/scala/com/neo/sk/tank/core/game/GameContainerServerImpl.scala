@@ -266,6 +266,7 @@ case class GameContainerServerImpl(
         dispatch(event)
         addGameEvent(event)
         ref ! UserActor.JoinRoomSuccess(tank, config.getTankGameConfigImpl(), userId, roomActor = roomActorRef)
+        //ref ! UserActor.JoinRoom()
         userMapObserver.get(userId) match {
           case Some(maps) =>
             maps.foreach { p =>

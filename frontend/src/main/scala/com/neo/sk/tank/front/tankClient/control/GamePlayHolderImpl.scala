@@ -77,6 +77,8 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       setGameState(GameState.loadingPlay)
       //      webSocketClient.setup(Routes.wsJoinGameUrl(name))
       webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, playerInfoOpt,roomIdOpt))
+//      webSocketClient.sendMsg(TankGameEvent.StartGame(roomIdOpt,None))
+
       gameLoop()
 
     }else if(webSocketClient.getWsState){
@@ -224,6 +226,9 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
 //    println(data.getClass)
     data match {
+      case e:TankGameEvent.WsSuccess =>
+        webSocketClient.sendMsg(TankGameEvent.StartGame(e.roomId,None))
+
       case e:TankGameEvent.YourInfo =>
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)
         audioForBgm.play()
