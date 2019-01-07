@@ -82,6 +82,8 @@ object UserActor {
 
   case class ChangeWatchedPlayerId(playerInfo:TankGameUserInfo,watchedPlayerId: String) extends Command with UserManager.Command
 
+  case object reJoinRoomKey extends Command
+
   final case class SwitchBehavior(
                                    name: String,
                                    behavior: Behavior[Command],
@@ -181,7 +183,7 @@ object UserActor {
 
 
 
-  private def idle(uId:String, userInfo: TankGameUserInfo,startTime:Long, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
+  private def idle(uId:String, userInfo: TankGameUserInfo, startTime:Long, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command],
     sendBuffer:MiddleBufferInJvm
@@ -192,7 +194,7 @@ object UserActor {
           /**换成给roomManager发消息,告知uId,name
             * 还要给userActor发送回带roomId的数据
             * */
-          roomManager ! JoinRoom(uId,None,userInfo.name,startTime,ctx.self, roomIdOpt)
+          roomManager ! JoinRoom(uId,None,userInfo.name,startTime,ctx.self,roomIdOpt)
           Behaviors.same
 
         case ChangeUserInfo(info) =>
@@ -451,9 +453,8 @@ object UserActor {
 
             case t:TankGameEvent.RestartGame =>
               roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
-              val newStartTime = System.currentTimeMillis()
-              roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,newStartTime,ctx.self)
-              switchBehavior(ctx,"idle",idle(uId,userInfo.copy(name = t.name),newStartTime,frontActor))
+              timer.startSingleTimer(reJoinRoomKey,StartGame(None),3.seconds)
+              switchBehavior(ctx,"idle",idle(uId,userInfo.copy(name = t.name),System.currentTimeMillis(),frontActor))
 
             case _ =>
           }
@@ -466,19 +467,16 @@ object UserActor {
             if (tank.lives > 1 && AppSettings.supportLiveLimit){
               //玩家进入复活状态
               switchBehavior(ctx,"waitRestartWhenPlay",waitRestartWhenPlay(uId,userInfo,startTime,frontActor, tank))
-            } else {
-              log.debug(s"${ctx.self.path}由于玩家生命值用尽或者不支持生命值而切换到idle状态")
-              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
-              switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
             }
-            Behaviors.same
-//            else {
+              //            else {
+//              log.debug(s"${ctx.self.path}由于玩家生命值用尽或者不支持生命值而切换到idle状态")
 //              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
 //              switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
 //            }
+            Behaviors.same
           }else{
-              frontActor ! m
-              Behaviors.same
+            frontActor ! m
+            Behaviors.same
           }
 
 
