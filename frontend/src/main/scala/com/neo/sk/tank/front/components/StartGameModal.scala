@@ -19,6 +19,7 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
   private val inputDisabled:Var[Boolean] = Var(playerInfoOpt.isDefined)
   private val inputValue:Var[String] = Var(playerInfoOpt.map(_.userName).getOrElse(""))
 //  private val input4RoomIdValue:Var[Option[Long]] = Var(playerInfoOpt.map(_.roomIdOpt).get)
+  private var inputName = ""
 
 
 
@@ -30,16 +31,20 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
   }
 
   private val divStyle = gameState.map{
-    case GameState.play => "display:none;"
-    case GameState.loadingPlay => "display:none;"
-//    case Constants.GameState.stop if lives != 1 => "display:none"
-    case _ => "display:block;"
+    case GameState.firstCome => "display:block;"
+    case GameState.stop => "display:block;"
+    case _ => "display:none;"
   }
 
-  private val combatGainsStyle = gameState.map{
-    case GameState.stop => "display:block"
-    case _ => "display:none"
+  private val inputDivStyle = gameState.map{
+    case GameState.firstCome => "display:block;"
+    case _ => "display:none;"
   }
+//
+//  private val combatGainsStyle = gameState.map{
+//    case GameState.stop => "display:block"
+//    case _ => "display:none"
+//  }
 
 
   private val watchButtonDivStyle = inputDisabled.map{
@@ -59,31 +64,33 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
     if(e.keyCode == KeyCode.Enter){
       val name = dom.document.getElementById("TankGameNameInput").asInstanceOf[dom.html.Input].value
       val roomIdString = dom.document.getElementById("TankGameRoomIdInput").asInstanceOf[dom.html.Input].value
-      val roomIdOpt = if(roomIdString == "")None else Some(roomIdString.toLong)
+      val roomIdOpt = if(roomIdString == "") None else Some(roomIdString.toLong)
       if(name.nonEmpty){
+        inputName = name
         startGame(name,roomIdOpt)
+      }else if(inputName != "") {
+        startGame(inputName,roomIdOpt)
       }
+
       e.preventDefault()
     }
-
   }
 
 
   def clickEnter():Unit = {
     val name = dom.document.getElementById("TankGameNameInput").asInstanceOf[dom.html.Input].value
     val roomIdString = dom.document.getElementById("TankGameRoomIdInput").asInstanceOf[dom.html.Input].value
-    val roomIdOpt = if(roomIdString == "")None else Some(roomIdString.toLong)
+    val roomIdOpt = if(roomIdString == "") None else Some(roomIdString.toLong)
     if(name.nonEmpty){
+      inputName = name
       startGame(name,roomIdOpt)
     }
   }
 
   override def render: Elem = {
     <div style={divStyle}>
-      <div class ="input_mask" onkeydown ={e:KeyboardEvent => clickEnter(e)}>
-      </div>
-      <div style = {combatGainsStyle}><div id = "combat_gains"></div></div>
-      <div class ="input_div">
+      <div class ="input_mask" tabindex="-1" onkeydown ={e:KeyboardEvent => clickEnter(e)}></div>
+      <div class ="input_div" style={inputDivStyle}>
         <div class ="input_title">{title}</div>
         <div>
           <p class="input_inline"><span class="input_des">名字</span>{inputElem}</p>
