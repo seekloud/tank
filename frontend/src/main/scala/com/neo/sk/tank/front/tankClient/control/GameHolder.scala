@@ -31,11 +31,11 @@ abstract class GameHolder(name: String) extends NetworkInfo {
   protected var canvasUnit = getCanvasUnit(canvasWidth)
   protected var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
 
-  protected val audioForBgm = dom.document.getElementById("GameAudioForBgm").asInstanceOf[Audio]
-  audioForBgm.volume = 0.3
-  protected val audioForDead = dom.document.getElementById("GameAudioForDead").asInstanceOf[Audio]
-  protected val audioForBullet = dom.document.getElementById("GameAudioForBullet").asInstanceOf[Audio]
-  var needBgm = true
+//  protected val audioForBgm = dom.document.getElementById("GameAudioForBgm").asInstanceOf[Audio]
+//  audioForBgm.volume = 0.3
+//  protected val audioForDead = dom.document.getElementById("GameAudioForDead").asInstanceOf[Audio]
+//  protected val audioForBullet = dom.document.getElementById("GameAudioForBullet").asInstanceOf[Audio]
+//  var needBgm = true
 
   println(s"test111111111111=${canvasUnit},=${canvasWidth}")
 
@@ -119,6 +119,7 @@ abstract class GameHolder(name: String) extends NetworkInfo {
     val curTime = System.currentTimeMillis()
     val offsetTime = curTime - logicFrameTime
     drawGame(offsetTime,Constants.supportLiveLimit)
+    if(gameState == GameState.stop) gameContainerOpt.foreach(_.drawCombatGains())
     nextFrame = dom.window.requestAnimationFrame(gameRender())
   }
 
@@ -170,7 +171,6 @@ abstract class GameHolder(name: String) extends NetworkInfo {
         gameContainerOpt.foreach(_.update())
         logicFrameTime = System.currentTimeMillis()
         ping()
-//        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.drawCombatGains()), 3000)
 
       case _ => println(s"state=$gameState failed")
     }

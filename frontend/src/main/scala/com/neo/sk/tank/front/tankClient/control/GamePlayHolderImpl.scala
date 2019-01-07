@@ -118,7 +118,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     }
     canvas.getCanvas.onclick = { e: MouseEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
-        audioForBullet.play()
+//        audioForBullet.play()
         val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
         sendMsg2Server(preExecuteAction) //发送鼠标位置
@@ -156,7 +156,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           e.preventDefault()
         }
         else if (keyCode == KeyCode.Space && spaceKeyUpState) {
-          audioForBullet.play()
+//          audioForBullet.play()
           spaceKeyUpState = false
           val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
@@ -173,16 +173,17 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           sendMsg2Server(preExecuteAction)
           e.preventDefault()
         }
-        else if(keyCode == KeyCode.M){
-          if(needBgm){
-            audioForBgm.pause()
-            needBgm = false
-          }else{
-            audioForBgm.play()
-            needBgm = true
-          }
-        }
+//        else if(keyCode == KeyCode.M){
+//          if(needBgm){
+//            audioForBgm.pause()
+//            needBgm = false
+//          }else{
+//            audioForBgm.play()
+//            needBgm = true
+//          }
+//        }
       }
+
     }
 
     canvas.getCanvas.onkeyup = { e: dom.KeyboardEvent =>
@@ -234,7 +235,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         println(s"new game the id is ${e.tankId}=====${e.name}")
         println(s"玩家信息${e}")
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)
-        audioForBgm.play()
+//        audioForBgm.play()
         /**
           * 更新游戏数据
           * */
@@ -254,8 +255,8 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         if((Constants.supportLiveLimit && ! e.hasLife) || (! Constants.supportLiveLimit)){
           setGameState(GameState.stop)
           gameContainerOpt.foreach(_.changeTankId(e.tankId))
-          audioForBgm.pause()
-          audioForDead.play()
+//          audioForBgm.pause()
+//          audioForDead.play()
         }
 
       case e:TankGameEvent.Ranks =>
