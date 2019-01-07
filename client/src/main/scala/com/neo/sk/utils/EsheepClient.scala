@@ -20,7 +20,7 @@ object EsheepClient extends HttpUtil {
   private val log = LoggerFactory.getLogger(this.getClass)
 
 //  private val baseUrl = s"${AppSettings.esheepProtocol}://${AppSettings.esheepHost}:${AppSettings.esheepPort}"
-  private val baseUrl = s"http://flow.neoap.com"
+  private val baseUrl = s"http://flowdev.neoap.com"
   //  private val appId = AppSettings.esheepAppId
 //  private val secureKey = AppSettings.esheepSecureKey
 
@@ -54,7 +54,7 @@ object EsheepClient extends HttpUtil {
 
   def validateByEmail(mail:String, pwd:String) = {
     val methodName = s"validate email"
-    val url = s"$baseUrl/esheep//rambler/login"
+    val url = s"$baseUrl/esheep/rambler/login"
     val data = LoginReq(mail, pwd).asJson.noSpaces
 
     postJsonRequestSend(methodName,url,Nil,data).map{

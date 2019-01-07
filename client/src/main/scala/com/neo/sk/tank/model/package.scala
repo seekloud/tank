@@ -67,7 +67,7 @@ package object model {
                                       gender: Int,
                                       errCode: Int = 0,
                                       msg: String = "ok"
-                                    ) extends CommonRsp
+                                    )
 
   //esheep连接游戏
   case class GameServerData(

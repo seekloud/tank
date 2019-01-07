@@ -71,18 +71,20 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
   private def start(name:String,roomIdOpt:Option[Long]):Unit = {
     canvas.getCanvas.focus()
+    dom.window.cancelAnimationFrame(nextFrame)
+    Shortcut.cancelSchedule(timer)
     if(firstCome){
       firstCome = false
       addUserActionListenEvent()
       setGameState(GameState.loadingPlay)
-      //      webSocketClient.setup(Routes.wsJoinGameUrl(name))
       webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, playerInfoOpt,roomIdOpt))
       gameLoop()
 
     }else if(webSocketClient.getWsState){
       gameContainerOpt match {
         case Some(gameContainer) =>
-          webSocketClient.sendMsg(TankGameEvent. RestartGame(Some(gameContainer.myTankId),name))
+          gameContainerOpt.foreach(_.changeTankId(gameContainer.myTankId))
+          webSocketClient.sendMsg(TankGameEvent.RestartGame(Some(gameContainer.myTankId),name))
         case None =>
           webSocketClient.sendMsg(TankGameEvent.RestartGame(None,name))
       }
@@ -222,9 +224,9 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
-//    println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
+        println(s"new game the id is ${e.tankId}=====${e.name}")
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)
         audioForBgm.play()
         /**
@@ -240,12 +242,12 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         /**
           * 死亡重玩
           * */
-        println(s"you are killed")
         gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum,e.name,e.damageStatistics))
-        dom.window.cancelAnimationFrame(nextFrame)
-        gameContainerOpt.foreach(_.drawGameStop())
+//        dom.window.cancelAnimationFrame(nextFrame)
+//        gameContainerOpt.foreach(_.drawGameStop())
         if(! e.hasLife){
           setGameState(GameState.stop)
+          gameContainerOpt.foreach(_.changeTankId(e.tankId))
           audioForBgm.pause()
           audioForDead.play()
         }

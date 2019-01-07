@@ -54,16 +54,18 @@ class LoginScreen(context: Context) {
     imageView.setX(100)
     imageView.setY(60)
 
-    val hBox = new HBox(10)
     val label = new Label("请扫码登录")
     label.setFont(Font.font("Cambria", 32))
+    label.setLayoutX(170)
+    label.setLayoutY(330)
+
     val emailLink = new Hyperlink()
     emailLink.setText("邮箱登录")
-    emailLink.setFont(Font.font("Cambria", FontWeight.NORMAL, 10))
+    emailLink.setFont(Font.font("Cambria", FontWeight.NORMAL, 15))
     emailLink.setOnAction(_ => loginSceneListener.onLinkToEmail())
-    hBox.getChildren.addAll(label, emailLink)
-    hBox.setLayoutX(120)
-    hBox.setLayoutY(330)
+    emailLink.setLayoutX(220)
+    emailLink.setLayoutY(370)
+
 
     root.getChildren.add(imageView)
     root.getChildren.add(label)

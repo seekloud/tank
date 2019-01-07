@@ -55,6 +55,7 @@ object RoomManager {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {
         case JoinRoom(uid,tankIdOpt,name,startTime,userActor, roomIdOpt) =>
+          log.debug(s"before roomInUse:$roomInUse")
           roomIdOpt match{
             case Some(roomId) =>
               roomInUse.get(roomId) match{
