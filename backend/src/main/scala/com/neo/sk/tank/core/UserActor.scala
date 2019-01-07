@@ -440,25 +440,33 @@ object UserActor {
           play(uId,info,tank,startTime,frontActor,roomActor)
 
         case WebSocketMsg(reqOpt) =>
-          reqOpt.foreach {
-            case t:TankGameEvent.UserActionEvent =>
-              //分发数据给roomActor
-              //              println(s"${ctx.self.path} websocketmsg---------------${t}")
-              roomActor ! RoomActor.WebSocketMsg(uId, tank.tankId, t)
-            case t: TankGameEvent.PingPackage =>
-              frontActor ! TankGameEvent.Wrap(t.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          if(reqOpt.nonEmpty){
+            reqOpt.get match{
+              case t:TankGameEvent.UserActionEvent =>
+                //分发数据给roomActor
+                //              println(s"${ctx.self.path} websocketmsg---------------${t}")
+                roomActor ! RoomActor.WebSocketMsg(uId, tank.tankId, t)
+                Behaviors.same
 
-            case TankGameEvent.GetSyncGameState =>
-              roomActor ! RoomActor.GetSyncState(uId)
+              case t: TankGameEvent.PingPackage =>
+                frontActor ! TankGameEvent.Wrap(t.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+                Behaviors.same
 
-            case t:TankGameEvent.RestartGame =>
-              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
-              timer.startSingleTimer(reJoinRoomKey,StartGame(None),3.seconds)
-              switchBehavior(ctx,"idle",idle(uId,userInfo.copy(name = t.name),System.currentTimeMillis(),frontActor))
+              case TankGameEvent.GetSyncGameState =>
+                roomActor ! RoomActor.GetSyncState(uId)
+                Behaviors.same
 
-            case _ =>
+              case t:TankGameEvent.RestartGame =>
+                roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
+                timer.startSingleTimer(reJoinRoomKey,StartGame(None),3.seconds)
+                switchBehavior(ctx,"idle",idle(uId,userInfo.copy(name = t.name),System.currentTimeMillis(),frontActor))
+            }
           }
-          Behaviors.same
+          else{
+            Behaviors.same
+          }
+
+
 
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
@@ -473,7 +481,8 @@ object UserActor {
 //              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
 //              switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
 //            }
-            Behaviors.same
+            else
+              Behaviors.same
           }else{
             frontActor ! m
             Behaviors.same
@@ -501,7 +510,7 @@ object UserActor {
           Behaviors.same
 
         case unknowMsg =>
-          log.warn(s"got unknown msg: $unknowMsg")
+          log.warn(s"play got unknown msg: $unknowMsg")
           Behavior.same
       }
     }
