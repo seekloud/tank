@@ -26,7 +26,8 @@ case class GameContainerClientImpl(
                               var canvasSize: Point,
                               var canvasUnit: Int,
                               setGameState: Int => Unit,
-                              setKillCallback: (String, Boolean, Int, Int) => Unit = { (_, _, _, _) => }
+                              setKillCallback: (String, Boolean, Int, Int) => Unit = { (_, _, _, _) => },
+                              versionInfo:Option[String]=None
                             ) extends GameContainer with EsRecover
   with BackgroundDrawUtil with BulletDrawUtil with FpsComponentsDrawUtil with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil with InfoDrawUtil {
 
@@ -266,29 +267,31 @@ case class GameContainerClientImpl(
     judge(gameContainerState)
     quadTree.clear()
     tankMap.clear()
-    obstacleMap.clear()
-    propMap.clear()
-    tankMoveAction.clear()
+//    obstacleMap.clear()
+//    propMap.clear()
+//    tankMoveAction.clear()
     gameContainerState.tanks.foreach { t =>
       val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
       quadTree.insert(tank)
       tankMap.put(t.tankId, tank)
     }
-    gameContainerState.obstacle.foreach { o =>
-      val obstacle = Obstacle(config, o)
-      quadTree.insert(obstacle)
-      obstacleMap.put(o.oId, obstacle)
-    }
-    gameContainerState.props.foreach { t =>
-      val prop = Prop(t, config.propRadius)
-      quadTree.insert(prop)
-      propMap.put(t.pId, prop)
-    }
-    gameContainerState.tankMoveAction.foreach { t =>
-      val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Int]())
-      t._2.foreach(set.add)
-      tankMoveAction.put(t._1, set)
-    }
+//    gameContainerState.obstacle.foreach { o =>
+//      val obstacle = Obstacle(config, o)
+//      quadTree.insert(obstacle)
+//      obstacleMap.put(o.oId, obstacle)
+//    }
+//    gameContainerState.props.foreach { t =>
+//      val prop = Prop(t, config.propRadius)
+//      quadTree.insert(prop)
+//      propMap.put(t.pId, prop)
+//    }
+//    gameContainerState.tankMoveAction.foreach { t =>
+//      val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Int]())
+//      t._2.foreach(set.add)
+//      tankMoveAction.put(t._1, set)
+//    }
+    obstacleMap.values.foreach(quadTree.insert)
+    propMap.values.foreach(quadTree.insert)
     environmentMap.values.foreach(quadTree.insert)
     bulletMap.values.foreach { bullet =>
       quadTree.insert(bullet)
@@ -366,7 +369,8 @@ case class GameContainerClientImpl(
     if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
   }
 
-  def drawGame(time: Long, networkLatency: Long): Unit = {
+//  def drawGame(time: Long, networkLatency: Long, dataSize:String): Unit = {
+  def drawGame(time: Long, networkLatency: Long,dataSize:String,supportLiveLimit:Boolean = false): Unit = {
     val offsetTime = math.min(time, config.frameDuration)
     val h = canvasSize.y
     val w = canvasSize.x
@@ -384,10 +388,10 @@ case class GameContainerClientImpl(
           drawBullet(offset, offsetTime, Point(w, h))
           drawTank(offset, offsetTime, Point(w, h))
           drawObstacleBloodSlider(offset)
-          drawMyTankInfo(tank.asInstanceOf[TankClientImpl])
+          drawMyTankInfo(tank.asInstanceOf[TankClientImpl],supportLiveLimit)
           drawMinimap(tank)
-          drawRank()
-          renderFps(networkLatency)
+          drawRank(supportLiveLimit)
+          renderFps(networkLatency,dataSize)
           drawKillInformation()
           drawRoomNumber()
           drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])

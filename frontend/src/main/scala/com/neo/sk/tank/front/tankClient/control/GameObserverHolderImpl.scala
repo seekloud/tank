@@ -1,6 +1,6 @@
 package com.neo.sk.tank.front.tankClient.control
 
-import com.neo.sk.tank.front.common.Routes
+import com.neo.sk.tank.front.common.{Constants, Routes}
 import com.neo.sk.tank.front.utils.Shortcut
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
@@ -30,7 +30,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
     data match {
       case e:TankGameEvent.YourInfo =>
         //        setGameState(Constants.GameState.loadingPlay)
-        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, versionInfo = versionInfoOpt))
         gameContainerOpt.get.getTankId(e.tankId)
         Shortcut.cancelSchedule(timer)
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)
@@ -90,7 +90,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
           * */
         println(s"you are killed")
         gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum,e.name,e.damageStatistics))
-        if(e.hasLife){
+        if(e.hasLife && Constants.supportLiveLimit){
           gameContainerOpt.foreach(_.drawDeadImg(s"玩家死亡，生命值未用尽，等待玩家复活"))
         }else{
           gameContainerOpt.foreach(_.drawDeadImg(s"玩家死亡，生命值已经用完啦！可以在此界面等待玩家重新进入房间"))
