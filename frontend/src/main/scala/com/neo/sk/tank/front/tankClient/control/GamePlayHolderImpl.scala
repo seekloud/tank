@@ -83,14 +83,13 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     }else if(webSocketClient.getWsState){
       gameContainerOpt match {
         case Some(gameContainer) =>
+          gameContainerOpt.foreach(_.changeTankId(gameContainer.myTankId))
           if(Constants.supportLiveLimit){
             webSocketClient.sendMsg(TankGameEvent.RestartGame(Some(gameContainer.myTankId),name))
           }else{
             webSocketClient.sendMsg(TankGameEvent.RestartGame(None,name))
           }
 
-          gameContainerOpt.foreach(_.changeTankId(gameContainer.myTankId))
-          webSocketClient.sendMsg(TankGameEvent.RestartGame(Some(gameContainer.myTankId),name))
         case None =>
           webSocketClient.sendMsg(TankGameEvent.RestartGame(None,name))
       }
@@ -252,9 +251,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum,e.name,e.damageStatistics))
 //        dom.window.cancelAnimationFrame(nextFrame)
 //        gameContainerOpt.foreach(_.drawGameStop())
-        if(! e.hasLife){
-        dom.window.cancelAnimationFrame(nextFrame)
-        gameContainerOpt.foreach(_.drawGameStop())
         if((Constants.supportLiveLimit && ! e.hasLife) || (! Constants.supportLiveLimit)){
           setGameState(GameState.stop)
           gameContainerOpt.foreach(_.changeTankId(e.tankId))

@@ -170,7 +170,7 @@ abstract class GameHolder(name: String) extends NetworkInfo {
         gameContainerOpt.foreach(_.update())
         logicFrameTime = System.currentTimeMillis()
         ping()
-        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.drawCombatGains()), 3000)
+//        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.drawCombatGains()), 3000)
 
       case _ => println(s"state=$gameState failed")
     }
