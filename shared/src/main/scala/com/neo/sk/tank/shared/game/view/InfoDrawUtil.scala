@@ -75,18 +75,19 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
   }
 
   def drawCombatGains():Unit = {
-    ctx.setFont("楷体", "normal", 4 * canvasUnit)
+    ctx.setFont("Arial", "normal", 4 * canvasUnit)
 //    ctx.setFill("rgb(0,0,0)")
 //    ctx.fillRec(0,0,canvasSize.x * canvasUnit,canvasSize.y * canvasUnit)
-    val combatImg = drawFrame.createImage("/img/dead.png")
-    ctx.setGlobalAlpha(0.7)
+//    val combatImg = drawFrame.createImage("/img/dead.png")
+//    ctx.setGlobalAlpha(0.7)
 //    ctx.drawImage(combatImg,0.25 * canvasSize.x * canvasUnit,0.1 * canvasSize.y * canvasUnit,Some(0.5* canvasSize.x * canvasUnit,0.22 * canvasSize.y * canvasUnit))
     ctx.setGlobalAlpha(1)
     ctx.setTextAlign("left")
-    ctx.setFill("#FFFFFF")
-    ctx.fillText(s"击杀量：",0.4 * canvasSize.x * canvasUnit, 0.13 * canvasSize.y * canvasUnit)
-    ctx.fillText(s"伤害量：", 0.4 * canvasSize.x * canvasUnit, 0.2 * canvasSize.y * canvasUnit)
-    ctx.fillText(s"击杀者ID：",0.4 * canvasSize.x * canvasUnit, 0.26 * canvasSize.y * canvasUnit)
+    ctx.setFill("rgb(0,0,0)")
+    ctx.fillText(s"KillCount：",0.4 * canvasSize.x * canvasUnit, 0.13 * canvasSize.y * canvasUnit)
+    ctx.fillText(s"Damage：", 0.4 * canvasSize.x * canvasUnit, 0.2 * canvasSize.y * canvasUnit)
+    ctx.fillText(s"Killer：",0.4 * canvasSize.x * canvasUnit, 0.26 * canvasSize.y * canvasUnit)
+    ctx.fillText(s"Press Enter To Comeback!!!",0.4 * canvasSize.x * canvasUnit, 0.32 * canvasSize.y * canvasUnit)
     ctx.setFill("rgb(255,0,0)")
     ctx.fillText(s"${this.killNum}", 0.5 * canvasSize.x * canvasUnit, 0.13 * canvasSize.y * canvasUnit)
     ctx.fillText(s"${this.damageNum}",0.5 * canvasSize.x * canvasUnit, 0.2 * canvasSize.y * canvasUnit)
@@ -94,7 +95,7 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
     this.killerList.foreach{r =>
       ctx.fillText(s"【${r}】", pos, 0.26 * canvasSize.y * canvasUnit)
       pos = pos + 2 * canvasUnit * s"【${r}】".length + 1 * canvasUnit}
-    ctx.drawImage(combatImg,0.25 * canvasSize.x * canvasUnit,0.1 * canvasSize.y * canvasUnit,Some(pos - 0.25 * canvasSize.x * canvasUnit + 2 * canvasUnit,0.22 * canvasSize.y * canvasUnit))
+//    ctx.drawImage(combatImg,0.25 * canvasSize.x * canvasUnit,0.1 * canvasSize.y * canvasUnit,Some(pos - 0.25 * canvasSize.x * canvasUnit + 2 * canvasUnit,0.22 * canvasSize.y * canvasUnit))
     //    ctx.drawImage(combatImg,0.25 * canvasSize.x * canvasUnit,0.1 * canvasSize.y * canvasUnit,Some(0.5* canvasSize.x * canvasUnit,0.22 * canvasSize.y * canvasUnit))
 
   }
