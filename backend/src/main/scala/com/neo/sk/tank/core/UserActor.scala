@@ -458,7 +458,7 @@ object UserActor {
 
               case t:TankGameEvent.RestartGame =>
                 roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
-                timer.startSingleTimer(reJoinRoomKey,StartGame(None),3.seconds)
+                timer.startSingleTimer(reJoinRoomKey,StartGame(None),2.seconds)
                 switchBehavior(ctx,"idle",idle(uId,userInfo.copy(name = t.name),System.currentTimeMillis(),frontActor))
             }
           }
