@@ -196,7 +196,7 @@ object RoomActor {
 
 
         case GameLoop =>
-          val startTime = System.currentTimeMillis()
+//          val startTime = System.currentTimeMillis()
           val snapshotOpt = gameContainer.getCurSnapshot()
 
           //生成坦克
@@ -216,14 +216,9 @@ object RoomActor {
           val state = gameContainer.getGameContainerState()
           userGroup.get(tickCount%classify).foreach{s=>
             if(s.nonEmpty){
-//              println(tickCount,subscribersMap.filter(r=>s.contains(r._1)).keySet, observersMap.filter(r=>s.contains(r._1)).keySet)
               dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(state))
             }
           }
-          /*if(tickCount%classify==5){
-            val state = gameContainer.getGameContainerState()
-            dispatch(subscribersMap, observersMap)(TankGameEvent.SyncGameState(state))
-          }*/
           val count=tickCount%20
           for(i <- count*10 until (count+1)*10){
             userGroup.get(i).foreach { s =>
@@ -241,10 +236,11 @@ object RoomActor {
             dispatchTo(subscribersMap, observersMap)(t._1, tankFollowEventSnap, ls)
             dispatchTo(subscribersMap, observersMap)(t._1, TankGameEvent.SyncGameAllState(gameContainerAllState), ls)
           }
-          val endTime = System.currentTimeMillis()
+//          val endTime = System.currentTimeMillis()
           /*if (tickCount % 100 == 2) {
             //            log.debug(s"${ctx.self.path} curFrame=${gameContainer.systemFrame} use time=${endTime-startTime}")
           }*/
+
           idle(index,roomId, Nil, userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount + 1)
 
         case ChildDead(name, childRef) =>

@@ -75,7 +75,7 @@ object RoomManager {
                   getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
               }
           }
-          log.debug(s"now roomInUse:$roomInUse")
+          log.debug(s"${ctx.self.path}新加入玩家${uid}--${name},now roomInUse:$roomInUse")
           Behaviors.same
 
 
@@ -107,6 +107,7 @@ object RoomManager {
             case Some(t) =>
               roomInUse.put(t._1,t._2.filterNot(_._1 == uid))
               getRoomActor(ctx,t._1) ! LeftRoomByKilled(uid,tankId,tankLives,name)
+              log.debug(s"${ctx.self.path}房间管理正在维护的信息${roomInUse}")
             case None =>log.debug(s"this user doesn't exist")
           }
           Behaviors.same

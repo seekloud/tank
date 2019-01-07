@@ -10,4 +10,6 @@ object Constants {
     val height = 500
   }
 
+  val supportLiveLimit = false
+
 }

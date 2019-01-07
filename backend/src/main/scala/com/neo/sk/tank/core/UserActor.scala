@@ -6,7 +6,7 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
-import com.neo.sk.tank.common.Constants
+import com.neo.sk.tank.common.{AppSettings, Constants}
 import com.neo.sk.tank.core.RoomActor.TankRelive
 import com.neo.sk.tank.core.game.TankGameConfigServerImpl
 import com.neo.sk.tank.models.TankGameUserInfo
@@ -146,7 +146,6 @@ object UserActor {
         case UserFrontActor(frontActor) =>
           ctx.watchWith(frontActor,UserLeft(frontActor))
           switchBehavior(ctx,"idle",idle(uId, userInfo,System.currentTimeMillis(), frontActor))
-
 
         case ChangeUserInfo(info) =>
           init(uId,info)
@@ -464,9 +463,13 @@ object UserActor {
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
             frontActor ! m
             println(s"${ctx.self.path} tank 当前生命值${tank.getTankState().lives}")
-            if (tank.lives > 1){
+            if (tank.lives > 1 && AppSettings.supportLiveLimit){
               //玩家进入复活状态
               switchBehavior(ctx,"waitRestartWhenPlay",waitRestartWhenPlay(uId,userInfo,startTime,frontActor, tank))
+            } else {
+              log.debug(s"${ctx.self.path}由于玩家生命值用尽或者不支持生命值而切换到idle状态")
+              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
+              switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
             }
             Behaviors.same
 //            else {
