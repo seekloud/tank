@@ -155,7 +155,7 @@ object BotActor {
           timer.startSingleTimer(UserKeyUpKey, UserKeyUpTimeOut(keyCode), 1 seconds)
           Behaviors.same
 
-        case UserKeyUpTimeOut((keyCode)) =>
+        case UserKeyUpTimeOut(keyCode) =>
           botControl.userKeyUp(keyCode, userActor)
           Behaviors.same
 
