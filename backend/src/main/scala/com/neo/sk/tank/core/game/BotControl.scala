@@ -116,7 +116,7 @@ class BotControl(name:String, actor:ActorRef[WsMsgSource]) {
       }
       else if(isHaveTarget && isEatProp && eat > eatRatio){
         if(turnMsg > 0){
-          log.debug(s"${userActor.path} begin to do to eat the prop ${turnMsg}")
+//          log.debug(s"${userActor.path} begin to do to eat the prop ${turnMsg}")
           userActor ! userKeyDown(turnMsg)
           actor ! StartUserKeyUp(turnMsg)
         }
