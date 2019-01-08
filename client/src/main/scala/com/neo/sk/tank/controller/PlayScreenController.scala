@@ -144,7 +144,7 @@ class PlayScreenController(
 
   private def drawGame(offsetTime: Long) = {
 //    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency,Constants.supportLiveLimit))
-    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency, "",Constants.supportLiveLimit))
+    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency, Nil,Constants.supportLiveLimit))
   }
 
   def logicLoop() = {

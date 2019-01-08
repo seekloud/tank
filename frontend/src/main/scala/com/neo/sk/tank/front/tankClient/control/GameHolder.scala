@@ -179,7 +179,7 @@ abstract class GameHolder(name: String) extends NetworkInfo {
 //  private def drawGame(offsetTime: Long) = {
 //    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency, dateSize))
   private def drawGame(offsetTime: Long,supportLiveLimit:Boolean = false) = {
-    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency,dateSize,supportLiveLimit))
+    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency,dataSizeList,supportLiveLimit))
   }
 
 

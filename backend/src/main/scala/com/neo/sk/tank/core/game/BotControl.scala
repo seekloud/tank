@@ -185,29 +185,29 @@ class BotControl(name:String, actor:ActorRef[WsMsgSource]) {
       val brickList = obstacleList.filter(r => r.obstacleType == ObstacleType.brick)
       val propList = gameContainer.findOtherProp(thisTank)
 
-      if(tankList.exists(r => r.tankId != gameContainer.myTankId && jugeTheDistance(r.getTankState().position, thisTank.getTankState().position, 70))){
-        val attackTankList = tankList.filter(_.tankId != gameContainer.myTankId).filter(r => jugeTheDistance(r.getTankState().position, thisTankPos, 70))
+      if(tankList.exists(r => r.tankId != gameContainer.myTankId && judgeTheDistance(r.getTankState().position, thisTank.getTankState().position, 70))){
+        val attackTankList = tankList.filter(_.tankId != gameContainer.myTankId).filter(r => judgeTheDistance(r.getTankState().position, thisTankPos, 70))
         val attakTank = attackTankList.minBy(tank => tank.getTankState().position.distance(thisTankPos))
         val pos = attakTank.getTankState().position
         currentMouseMOveTheta = pos.getTheta(thisTankPos).toFloat
         true
       }
-      else if(propList.exists(r => jugeTheDistance(r.position, thisTankPos, 70))){
-        val eatPropList = propList.filter(r => jugeTheDistance(r.position, thisTankPos, 70))
+      else if(propList.exists(r => judgeTheDistance(r.position, thisTankPos, 70))){
+        val eatPropList = propList.filter(r => judgeTheDistance(r.position, thisTankPos, 70))
         val eatProp = eatPropList.minBy(p => p.position.distance(thisTankPos))
         turnMsg = chooseTheDirection(thisTankPos, eatProp.position)
         isEatProp = true
         true
       }
-      else if(airDropList.exists(r => jugeTheDistance(r.getObstacleState().p, thisTankPos, 70))){
-        val attackAirList = airDropList.filter(r => jugeTheDistance(r.getObstacleState().p, thisTankPos, 70))
+      else if(airDropList.exists(r => judgeTheDistance(r.getObstacleState().p, thisTankPos, 70))){
+        val attackAirList = airDropList.filter(r => judgeTheDistance(r.getObstacleState().p, thisTankPos, 70))
         val attackAir = attackAirList.minBy(air => air.getObstacleState().p.distance(thisTankPos))
         val pos = attackAir.getObstacleState().p
         currentMouseMOveTheta = pos.getTheta(thisTankPos).toFloat
         true
       }
-      else if(brickList.exists(r => jugeTheDistance(r.getObstacleState().p, thisTankPos, 70))){
-        val attackBrickList = brickList.filter(r => jugeTheDistance(r.getObstacleState().p, thisTankPos, 70))
+      else if(brickList.exists(r => judgeTheDistance(r.getObstacleState().p, thisTankPos, 70))){
+        val attackBrickList = brickList.filter(r => judgeTheDistance(r.getObstacleState().p, thisTankPos, 70))
         val attackBrick = attackBrickList.minBy(brick => brick.getObstacleState().p.distance(thisTankPos))
         val pos = attackBrick.getObstacleState().p
         currentMouseMOveTheta = pos.getTheta(thisTankPos).toFloat
@@ -218,7 +218,7 @@ class BotControl(name:String, actor:ActorRef[WsMsgSource]) {
     else false
   }
 
-  private def jugeTheDistance(p:Point, q:Point, dis:Int) = {
+  private def judgeTheDistance(p:Point, q:Point, dis:Int) = {
     if(p.distance(q) <= dis)
       true
     else

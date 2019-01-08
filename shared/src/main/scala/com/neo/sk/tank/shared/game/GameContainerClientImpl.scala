@@ -370,7 +370,7 @@ case class GameContainerClientImpl(
   }
 
 //  def drawGame(time: Long, networkLatency: Long, dataSize:String): Unit = {
-  def drawGame(time: Long, networkLatency: Long,dataSize:String,supportLiveLimit:Boolean = false): Unit = {
+  def drawGame(time: Long, networkLatency: Long, dataSizeList:List[String], supportLiveLimit:Boolean = false): Unit = {
     val offsetTime = math.min(time, config.frameDuration)
     val h = canvasSize.y
     val w = canvasSize.x
@@ -391,7 +391,7 @@ case class GameContainerClientImpl(
           drawMyTankInfo(tank.asInstanceOf[TankClientImpl],supportLiveLimit)
           drawMinimap(tank)
           drawRank(supportLiveLimit)
-          renderFps(networkLatency,dataSize)
+          renderFps(networkLatency,dataSizeList)
           drawKillInformation()
           drawRoomNumber()
           drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
