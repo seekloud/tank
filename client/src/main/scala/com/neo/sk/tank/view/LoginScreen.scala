@@ -127,7 +127,7 @@ class LoginScreen(context: Context) {
 
     val qrLink = new Hyperlink()
     qrLink.setText("二维码登录")
-    qrLink.setFont(Font.font("Cambria", FontWeight.NORMAL, 10))
+    qrLink.setFont(Font.font("Cambria", FontWeight.NORMAL, 15))
     qrLink.setOnAction(_ => loginSceneListener.onLinkToQr())
 
     val btn = new Button("登录")
