@@ -8,6 +8,7 @@ import com.neo.sk.tank.core.BotActor.{ConnectToUserActor}
 import com.neo.sk.tank.shared.protocol.TankGameEvent.WsMsgSource
 import org.slf4j.LoggerFactory
 import scala.collection.mutable.Map
+import com.neo.sk.tank.common.AppSettings.{nameList,needSpecialName}
 
 object BotManager {
 
@@ -74,12 +75,17 @@ object BotManager {
 
   private def getBotActor(ctx: ActorContext[Command], id:String, roomId:Option[Long] = None):ActorRef[WsMsgSource] = {
     val childName = s"BotActor-${id}"
-    val botName = s"tankBot-${id}"
+    val botName = if(needSpecialName) generateName() else s"tankBot-${id}"
     ctx.child(childName).getOrElse{
       val actor = ctx.spawn(BotActor.create(id, botName, roomId), childName)
       ctx.watchWith(actor, ChildDead(childName, actor))
       actor
     }.upcast[WsMsgSource]
+  }
+
+  private def generateName():String = {
+    val idx = (new util.Random).nextInt(nameList.size())
+    nameList.get(idx)
   }
 
 }
