@@ -17,18 +17,18 @@ import scala.collection.mutable
   * 终端
   */
 case class GameContainerClientImpl(
-                              drawFrame: MiddleFrame,
-                              ctx: MiddleContext,
-                              override val config: TankGameConfig,
-                              myId: String,
-                              myTankId: Int,
-                              myName: String,
-                              var canvasSize: Point,
-                              var canvasUnit: Int,
-                              setGameState: Int => Unit,
-                              setKillCallback: (String, Boolean, Int, Int) => Unit = { (_, _, _, _) => },
-                              versionInfo:Option[String]=None
-                            ) extends GameContainer with EsRecover
+                                    drawFrame: MiddleFrame,
+                                    ctx: MiddleContext,
+                                    override val config: TankGameConfig,
+                                    myId: String,
+                                    myTankId: Int,
+                                    myName: String,
+                                    var canvasSize: Point,
+                                    var canvasUnit: Int,
+                                    setGameState: Int => Unit,
+                                    setKillCallback: (String, Boolean, Int, Int) => Unit = { (_, _, _, _) => },
+                                    versionInfo: Option[String] = None
+                                  ) extends GameContainer with EsRecover
   with BackgroundDrawUtil with BulletDrawUtil with FpsComponentsDrawUtil with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil with InfoDrawUtil {
 
   import scala.language.implicitConversions
@@ -38,15 +38,15 @@ case class GameContainerClientImpl(
   protected val tankDestroyAnimationMap = mutable.HashMap[Int, Int]() //prop ->
 
   protected var killerList = List.empty[String]
-  protected var killNum:Int = 0
-  protected var damageNum:Int = 0
-  protected var killerName:String = ""
+  protected var killNum: Int = 0
+  protected var damageNum: Int = 0
+  protected var killerName: String = ""
 
   protected var tId: Int = myTankId
 
   def changeTankId(id: Int) = tId = id
 
-  def updateDamageInfo(myKillNum:Int,name:String,myDamageNum:Int):Unit = {
+  def updateDamageInfo(myKillNum: Int, name: String, myDamageNum: Int): Unit = {
     killerList = killerList :+ name
     killerName = name
     killNum = myKillNum
@@ -267,29 +267,29 @@ case class GameContainerClientImpl(
     judge(gameContainerState)
     quadTree.clear()
     tankMap.clear()
-//    obstacleMap.clear()
-//    propMap.clear()
-//    tankMoveAction.clear()
+    //    obstacleMap.clear()
+    //    propMap.clear()
+    //    tankMoveAction.clear()
     gameContainerState.tanks.foreach { t =>
       val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
       quadTree.insert(tank)
       tankMap.put(t.tankId, tank)
     }
-//    gameContainerState.obstacle.foreach { o =>
-//      val obstacle = Obstacle(config, o)
-//      quadTree.insert(obstacle)
-//      obstacleMap.put(o.oId, obstacle)
-//    }
-//    gameContainerState.props.foreach { t =>
-//      val prop = Prop(t, config.propRadius)
-//      quadTree.insert(prop)
-//      propMap.put(t.pId, prop)
-//    }
-//    gameContainerState.tankMoveAction.foreach { t =>
-//      val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Int]())
-//      t._2.foreach(set.add)
-//      tankMoveAction.put(t._1, set)
-//    }
+    //    gameContainerState.obstacle.foreach { o =>
+    //      val obstacle = Obstacle(config, o)
+    //      quadTree.insert(obstacle)
+    //      obstacleMap.put(o.oId, obstacle)
+    //    }
+    //    gameContainerState.props.foreach { t =>
+    //      val prop = Prop(t, config.propRadius)
+    //      quadTree.insert(prop)
+    //      propMap.put(t.pId, prop)
+    //    }
+    //    gameContainerState.tankMoveAction.foreach { t =>
+    //      val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Int]())
+    //      t._2.foreach(set.add)
+    //      tankMoveAction.put(t._1, set)
+    //    }
     obstacleMap.values.foreach(quadTree.insert)
     propMap.values.foreach(quadTree.insert)
     environmentMap.values.foreach(quadTree.insert)
@@ -360,7 +360,7 @@ case class GameContainerClientImpl(
     }
     gameEventMap -= systemFrame
     actionEventMap -= systemFrame
-    followEventMap -= systemFrame-maxFollowFrame
+    followEventMap -= systemFrame - maxFollowFrame
     systemFrame += 1
   }
 
@@ -369,8 +369,8 @@ case class GameContainerClientImpl(
     if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
   }
 
-//  def drawGame(time: Long, networkLatency: Long, dataSize:String): Unit = {
-  def drawGame(time: Long, networkLatency: Long, dataSizeList:List[String], supportLiveLimit:Boolean = false): Unit = {
+  //  def drawGame(time: Long, networkLatency: Long, dataSize:String): Unit = {
+  def drawGame(time: Long, networkLatency: Long, dataSizeList: List[String], supportLiveLimit: Boolean = false): Unit = {
     val offsetTime = math.min(time, config.frameDuration)
     val h = canvasSize.y
     val w = canvasSize.x
@@ -388,10 +388,10 @@ case class GameContainerClientImpl(
           drawBullet(offset, offsetTime, Point(w, h))
           drawTank(offset, offsetTime, Point(w, h))
           drawObstacleBloodSlider(offset)
-          drawMyTankInfo(tank.asInstanceOf[TankClientImpl],supportLiveLimit)
+          drawMyTankInfo(tank.asInstanceOf[TankClientImpl], supportLiveLimit)
           drawMinimap(tank)
           drawRank(supportLiveLimit)
-          renderFps(networkLatency,dataSizeList)
+          renderFps(networkLatency, dataSizeList)
           drawKillInformation()
           drawRoomNumber()
           drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
@@ -412,20 +412,19 @@ case class GameContainerClientImpl(
     }
   }
 
-  def findAllTank(thisTank:Int) = {
-    if(tankMap.contains(thisTank))
+  def findAllTank(thisTank: Int) = {
+    if (tankMap.contains(thisTank))
       Some(quadTree.retrieve(tankMap(thisTank)).filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]))
     else None
   }
 
-  def findOtherBullet(thisTank:Int) = {
+  def findOtherBullet(thisTank: Int) = {
     quadTree.retrieveFilter(tankMap(thisTank)).filter(_.isInstanceOf[Bullet]).map(_.asInstanceOf[Bullet])
   }
 
-  def findOtherObstacle(thisTank:Tank) = {
+  def findOtherObstacle(thisTank: Tank) = {
     quadTree.retrieveFilter(thisTank).filter(_.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
   }
-
 
 
 }

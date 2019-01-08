@@ -11,7 +11,7 @@ import com.neo.sk.tank.shared.game.GameContainer
 import com.neo.sk.tank.shared.model.Constants.{ObstacleType, PropGenerateType, TankColor}
 import com.neo.sk.tank.shared.model.{Point, Score}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
-import com.neo.sk.tank.shared.protocol.TankGameEvent.{GameContainerState,GameContainerAllState}
+import com.neo.sk.tank.shared.protocol.TankGameEvent._
 import org.slf4j.Logger
 
 import concurrent.duration._
@@ -22,7 +22,6 @@ import com.neo.sk.tank.Boot.roomManager
 import com.neo.sk.tank.Boot.userManager
 import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.core.UserActor.TankRelive4UserActor
-import com.neo.sk.tank.shared.protocol.TankGameEvent.{TankFillBullet, TankFollowEventSnap, TankInvincible}
 
 /**
   * Created by hongruying on 2018/8/29
@@ -179,14 +178,16 @@ case class GameContainerServerImpl(
     n
   }
 
+  override protected def handleObstacleRemoveNow()={}
+
   override protected def handleObstacleAttacked(e: TankGameEvent.ObstacleAttacked): Unit = {
     bulletMap.get(e.bulletId).foreach(quadTree.remove)
     bulletMap.remove(e.bulletId)
     obstacleMap.get(e.obstacleId).foreach { obstacle =>
       obstacle.attackDamage(e.damage)
       if (!obstacle.isLived()) {
-//        quadTree.remove(obstacle)
-//        obstacleMap.remove(e.obstacleId)
+        quadTree.remove(obstacle)
+        obstacleMap.remove(e.obstacleId)
         //砖块消失
         val event = TankGameEvent.ObstacleRemove(e.obstacleId, systemFrame)
         dispatch(event)
