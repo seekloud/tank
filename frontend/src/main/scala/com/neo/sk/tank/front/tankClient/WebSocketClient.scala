@@ -20,7 +20,7 @@ case class WebSocketClient(
                        connectErrorCallback:Event => Unit,
                        messageHandler:TankGameEvent.WsMsgServer => Unit,
                        closeCallback:Event => Unit,
-                       setDateSize: String => Unit
+                       setDateSize: (String,Double) => Unit
                      ) {
 
 
@@ -104,7 +104,7 @@ case class WebSocketClient(
     bytesDecode[TankGameEvent.WsMsgServer](middleDataInJs) match {
       case Right(r) =>
         try {
-          setDateSize(s"${r.getClass.toString.split("TankGameEvent").last.drop(1)}"+s": ${(s/1024).formatted("%.2f")}kb")
+          setDateSize(s"${r.getClass.toString.split("TankGameEvent").last.drop(1)}",s)
         }catch {case exception: Exception=> println(exception.getCause)}
         r
       case Left(e) =>
