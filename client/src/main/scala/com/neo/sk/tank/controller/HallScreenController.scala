@@ -114,6 +114,16 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
 
     }
 
+    override def addSelfDefinedRoom(): Unit = {
+      App.pushStack2AppThread{
+        val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
+        context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
+        new PlayScreenController(playerInfo,gameServerInfo,context,playGameScreen).start
+        playGameScreen.setCursor
+        close()
+      }
+    }
+
   })
 
   private def close() = {

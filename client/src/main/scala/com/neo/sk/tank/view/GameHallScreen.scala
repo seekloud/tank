@@ -9,6 +9,7 @@ import javafx.collections.{FXCollections, ObservableArray, ObservableList}
 import javafx.geometry.{HPos, Insets, Pos, VPos}
 import javafx.scene.{Group, Scene}
 import javafx.scene.control._
+import javafx.scene.image.{Image, ImageView}
 import javafx.scene.layout._
 import javafx.scene.paint.{Color, CycleMethod, LinearGradient, Stop}
 import javafx.scene.shape.Rectangle
@@ -42,6 +43,10 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
 
   private val roomIdTextField = new TextField()
   roomIdTextField.setPromptText("请输入指定房间号")
+
+  private val addRoomBtn = new Button()
+  private val image = new Image(getClass.getResourceAsStream("/img/add.png"))
+  addRoomBtn.setGraphic(new ImageView(image))
 
 
   add()
@@ -79,6 +84,9 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     HBox.setHgrow(vBox4Center,Priority.ALWAYS)
     borderPane.prefHeightProperty().bind(scene.heightProperty())
     borderPane.prefWidthProperty().bind(scene.widthProperty())
+
+    addRoomBtn.setPrefSize(50,20)
+    addRoomBtn.setStyle("-fx-background-color:transparent;")
   }
 
   def add():Unit = {
@@ -109,12 +117,13 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   private def setListenerFunc():Unit = {
     confirmBtn.setOnAction(e => listener.confirmBtnListener(listView.getSelectionModel.selectedItemProperty().get(),roomIdTextField.getText()))
     randomBtn.setOnAction(e => listener.randomBtnListener())
+    addRoomBtn.setOnAction(e => listener.addSelfDefinedRoom())
   }
 
 }
 
 abstract class GameHallListener{
   def confirmBtnListener(roomIdListView:String,roomIdTextField:String)
-
   def randomBtnListener()
+  def addSelfDefinedRoom()
 }
