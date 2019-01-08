@@ -93,14 +93,6 @@ trait GameContainer extends KillInformation{
 
   protected def handleUserReliveEvent(e:UserRelive):Unit = {
     val t = e.tankState
-//    println(s"======")
-//    if(tankMap.exists(_._1 == t.tankId)){
-//      println(s"---------${tankMap(t.tankId).getTankState()}")
-//      tankMap.remove(t.tankId)
-//      quadTree.remove(t)
-//      tankMap.put(t.tankId,t)
-//      quadTree.insert(t)
-//    }
     if(!tankMap.exists(_._1 == t.tankId)){
       println(s"------------${e.tankState}")
       tankMap.put(t.tankId,t)
@@ -264,10 +256,6 @@ trait GameContainer extends KillInformation{
       if(obstacle.isLived()){
         obstacle.attackDamage(e.damage)
       }
-      /*if(!obstacle.isLived()){
-        quadTree.remove(obstacle)
-        obstacleMap.remove(e.obstacleId)
-      }*/
     }
   }
 
@@ -363,7 +351,7 @@ trait GameContainer extends KillInformation{
   }
 
   protected def handleObstacleRemove(e:ObstacleRemove) :Unit = {
-    obstacleMap.get(e.obstacleId).foreach{ obstacle =>
+    obstacleMap.get(e.obstacleId).foreach { obstacle =>
       quadTree.remove(obstacle)
       obstacleMap.remove(e.obstacleId)
     }
@@ -563,7 +551,7 @@ trait GameContainer extends KillInformation{
 
     handlePropLifecycleNow()
 
-    handleObstacleRemoveNow()
+    handleObstacleRemoveNow() //此处需要结合坦克攻击，在移动之后
     handleGenerateObstacleNow()
     handleGeneratePropNow()
     handleGenerateBulletNow()
