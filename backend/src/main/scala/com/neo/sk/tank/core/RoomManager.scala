@@ -27,10 +27,8 @@ import scala.util.{Failure, Success}
 
 object RoomManager {
   private val log = LoggerFactory.getLogger(this.getClass)
-  private case object LeftRoomKey
 
   trait Command
-  private final case object BehaviorChangeKey
   private case class TimeOut(msg:String) extends Command
   private case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
 
