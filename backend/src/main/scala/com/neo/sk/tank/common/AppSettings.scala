@@ -43,6 +43,9 @@ object AppSettings {
   val personLimit = appConfig.getInt("tankGameRoomManager.personLimit")
   val supportLiveLimit = appConfig.getBoolean("tankGameRoomManager.supportLiveLimit")
 
+  val nameList = appConfig.getStringList("botManager.nameList")
+  val needSpecialName = appConfig.getBoolean("botManager.needSpecialName")
+
   //  val wxConfig = appConfig.getConfig("wx.config")
   //  val mpAppId = wxConfig.getString("mpAppId")
   //  val componentAppId = wxConfig.getString("componentAppid")
