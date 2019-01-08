@@ -250,6 +250,7 @@ object PlayGameActor {
 //    val host = "localhost:30369"
     val host = info.gameInfo.domain
     Route.getUserJoinGameWebSocketUri(info.playInfo.nickName,host,info.playInfo,info.roomInfo)
+
 //    Route.getJoinGameWebSocketUri(info.playInfo.nickName,host,info.roomInfo)
   }
 }

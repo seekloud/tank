@@ -75,6 +75,8 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
   private def start(name:String,roomIdOpt:Option[Long]):Unit = {
     canvas.getCanvas.focus()
+    dom.window.cancelAnimationFrame(nextFrame)
+    Shortcut.cancelSchedule(timer)
     Shortcut.scheduleOnce(() => userAction,1000)
     if(firstCome){
       firstCome = false
@@ -84,6 +86,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     }else if(webSocketClient.getWsState){
       gameContainerOpt match {
         case Some(gameContainer) =>
+          gameContainerOpt.foreach(_.changeTankId(gameContainer.myTankId))
           if(Constants.supportLiveLimit){
             webSocketClient.sendMsg(TankGameEvent.RestartGame(Some(gameContainer.myTankId),name))
           }else{
@@ -99,40 +102,6 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     }
   }
 
-//  private def fakeUserKeyDown(key:List[Int]) = {
-//    if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
-//      val keyCode = changeKeys(key(curKeyDown))
-//      if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
-//        myKeySet.add(keyCode)
-//        val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
-//        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-//        sendMsg2Server(preExecuteAction)
-//        if (com.neo.sk.tank.shared.model.Constants.fakeRender) {
-//          gameContainerOpt.get.addMyAction(preExecuteAction)
-//        }
-//      }
-//      if (gunAngleAdjust.contains(keyCode) && poKeyBoardFrame != gameContainerOpt.get.systemFrame) {
-//        myKeySet.remove(keyCode)
-//        poKeyBoardFrame = gameContainerOpt.get.systemFrame
-//        val Theta =
-//          if (keyCode == KeyCode.K) poKeyBoardMoveTheta
-//          else neKeyBoardMoveTheta
-//        val preExecuteAction = TankGameEvent.UserKeyboardMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, Theta.toFloat, getActionSerialNum)
-//        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-//        sendMsg2Server(preExecuteAction)
-//
-//      }
-//      else if (keyCode == KeyCode.Space && spaceKeyUpState) {
-//        spaceKeyUpState = false
-//        val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
-//        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-//        sendMsg2Server(preExecuteAction) //发送鼠标位置
-//      }
-//      Shortcut.scheduleOnce(() => fakeUserKeyUp(keyCode),1000)
-//      curKeyDown = (curKeyDown + 1) % fakeKeyDownList.length
-//    }
-//  }
-
   private def userAction:Unit = {
     Shortcut.cancelSchedule(timerForClick)
     if(gameContainerOpt.nonEmpty && gameState == GameState.play){
@@ -147,7 +116,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       }
     }
     else if(gameState == GameState.stop){
-      Shortcut.scheduleOnce(() => dom.document.getElementById("start_button").asInstanceOf[HTMLElement].click(), 5000)
+      Shortcut.scheduleOnce(() => start(name,None), 3000)
     }
   }
 
@@ -265,10 +234,11 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           * */
         println(s"you are killed")
         gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum,e.name,e.damageStatistics))
-        dom.window.cancelAnimationFrame(nextFrame)
-        gameContainerOpt.foreach(_.drawGameStop())
+//        dom.window.cancelAnimationFrame(nextFrame)
+//        gameContainerOpt.foreach(_.drawGameStop())
         if((Constants.supportLiveLimit && ! e.hasLife) || (! Constants.supportLiveLimit)){
           setGameState(GameState.stop)
+          gameContainerOpt.foreach(_.changeTankId(e.tankId))
         }
 
       case e:TankGameEvent.Ranks =>
