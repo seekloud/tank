@@ -8,7 +8,12 @@ import com.neo.sk.tank.shared.model.Point
   * Created by hongruying on 2018/7/8
   * 子弹
   */
+
+@deprecated
 case class BulletState(bId:Int,tankId:Int,position:Point,damage:Int,startPosition:Point,tankMomentum:Point,tankDirection:Float,tankIsMove:Boolean,createTime:Long, name:String, direction:Float)
+
+case class BulletStateTest(bId:Int,tankId:Int,startFrame:Long,position:Point,damage:Byte,momentum:Point,name:String)
+
 
 case class Bullet(
                  config:TankGameConfig,
