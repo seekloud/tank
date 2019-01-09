@@ -52,7 +52,7 @@ class PlayGameScreen(context: Context) {
 //  var canvasBoundary = Point(canvas.getWidth.toFloat, canvas.getHeight.toFloat) / canvasUnit
   def setCursor={
   println(App.getClass)
-    val image = new Image(App.getClass.getResourceAsStream("/img/瞄准.png"))
+    val image = new Image(App.getClass.getResourceAsStream("/img/瞄准_1.png"))
     scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))
   }
 

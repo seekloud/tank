@@ -20,11 +20,12 @@
     padding: 20px 50px;
 }
 
-.input_title{
+.input_title {
     color: white;
     font-size: 1.8vw;
     text-align: center;
 }
+
 .input_des {
     color: white;
     font-size: 1.8vw;
@@ -32,13 +33,12 @@
     padding-right: 10px;
 }
 
-.input_inline{
+.input_inline {
     margin-top: 5%;
     text-align: center;
 }
 
-
-#TankGameNameInput{
+#TankGameNameInput {
     width: 50%;
     line-height: 2.5vw;
     font-size: 2.5vw;
@@ -53,7 +53,7 @@
 
 }
 
-#TankGameRoomIdInput{
+#TankGameRoomIdInput {
     width: 50%;
     line-height: 2.5vw;
     font-size: 2.5vw;
@@ -73,13 +73,12 @@
     margin-top: 20px;
 }
 
-.input_button span{
+.input_button span {
     margin-left: 10px;
 }
 
 #GameView {
-    cursor: url("/tank/static/img/瞄准.png"),auto;
-
+    cursor: url("/tank/static/img/瞄准_1.png"), auto;
 }
 
 #searchGameRecord {
@@ -90,26 +89,26 @@
     margin-bottom: 80px;
 }
 
-#gameRecordTable{
+#gameRecordTable {
     width: 90%;
     margin-left: auto;
     margin-right: auto;
 }
 
-#pageSwitch{
+#pageSwitch {
     position: fixed;
     left: 40%;
     bottom: 10px;
 }
 
-#combat_gains{
+#combat_gains {
     color: white;
     font-size: 1.8vw;
     text-align: center;
     position: fixed;
     top: 10%;
     left: 0;
-    right:0;
+    right: 0;
     width: 50%;
     margin: 0 auto;
     padding-top: 15px;
@@ -121,13 +120,13 @@
     /*background-position: 60% 0%;*/
 }
 
-#combat_gains p{
+#combat_gains p {
     margin-left: 50px;
     margin-bottom: 5px;
     word-break: break-all;
 }
 
-#combat_gains span{
+#combat_gains span {
     color: red;
     padding-left: 10px;
     padding-right: 10px;
