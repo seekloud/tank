@@ -104,7 +104,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   private def addUserActionListenEvent():Unit = {
     canvas.getCanvas.focus()
     canvas.getCanvas.onmousemove = { e: dom.MouseEvent =>
-      val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(32,32)
+      val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(24,24)
       val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         if(math.abs(theta - lastMouseMoveTheta) >= mouseMoveThreshold){
