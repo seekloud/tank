@@ -27,6 +27,7 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   private val vBox4Btn = new VBox(10)//放两个button
   private val vBox4Center = new VBox(10)
   private val hBox = new HBox(10)
+  private val hBox4Add = new HBox(5)
 
   private val nicknameLabel = new Label(s"昵称：${playerInfo.nickName}")
   private val playerIdLabel = new Label(s"玩家id：${playerInfo.playerId}")
@@ -45,10 +46,10 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   roomIdTextField.setPromptText("请输入指定房间号")
 
   private val addRoomBtn = new Button()
-  private val image = new Image(getClass.getResourceAsStream("/img/add.png"))
-  addRoomBtn.setGraphic(new ImageView(image))
-
-
+  private val imageView = new ImageView(new Image(getClass.getResourceAsStream("/img/add_1.png")))
+  imageView.setFitHeight(20)
+  imageView.setFitWidth(20)
+  addRoomBtn.setGraphic(imageView)
   add()
 
   def setFont() = {
@@ -75,13 +76,15 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     vBox4Center.setPrefHeight(200)
 
     vBox4Center.setPadding(new Insets(30,30,30,30))
-    VBox.setMargin(roomListLabel,new Insets(0,0,5,8))
+    VBox.setMargin(hBox4Add,new Insets(0,0,5,8))
     VBox.setMargin(listView,new Insets(0,0,5,8))
     VBox.setMargin(roomIdTextField,new Insets(0,0,5,8))
 //    hBox.setPadding(new Insets(20,20,20,100))
     hBox.setAlignment(Pos.CENTER)
-
     HBox.setHgrow(vBox4Center,Priority.ALWAYS)
+
+
+
     borderPane.prefHeightProperty().bind(scene.heightProperty())
     borderPane.prefWidthProperty().bind(scene.widthProperty())
 
@@ -91,6 +94,7 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
 
   def add():Unit = {
     setFont()
+    hBox4Add.getChildren.addAll(roomListLabel,addRoomBtn)
     vBox4Info.getChildren.addAll(playerIdLabel,nicknameLabel)
     vBox4Btn.getChildren.addAll(confirmBtn,randomBtn)
     vBox4Center.getChildren.addAll(roomListLabel,listView,roomIdTextField)
