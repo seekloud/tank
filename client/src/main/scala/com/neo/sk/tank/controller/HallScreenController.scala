@@ -10,20 +10,21 @@ import com.neo.sk.tank.view.{GameHallListener, GameHallScreen, PlayGameScreen}
 import javafx.geometry.Pos
 import javafx.scene.Group
 import javafx.scene.control._
-
 import com.neo.sk.utils.HttpUtil.Imports.postJsonRequestSend
 import com.neo.sk.utils.SecureUtil._
 
 import scala.concurrent.duration._
 import io.circe.parser.decode
-import com.neo.sk.tank.App.{executor, materializer, scheduler, system,tokenActor}
+import com.neo.sk.tank.App.{executor, materializer, scheduler, system, tokenActor}
 import com.neo.sk.tank.actor.{PlayGameActor, TokenActor}
 import io.circe.syntax._
 import io.circe.generic.auto._
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
+
 import scala.concurrent.Future
 import com.neo.sk.tank.actor.TokenActor
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 /**
@@ -92,20 +93,22 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
       }
     }
 
-    override def confirmBtnListener(roomIdListView: String, roomIdTextField:String): Unit = {
+    override def confirmBtnListener(roomIdListView:String, roomIdTextField:String, roomIdExist:Boolean): Unit = {
       App.pushStack2AppThread{
-        if(roomIdListView != null || roomIdTextField != ""){
-          val roomId = roomIdTextField match{
-            case "" => roomIdListView
-            case _ => roomIdTextField
-          }
+        if(roomIdExist){
           val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
           context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-          new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomId)).start
+          new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdTextField)).start
+          playGameScreen.setCursor
+          close()
+        }else if(roomIdListView != null){
+          val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
+          context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
+          new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdListView)).start
           playGameScreen.setCursor
           close()
         }else{
-          val warn = new Alert(Alert.AlertType.WARNING,"还没有选择房间哦",new ButtonType("确定",ButtonBar.ButtonData.YES))
+          val warn = new Alert(Alert.AlertType.WARNING,"您还未选择房间或选择的房间不存在",new ButtonType("确定",ButtonBar.ButtonData.YES))
           warn.setTitle("警示")
           val buttonType = warn.showAndWait()
           if(buttonType.get().getButtonData.equals(ButtonBar.ButtonData.YES))warn.close()
@@ -115,9 +118,24 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
     }
 
     override def addSelfDefinedRoom(): Unit = {
-      App.pushStack2AppThread{
-//        val createRoomScreen = new CreateRoomScreen()
-      }
+      App.pushStack2AppThread(gameHall.plainScreen)
+    }
+
+    override def createEncrypt(roomId: String, salt: String): Unit = {}
+
+    override def createPlain(roomId: String): Unit = {}
+
+    override def change2Encrypt(): Unit = {
+      App.pushStack2AppThread(gameHall.encryptScreen)
+    }
+
+    override def change2Plain(): Unit = {
+      App.pushStack2AppThread(gameHall.plainScreen)
+    }
+
+    override def backToRoomList(): Unit = {
+      App.pushStack2AppThread(context.switchScene(gameHall.getScene,resize = true))
+
     }
 
   })

@@ -19,6 +19,7 @@ import javafx.scene.text.{Font, FontWeight, Text}
   * created by benyafang on 2018/10/26
   * */
 class GameHallScreen(context:Context,playerInfo: PlayerInfo){
+  //房间列表
   private val group = new Group()
   private val scene = new Scene(group,Constants.SceneBound.weight,Constants.SceneBound.height)
   private val borderPane = new BorderPane()
@@ -34,7 +35,10 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   private val roomListLabel = new Label("房间列表")
 
   private val confirmBtn = new Button("确定")
+  confirmBtn.setOnAction(e => listener.confirmBtnListener(listView.getSelectionModel.selectedItemProperty().get(), roomIdTextField.getText(), judgeTheRoomId(roomIdTextField.getText())))
+
   private val randomBtn = new Button("随机进入")
+  randomBtn.setOnAction(e => listener.randomBtnListener())
 
   private var listener:GameHallListener = _
   private var roomList:List[Long] = List.empty[Long]
@@ -46,11 +50,60 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   roomIdTextField.setPromptText("请输入指定房间号")
 
   private val addRoomBtn = new Button()
+  addRoomBtn.setOnAction(e => listener.addSelfDefinedRoom())
   private val imageView = new ImageView(new Image(getClass.getResourceAsStream("/img/add_1.png")))
   imageView.setFitHeight(20)
   imageView.setFitWidth(20)
   addRoomBtn.setGraphic(imageView)
+
   add()
+
+  //创建房间
+  private val sceneTitle = new Label("房间ID")
+  private val roomField = new TextField()
+
+  private val pwdLabel = new Label("密码")
+  private val pwBox = new PasswordField
+
+  private val enLink = new Hyperlink()
+  enLink.setText("带密码创建")
+  enLink.setFont(Font.font("Cambria", FontWeight.NORMAL, 10))
+  enLink.setOnAction(_ => listener.change2Encrypt())
+
+  private val plainLink = new Hyperlink()
+  plainLink.setText("不带密码创建")
+  plainLink.setFont(Font.font("Cambria", FontWeight.NORMAL, 10))
+  plainLink.setOnAction(_ => listener.change2Plain())
+
+  private val btnBack = new Button()
+  private val imageView4back = new ImageView(new Image(getClass.getResourceAsStream("/img/back_1.png")))
+  imageView4back.setFitHeight(20)
+  imageView4back.setFitWidth(20)
+  btnBack.setGraphic(imageView4back)
+  btnBack.setPrefSize(20,20)
+  btnBack.setStyle("-fx-background-color:transparent;")
+  btnBack.setOnAction(_ => listener.backToRoomList())
+
+  private val btn4plain = new Button("创建")
+  btn4plain.setPrefSize(80,20)
+  btn4plain.setOnAction(_ => listener.createPlain(roomField.getText))
+
+  private val btn4Encry = new Button("创建")
+  btn4Encry.setPrefSize(80,20)
+  btn4Encry.setOnAction(_ => listener.createEncrypt(roomField.getText, pwBox.getText))
+
+  private val hBox4Plain = new HBox(10)
+  hBox4Plain.setAlignment(Pos.BOTTOM_RIGHT)
+  hBox4Plain.getChildren.addAll(enLink, btn4plain)
+
+  private val hBox4Encry = new HBox(10)
+  hBox4Encry.setAlignment(Pos.BOTTOM_RIGHT)
+  hBox4Encry.getChildren.addAll(plainLink, btn4Encry, btnBack)
+
+  private val hBox4Back = new HBox()
+  hBox4Back.setAlignment(Pos.BOTTOM_RIGHT)
+  hBox4Back.getChildren.add(btnBack)
+
 
   def setFont() = {
     playerIdLabel.setTextFill(Color.WHITE)
@@ -59,6 +112,7 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     nicknameLabel.setFont(Font.font("",FontWeight.BOLD,14))
     roomListLabel.setFont(Font.font("",FontWeight.BOLD,14))
     roomListLabel.setTextFill(Color.rgb(33,66,99))
+    roomListLabel.setPadding(new Insets(6,0,0,0))
 
     confirmBtn.setPrefSize(100,20)
     randomBtn.setPrefSize(100,20)
@@ -83,13 +137,12 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     hBox.setAlignment(Pos.CENTER)
     HBox.setHgrow(vBox4Center,Priority.ALWAYS)
 
-
-
     borderPane.prefHeightProperty().bind(scene.heightProperty())
     borderPane.prefWidthProperty().bind(scene.widthProperty())
 
-    addRoomBtn.setPrefSize(50,20)
+    addRoomBtn.setPrefSize(20,20)
     addRoomBtn.setStyle("-fx-background-color:transparent;")
+
   }
 
   def add():Unit = {
@@ -97,13 +150,11 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     hBox4Add.getChildren.addAll(roomListLabel,addRoomBtn)
     vBox4Info.getChildren.addAll(playerIdLabel,nicknameLabel)
     vBox4Btn.getChildren.addAll(confirmBtn,randomBtn)
-    vBox4Center.getChildren.addAll(roomListLabel,listView,roomIdTextField)
+    vBox4Center.getChildren.addAll(hBox4Add,listView,roomIdTextField)
     hBox.getChildren.addAll(vBox4Center,vBox4Btn)
     borderPane.setTop(vBox4Info)
     borderPane.setCenter(hBox)
     group.getChildren.addAll(borderPane)
-
-    setListenerFunc()
   }
 
   def getScene:Scene = this.scene
@@ -118,16 +169,49 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     roomList.sortBy(t => t).map(_.toString) foreach observableList.add
   }
 
-  private def setListenerFunc():Unit = {
-    confirmBtn.setOnAction(e => listener.confirmBtnListener(listView.getSelectionModel.selectedItemProperty().get(),roomIdTextField.getText()))
-    randomBtn.setOnAction(e => listener.randomBtnListener())
-    addRoomBtn.setOnAction(e => listener.addSelfDefinedRoom())
+  def judgeTheRoomId(id:String) = {
+    if(id != "" && roomList.contains(id.toLong)) true else false
+  }
+
+  def plainScreen = {
+    val grid = new GridPane()
+    grid.setAlignment(Pos.CENTER)
+    grid.setHgap(10)
+    grid.setVgap(10)
+    grid.setPadding(new Insets(30, 30, 30, 30))
+    grid.add(sceneTitle, 0, 0)
+    grid.add(roomField, 1, 0)
+    grid.add(hBox4Plain, 1, 1)
+    grid.add(hBox4Back,1,2)
+    val scene = new Scene(grid,Constants.SceneBound.weight,Constants.SceneBound.height)
+    context.switchScene(scene)
+  }
+
+  def encryptScreen = {
+    val grid = new GridPane()
+    grid.setAlignment(Pos.CENTER)
+    grid.setHgap(10)
+    grid.setVgap(10)
+    grid.setPadding(new Insets(30, 30, 30, 30))
+    grid.add(sceneTitle, 0, 0)
+    grid.add(roomField, 1, 0)
+    grid.add(pwdLabel, 0, 1)
+    grid.add(pwBox, 1, 1)
+    grid.add(hBox4Encry, 1, 2)
+    grid.add(hBox4Back,1,3)
+    val scene = new Scene(grid,Constants.SceneBound.weight,Constants.SceneBound.height)
+    context.switchScene(scene)
   }
 
 }
 
 abstract class GameHallListener{
-  def confirmBtnListener(roomIdListView:String,roomIdTextField:String)
+  def confirmBtnListener(roomIdListView:String, roomIdTextFiled:String, roomIdExist:Boolean)
   def randomBtnListener()
   def addSelfDefinedRoom()
+  def createEncrypt(roomId:String,salt:String)
+  def createPlain(roomId:String)
+  def change2Encrypt()
+  def change2Plain()
+  def backToRoomList()
 }
