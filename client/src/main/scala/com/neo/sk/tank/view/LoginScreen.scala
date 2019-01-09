@@ -35,9 +35,6 @@ object LoginScene {
 }
 
 class LoginScreen(context: Context) {
-
-  val group = new Group()
-  val scene = new Scene(group)
   var loginSceneListener: LoginSceneListener = _
 
   def showScanUrl(scanUrl:String):Unit = {
