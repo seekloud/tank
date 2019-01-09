@@ -21,8 +21,8 @@ trait NetworkInfo {
   private var latency: Long = 0L
   private var receiveNetworkLatencyList: List[NetworkLatency] = Nil
 
-  val dataSizeMap:HashMap[String,Double]= HashMap[String,Double]()
-  var dataSizeList:List[String]=Nil
+  val dataSizeMap: HashMap[String, Double] = HashMap[String, Double]()
+  var dataSizeList: List[String] = Nil
 
   def ping(): Unit = {
     val curTime = System.currentTimeMillis()
@@ -48,17 +48,24 @@ trait NetworkInfo {
 
   protected def getNetworkLatency = latency
 
-  Shortcut.schedule(()=>{
-    dataSizeList=dataSizeMap.toList.sortBy(_._1).map(r=>r._1+":"+{r._2/1000}.formatted("%.2f")+"kb/s")
-    dataSizeMap.foreach(r=>dataSizeMap.update(r._1,0))
-  },1000)
+  Shortcut.schedule(() => {
+    println("allDataSize---" + (dataSizeMap.values.sum/1000).formatted("%.2f") + "kb/s")
+    dataSizeList = dataSizeMap.toList.sortBy(_._1).map { r =>
+      val s = r._1 + ":" + {
+        r._2 / 1000
+      }.formatted("%.2f") + "kb/s"
+      println(s)
+      s
+    }
+    dataSizeMap.foreach(r => dataSizeMap.update(r._1, 0))
+  }, 1000)
 
-  protected def setDateSize(d: String,s:Double) = {
+  protected def setDateSize(d: String, s: Double) = {
     dataSizeMap.get(d) match {
-      case Some(m)=>
-        dataSizeMap.update(d,m+s)
-      case None=>
-        dataSizeMap.put(d,s)
+      case Some(m) =>
+        dataSizeMap.update(d, m + s)
+      case None =>
+        dataSizeMap.put(d, s)
     }
   }
 
