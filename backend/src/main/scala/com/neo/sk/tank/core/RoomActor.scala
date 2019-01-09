@@ -30,7 +30,8 @@ object RoomActor {
 
   private final val InitTime = Some(5.minutes)
 
-  private final val classify=50
+  private final val classify= 100 // 10s同步一次状态
+  private final val rankClassify = 50// 20s
 
   private final case object BehaviorChangeKey
 
@@ -219,14 +220,17 @@ object RoomActor {
               dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(state))
             }
           }
-          val count=tickCount%20
-          for(i <- count*10 until (count+1)*10){
-            userGroup.get(i).foreach { s =>
-              if (s.nonEmpty) {
-                dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.Ranks(gameContainer.currentRank, gameContainer.historyRank))
-              }
-            }
+          val count=tickCount + 10 % rankClassify
+          userGroup.get(count).foreach{ s =>
+            if(s.nonEmpty) dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.Ranks(gameContainer.currentRank, gameContainer.historyRank))
           }
+//          for(i <- count*10 until (count+1)*10){
+//            userGroup.get(i).foreach { s =>
+//              if (s.nonEmpty) {
+//                dispatch()
+//              }
+//            }
+//          }
           //分发新加入坦克的地图全量数据
           justJoinUser.foreach(t => subscribersMap.put(t._1, t._4))
           val gameContainerAllState = gameContainer.getGameContainerAllState()
