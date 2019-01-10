@@ -3,7 +3,7 @@ package com.neo.sk.tank.core.bot
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.actor.typed.{ActorRef, Behavior}
 import com.neo.sk.tank.core.UserManager.GetMsgFromBot
-import com.neo.sk.tank.core.game.{BotControl, GameContainerServerImpl, TankServerImpl}
+import com.neo.sk.tank.core.game.{GameContainerServerImpl, TankServerImpl}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
@@ -25,8 +25,6 @@ object BotActor {
   trait Command
 
   case class JoinRoomSuccess(tank: TankServerImpl) extends Command
-
-
 
   private final case object BehaviorChangeKey
 

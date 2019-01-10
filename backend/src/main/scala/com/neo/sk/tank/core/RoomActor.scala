@@ -97,7 +97,7 @@ object RoomActor {
               getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame)
             }
             timer.startPeriodicTimer(GameLoopKey, GameLoop, (gameContainer.config.frameDuration / gameContainer.config.playRate).millis)
-            idle(0l, roomId, Nil, Nil, mutable.HashMap[Long, Set[String]](), subscribersMap, observersMap, gameContainer, 0L, Nil)
+            idle(0l, roomId, Nil, Nil, mutable.HashMap[Long, Set[String]](), subscribersMap, observersMap, gameContainer, 0L)
         }
     }
   }
@@ -111,8 +111,7 @@ object RoomActor {
             subscribersMap: mutable.HashMap[String, ActorRef[UserActor.Command]],
             observersMap: mutable.HashMap[String, ActorRef[UserActor.Command]],
             gameContainer: GameContainerServerImpl,
-            tickCount: Long,
-            justJoinBot: List[(String, Option[Int], Long, ActorRef[BotActor.Command])]
+            tickCount: Long
           )(
             implicit timer: TimerScheduler[Command],
             sendBuffer: MiddleBufferInJvm
@@ -127,11 +126,11 @@ object RoomActor {
             case Some(s)=> userGroup.update(index%classify,s+uid)
             case None => userGroup.put(index%classify,Set(uid))
           }
-          idle(index + 1, roomId, (uid, tankIdOpt, startTime, userActor) :: justJoinUser, (uid, tankIdOpt, name, startTime, index%classify) :: userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount, justJoinBot)
+          idle(index + 1, roomId, (uid, tankIdOpt, startTime, userActor) :: justJoinUser, (uid, tankIdOpt, name, startTime, index%classify) :: userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount)
 
         case BotJoinRoom(bid, tankIdOpt, name, startTime, botActor, roomId)=>
           gameContainer.botJoinGame(bid, tankIdOpt, name, botActor)
-          idle(index,roomId,justJoinUser,userMap,userGroup,subscribersMap,observersMap,gameContainer,tickCount,(bid,tankIdOpt,startTime,botActor) :: justJoinBot)
+          idle(index,roomId,justJoinUser,userMap,userGroup,subscribersMap,observersMap,gameContainer,tickCount)
 
         case JoinRoom4Watch(uid, _, playerId, userActor4Watch) =>
           log.debug(s"${ctx.self.path} recv a msg=${msg}")
@@ -141,7 +140,7 @@ object RoomActor {
             case Some(s)=> userGroup.update(index%classify,s+uid)
             case None => userGroup.put(index%classify,Set(uid))
           }
-          idle(index+1,roomId,justJoinUser,userMap,userGroup,subscribersMap,observersMap,gameContainer,tickCount,justJoinBot)
+          idle(index+1,roomId,justJoinUser,userMap,userGroup,subscribersMap,observersMap,gameContainer,tickCount)
 
         case WebSocketMsg(uid, tankId, req) =>
           gameContainer.receiveUserAction(req)
@@ -172,10 +171,10 @@ object RoomActor {
             if (roomId > 1l) {
               Behaviors.stopped
             } else {
-              idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid),userGroup, subscribersMap, observersMap, gameContainer, tickCount,justJoinBot)
+              idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid),userGroup, subscribersMap, observersMap, gameContainer, tickCount)
             }
           } else {
-            idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid), userGroup,subscribersMap, observersMap, gameContainer, tickCount,justJoinBot)
+            idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid), userGroup,subscribersMap, observersMap, gameContainer, tickCount)
           }
 
         case LeftRoom4Watch(uid, playerId) =>
@@ -198,7 +197,7 @@ object RoomActor {
               case None=> userGroup.put(u._5,Set.empty)
             }
           }
-          idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid), userGroup,subscribersMap, observersMap, gameContainer, tickCount,justJoinBot)
+          idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid), userGroup,subscribersMap, observersMap, gameContainer, tickCount)
 
 
         case GameLoop =>
@@ -227,11 +226,8 @@ object RoomActor {
             dispatchTo(subscribersMap, observersMap)(t._1, tankFollowEventSnap, ls)
             dispatchTo(subscribersMap, observersMap)(t._1, TankGameEvent.SyncGameAllState(gameContainerAllState), ls)
           }
-          justJoinBot.foreach(b=>
 
-          )
-
-          idle(index,roomId, Nil, userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount + 1,justJoinBot)
+          idle(index,roomId, Nil, userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount + 1)
 
         case ChildDead(name, childRef) =>
           //          log.debug(s"${ctx.self.path} recv a msg:${msg}")
