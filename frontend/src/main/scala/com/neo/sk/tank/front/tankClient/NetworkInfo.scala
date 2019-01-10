@@ -26,7 +26,7 @@ trait NetworkInfo {
 
   def ping(): Unit = {
     val curTime = System.currentTimeMillis()
-    if (curTime - lastPingTime > 1000) {
+    if (curTime - lastPingTime > 10000) {
       startPing()
       lastPingTime = curTime
     }

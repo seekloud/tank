@@ -18,6 +18,7 @@ import org.scalajs.dom.raw.HTMLElement
 import sun.text.resources.sr.FormatData_sr_Latn
 
 import scala.collection.mutable
+import scala.util.Random
 import scala.xml.Elem
 
 class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) extends GameHolder(name){
@@ -26,7 +27,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   private var enterKeyUpstate = true
   private var lastMouseMoveTheta:Float = 0
   private var currentMouseMOveTheta:Float = 0
-  private val mouseMoveThreshold = math.Pi / 180
+  private val mouseMoveThreshold = math.Pi / 60
   private val poKeyBoardMoveTheta = 2* math.Pi / 72 //炮筒顺时针转
   private val neKeyBoardMoveTheta = -2* math.Pi / 72 //炮筒逆时针转
   private var poKeyBoardFrame = 0L
@@ -35,6 +36,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   private val startGameModal = new StartGameModal(gameStateVar,start, playerInfoOpt)
   private var timerForClick = 0
   private var thisTankId = 0
+  private val random = new Random(System.currentTimeMillis())
 
   private var thisTank = gameContainerOpt.getOrElse(None)
 
@@ -104,16 +106,23 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
   private def userAction:Unit = {
     Shortcut.cancelSchedule(timerForClick)
+    println("sdsddsds")
     if(gameContainerOpt.nonEmpty && gameState == GameState.play){
 
-      if(findTarget){
-        timerForClick = Shortcut.schedule(() => userClick(currentMouseMOveTheta), 500)
-        Shortcut.scheduleOnce(() => userAction, 1000)
-      }
-      else{
+      val r = random.nextInt(3)
+      println("sss,=",r)
+      if(r % 3 == 1){
+//      if(true){
+        val theta = random.nextFloat() * math.Pi * 2
+        println(theta)
+        userClick(theta.toFloat)
+//        timerForClick = Shortcut.schedule(() => userClick(currentMouseMOveTheta), 500)
+
+      } else{
         userMove
-        Shortcut.scheduleOnce(() => userAction, 1000)
+
       }
+      Shortcut.scheduleOnce(() => userAction, 300)
     }
     else if(gameState == GameState.stop){
       Shortcut.scheduleOnce(() => start(name,None), 3000)
@@ -240,6 +249,10 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           setGameState(GameState.stop)
           gameContainerOpt.foreach(_.changeTankId(e.tankId))
         }
+
+      case e:TankGameEvent.TankFollowEventSnap =>
+        println(s"game TankFollowEventSnap =${e} systemFrame=${gameContainerOpt.get.systemFrame} tankId=${gameContainerOpt.get.tankId} ")
+        gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
       case e:TankGameEvent.Ranks =>
         /**
