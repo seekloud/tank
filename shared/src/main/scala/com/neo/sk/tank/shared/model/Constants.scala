@@ -7,6 +7,8 @@ import scala.util.Random
   */
 object Constants {
 
+  val drawHistory = false
+
   object DirectionType {
     final val right:Float = 0
     final val upRight = math.Pi / 4 * 7
