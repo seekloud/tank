@@ -129,7 +129,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
 
 
   //被子弹攻击到
-  def attackedBullet(bullet: Bullet,destroy:(Bullet,Tank) => Unit):Unit = {
+  def attackedBullet(bullet: Bullet, destroy:(Bullet,Tank) => Unit):Unit = {
     if(!invincibleState) {
       this.blood -= bullet.damage
       if (!isLived()) destroy(bullet, this)

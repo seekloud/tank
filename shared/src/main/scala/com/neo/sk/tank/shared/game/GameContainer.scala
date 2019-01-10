@@ -444,7 +444,7 @@ trait GameContainer extends KillInformation{
           bullet.checkAttackObject(t,attackTankCallBack(bullet))}
       objects.filter(t => t.isInstanceOf[ObstacleBullet] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
         .foreach(t => bullet.checkAttackObject(t,attackObstacleCallBack(bullet)))
-      bullet.move(boundary,removeBullet)
+      bullet.move(boundary,systemFrame,removeBullet)
 
     }
   }

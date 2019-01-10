@@ -98,13 +98,11 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
         if(firstCome){
           firstCome = false
           setGameState(GameState.replayLoading)
-//          timer = Shortcut.schedule(gameLoop, gameContainerOpt.get.config.frameDuration)
           gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
           gameContainerOpt.foreach(_.update())
-//          nextFrame = dom.window.requestAnimationFrame(gameRender())
         }else{
           //remind here allState change into state
-          gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks/*,e.gState.props,e.gState.obstacle,e.gState.tankMoveAction*/)))
+          gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f)))
         }
 
       case e:TankGameEvent.Ranks =>
