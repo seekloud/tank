@@ -35,7 +35,8 @@ trait PlayService extends AuthService{
       'userId.as[String],
       'userName.as[String],
       'accessCode.as[String],
-      'roomId.as[Long].?
+      'roomId.as[Long].?,
+      'roomPwd.as[String].?
     ){ case (name, userId, nickName, accessCode, roomIdOpt) =>
       authPlatUser(accessCode){ user =>
 //        complete("error")
