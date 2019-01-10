@@ -282,6 +282,7 @@ case class GameContainerServerImpl(
         addGameEvent(event)
         println(s"the path is $ref")
         ref ! UserActor.JoinRoomSuccess(tank, config.getTankGameConfigImpl(), userId, roomActor = roomActorRef)
+        //ref ! UserActor.JoinRoom()
         userMapObserver.get(userId) match {
           case Some(maps) =>
             maps.foreach { p =>

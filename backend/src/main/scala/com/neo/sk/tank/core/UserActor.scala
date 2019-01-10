@@ -52,7 +52,7 @@ object UserActor {
   case class UserFrontActor(actor:ActorRef[TankGameEvent.WsMsgSource]) extends Command
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
-  case class WsSuccess(roomId:Option[Long], password:Option[String]) extends Command
+  case class WsSuccess(roomId:Option[Long]) extends Command
   case class StartGame(roomId:Option[Long], password:Option[String]) extends Command
 
   case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None, passwordOpt:Option[String] = None) extends Command with RoomManager.Command
@@ -199,8 +199,8 @@ object UserActor {
         case ChangeUserInfo(info) =>
           idle(uId,info,startTime,frontActor)
 
-        case WsSuccess(roomIdOpt, passwordOpt) =>
-         frontActor ! TankGameEvent.Wrap(TankGameEvent.WsSuccess(roomIdOpt, passwordOpt).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+        case WsSuccess(roomIdOpt) =>
+         frontActor ! TankGameEvent.Wrap(TankGameEvent.WsSuccess(roomIdOpt).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
          Behaviors.same
 
 

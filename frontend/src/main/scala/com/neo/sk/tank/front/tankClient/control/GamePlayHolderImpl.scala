@@ -79,6 +79,8 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       addUserActionListenEvent()
       setGameState(GameState.loadingPlay)
       webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, playerInfoOpt,roomIdOpt))
+//      webSocketClient.sendMsg(TankGameEvent.StartGame(roomIdOpt,None))
+
       gameLoop()
 
     }else if(webSocketClient.getWsState){
@@ -233,6 +235,9 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
     data match {
+      case e:TankGameEvent.WsSuccess =>
+        webSocketClient.sendMsg(TankGameEvent.StartGame(e.roomId,None))
+
       case e:TankGameEvent.YourInfo =>
         println(s"new game the id is ${e.tankId}=====${e.name}")
         println(s"玩家信息${e}")

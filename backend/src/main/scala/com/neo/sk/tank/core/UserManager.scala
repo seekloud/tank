@@ -98,7 +98,12 @@ object UserManager {
           userActor ! ChangeUserInfo(playerInfo)
           if(roomPwdOpt.nonEmpty) userActor ! UserActor.JoinGame(roomIdOpt,roomPwdOpt.get)
           else userActor ! UserActor.StartGame(roomIdOpt)
+          userActor ! UserActor.WsSuccess(roomIdOpt)
+//          userActor ! ChangeUserInfo(playerInfo)
+//          userActor ! UserActor.StartGame(roomIdOpt,passwordOpt)
           Behaviors.same
+
+
 
 
         case GetWebSocketFlow4WatchGame(roomId, watchedUserId, replyTo, playerInfoOpt) =>
