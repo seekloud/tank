@@ -58,7 +58,7 @@ trait GameContainer extends KillInformation{
 
   val tankMoveAction = mutable.HashMap[Int,mutable.HashSet[Int]]() //tankId -> pressed direction key code
 
-  protected val quadTree : QuadTree = new QuadTree(Rectangle(Point(0,0),boundary))
+  val quadTree : QuadTree = new QuadTree(Rectangle(Point(0,0),boundary))
 
 
   protected val gameEventMap = mutable.HashMap[Long,List[GameEvent]]() //frame -> List[GameEvent] 待处理的事件 frame >= curFrame
