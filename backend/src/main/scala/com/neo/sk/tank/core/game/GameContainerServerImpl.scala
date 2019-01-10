@@ -471,7 +471,7 @@ case class GameContainerServerImpl(
 
   override def update(): Unit = {
     super.update()
-    updateRanks()
+    super.updateRanks()
   }
 
   def getGameContainerState(): GameContainerState = {
@@ -494,44 +494,44 @@ case class GameContainerServerImpl(
     )
   }
 
-  implicit val scoreOrdering = new Ordering[Score] {
-    override def compare(x: Score, y: Score): Int = {
-      var r = y.k - x.k
-      if (r == 0) {
-        r = y.d - x.d
-      }
-      if (r == 0) {
-        r = y.l - x.l
-      }
-      if (r == 0) {
-        r = (x.id - y.id).toInt
-      }
-      r
-    }
-  }
+//  implicit val scoreOrdering = new Ordering[Score] {
+//    override def compare(x: Score, y: Score): Int = {
+//      var r = y.k - x.k
+//      if (r == 0) {
+//        r = y.d - x.d
+//      }
+//      if (r == 0) {
+//        r = y.l - x.l
+//      }
+//      if (r == 0) {
+//        r = (x.id - y.id).toInt
+//      }
+//      r
+//    }
+//  }
 
-  private[this] def updateRanks() = {
-    currentRank = tankMap.values.map(s => Score(s.tankId, s.name, s.killTankNum, s.damageStatistics, s.lives)).toList.sorted
-    var historyChange = false
-    currentRank.foreach { cScore =>
-      historyRankMap.get(cScore.id) match {
-        case Some(oldScore) if cScore.d > oldScore.d || cScore.l < oldScore.l =>
-          historyRankMap += (cScore.id -> cScore)
-          historyChange = true
-        case None if cScore.d > historyRankThreshold =>
-          historyRankMap += (cScore.id -> cScore)
-          historyChange = true
-        case _ =>
-
-      }
-    }
-
-    if (historyChange) {
-      historyRank = historyRankMap.values.toList.sorted.take(historyRankLength)
-      historyRankThreshold = historyRank.lastOption.map(_.d).getOrElse(-1)
-      historyRankMap = historyRank.map(s => s.id -> s).toMap
-    }
-  }
+//  private[this] def updateRanks() = {
+//    currentRank = tankMap.values.map(s => Score(s.tankId, s.name, s.killTankNum, s.damageStatistics, s.lives)).toList.sorted
+//    var historyChange = false
+//    currentRank.foreach { cScore =>
+//      historyRankMap.get(cScore.id) match {
+//        case Some(oldScore) if cScore.d > oldScore.d || cScore.l < oldScore.l =>
+//          historyRankMap += (cScore.id -> cScore)
+//          historyChange = true
+//        case None if cScore.d > historyRankThreshold =>
+//          historyRankMap += (cScore.id -> cScore)
+//          historyChange = true
+//        case _ =>
+//
+//      }
+//    }
+//
+//    if (historyChange) {
+//      historyRank = historyRankMap.values.toList.sorted.take(historyRankLength)
+//      historyRankThreshold = historyRank.lastOption.map(_.d).getOrElse(-1)
+//      historyRankMap = historyRank.map(s => s.id -> s).toMap
+//    }
+//  }
 
   def getCurGameSnapshot(): TankGameEvent.TankGameSnapshot = {
     TankGameEvent.TankGameSnapshot(getGameContainerAllState())

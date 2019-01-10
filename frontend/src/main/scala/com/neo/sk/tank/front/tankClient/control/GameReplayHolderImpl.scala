@@ -40,14 +40,24 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
         gameContainerOpt.foreach(_.drawGameLoading())
       case GameState.play =>
         /***/
+        if(tickCount % rankCycle == 1){
+          gameContainerOpt.foreach(_.updateRanks())
+          gameContainerOpt.foreach(t => t.rankUpdated = true)
+        }
         gameContainerOpt.foreach(_.update())
         logicFrameTime = System.currentTimeMillis()
         ping()
+        tickCount += 1
 
       case GameState.stop =>
+        if(tickCount % rankCycle == 1){
+          gameContainerOpt.foreach(_.updateRanks())
+          gameContainerOpt.foreach(t => t.rankUpdated = true)
+        }
         gameContainerOpt.foreach(_.update())
         logicFrameTime = System.currentTimeMillis()
         gameContainerOpt.foreach(_.drawGameStop())
+        tickCount += 1
 
       case GameState.leave =>
         gameContainerOpt.foreach(_.update())

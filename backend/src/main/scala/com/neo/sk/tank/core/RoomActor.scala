@@ -207,7 +207,7 @@ object RoomActor {
           if (AppSettings.gameRecordIsWork) {
             if (tickCount % 20 == 1) {
               //remind 排行榜
-              val rankEvent = TankGameEvent.Ranks(gameContainer.currentRank, gameContainer.historyRank)
+              val rankEvent = TankGameEvent.Ranks(gameContainer.currentRank)//历史排行榜未记录
               getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame) ! GameRecorder.GameRecord(rankEvent :: gameEvents, snapshotOpt)
             } else {
               getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
@@ -220,10 +220,11 @@ object RoomActor {
               dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(state))
             }
           }
-          val count=tickCount + 10 % rankClassify
-          userGroup.get(count).foreach{ s =>
-            if(s.nonEmpty) dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.Ranks(gameContainer.currentRank, gameContainer.historyRank))
-          }
+          //排行榜更新移到前端
+//          val count=tickCount + 10 % rankClassify
+//          userGroup.get(count).foreach{ s =>
+//            if(s.nonEmpty) dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.Ranks(gameContainer.currentRank, gameContainer.historyRank))
+//          }
 //          for(i <- count*10 until (count+1)*10){
 //            userGroup.get(i).foreach { s =>
 //              if (s.nonEmpty) {

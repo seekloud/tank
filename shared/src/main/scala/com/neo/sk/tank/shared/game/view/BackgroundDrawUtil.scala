@@ -19,7 +19,8 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
   private var canvasBoundary:Point=canvasSize
 
   private val rankWidth = 26
-  private val rankHeight = 24
+  private val rankHeight = 50
+  private val currentRankNum = 10
   private val currentRankCanvas=drawFrame.createCanvas(math.max(rankWidth * canvasUnit, 26 * 10),math.max(rankHeight * canvasUnit, 24 * 10))
   private val historyRankCanvas=drawFrame.createCanvas(math.max(rankWidth * canvasUnit, 26 * 10),math.max(rankHeight * canvasUnit, 24 * 10))
   var rankUpdated: Boolean = true
@@ -124,9 +125,30 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
   }
 
-  protected def drawRank(supportLiveLimit:Boolean):Unit = {
+  protected def drawRank(supportLiveLimit:Boolean,curTankId:Int,curName:String):Unit = {
+    val drawHistory = false
     def drawTextLine(str: String, x: Double, y: Double, context:MiddleContext) = {
       context.fillText(str, x, y)
+    }
+
+    def drawUnitRank(context:MiddleContext,unit:Double,index:Int,y:Double,score:Score,historyRank:Boolean,leftBegin:Double) = {
+      context.beginPath()
+      context.moveTo(leftBegin,y)
+      context.lineTo((rankWidth - 2) * unit,y)
+      context.stroke()
+      context.closePath()
+      context.setTextAlign("left")
+      if(historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, y, context)
+      else {
+        val scoreText=if(score.d>=1000){
+          val a=score.d.toFloat/1000
+          a.formatted("%.1f")+"k"
+        }else{
+          score.d.toString
+        }
+        val liveInfo = if(supportLiveLimit) s"lives=${score.l}" else ""
+        drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=$scoreText ${liveInfo}", leftBegin, y, context)
+      }
     }
 
     def refreshCacheCanvas(context:MiddleContext, header: String, rank: List[Score], historyRank:Boolean): Unit ={
@@ -145,7 +167,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
       minimapCanvas.getCtx.setTextBaseline("center")
       context.setLineCap("round")
       drawTextLine(header, currentRankCanvas.getWidth() / 2 , 1 * unit, context)
-      rank.foreach{ score =>
+      rank.take(currentRankNum).foreach{ score =>
         index += 1
         val drawColor = index match {
           case 1 => "rgb(255,215,0)"
@@ -164,24 +186,16 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
         }
         context.setStrokeStyle(drawColor)
         context.setLineWidth(1.8 * unit)
-        context.beginPath()
-        context.moveTo(leftBegin,(2 * index + 1) * unit)
-        context.lineTo((rankWidth - 2) * unit,(2 * index + 1) * unit)
-        context.stroke()
-        context.closePath()
-        context.setTextAlign("left")
-        if(historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, (2 * index + 1) * unit, context)
-        else {
-          val scoreText=if(score.d>=1000){
-            val a=score.d.toFloat/1000
-            a.formatted("%.1f")+"k"
-          }else{
-            score.d.toString
+        drawUnitRank(context,unit,index,(2 * index + 1) * unit,score,historyRank,leftBegin)
+      }
+      rank.zipWithIndex.find(_._1.id == curTankId) match{
+        case Some((score,indices)) =>
+          if(indices + 1 > 10){
+            context.setStrokeStyle("RGB(137,188,255)")
+            context.setLineWidth(1.8 * unit)
+            drawUnitRank(context,unit,indices + 1,(2 * index + 4) * unit,score,historyRank,leftBegin)
           }
-          val liveInfo = if(supportLiveLimit) s"lives=${score.l}" else ""
-          drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=$scoreText ${liveInfo}", leftBegin, (2 * index + 1) * unit, context)
-        }
-
+        case None =>
       }
 //      drawTextLine(s"当前房间人数 ${index}", 28*canvasUnit, (2 * index + 1) * canvasUnit, context)
 
@@ -191,7 +205,9 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
     def refresh():Unit = {
       refreshCacheCanvas(currentRankCanvas.getCtx, " --- Current Rank --- ", currentRank,false)
-      refreshCacheCanvas(historyRankCanvas.getCtx, " --- History Rank --- ", historyRank,true)
+      if(drawHistory){
+        refreshCacheCanvas(historyRankCanvas.getCtx, " --- History Rank --- ", historyRank,true)
+      }
     }
 
 
@@ -201,7 +217,9 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     }
     ctx.setGlobalAlpha(0.8)
     ctx.drawImage(currentRankCanvas.change2Image(),0,0)
-    ctx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,0)
+    if(drawHistory){
+      ctx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,0)
+    }
     ctx.setGlobalAlpha(1)
   }
 

@@ -243,6 +243,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           * */
         gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState,versionInfo = versionInfoOpt))
         gameContainerOpt.get.getTankId(e.tankId)
+//        gameContainerOpt.foreach(e =>)
 
       case e:TankGameEvent.TankFollowEventSnap =>
         gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))

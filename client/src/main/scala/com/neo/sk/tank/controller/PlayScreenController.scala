@@ -77,6 +77,8 @@ class PlayScreenController(
   private var gameState = GameState.loadingPlay
   private var logicFrameTime = System.currentTimeMillis()
 
+  private var tickCount = 1//更新排行榜信息计时器
+  private val rankCycle = 20
 
   /**阻塞时间*/
   private val timeline = new Timeline()
@@ -161,9 +163,14 @@ class PlayScreenController(
           gameContainerOpt.foreach(_.drawGameLoading())
         case GameState.play =>
           /** */
+          if(tickCount % rankCycle == 1){
+            gameContainerOpt.foreach(_.updateRanks())
+            gameContainerOpt.foreach(t => t.rankUpdated = true)
+          }
           gameContainerOpt.foreach(_.update())
           logicFrameTime = System.currentTimeMillis()
           ping()
+          tickCount += 1
 
         case GameState.stop =>
           closeHolder
