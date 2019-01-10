@@ -35,7 +35,7 @@ object UserManager {
 
   final case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
-  final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]], playerInfo:Option[EsheepProtocol.PlayerInfo] = None, roomId:Option[Long] = None) extends Command
+  final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]], playerInfo:Option[EsheepProtocol.PlayerInfo] = None, roomId:Option[Long] = None, roomPwd:Option[String] = None) extends Command
 
   final case class GetReplaySocketFlow(name: String, uid: String, rid: Long, wid:String, f:Int, replyTo: ActorRef[Flow[Message, Message, Any]]) extends Command
 
@@ -82,8 +82,8 @@ object UserManager {
 
 
 
-        case GetWebSocketFlow(name,replyTo, playerInfoOpt, roomIdOpt) =>
-          println(s"ssssss${playerInfoOpt},${roomIdOpt}")
+        case GetWebSocketFlow(name,replyTo,playerInfoOpt,roomIdOpt,roomPwdOpt) =>
+          println(s"ssssss${playerInfoOpt},${roomIdOpt},${roomPwdOpt}")
           val playerInfo = playerInfoOpt match {
             case Some(p) => TankGameUserInfo(p.playerId, p.nickname, name, true)
             case None => TankGameUserInfo(Constants.TankGameUserIdPrefix + s"-${uidGenerator.getAndIncrement()}", s"guest:${name}", name, false)
@@ -96,7 +96,8 @@ object UserManager {
           val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
           replyTo ! getWebSocketFlow(userActor)
           userActor ! ChangeUserInfo(playerInfo)
-          userActor ! UserActor.StartGame(roomIdOpt)
+          if(roomPwdOpt.nonEmpty) userActor ! UserActor.JoinGame(roomIdOpt,roomPwdOpt.get)
+          else userActor ! UserActor.StartGame(roomIdOpt)
           Behaviors.same
 
 
