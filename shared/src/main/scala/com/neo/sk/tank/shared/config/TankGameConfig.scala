@@ -99,7 +99,7 @@ final case class ObstacleParameters(
 
 final case class BulletParameters(
                                    bulletLevelParameters:List[(Float,Int)], //size,damage length 3
-                                   maxFlyDistance:Int,
+                                   maxFlyFrame:Int,
                                    bulletSpeed:Int,
                                  ){
   require(bulletLevelParameters.size >= 3,println(s"bullet level parameter failed"))
@@ -131,7 +131,7 @@ trait TankGameConfig{
   def getBulletLevel(damage:Int):Byte
   def getBulletMaxLevel():Byte
 
-  def maxFlyDistance:Int
+  def maxFlyFrame:Int
 
   def bulletSpeed:Point
 
@@ -210,7 +210,7 @@ case class TankGameConfigImpl(
 
   def getBulletMaxLevel():Byte = bulletParameters.bulletLevelParameters.size.toByte
 
-  def maxFlyDistance = bulletParameters.maxFlyDistance
+  def maxFlyFrame = bulletParameters.maxFlyFrame
   def getBulletRadiusByDamage(d:Int):Float = bulletParameters.getBulletRadiusByDamage(d)
 
   def bulletSpeed = Point(bulletParameters.bulletSpeed,0)
