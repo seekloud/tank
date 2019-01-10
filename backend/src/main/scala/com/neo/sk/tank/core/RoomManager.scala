@@ -16,6 +16,7 @@ import scala.collection.immutable.HashMap
 import scala.collection.mutable
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import akka.actor.typed.Behavior
+import com.neo.sk.tank.core.bot.BotActor
 import com.neo.sk.tank.protocol.WatchGameProtocol
 import com.neo.sk.tank.protocol.WatchGameProtocol._
 import com.neo.sk.tank.shared.model.Constants.GameState
@@ -31,6 +32,8 @@ object RoomManager {
   trait Command
   private case class TimeOut(msg:String) extends Command
   private case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
+
+  case class BotJoinRoom(bid:String,tankIdOpt:Option[Int],name:String,startTime:Long,botActor:ActorRef[BotActor.Command], roomId:Long) extends Command
 
   case class LeftRoom(uid:String,tankId:Int,name:String,userOpt: Option[String]) extends Command
 
@@ -53,7 +56,7 @@ object RoomManager {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {
         case JoinRoom(uid,tankIdOpt,name,startTime,userActor, roomIdOpt) =>
-          log.debug(s"before roomInUse:$roomInUse")
+          log.debug(s"before userJoin roomInUse:$roomInUse")
           roomIdOpt match{
             case Some(roomId) =>
               roomInUse.get(roomId) match{
@@ -74,6 +77,16 @@ object RoomManager {
               }
           }
           log.debug(s"${ctx.self.path}新加入玩家${uid}--${name},now roomInUse:$roomInUse")
+          Behaviors.same
+
+        case msg:BotJoinRoom=>
+          log.debug(s"before botJoin roomInUse:$roomInUse")
+          roomInUse.get(msg.roomId) match{
+            case Some(ls) => roomInUse.put(msg.roomId,(msg.bid,msg.name) :: ls)
+            case None => roomInUse.put(msg.roomId,List((msg.bid,msg.name)))
+          }
+          getRoomActor(ctx,msg.roomId) ! RoomActor.BotJoinRoom(msg.bid,msg.tankIdOpt,msg.name,msg.startTime,msg.botActor,msg.roomId)
+          log.debug(s"${ctx.self.path}新加入bot${msg.bid}--${msg.name},now roomInUse:$roomInUse")
           Behaviors.same
 
 

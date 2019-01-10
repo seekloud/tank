@@ -17,7 +17,7 @@ import io.circe.{Decoder, Encoder}
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.Boot.{executor, scheduler, timeout}
 import com.neo.sk.tank.common.Constants
-import com.neo.sk.tank.core.BotActor.GetMsgFromUserManager
+import com.neo.sk.tank.core.bot.BotActor.GetMsgFromUserManager
 import com.neo.sk.tank.core.RoomActor.TankRelive
 import com.neo.sk.tank.core.UserActor._
 import com.neo.sk.tank.shared.protocol.TankGameEvent.WsMsgSource
@@ -41,7 +41,8 @@ object UserManager {
 
   final case class GetWebSocketFlow4WatchGame(roomId:Long, watchedUserId:String, replyTo:ActorRef[Flow[Message,Message,Any]], playerInfo:Option[EsheepProtocol.PlayerInfo] = None) extends Command
 
-  final case class GetMsgFromBot(name:String, roomId:Option[Long], replyTo:ActorRef[WsMsgSource]) extends Command
+  @deprecated
+  case class GetMsgFromBot(name:String, roomId:Option[Long], replyTo:ActorRef[WsMsgSource]) extends Command
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -63,9 +64,6 @@ object UserManager {
                   ): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-//        case GetWebSocketFlow(name, replyTo) =>
-//          replyTo ! getWebSocketFlow(0,getUserActor(ctx, uidGenerator.getAndIncrement(), name))
-//          Behaviors.same
 
         case GetReplaySocketFlow(name, uid, rid, wid, f, replyTo) =>
           getUserActorOpt(ctx, uid) match {
@@ -83,7 +81,6 @@ object UserManager {
 
 
         case GetWebSocketFlow(name,replyTo, playerInfoOpt, roomIdOpt) =>
-          println(s"ssssss${playerInfoOpt},${roomIdOpt}")
           val playerInfo = playerInfoOpt match {
             case Some(p) => TankGameUserInfo(p.playerId, p.nickname, name, true)
             case None => TankGameUserInfo(Constants.TankGameUserIdPrefix + s"-${uidGenerator.getAndIncrement()}", s"guest:${name}", name, false)
@@ -152,6 +149,7 @@ object UserManager {
 
         case msg:TankRelive4UserActor =>
           //todo
+          //fixme 此处为何要存在
           getUserActor(ctx,msg.userId,
             TankGameUserInfo(msg.userId,msg.name,msg.name,msg.userId.take(4) == "user")) ! TankRelive4UserActor(msg.tank,msg.userId,msg.name,msg.roomActor,msg.config)
           Behaviors.same
