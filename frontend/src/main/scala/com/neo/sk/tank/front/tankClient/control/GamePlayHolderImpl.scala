@@ -26,7 +26,8 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
   private var spaceKeyUpState = true
   private var lastMouseMoveTheta:Float = 0
-  private val mouseMoveThreshold = math.Pi / 180
+  private val mouseMoveThreshold = math.Pi / 90
+  private var lastMoveFrame = -1L
   private val poKeyBoardMoveTheta = 2* math.Pi / 72 //炮筒顺时针转
   private val neKeyBoardMoveTheta = -2* math.Pi / 72 //炮筒逆时针转
   private var poKeyBoardFrame = 0L
@@ -106,9 +107,10 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     canvas.getCanvas.onmousemove = { e: dom.MouseEvent =>
       val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(24,24)
       val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
-      if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
-        if(math.abs(theta - lastMouseMoveTheta) >= mouseMoveThreshold){
+      if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
+        if(math.abs(theta - lastMouseMoveTheta) >= mouseMoveThreshold ){
           lastMouseMoveTheta = theta
+          lastMoveFrame = gameContainerOpt.get.systemFrame
           val preExecuteAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction) //发送鼠标位置
