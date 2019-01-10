@@ -121,21 +121,11 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
       App.pushStack2AppThread(gameHall.plainScreen)
     }
 
-    override def createEncrypt(roomId: String, salt: String): Unit = {
+    override def createEncr(roomId: String, salt: String): Unit = {
       App.pushStack2AppThread{
         val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
         context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
         new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomId), Some(salt)).start
-        playGameScreen.setCursor
-        close()
-      }
-    }
-
-    override def createPlain(roomId: String): Unit = {
-      App.pushStack2AppThread{
-        val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
-        context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-        new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdListView)).start
         playGameScreen.setCursor
         close()
       }

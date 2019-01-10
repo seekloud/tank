@@ -291,8 +291,11 @@ class PlayScreenController(
   def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
 //    println(data.getClass)
     App.pushStack2AppThread{
-//      log.debug(s"${data.getClass}")
       data match {
+
+        case e:TankGameEvent.WsSuccess =>
+          if(roomPwd.nonEmpty) playGameActor ! DispatchMsg(TankGameEvent.CreateRoom())
+          playGameActor ! DispatchMsg(TankGameEvent.StartGame(e.))
         case e: TankGameEvent.YourInfo =>
           /**
             * 更新游戏数据

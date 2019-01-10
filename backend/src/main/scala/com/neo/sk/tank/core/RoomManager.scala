@@ -31,7 +31,7 @@ object RoomManager {
   trait Command
   private case class TimeOut(msg:String) extends Command
   private case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
-  case class CreateRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], password:String) extends Command
+  case class CreateRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], password:Option[String]) extends Command
   case class LeftRoom(uid:String,tankId:Int,name:String,userOpt: Option[String]) extends Command
 
 
@@ -86,7 +86,7 @@ object RoomManager {
 
         case CreateRoom(uid,tankIdOpt,name,startTime,userActor,passwordOpt) =>
           val roomId = roomIdGenerator.getAndIncrement()
-          roomInUse.put(roomId,(passwordOpt,List((uid,name))))
+          roomInUse.put(roomId,(passwordOpt.getOrElse(""),List((uid,name))))
           getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
           Behaviors.same
 
