@@ -247,6 +247,8 @@ object UserActor {
               log.info("get ws msg startGame")
               ctx.self ! JoinGame(t.roomId,t.password)
               idle(uId,userInfo,startTime,frontActor)
+
+            case Some(t:TankGameEvent.)
             case _ =>
               Behaviors.same
           }

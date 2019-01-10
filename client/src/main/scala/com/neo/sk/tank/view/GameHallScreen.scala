@@ -207,8 +207,7 @@ abstract class GameHallListener{
   def confirmBtnListener(roomIdListView:String, roomIdTextFiled:String, roomIdExist:Boolean)
   def randomBtnListener()
   def addSelfDefinedRoom()
-  def createEncrypt(roomId:String,salt:String)
-  def createPlain(roomId:String)
+  def createRoom(roomId:String,salt:Option[String])
   def change2Encrypt()
   def change2Plain()
 }
