@@ -22,6 +22,7 @@ import com.neo.sk.tank.Boot.roomManager
 import com.neo.sk.tank.Boot.userManager
 import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.core.UserActor.TankRelive4UserActor
+import com.neo.sk.tank.shared.`object`
 
 /**
   * Created by hongruying on 2018/8/29
@@ -69,13 +70,20 @@ case class GameContainerServerImpl(
 
     tank.launchBullet()(config) match {
       case Some((bulletDirection, position, damage)) =>
-        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(), tankId, position, damage, position, config.getMoveDistanceByFrame(tank.getTankSpeedLevel()), tank.getTankDirection(), tank.getTankIsMove(), System.currentTimeMillis(), tank.name, bulletDirection)
+        val momentum = if (tank.getTankIsMove()) config.bulletSpeed.rotate(bulletDirection) * config.frameDuration / 1000 +
+          config.getMoveDistanceByFrame(tank.getTankSpeedLevel()).rotate(tank.getTankDirection()).*(0.2f)
+        else config.bulletSpeed.rotate(bulletDirection) * config.frameDuration / 1000
+
+        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(), tankId, systemFrame, position, damage.toByte, momentum, tank.name)
         transformGenerateBulletEvent(bulletState)
         if (tank.getShotGunState()) {
           List(Math.PI / 8, -Math.PI / 8).foreach { bulletOffsetDirection =>
             val bulletPos = tank.getOtherLaunchBulletPosition(bulletOffsetDirection.toFloat)(config)
             val bulletDir = bulletDirection + bulletOffsetDirection.toFloat
-            val bulletState = BulletState(bulletIdGenerator.getAndIncrement(), tankId, bulletPos, damage, bulletPos, config.getMoveDistanceByFrame(tank.getTankSpeedLevel()), tank.getTankDirection(), tank.getTankIsMove(), System.currentTimeMillis(), tank.name, bulletDir)
+            val momentum = if (tank.getTankIsMove()) config.bulletSpeed.rotate(bulletDir) * config.frameDuration / 1000 +
+              config.getMoveDistanceByFrame(tank.getTankSpeedLevel()).rotate(tank.getTankDirection()).*(0.2f)
+            else config.bulletSpeed.rotate(bulletDir) * config.frameDuration / 1000
+            val bulletState = `object`.BulletState(bulletIdGenerator.getAndIncrement(), tankId, systemFrame, bulletPos, damage.toByte, momentum, tank.name)
             transformGenerateBulletEvent(bulletState)
           }
         }
@@ -87,22 +95,10 @@ case class GameContainerServerImpl(
     /**
       * tank吃道具,当前存储道具数量等于限制值，即吃即用
       **/
-    //    if(prop.propType == 4){
-    //      tank.fillAMedical(config)
-    //    }else{
-    //    }
     val event = TankGameEvent.TankEatProp(tank.tankId, prop.pId, prop.propType, systemFrame)
     dispatch(event)
     addGameEvent(event)
   }
-
-  /*override protected def attackTankCallBack(bullet: Bullet)(tank:Tank):Unit = {
-    super.attackTankCallBack(bullet)(tank)
-    val event = TankGameEvent.TankAttacked(tank.tankId,bullet.bId, bullet.tankId, bullet.tankName,bullet.damage,systemFrame)
-    dispatch(event)
-    addGameEvent(event)
-  }*/
-
 
   override protected def dropTankCallback(bulletTankId: Int, bulletTankName: String, tank: Tank) = {
     val tankState = tank.getTankState()
@@ -113,11 +109,11 @@ case class GameContainerServerImpl(
     }
     dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
     //后台增加一个玩家离开消息（不传给前端）,以便录像的时候记录玩家死亡和websocket断开的情况。
-    if (tankState.lives <= 1 || (! AppSettings.supportLiveLimit)) {
+    if (tankState.lives <= 1 || (!AppSettings.supportLiveLimit)) {
       val event = TankGameEvent.UserLeftRoomByKill(tank.userId, tank.name, tank.tankId, systemFrame)
       addGameEvent(event)
     }
-    if(AppSettings.supportLiveLimit){
+    if (AppSettings.supportLiveLimit) {
       val curTankState = TankState(tankState.userId, tankState.tankId, tankState.direction, tankState.gunDirection, tankState.blood, tankState.bloodLevel, tankState.speedLevel, tankState.curBulletNum,
         tankState.position, tankState.bulletPowerLevel, tankState.tankColorType, tankState.name, tankState.lives - 1, None, tankState.killTankNum, tankState.damageTank, tankState.invincible,
         tankState.shotgunState, tankState.speed, tankState.isMove)
@@ -178,7 +174,7 @@ case class GameContainerServerImpl(
     n
   }
 
-  override protected def handleObstacleRemoveNow()={}
+  override protected def handleObstacleRemoveNow() = {}
 
   override protected def handleObstacleAttacked(e: TankGameEvent.ObstacleAttacked): Unit = {
     bulletMap.get(e.bulletId).foreach(quadTree.remove)
@@ -274,7 +270,7 @@ case class GameContainerServerImpl(
       case (userId, tankIdOpt, name, ref) =>
         val tank = genATank(userId, tankIdOpt, name)
         //        tankEatPropMap.update(tank.tankId,mutable.HashSet())
-        if(AppSettings.supportLiveLimit){
+        if (AppSettings.supportLiveLimit) {
           tankLivesMap.update(tank.tankId, tank.getTankState())
         }
         val event = TankGameEvent.UserJoinRoom(userId, name, tank.getTankState(), systemFrame)
@@ -456,16 +452,10 @@ case class GameContainerServerImpl(
   }
 
   override protected def clearEventWhenUpdate(): Unit = {
-    //记录数据
-    //    val gameEventSize = gameEventMap.getOrElse(systemFrame, Nil).size
-    //    val actionEventSize = actionEventMap.getOrElse(systemFrame, Nil).size
-    //    if(gameEventSize + actionEventSize > 0){
-    //      log.info(s"tank systemFrame=${systemFrame}, gameEvents=${gameEventSize}, actionEvents=${actionEventSize}")
-    //    }
     super.clearEventWhenUpdate()
     gameEventMap -= systemFrame - 1
     actionEventMap -= systemFrame - 1
-    followEventMap -= systemFrame-maxFollowFrame -1
+    followEventMap -= systemFrame - maxFollowFrame - 1
     systemFrame += 1
   }
 
@@ -476,16 +466,12 @@ case class GameContainerServerImpl(
 
   def getGameContainerState(): GameContainerState = {
     GameContainerState(
-      systemFrame,
-      tankMap.values.map(_.getTankState()).toList,
-//      propMap.values.map(_.getPropState).toList,
-//      obstacleMap.values.map(_.getObstacleState()).toList,
-//      tankMoveAction = tankMoveAction.toList.map(t => (t._1, t._2.toList))
+      systemFrame
     )
   }
 
   def getFollowEventSnap(): TankFollowEventSnap = {
-    val l=followEventMap.filter(_._1>=systemFrame).toList
+    val l = followEventMap.filter(_._1 >= systemFrame).toList
     TankFollowEventSnap(
       systemFrame,
       l.flatMap(_._2).filter(_.isInstanceOf[TankGameEvent.TankFillBullet]).map(_.asInstanceOf[TankGameEvent.TankFillBullet]),

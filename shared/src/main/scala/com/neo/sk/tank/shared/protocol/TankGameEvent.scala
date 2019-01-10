@@ -1,6 +1,6 @@
 package com.neo.sk.tank.shared.protocol
 
-import com.neo.sk.tank.shared.`object`.{BulletState, ObstacleState, PropState, TankState}
+import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.{TankGameConfig, TankGameConfigImpl}
 import com.neo.sk.tank.shared.model.Score
 import com.neo.sk.tank.shared.protocol.TankGameEvent.UserEvent
@@ -21,7 +21,7 @@ object TankGameEvent {
 
   case class GameContainerState(
                                  f:Long,
-                                 tanks:List[TankState],
+//                                 tanks:List[TankState],
 //                                 props:List[PropState],
 //                                 obstacle:List[ObstacleState],
 //                                 tankMoveAction:List[(Int,List[Int])]
