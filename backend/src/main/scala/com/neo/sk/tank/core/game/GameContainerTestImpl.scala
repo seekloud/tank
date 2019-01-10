@@ -224,34 +224,10 @@ case class GameContainerTestImpl(
     }
     systemFrame = gameContainerState.f
     judge(gameContainerState)
-    quadTree.clear()
-    tankMap.clear()
-    //    obstacleMap.clear()
-    //    propMap.clear()
-    //    tankMoveAction.clear()
-    gameContainerState.tanks.foreach { t =>
-      val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
-      quadTree.insert(tank)
-      tankMap.put(t.tankId, tank)
-    }
-    obstacleMap.values.foreach(quadTree.insert)
-    propMap.values.foreach(quadTree.insert)
-    environmentMap.values.foreach(quadTree.insert)
-    bulletMap.values.foreach { bullet =>
-      quadTree.insert(bullet)
-    }
   }
 
   private def judge(gameContainerState: GameContainerState): Unit = {
-    gameContainerState.tanks.foreach { tankState =>
-      tankMap.get(tankState.tankId) match {
-        case Some(t) =>
-          if (t.getTankState() != tankState) {
-            println(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
-          }
-        case None => println(s"judge failed,because tank=${tankState.tankId} not exists....")
-      }
-    }
+    if(gameContainerState.f!=systemFrame) print(s"judge fail with f=${gameContainerState.f},$systemFrame")
   }
 
   def receiveGameContainerAllState(gameContainerAllState: GameContainerAllState) = {

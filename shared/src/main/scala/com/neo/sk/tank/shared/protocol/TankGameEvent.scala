@@ -1,6 +1,6 @@
 package com.neo.sk.tank.shared.protocol
 
-import com.neo.sk.tank.shared.`object`.{BulletState, ObstacleState, PropState, TankState}
+import com.neo.sk.tank.shared.`object`._
 import com.neo.sk.tank.shared.config.{TankGameConfig, TankGameConfigImpl}
 import com.neo.sk.tank.shared.model.Score
 import com.neo.sk.tank.shared.protocol.TankGameEvent.UserEvent
@@ -20,11 +20,7 @@ object TankGameEvent {
                                         )
 
   case class GameContainerState(
-                                 f:Long,
-                                 tanks:List[TankState],
-//                                 props:List[PropState],
-//                                 obstacle:List[ObstacleState],
-//                                 tankMoveAction:List[(Int,List[Int])]
+                                 f:Long
                                )
 
   /**前端建立WebSocket*/
@@ -49,9 +45,6 @@ object TankGameEvent {
   final case class WsMsgErrorRsp(errCode:Int, msg:String) extends WsMsgServer
   //  final case class GameConfig(config:TankGameConfigImpl) extends WsMsgServer
   final case class YourInfo(userId:String,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
-//  final case class TankReliveInfo(config:TankGameConfigImpl) extends WsMsgServer
-//  final case class YouAreKilled(tankId:Int,name:String) extends WsMsgServer //可能会丢弃
-//  final case class PlayerAreKilled(tankId:Int,name:String) extends WsMsgServer
   final case class YouAreKilled(tankId:Int, name:String, hasLife:Boolean,killTankNum:Int,lives:Int,damageStatistics:Int) extends WsMsgServer //可能会丢弃
   final case class Ranks(currentRank: List[Score], historyRank: List[Score] = Nil) extends WsMsgServer
   final case class SyncGameState(state:GameContainerState) extends WsMsgServer

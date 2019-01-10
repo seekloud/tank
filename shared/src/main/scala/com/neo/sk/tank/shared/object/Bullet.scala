@@ -8,36 +8,30 @@ import com.neo.sk.tank.shared.model.Point
   * Created by hongruying on 2018/7/8
   * 子弹
   */
-case class BulletState(bId:Int,tankId:Int,position:Point,damage:Int,startPosition:Point,tankMomentum:Point,tankDirection:Float,tankIsMove:Boolean,createTime:Long, name:String, direction:Float)
+
+case class BulletState(bId:Int, tankId:Int, startFrame:Long, position:Point, damage:Byte, momentum:Point, name:String)
+
 
 case class Bullet(
                  config:TankGameConfig,
                  override protected var position: Point,
+                 startFrame:Long,
                  damage:Int, //威力
-                 startPosition: model.Point, //起始位置
-                 tankMomentum:Point,
-                 tankDirection:Float,
-                 tankIsMove:Boolean,
-                 createTime:Long,
+                 momentum:Point,
                  bId:Int,
                  tankId:Int,
-                 tankName:String,
-                 direction:Float
+                 tankName:String
                  ) extends CircleObjectOfGame{
 
   def this(config:TankGameConfig, bulletState: BulletState){
-    this(config,bulletState.position,bulletState.damage,bulletState.startPosition,bulletState.tankMomentum,bulletState.tankDirection,bulletState.tankIsMove,bulletState.createTime,bulletState.bId,bulletState.tankId,bulletState.name,bulletState.direction)
+    this(config,bulletState.position,bulletState.startFrame,bulletState.damage.toInt,bulletState.momentum,bulletState.bId,bulletState.tankId,bulletState.name)
   }
 
 
-  val momentum: Point = config.bulletSpeed.rotate(direction) * config.frameDuration / 1000 //速度 每帧子弹运动的距离
+//  val momentum: Point = momentum
   override val radius: Float = config.getBulletRadiusByDamage(damage)
 
-  val maxFlyDistance:Int = config.maxFlyDistance
-
-
-
-
+  val maxFlyFrame:Int = config.maxFlyFrame
 
   // 获取子弹外形
   override def getObjectRect(): model.Rectangle = {
@@ -46,7 +40,7 @@ case class Bullet(
 
 
   def getBulletState(): BulletState = {
-    BulletState(bId,tankId,position,damage,startPosition,tankMomentum,tankDirection,tankIsMove,createTime,tankName,direction)
+    BulletState(bId,tankId,startFrame,position,damage.toByte,momentum,tankName)
   }
 
 
@@ -56,23 +50,20 @@ case class Bullet(
   }
 
   // 生命周期是否截至或者打到地图边界
-  def isFlyEnd(boundary: Point):Boolean = {
-    if( this.position.distance(startPosition) > maxFlyDistance || position.x <= 0 || position.y <= 0 || position.x >= boundary.x || position.y >= boundary.y)
+  def isFlyEnd(boundary: Point,frame:Long):Boolean = {
+    if( frame-this.startFrame > maxFlyFrame || position.x <= 0 || position.y <= 0 || position.x >= boundary.x || position.y >= boundary.y)
       true
     else
       false
   }
 
   // 先检测是否生命周期结束，如果没结束继续移动
-  def move(boundary: Point,flyEndCallBack:Bullet => Unit):Unit = {
-    if(isFlyEnd(boundary)){
+  def move(boundary: Point,frame:Long,flyEndCallBack:Bullet => Unit):Unit = {
+    if(isFlyEnd(boundary,frame)){
       flyEndCallBack(this)
     } else{
-      if(tankIsMove)this.position = this.position + momentum + tankMomentum.rotate(tankDirection).*(0.2f)
-      else this.position = this.position + momentum
+      this.position = this.position + momentum
     }
-
-
   }
 
   // 检测是否子弹有攻击到，攻击到，执行回调函数
@@ -84,8 +75,7 @@ case class Bullet(
 
 
   def getPosition4Animation(offsetTime:Long) = {
-    if(tankIsMove)this.position + (momentum + tankMomentum.rotate(tankDirection).*(0.2f)) / config.frameDuration * offsetTime
-    else this.position + momentum / config.frameDuration * offsetTime
+    this.position + momentum / config.frameDuration * offsetTime
   }
 
   def getBulletLevel() = {

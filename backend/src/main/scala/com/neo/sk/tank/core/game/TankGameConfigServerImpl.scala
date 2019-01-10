@@ -36,11 +36,11 @@ final case class TankGameConfigServerImpl(
     .requiring(_.size() >= 3,"bullet radius size has 3 type").asScala.toList.map(_.toFloat)
   private[this] val bulletDamage = config.getIntList("tankGame.bullet.bulletDamage")
     .requiring(_.size() >= 3,"bullet damage size has 3 type").asScala.toList.map(_.toInt)
-  private[this] val maxFlyDistanceData = config.getInt("tankGame.bullet.maxFlyDistance")
-    .requiring(_ > 0,"minimum bullet max fly distance is 1")
+  private[this] val maxFlyFrameData = config.getInt("tankGame.bullet.maxFlyFrame")
+    .requiring(_ > 0,"minimum bullet max fly frame is 1")
   private[this] val bulletSpeedData = config.getInt("tankGame.bullet.bulletSpeed")
     .requiring(_ > 0,"minimum bullet speed is 1")
-  private val bulletParameters = BulletParameters(bulletRadius.zip(bulletDamage),maxFlyDistanceData,bulletSpeedData)
+  private val bulletParameters = BulletParameters(bulletRadius.zip(bulletDamage),maxFlyFrameData,bulletSpeedData)
 
   private[this] val obstacleWidthData = config.getDouble("tankGame.obstacle.width")
     .requiring(_ > 0,"minimum supported obstacle width is 1").toFloat
@@ -77,12 +77,12 @@ final case class TankGameConfigServerImpl(
   }
 
   private[this] val steelType = config.getStringList("tankGame.obstacle.steel.type").asScala
-  private[this] val steelTypePostion = steelType.foldLeft(List[List[(Int, Int)]]()){
+  private[this] val steelTypePosition = steelType.foldLeft(List[List[(Int, Int)]]()){
     case (r,item) =>
       config.getIntList(s"tankGame.obstacle.steel.${item}.x").asScala.map(_.toInt).toList
-        .requiring(_.size > 0,s"minimum supported tankGame.obstacle.steel.${item}.x relative position size is 1").zip(
+        .requiring(_.nonEmpty,s"minimum supported tankGame.obstacle.steel.${item}.x relative position size is 1").zip(
         config.getIntList(s"tankGame.obstacle.steel.${item}.y").asScala.map(_.toInt).toList
-          .requiring(_.size > 0,s"minimum supported tankGame.obstacle.steel.${item}.y relative position size is 1")
+          .requiring(_.nonEmpty,s"minimum supported tankGame.obstacle.steel.${item}.y relative position size is 1")
       ) :: r
   }
   private[this] val steelBarrierPosition = steelType.foldLeft(List[List[(Int,Int)]]()){
@@ -100,7 +100,7 @@ final case class TankGameConfigServerImpl(
     airDropParameters = AirDropParameters(airDropBloodData,airDropNumData),
     brickParameters = BrickParameters(brickBloodData,brickNumData),
     riverParameters = RiverParameters(riverTypePostion,riverBarrierPosition),
-    steelParameters = SteelParameters(steelTypePostion,steelBarrierPosition)
+    steelParameters = SteelParameters(steelTypePosition,steelBarrierPosition)
   )
 
   private[this] val propRadiusData = config.getDouble("tankGame.prop.radius")
@@ -122,13 +122,6 @@ final case class TankGameConfigServerImpl(
     .requiring(_.size() >= 3,"minimum supported tank acceleration time size is 3").asScala.map(_.toInt).toList
   private[this] val decelerationTime = config.getIntList("tankGame.tank.decelerationTime")
     .requiring(_.size() >= 3,"minimum supported tank deceleration time size is 3").asScala.map(_.toInt).toList
-
-  //  private[this] val tankSpeedFirst = config.getInt("tankGame.tank.tankSpeed.first")
-//    .requiring(_ > 0,"minimum supported tank first speed is 1")
-//  private[this] val tankSpeedSecond = config.getInt("tankGame.tank.tankSpeed.second")
-//    .requiring(_ > tankSpeedFirst,"minimum supported tank second speed is tankSpeedFirst+1")
-//  private[this] val tankSpeedThird = config.getInt("tankGame.tank.tankSpeed.third")
-//    .requiring(_ > tankSpeedSecond,"minimum supported tank third speed is tankSpeedSecond+1")
   private[this] val tankBloodLevel = config.getIntList("tankGame.tank.tankBloodLevel")
     .requiring(_.size() >= 3,"minimum supported tank blood size is 3").asScala.map(_.toInt).toList
   private[this] val tankRadiusData = config.getDouble("tankGame.tank.radius")
@@ -167,7 +160,7 @@ final case class TankGameConfigServerImpl(
   def getBulletRadius(l:Byte):Float = tankGameConfig.getBulletRadius(l)
   def getBulletDamage(l:Byte):Int = tankGameConfig.getBulletDamage(l)
 
-  def maxFlyDistance:Int = tankGameConfig.maxFlyDistance
+  def maxFlyFrame:Int = tankGameConfig.maxFlyFrame
 
   def bulletSpeed:Point = tankGameConfig.bulletSpeed
   def getBulletRadiusByDamage(d:Int):Float = tankGameConfig.getBulletRadiusByDamage(d)
