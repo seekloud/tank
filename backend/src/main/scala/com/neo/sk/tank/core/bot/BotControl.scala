@@ -14,7 +14,7 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
 /**
   * wmy
   * edit sky*/
-class BotControl(bid:String,tankId: Int, name: String,roomActor: ActorRef[RoomActor.Command], gameContainer: GameContainerServerImpl) {
+case class BotControl(bid:String,tankId: Int, name: String,roomActor: ActorRef[RoomActor.Command], gameContainer: GameContainerServerImpl) {
   var gameState: Int = GameState.loadingPlay
 
   private var lastMouseMoveTheta: Float = 0

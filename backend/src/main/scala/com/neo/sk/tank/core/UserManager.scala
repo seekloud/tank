@@ -17,7 +17,6 @@ import io.circe.{Decoder, Encoder}
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.Boot.{executor, scheduler, timeout}
 import com.neo.sk.tank.common.Constants
-import com.neo.sk.tank.core.bot.BotActor.GetMsgFromUserManager
 import com.neo.sk.tank.core.RoomActor.TankRelive
 import com.neo.sk.tank.core.UserActor._
 import com.neo.sk.tank.shared.protocol.TankGameEvent.WsMsgSource
@@ -40,9 +39,6 @@ object UserManager {
   final case class GetReplaySocketFlow(name: String, uid: String, rid: Long, wid:String, f:Int, replyTo: ActorRef[Flow[Message, Message, Any]]) extends Command
 
   final case class GetWebSocketFlow4WatchGame(roomId:Long, watchedUserId:String, replyTo:ActorRef[Flow[Message,Message,Any]], playerInfo:Option[EsheepProtocol.PlayerInfo] = None) extends Command
-
-  @deprecated
-  case class GetMsgFromBot(name:String, roomId:Option[Long], replyTo:ActorRef[WsMsgSource]) extends Command
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -113,16 +109,6 @@ object UserManager {
           userActor ! ChangeUserInfo(playerInfo)
           //发送用户观战命令
           userActor ! UserActor.StartObserve(roomId, watchedUserId)
-          Behaviors.same
-
-        case GetMsgFromBot(name, roomId, replyTo) =>
-          val playerInfo = TankGameUserInfo(Constants.TankGameUserIdPrefix + s"-${uidGenerator.getAndIncrement()}", s"guest:${name}", name, false)
-          val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
-          replyTo ! GetMsgFromUserManager(userActor)
-          userActor ! ChangeUserInfo(playerInfo)
-          userActor ! UserFrontActor(replyTo)
-          userActor ! UserActor.StartGame(roomId)
-
           Behaviors.same
 
         case msg:ChangeWatchedPlayerId =>
