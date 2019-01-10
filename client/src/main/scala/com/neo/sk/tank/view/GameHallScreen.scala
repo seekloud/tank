@@ -51,7 +51,7 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
 
   private val addRoomBtn = new Button()
   addRoomBtn.setOnAction(e => listener.addSelfDefinedRoom())
-  private val imageView = new ImageView(new Image(getClass.getResourceAsStream("/img/add_1.png")))
+  private val imageView = new ImageView(new Image(getClass.getResourceAsStream("/img/add.png")))
   imageView.setFitHeight(20)
   imageView.setFitWidth(20)
   addRoomBtn.setGraphic(imageView)
@@ -75,20 +75,20 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   plainLink.setFont(Font.font("Cambria", FontWeight.NORMAL, 10))
   plainLink.setOnAction(_ => listener.change2Plain())
 
-  private val btnBack = new Button()
-  private val imageView4back = new ImageView(new Image(getClass.getResourceAsStream("/img/back_1.png")))
-  imageView4back.setFitHeight(20)
-  imageView4back.setFitWidth(20)
-  btnBack.setGraphic(imageView4back)
-  btnBack.setPrefSize(20,20)
-  btnBack.setStyle("-fx-background-color:transparent;")
-  btnBack.setOnAction(_ => listener.backToRoomList())
+//  private val btnBack = new Button()
+//  private val imageView4back = new ImageView(new Image(getClass.getResourceAsStream("/img/back_1.png")))
+//  imageView4back.setFitHeight(20)
+//  imageView4back.setFitWidth(20)
+//  btnBack.setGraphic(imageView4back)
+//  btnBack.setPrefSize(20,20)
+//  btnBack.setStyle("-fx-background-color:transparent;")
+//  btnBack.setOnAction(_ => listener.backToRoomList())
 
-  private val btn4plain = new Button("创建")
+  private val btn4plain = new Button("开始游戏")
   btn4plain.setPrefSize(80,20)
   btn4plain.setOnAction(_ => listener.createPlain(roomField.getText))
 
-  private val btn4Encry = new Button("创建")
+  private val btn4Encry = new Button("开始游戏")
   btn4Encry.setPrefSize(80,20)
   btn4Encry.setOnAction(_ => listener.createEncrypt(roomField.getText, pwBox.getText))
 
@@ -98,11 +98,11 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
 
   private val hBox4Encry = new HBox(10)
   hBox4Encry.setAlignment(Pos.BOTTOM_RIGHT)
-  hBox4Encry.getChildren.addAll(plainLink, btn4Encry, btnBack)
+  hBox4Encry.getChildren.addAll(plainLink, btn4Encry)
 
-  private val hBox4Back = new HBox()
-  hBox4Back.setAlignment(Pos.BOTTOM_RIGHT)
-  hBox4Back.getChildren.add(btnBack)
+//  private val hBox4Back = new HBox()
+//  hBox4Back.setAlignment(Pos.BOTTOM_RIGHT)
+//  hBox4Back.getChildren.add(btnBack)
 
 
   def setFont() = {
@@ -182,7 +182,6 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     grid.add(sceneTitle, 0, 0)
     grid.add(roomField, 1, 0)
     grid.add(hBox4Plain, 1, 1)
-    grid.add(hBox4Back,1,2)
     val scene = new Scene(grid,Constants.SceneBound.weight,Constants.SceneBound.height)
     context.switchScene(scene)
   }
@@ -198,7 +197,6 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     grid.add(pwdLabel, 0, 1)
     grid.add(pwBox, 1, 1)
     grid.add(hBox4Encry, 1, 2)
-    grid.add(hBox4Back,1,3)
     val scene = new Scene(grid,Constants.SceneBound.weight,Constants.SceneBound.height)
     context.switchScene(scene)
   }
@@ -213,5 +211,4 @@ abstract class GameHallListener{
   def createPlain(roomId:String)
   def change2Encrypt()
   def change2Plain()
-  def backToRoomList()
 }
