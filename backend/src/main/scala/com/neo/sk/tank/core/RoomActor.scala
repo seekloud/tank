@@ -31,7 +31,6 @@ object RoomActor {
   private final val InitTime = Some(5.minutes)
 
   private final val classify= 100 // 10s同步一次状态
-  private final val rankClassify = 50// 20s
 
   private final case object BehaviorChangeKey
 
@@ -205,13 +204,7 @@ object RoomActor {
 
           val gameEvents = gameContainer.getLastGameEvent()
           if (AppSettings.gameRecordIsWork) {
-            if (tickCount % 20 == 1) {
-              //remind 排行榜
-              val rankEvent = TankGameEvent.Ranks(gameContainer.currentRank)//历史排行榜未记录
-              getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame) ! GameRecorder.GameRecord(rankEvent :: gameEvents, snapshotOpt)
-            } else {
-              getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
-            }
+            getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
           }
           //remind 错峰发送
           val state = gameContainer.getGameContainerState()
@@ -241,10 +234,6 @@ object RoomActor {
             dispatchTo(subscribersMap, observersMap)(t._1, tankFollowEventSnap, ls)
             dispatchTo(subscribersMap, observersMap)(t._1, TankGameEvent.SyncGameAllState(gameContainerAllState), ls)
           }
-//          val endTime = System.currentTimeMillis()
-          /*if (tickCount % 100 == 2) {
-            //            log.debug(s"${ctx.self.path} curFrame=${gameContainer.systemFrame} use time=${endTime-startTime}")
-          }*/
 
           idle(index,roomId, Nil, userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount + 1)
 
