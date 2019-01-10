@@ -461,7 +461,7 @@ case class GameContainerServerImpl(
 
   override def update(): Unit = {
     super.update()
-    super.updateRanks()
+//    super.updateRanks()
   }
 
   def getGameContainerState(): GameContainerState = {
