@@ -16,8 +16,13 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
 
   override protected def gameLoop(): Unit = {
     checkScreenSize
+    if(tickCount % rankCycle == 1){
+      gameContainerOpt.foreach(_.updateRanks())
+      gameContainerOpt.foreach(t => t.rankUpdated = true)
+    }
     gameContainerOpt.foreach(_.update())
     logicFrameTime = System.currentTimeMillis()
+    tickCount += 1
   }
 
   def watchGame() = {

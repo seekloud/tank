@@ -71,7 +71,7 @@ trait GameContainer extends KillInformation{
 
 
   protected def handleUserJoinRoomEvent(e:UserJoinRoom) :Unit = {
-    println(s"-------------------处理用户加入房间事件")
+//    println(s"-------------------处理用户加入房间事件")
     val tank : Tank = e.tankState
     tankMap.put(e.tankState.tankId,tank)
     quadTree.insert(tank)
@@ -562,6 +562,46 @@ trait GameContainer extends KillInformation{
     updateKillInformation()
     clearEventWhenUpdate()
 
+  }
+
+  implicit val scoreOrdering = new Ordering[Score] {
+    override def compare(x: Score, y: Score): Int = {
+      var r = y.k - x.k
+      if (r == 0) {
+        r = y.d - x.d
+      }
+      if (r == 0) {
+        r = y.l - x.l
+      }
+      if (r == 0) {
+        r = (x.id - y.id).toInt
+      }
+      r
+    }
+  }
+
+  def updateRanks() = {
+//    println(s"更新排行榜")
+    currentRank = tankMap.values.map(s => Score(s.tankId, s.name, s.killTankNum, s.damageStatistics, s.lives)).toList.sorted
+    var historyChange = false
+    currentRank.foreach { cScore =>
+      historyRankMap.get(cScore.id) match {
+        case Some(oldScore) if cScore.d > oldScore.d || cScore.l < oldScore.l =>
+          historyRankMap += (cScore.id -> cScore)
+          historyChange = true
+        case None if cScore.d > historyRankThreshold =>
+          historyRankMap += (cScore.id -> cScore)
+          historyChange = true
+        case _ =>
+
+      }
+    }
+
+    if (historyChange) {
+      historyRank = historyRankMap.values.toList.sorted.take(historyRankLength)
+      historyRankThreshold = historyRank.lastOption.map(_.d).getOrElse(-1)
+      historyRankMap = historyRank.map(s => s.id -> s).toMap
+    }
   }
 
   protected def clearEventWhenUpdate():Unit = {

@@ -31,6 +31,9 @@ abstract class GameHolder(name: String) extends NetworkInfo {
   protected var canvasUnit = getCanvasUnit(canvasWidth)
   protected var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
 
+  protected var tickCount = 1//更新排行榜信息计时器
+  protected val rankCycle = 20
+
 //  protected val audioForBgm = dom.document.getElementById("GameAudioForBgm").asInstanceOf[Audio]
 //  audioForBgm.volume = 0.3
 //  protected val audioForDead = dom.document.getElementById("GameAudioForDead").asInstanceOf[Audio]
@@ -161,16 +164,26 @@ abstract class GameHolder(name: String) extends NetworkInfo {
       case GameState.play =>
 
         /** */
+        if(tickCount % rankCycle == 1){
+          gameContainerOpt.foreach(_.updateRanks())
+          gameContainerOpt.foreach(t => t.rankUpdated = true)
+        }
         gameContainerOpt.foreach(_.update())
         logicFrameTime = System.currentTimeMillis()
         ping()
+        tickCount += 1
 
       case GameState.stop =>
 //        dom.window.cancelAnimationFrame(nextFrame)
 //        Shortcut.cancelSchedule(timer)
+        if(tickCount % rankCycle == 1){
+          gameContainerOpt.foreach(_.updateRanks())
+          gameContainerOpt.foreach(t => t.rankUpdated = true)
+        }
         gameContainerOpt.foreach(_.update())
         logicFrameTime = System.currentTimeMillis()
         ping()
+        tickCount += 1
 
       case _ => println(s"state=$gameState failed")
     }
