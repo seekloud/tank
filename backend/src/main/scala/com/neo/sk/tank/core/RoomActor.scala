@@ -205,13 +205,14 @@ object RoomActor {
 
           val gameEvents = gameContainer.getLastGameEvent()
           if (AppSettings.gameRecordIsWork) {
-            if (tickCount % 20 == 1) {
-              //remind 排行榜
-              val rankEvent = TankGameEvent.Ranks(gameContainer.currentRank)//历史排行榜未记录
-              getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame) ! GameRecorder.GameRecord(rankEvent :: gameEvents, snapshotOpt)
-            } else {
-              getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
-            }
+            getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
+//            if (tickCount % 20 == 1) {
+//              //remind 排行榜
+//              val rankEvent = TankGameEvent.Ranks(gameContainer.currentRank)//历史排行榜未记录
+//              getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame) ! GameRecorder.GameRecord(rankEvent :: gameEvents, snapshotOpt)
+//            } else {
+//              getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
+//            }
           }
           //remind 错峰发送
           val state = gameContainer.getGameContainerState()
