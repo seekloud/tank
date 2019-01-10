@@ -12,6 +12,7 @@ import com.neo.sk.tank.core.game.TankGameConfigServerImpl
 import com.neo.sk.tank.models.TankGameUserInfo
 import com.neo.sk.tank.protocol.EsheepProtocol._
 import com.neo.sk.tank.protocol.ReplayProtocol.ChangeRecordMsg
+import com.neo.sk.tank.shared.config.{RiverParameters, SteelParameters}
 import com.neo.sk.tank.shared.model.Constants.GameState
 import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, ReplayFrameData}
@@ -208,8 +209,9 @@ object UserActor {
         case JoinRoomSuccess(tank,config, `uId`,roomActor) =>
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
-//          println("渲染数据")
-          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, userInfo.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+//          println("渲染数据")'
+          val cig = config.copy(obstacleParameters = config.obstacleParameters.copy(riverParameters = RiverParameters(Nil, Nil), steelParameters = SteelParameters(Nil, Nil)))
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, userInfo.name, cig).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId, userInfo,tank,startTime,frontActor,roomActor))
 
 
@@ -248,7 +250,7 @@ object UserActor {
 
         case unknowMsg =>
 //          stashBuffer.stash(unknowMsg)
-//          log.warn(s"got unknown msg: $unknowMsg")
+          log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
       }
     }

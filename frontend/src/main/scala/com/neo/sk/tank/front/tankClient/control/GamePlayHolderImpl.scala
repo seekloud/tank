@@ -246,6 +246,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 //        gameContainerOpt.foreach(e =>)
 
       case e:TankGameEvent.TankFollowEventSnap =>
+        println(s"game TankFollowEventSnap =${e} systemFrame=${gameContainerOpt.get.systemFrame} tankId=${gameContainerOpt.get.tankId} ")
         gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
       case e:TankGameEvent.YouAreKilled =>

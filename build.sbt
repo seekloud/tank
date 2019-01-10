@@ -120,15 +120,15 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
       )
     }.taskValue
   }
-  //  .settings(
-  //    (resourceGenerators in Compile) += Def.task {
-  //      val fullJsOut = (fullOptJS in Compile in frontend).value.data
-  //      val fullJsSourceMap = fullJsOut.getParentFile / (fullJsOut.getName + ".map")
-  //      Seq(
-  //        fullJsOut,
-  //        fullJsSourceMap
-  //      )
-  //    }.taskValue)
+//    .settings(
+//      (resourceGenerators in Compile) += Def.task {
+//        val fullJsOut = (fullOptJS in Compile in frontend).value.data
+//        val fullJsSourceMap = fullJsOut.getParentFile / (fullJsOut.getName + ".map")
+//        Seq(
+//          fullJsOut,
+//          fullJsSourceMap
+//        )
+//      }.taskValue)
   .settings((resourceGenerators in Compile) += Def.task {
     Seq(
       (packageJSDependencies in Compile in frontend).value

@@ -230,6 +230,7 @@ object RoomActor {
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           val tankFollowEventSnap = gameContainer.getFollowEventSnap()
           justJoinUser.foreach { t =>
+            log.debug(s"${ctx.self.path} justJoinUser=${t}, tankFollowEventSnap=${tankFollowEventSnap}, gameContainerAllState=${gameContainerAllState}")
             val ls = gameContainer.getUserActor4WatchGameList(t._1)
             dispatchTo(subscribersMap, observersMap)(t._1, tankFollowEventSnap, ls)
             dispatchTo(subscribersMap, observersMap)(t._1, TankGameEvent.SyncGameAllState(gameContainerAllState), ls)
