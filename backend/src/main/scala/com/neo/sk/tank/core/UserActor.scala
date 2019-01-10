@@ -478,11 +478,6 @@ object UserActor {
               //玩家进入复活状态
               switchBehavior(ctx,"waitRestartWhenPlay",waitRestartWhenPlay(uId,userInfo,startTime,frontActor, tank))
             }
-              //            else {
-//              log.debug(s"${ctx.self.path}由于玩家生命值用尽或者不支持生命值而切换到idle状态")
-//              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
-//              switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
-//            }
             else
               Behaviors.same
           }else{
@@ -533,7 +528,6 @@ object UserActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case TankRelive4UserActor(t,userId,name,roomActor,config) =>
-//          frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId,userInfo,t,startTime,frontActor,roomActor))
 
         case DispatchMsg(m) =>
@@ -565,7 +559,6 @@ object UserActor {
 
   import org.seekloud.byteobject.ByteObject._
   private def dispatchTo(subscriber: ActorRef[TankGameEvent.WsMsgSource],msg: TankGameEvent.WsMsgServer)(implicit sendBuffer: MiddleBufferInJvm)= {
-    //    subscriber ! ReplayFrameData(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
     subscriber ! ReplayFrameData(List(msg).fillMiddleBuffer(sendBuffer).result())
   }
 

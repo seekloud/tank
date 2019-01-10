@@ -22,6 +22,7 @@ import com.neo.sk.tank.Boot.roomManager
 import com.neo.sk.tank.Boot.userManager
 import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.core.UserActor.TankRelive4UserActor
+import com.neo.sk.tank.core.bot.BotActor
 import com.neo.sk.tank.shared.`object`
 
 /**
@@ -44,6 +45,7 @@ case class GameContainerServerImpl(
   private val propIdGenerator = new AtomicInteger(100)
 
   private var justJoinUser: List[(String, Option[Int], String, ActorRef[UserActor.Command])] = Nil // tankIdOpt
+  private var justJoinBot: List[(String, Option[Int], String, ActorRef[BotActor.Command])] = Nil // tankIdOpt
   private val userMapObserver: mutable.HashMap[String, mutable.HashMap[String, ActorRef[UserActor.Command]]] = mutable.HashMap.empty
   private val random = new Random(System.currentTimeMillis())
 
@@ -294,6 +296,24 @@ case class GameContainerServerImpl(
         tankInvincibleCallBack(tank.tankId)
     }
     justJoinUser = Nil
+    justJoinBot.foreach {
+      case (userId, tankIdOpt, name, ref) =>
+        val tank = genATank(userId, tankIdOpt, name)
+        //        tankEatPropMap.update(tank.tankId,mutable.HashSet())
+        if (AppSettings.supportLiveLimit) {
+          tankLivesMap.update(tank.tankId, tank.getTankState())
+        }
+        val event = TankGameEvent.UserJoinRoom(userId, name, tank.getTankState(), systemFrame)
+        dispatch(event)
+        addGameEvent(event)
+        ref ! BotActor.JoinRoomSuccess(tank)
+
+        tankMap.put(tank.tankId, tank)
+        quadTree.insert(tank)
+        //无敌时间消除
+        tankInvincibleCallBack(tank.tankId)
+    }
+    justJoinUser = Nil
   }
 
   def handleTankRelive(userId: String, tankIdOpt: Option[Int], name: String) = {
@@ -355,6 +375,10 @@ case class GameContainerServerImpl(
 
   def joinGame(userId: String, tankIdOpt: Option[Int], name: String, userActor: ActorRef[UserActor.Command]): Unit = {
     justJoinUser = (userId, tankIdOpt, name, userActor) :: justJoinUser
+  }
+
+  def botJoinGame(bId: String, tankIdOpt: Option[Int], name: String, botActor: ActorRef[BotActor.Command]): Unit = {
+    justJoinBot = (bId, tankIdOpt, name, botActor) :: justJoinBot
   }
 
 

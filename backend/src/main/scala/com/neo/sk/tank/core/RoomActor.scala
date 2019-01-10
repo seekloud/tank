@@ -16,7 +16,7 @@ import concurrent.duration._
 import scala.collection.mutable
 import com.neo.sk.tank.Boot.esheepSyncClient
 import org.seekloud.byteobject.MiddleBufferInJvm
-
+import com.neo.sk.tank.core.bot.BotActor
 /**
   * Created by hongruying on 2018/7/9
   * 管理房间的地图数据以及分发操作
@@ -39,6 +39,8 @@ object RoomActor {
   sealed trait Command
 
   case class GetSyncState(uid:String) extends Command
+
+  case class BotJoinRoom(bid: String, tankIdOpt: Option[Int], name: String, startTime: Long, userActor: ActorRef[BotActor.Command], roomId: Long) extends Command
 
   case class JoinRoom(uid: String, tankIdOpt: Option[Int], name: String, startTime: Long, userActor: ActorRef[UserActor.Command], roomId: Long) extends Command
 
@@ -95,7 +97,7 @@ object RoomActor {
               getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame)
             }
             timer.startPeriodicTimer(GameLoopKey, GameLoop, (gameContainer.config.frameDuration / gameContainer.config.playRate).millis)
-            idle(0l, roomId, Nil, Nil, mutable.HashMap[Long, Set[String]](), subscribersMap, observersMap, gameContainer, 0L)
+            idle(0l, roomId, Nil, Nil, mutable.HashMap[Long, Set[String]](), subscribersMap, observersMap, gameContainer, 0L, Nil)
         }
     }
   }
@@ -109,7 +111,8 @@ object RoomActor {
             subscribersMap: mutable.HashMap[String, ActorRef[UserActor.Command]],
             observersMap: mutable.HashMap[String, ActorRef[UserActor.Command]],
             gameContainer: GameContainerServerImpl,
-            tickCount: Long
+            tickCount: Long,
+            justJoinBot: List[(String, Option[Int], Long, ActorRef[BotActor.Command])]
           )(
             implicit timer: TimerScheduler[Command],
             sendBuffer: MiddleBufferInJvm
@@ -124,7 +127,11 @@ object RoomActor {
             case Some(s)=> userGroup.update(index%classify,s+uid)
             case None => userGroup.put(index%classify,Set(uid))
           }
-          idle(index + 1, roomId, (uid, tankIdOpt, startTime, userActor) :: justJoinUser, (uid, tankIdOpt, name, startTime, index%classify) :: userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount)
+          idle(index + 1, roomId, (uid, tankIdOpt, startTime, userActor) :: justJoinUser, (uid, tankIdOpt, name, startTime, index%classify) :: userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount, justJoinBot)
+
+        case BotJoinRoom(bid, tankIdOpt, name, startTime, botActor, roomId)=>
+          gameContainer.botJoinGame(bid, tankIdOpt, name, botActor)
+          idle(index,roomId,justJoinUser,userMap,userGroup,subscribersMap,observersMap,gameContainer,tickCount,(bid,tankIdOpt,startTime,botActor) :: justJoinBot)
 
         case JoinRoom4Watch(uid, _, playerId, userActor4Watch) =>
           log.debug(s"${ctx.self.path} recv a msg=${msg}")
@@ -134,7 +141,7 @@ object RoomActor {
             case Some(s)=> userGroup.update(index%classify,s+uid)
             case None => userGroup.put(index%classify,Set(uid))
           }
-          idle(index+1,roomId,justJoinUser,userMap,userGroup,subscribersMap,observersMap,gameContainer,tickCount)
+          idle(index+1,roomId,justJoinUser,userMap,userGroup,subscribersMap,observersMap,gameContainer,tickCount,justJoinBot)
 
         case WebSocketMsg(uid, tankId, req) =>
           gameContainer.receiveUserAction(req)
@@ -165,10 +172,10 @@ object RoomActor {
             if (roomId > 1l) {
               Behaviors.stopped
             } else {
-              idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid),userGroup, subscribersMap, observersMap, gameContainer, tickCount)
+              idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid),userGroup, subscribersMap, observersMap, gameContainer, tickCount,justJoinBot)
             }
           } else {
-            idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid), userGroup,subscribersMap, observersMap, gameContainer, tickCount)
+            idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid), userGroup,subscribersMap, observersMap, gameContainer, tickCount,justJoinBot)
           }
 
         case LeftRoom4Watch(uid, playerId) =>
@@ -183,7 +190,6 @@ object RoomActor {
           Behaviors.same
 
         case LeftRoomByKilled(uid, tankId, tankLives, name) =>
-          //          gameContainer.tankL
           log.debug("LeftRoomByKilled")
           subscribersMap.remove(uid)
           userMap.filter(_._1==uid).foreach{u=>
@@ -192,11 +198,10 @@ object RoomActor {
               case None=> userGroup.put(u._5,Set.empty)
             }
           }
-          idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid), userGroup,subscribersMap, observersMap, gameContainer, tickCount)
+          idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid), userGroup,subscribersMap, observersMap, gameContainer, tickCount,justJoinBot)
 
 
         case GameLoop =>
-//          val startTime = System.currentTimeMillis()
           val snapshotOpt = gameContainer.getCurSnapshot()
 
           //生成坦克
@@ -213,19 +218,6 @@ object RoomActor {
               dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(state))
             }
           }
-          //排行榜更新移到前端
-//          val count=tickCount + 10 % rankClassify
-//          userGroup.get(count).foreach{ s =>
-//            if(s.nonEmpty) dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.Ranks(gameContainer.currentRank, gameContainer.historyRank))
-//          }
-//          for(i <- count*10 until (count+1)*10){
-//            userGroup.get(i).foreach { s =>
-//              if (s.nonEmpty) {
-//                dispatch()
-//              }
-//            }
-//          }
-          //分发新加入坦克的地图全量数据
           justJoinUser.foreach(t => subscribersMap.put(t._1, t._4))
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           val tankFollowEventSnap = gameContainer.getFollowEventSnap()
@@ -235,8 +227,11 @@ object RoomActor {
             dispatchTo(subscribersMap, observersMap)(t._1, tankFollowEventSnap, ls)
             dispatchTo(subscribersMap, observersMap)(t._1, TankGameEvent.SyncGameAllState(gameContainerAllState), ls)
           }
+          justJoinBot.foreach(b=>
 
-          idle(index,roomId, Nil, userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount + 1)
+          )
+
+          idle(index,roomId, Nil, userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount + 1,justJoinBot)
 
         case ChildDead(name, childRef) =>
           //          log.debug(s"${ctx.self.path} recv a msg:${msg}")
@@ -244,7 +239,7 @@ object RoomActor {
           Behaviors.same
 
         case TankRelive(userId, tankIdOpt, name) =>
-          log.debug(s"${userId}")
+          log.debug(s"$userId---relive")
           gameContainer.handleTankRelive(userId, tankIdOpt, name)
           val state = gameContainer.getGameContainerState()
           dispatch(subscribersMap, observersMap)(TankGameEvent.SyncGameState(state))

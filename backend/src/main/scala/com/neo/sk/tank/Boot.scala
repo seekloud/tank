@@ -19,6 +19,7 @@ import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.tank.core._
+import com.neo.sk.tank.core.bot.BotManager
 
 import scala.concurrent.duration._
 

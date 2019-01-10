@@ -16,7 +16,7 @@ import com.neo.sk.tank.Boot.roomManager
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import com.neo.sk.tank.Boot.{botManager, executor, scheduler, timeout, userManager}
-import com.neo.sk.tank.core.{BotManager, UserManager}
+import com.neo.sk.tank.core.UserManager
 import com.neo.sk.tank.protocol.WatchGameProtocol.{GetUserInfoList, UserInfoListByRoomIdRsp}
 import com.neo.sk.tank.shared.ptcl.ErrorRsp
 
@@ -31,8 +31,7 @@ trait HttpService
     with PlayService
     with RoomInfoService
     with RecordApiService
-    with GameRecService
-    with BotControlService{
+    with GameRecService{
 
   import akka.actor.typed.scaladsl.AskPattern._
   import com.neo.sk.utils.CirceSupport._
@@ -158,7 +157,7 @@ trait HttpService
 
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath){
-    resourceRoutes ~ GameRecRoutes ~ GameRecRoutesLocal ~roomInfoRoute ~ BotRoutes ~ platEnterRoute ~
+    resourceRoutes ~ GameRecRoutes ~ GameRecRoutesLocal ~roomInfoRoute ~ platEnterRoute ~
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
