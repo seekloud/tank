@@ -77,13 +77,13 @@ object BotActor {
           Behaviors.stopped
         case msg: JoinRoomSuccess =>
           timer.startPeriodicTimer()
-          switchBehavior(ctx, "play", play(bId,name,gameContainer,roomId,msg.tank), InitTime, TimeOut("init"))
+          switchBehavior(ctx, "play", play(bId,name,BotControl(bId,msg.tank.tankId,name,ctx.self,gameContainer),roomId,msg.tank), InitTime, TimeOut("init"))
       }
     }
 
   def play(id: String,
            name: String,
-           gameContainer: GameContainerServerImpl,
+           bot:BotControl,
            roomId: Long,
            tank: TankServerImpl)(
             implicit stashBuffer: StashBuffer[Command],
