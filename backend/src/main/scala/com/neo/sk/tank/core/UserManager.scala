@@ -128,7 +128,7 @@ object UserManager {
           replyTo ! GetMsgFromUserManager(userActor)
           userActor ! ChangeUserInfo(playerInfo)
           userActor ! UserFrontActor(replyTo)
-          userActor ! UserActor.StartGame(roomId)
+          userActor ! UserActor.StartGame(roomId,None)
 
           Behaviors.same
 

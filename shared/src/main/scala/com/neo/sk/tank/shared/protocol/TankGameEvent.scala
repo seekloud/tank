@@ -51,7 +51,7 @@ object TankGameEvent {
   //  final case class GameConfig(config:TankGameConfigImpl) extends WsMsgServer
   final case class WsSuccess(roomId:Option[Long]) extends WsMsgServer
   final case class StartGame(roomId:Option[Long],password:Option[String]) extends WsMsgFront
-  final case class CreateRoom(password:Option[String]) extends WsMsgFront
+  final case class CreateRoom(roomId:Option[Long],password:Option[String]) extends WsMsgFront
   final case class YourInfo(userId:String,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
 //  final case class TankReliveInfo(config:TankGameConfigImpl) extends WsMsgServer
 //  final case class YouAreKilled(tankId:Int,name:String) extends WsMsgServer //可能会丢弃

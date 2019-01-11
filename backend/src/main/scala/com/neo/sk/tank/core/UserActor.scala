@@ -60,7 +60,7 @@ object UserActor {
   case class JoinRoomFail(msg:String) extends Command
   case class TankRelive4UserActor(tank:TankServerImpl,userId:String,name:String,roomActor:ActorRef[RoomActor.Command], config:TankGameConfigImpl) extends Command with UserManager.Command
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
-  case class CreateRoom(password: String) extends Command
+  case class CreateRoom(roomId:Option[Long], password: Option[String]) extends Command
   case class StartReplay(rid:Long, wid:String, f:Int) extends Command
 
   case class ChangeUserInfo(info:TankGameUserInfo) extends Command
@@ -210,8 +210,8 @@ object UserActor {
           ctx.self ! UserActor.StartGame(roomIdOpt,passwordOpt)
           Behaviors.same
 
-        case CreateRoom(password) =>
-          roomManager ! RoomManager.CreateRoom(uId,None,userInfo.name,startTime,ctx.self, password)
+        case CreateRoom(roomId,pwd) =>
+          roomManager ! RoomManager.CreateRoom(uId,None,userInfo.name,startTime,ctx.self,roomId,pwd)
           Behaviors.same
 
         case JoinRoomFail(msg) =>
@@ -247,8 +247,10 @@ object UserActor {
               log.info("get ws msg startGame")
               ctx.self ! JoinGame(t.roomId,t.password)
               idle(uId,userInfo,startTime,frontActor)
-
-            case Some(t:TankGameEvent.)
+            case Some(t:TankGameEvent.CreateRoom) =>
+              log.info(s"cerate room msg")
+              ctx.self ! CreateRoom(t.roomId,t.password)
+              idle(uId,userInfo,startTime,frontActor)
             case _ =>
               Behaviors.same
           }
