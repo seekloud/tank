@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.duration._
 import com.neo.sk.tank.Boot.{executor, roomManager, scheduler, timeout}
 import com.neo.sk.tank.core.{RoomActor,RoomManager}
+import com.neo.sk.tank.core.bot.BotManager.{Stopmap,StopBot}
 /**
   * Created by sky
   * Date on 2019/1/10
@@ -106,6 +107,7 @@ object BotActor {
       msg match {
         case msg:TimeOut=>
           msg.msg match {
+            //todo 动作定时操作
             case Keymap.move=>
 
             case Keymap.key=>
@@ -114,6 +116,14 @@ object BotActor {
 
           }
           Behaviors.same
+
+        case msg:StopBot=>
+          msg.state match {
+            case Stopmap.stop=>
+              Behaviors.same
+            case Stopmap.delete=>
+              Behaviors.stopped
+          }
         case unknowMsg =>
           stashBuffer.stash(unknowMsg)
           Behavior.same
