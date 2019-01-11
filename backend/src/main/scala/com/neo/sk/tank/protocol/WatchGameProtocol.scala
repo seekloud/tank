@@ -3,6 +3,8 @@ package com.neo.sk.tank.protocol
 import akka.actor.typed.ActorRef
 import com.neo.sk.tank.core.RoomManager
 
+import scala.collection.mutable
+
 object WatchGameProtocol {
   //esheep请求房间号
   case class GetRoomIdReq(playerId:String)
@@ -29,10 +31,12 @@ object WatchGameProtocol {
 
   //获取进行中游戏房间列表
   case class GetRoomListReq(replyTo:ActorRef[RoomListRsp]) extends RoomManager.Command
-  case class RoomList(roomList:List[Long])
+  case class RoomList(roomList:mutable.HashMap[Long,Boolean])
   case class RoomListRsp(data:RoomList,
                          errCode:Int = 0,
                          msg:String = "ok")
+
+
 
 
 }
