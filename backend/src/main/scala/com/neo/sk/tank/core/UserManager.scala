@@ -82,8 +82,8 @@ object UserManager {
 
 
 
-        case GetWebSocketFlow(name,replyTo, playerInfoOpt, roomIdOpt) =>
-          println(s"ssssss${playerInfoOpt},${roomIdOpt}")
+        case GetWebSocketFlow(name,replyTo,playerInfoOpt,roomIdOpt) =>
+          println(s"ssssss$playerInfoOpt,$roomIdOpt")
           val playerInfo = playerInfoOpt match {
             case Some(p) => TankGameUserInfo(p.playerId, p.nickname, name, true)
             case None => TankGameUserInfo(Constants.TankGameUserIdPrefix + s"-${uidGenerator.getAndIncrement()}", s"guest:${name}", name, false)
@@ -96,8 +96,12 @@ object UserManager {
           val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
           replyTo ! getWebSocketFlow(userActor)
           userActor ! ChangeUserInfo(playerInfo)
-          userActor ! UserActor.StartGame(roomIdOpt)
+          userActor ! UserActor.WsSuccess(roomIdOpt)
+//          userActor ! ChangeUserInfo(playerInfo)
+//          userActor ! UserActor.StartGame(roomIdOpt,passwordOpt)
           Behaviors.same
+
+
 
 
         case GetWebSocketFlow4WatchGame(roomId, watchedUserId, replyTo, playerInfoOpt) =>
@@ -124,7 +128,7 @@ object UserManager {
           replyTo ! GetMsgFromUserManager(userActor)
           userActor ! ChangeUserInfo(playerInfo)
           userActor ! UserFrontActor(replyTo)
-          userActor ! UserActor.StartGame(roomId)
+          userActor ! UserActor.StartGame(roomId,None)
 
           Behaviors.same
 
