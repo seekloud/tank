@@ -7,7 +7,6 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import com.neo.sk.tank.common.{AppSettings, Constants}
-import com.neo.sk.tank.core.RoomActor.TankRelive
 import com.neo.sk.tank.core.game.TankGameConfigServerImpl
 import com.neo.sk.tank.models.TankGameUserInfo
 import com.neo.sk.tank.protocol.EsheepProtocol._

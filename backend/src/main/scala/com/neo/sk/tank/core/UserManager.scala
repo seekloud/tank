@@ -17,7 +17,6 @@ import io.circe.{Decoder, Encoder}
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.Boot.{executor, scheduler, timeout}
 import com.neo.sk.tank.common.Constants
-import com.neo.sk.tank.core.RoomActor.TankRelive
 import com.neo.sk.tank.core.UserActor._
 import com.neo.sk.tank.shared.protocol.TankGameEvent.WsMsgSource
 /**

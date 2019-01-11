@@ -45,7 +45,7 @@ case class GameContainerServerImpl(
   private val propIdGenerator = new AtomicInteger(100)
 
   private var justJoinUser: List[(String, Option[Int], String, ActorRef[UserActor.Command])] = Nil // tankIdOpt
-  private var justJoinBot: List[(String, Option[Int], String, ActorRef[BotActor.Command])] = Nil // tankIdOpt
+  private var justJoinBot: List[(String, Option[Int], String, ActorRef[BotActor.Command],ActorRef[RoomActor.Command])] = Nil // tankIdOpt
   private val userMapObserver: mutable.HashMap[String, mutable.HashMap[String, ActorRef[UserActor.Command]]] = mutable.HashMap.empty
   private val random = new Random(System.currentTimeMillis())
 
@@ -109,6 +109,7 @@ case class GameContainerServerImpl(
       log.debug(s"${roomActorRef.path} timer for relive is starting...")
       timer.startSingleTimer(s"TankRelive_${tank.tankId}", RoomActor.TankRelive(tank.userId, Some(tank.tankId), tank.name), config.getTankReliveDuration.millis)
     }
+    //todo 此处需要判断bot
     dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
     //后台增加一个玩家离开消息（不传给前端）,以便录像的时候记录玩家死亡和websocket断开的情况。
     if (tankState.lives <= 1 || (!AppSettings.supportLiveLimit)) {
@@ -296,8 +297,9 @@ case class GameContainerServerImpl(
         tankInvincibleCallBack(tank.tankId)
     }
     justJoinUser = Nil
+    /**加入bot*/
     justJoinBot.foreach {
-      case (userId, tankIdOpt, name, ref) =>
+      case (userId, tankIdOpt, name, botActor,roomActor) =>
         val tank = genATank(userId, tankIdOpt, name)
         //        tankEatPropMap.update(tank.tankId,mutable.HashSet())
         if (AppSettings.supportLiveLimit) {
@@ -306,14 +308,14 @@ case class GameContainerServerImpl(
         val event = TankGameEvent.UserJoinRoom(userId, name, tank.getTankState(), systemFrame)
         dispatch(event)
         addGameEvent(event)
-        ref ! BotActor.JoinRoomSuccess(tank)
+        botActor ! BotActor.JoinRoomSuccess(tank,roomActor)
 
         tankMap.put(tank.tankId, tank)
         quadTree.insert(tank)
         //无敌时间消除
         tankInvincibleCallBack(tank.tankId)
     }
-    justJoinUser = Nil
+    justJoinBot = Nil
   }
 
   def handleTankRelive(userId: String, tankIdOpt: Option[Int], name: String) = {
@@ -377,8 +379,8 @@ case class GameContainerServerImpl(
     justJoinUser = (userId, tankIdOpt, name, userActor) :: justJoinUser
   }
 
-  def botJoinGame(bId: String, tankIdOpt: Option[Int], name: String, botActor: ActorRef[BotActor.Command]): Unit = {
-    justJoinBot = (bId, tankIdOpt, name, botActor) :: justJoinBot
+  def botJoinGame(bId: String, tankIdOpt: Option[Int], name: String, botActor: ActorRef[BotActor.Command],roomActor:ActorRef[RoomActor.Command]): Unit = {
+    justJoinBot = (bId, tankIdOpt, name, botActor,roomActor) :: justJoinBot
   }
 
 
@@ -490,7 +492,8 @@ case class GameContainerServerImpl(
 
   def getGameContainerState(): GameContainerState = {
     GameContainerState(
-      systemFrame
+      systemFrame,
+      tankMap.values.map(_.getTankState()).toList
     )
   }
 

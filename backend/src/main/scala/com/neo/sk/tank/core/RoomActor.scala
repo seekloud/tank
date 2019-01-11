@@ -129,7 +129,7 @@ object RoomActor {
           idle(index + 1, roomId, (uid, tankIdOpt, startTime, userActor) :: justJoinUser, (uid, tankIdOpt, name, startTime, index%classify) :: userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount)
 
         case BotJoinRoom(bid, tankIdOpt, name, startTime, botActor, roomId)=>
-          gameContainer.botJoinGame(bid, tankIdOpt, name, botActor)
+          gameContainer.botJoinGame(bid, tankIdOpt, name, botActor, ctx.self)
           idle(index,roomId,justJoinUser,userMap,userGroup,subscribersMap,observersMap,gameContainer,tickCount)
 
         case JoinRoom4Watch(uid, _, playerId, userActor4Watch) =>
