@@ -86,11 +86,11 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
 
   private val btn4plain = new Button("开始游戏")
   btn4plain.setPrefSize(80,20)
-  btn4plain.setOnAction(_ => listener.createPlain(roomField.getText))
+  btn4plain.setOnAction(_ => listener.createRoom(roomField.getText, None))
 
   private val btn4Encry = new Button("开始游戏")
   btn4Encry.setPrefSize(80,20)
-  btn4Encry.setOnAction(_ => listener.createEncrypt(roomField.getText, pwBox.getText))
+  btn4Encry.setOnAction(_ => listener.createRoom(roomField.getText, pwBox.getText))
 
   private val hBox4Plain = new HBox(10)
   hBox4Plain.setAlignment(Pos.BOTTOM_RIGHT)
@@ -207,7 +207,7 @@ abstract class GameHallListener{
   def confirmBtnListener(roomIdListView:String, roomIdTextFiled:String, roomIdExist:Boolean)
   def randomBtnListener()
   def addSelfDefinedRoom()
-  def createRoom(roomId:String,salt:Option[String])
+  def createRoom(roomId:Option[String],salt:Option[String])
   def change2Encrypt()
   def change2Plain()
 }
