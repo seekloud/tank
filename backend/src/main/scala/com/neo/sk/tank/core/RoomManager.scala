@@ -31,7 +31,7 @@ object RoomManager {
   trait Command
   private case class TimeOut(msg:String) extends Command
   private case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
-  case class CreateRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], password:Option[String]) extends Command
+  case class CreateRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command],roomId:Option[Long],password:Option[String]) extends Command
   case class LeftRoom(uid:String,tankId:Int,name:String,userOpt: Option[String]) extends Command
 
 
@@ -42,7 +42,7 @@ object RoomManager {
         implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
         Behaviors.withTimers[Command]{implicit timer =>
           val roomIdGenerator = new AtomicLong(1L)
-          val roomInUse = mutable.HashMap((1l,("",List.empty[(String,String)])))
+          val roomInUse = mutable.HashMap((1l,("",List.empty[(String,String)])),(2l,("123",List.empty[(String,String)])))
           idle(roomIdGenerator,roomInUse)
         }
     }
@@ -66,7 +66,7 @@ object RoomManager {
                    userActor ! UserActor.JoinRoomFail("密码错误！")
                  }
 
-                case None => roomInUse.put(roomId,("",List((uid,name))))
+                case None => userActor ! UserActor.JoinRoomFail("房间未被创建！")
               }
               getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
             case None =>
@@ -84,8 +84,8 @@ object RoomManager {
           log.debug(s"now roomInUse:$roomInUse")
           Behaviors.same
 
-        case CreateRoom(uid,tankIdOpt,name,startTime,userActor,passwordOpt) =>
-          val roomId = roomIdGenerator.getAndIncrement()
+        case CreateRoom(uid,tankIdOpt,name,startTime,userActor,roomIdOpt,passwordOpt) =>
+          val roomId = if(roomIdOpt.nonEmpty) roomIdOpt.get else roomIdGenerator.getAndIncrement()
           roomInUse.put(roomId,(passwordOpt.getOrElse(""),List((uid,name))))
           getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
           Behaviors.same
@@ -141,7 +141,9 @@ object RoomManager {
           Behaviors.same
 
         case GetRoomListReq(replyTo) =>
-          replyTo ! RoomListRsp(RoomList(roomInUse.keys.toList))
+          replyTo ! RoomListRsp(RoomList(roomInUse.map{r =>
+            r._1->(if(r._2._1 == "") false else true)
+          }))
           Behaviors.same
 
         case ChildDead(child,childRef) =>
