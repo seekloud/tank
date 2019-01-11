@@ -21,11 +21,6 @@ import io.circe.syntax._
 import io.circe.generic.auto._
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.model.{GameServerInfo, PlayerInfo}
-
-import scala.concurrent.Future
-import com.neo.sk.tank.actor.TokenActor
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 /**
   * created by benyafang on 2018/10/26
@@ -87,7 +82,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
       App.pushStack2AppThread{
         val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
         context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-        new PlayScreenController(playerInfo,gameServerInfo,context,playGameScreen).start
+        new PlayScreenController(playerInfo,gameServerInfo,context,playGameScreen,None,None,false).start
         playGameScreen.setCursor
         close()
       }
@@ -98,13 +93,13 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
         if(roomIdExist){
           val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
           context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-          new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdTextField)).start
+          new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdTextField), None,false).start
           playGameScreen.setCursor
           close()
         }else if(roomIdListView != null){
           val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
           context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-          new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdListView)).start
+          new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdListView), None,false ).start
           playGameScreen.setCursor
           close()
         }else{
@@ -121,11 +116,11 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
       App.pushStack2AppThread(gameHall.plainScreen)
     }
 
-    override def createEncr(roomId: String, salt: String): Unit = {
+    override def createRoom(roomId: Option[String], salt: Option[String]): Unit = {
       App.pushStack2AppThread{
         val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
         context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-        new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomId), Some(salt)).start
+        new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, roomId, salt).start
         playGameScreen.setCursor
         close()
       }

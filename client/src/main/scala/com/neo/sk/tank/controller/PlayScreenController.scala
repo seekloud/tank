@@ -42,7 +42,8 @@ class PlayScreenController(
                             context: Context,
                             playGameScreen: PlayGameScreen,
                             roomInfo:Option[String] = None,
-                            roomPwd:Option[String] = None
+                            roomPwd:Option[String] = None,
+                            isCreated:Boolean
                           ) extends NetworkInfo {
   private val log = LoggerFactory.getLogger(this.getClass)
   val playGameActor = system.spawn(PlayGameActor.create(this), "PlayGameActor")
