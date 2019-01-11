@@ -15,11 +15,16 @@ import org.slf4j.LoggerFactory
   * Time at 下午8:59
   */
 object BotManager {
+  object Stopmap{
+    val stop=1
+    val delete=2
+  }
 
   trait Command
 
   final case class CreateBot(count:Int, roomId:Long, gameContainer: GameContainerServerImpl) extends Command
   final case class DeleteBot(size:Int, roomId:Long) extends Command
+  final case class StopBot(bid:String,state:Byte) extends Command with BotActor.Command
   final case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
   private val log = LoggerFactory.getLogger(this.getClass)
@@ -47,12 +52,16 @@ object BotManager {
         case CreateBot(count,roomId,gameContainer) =>
           for(i <- 1 to count){
             val botId = bidGenerator.getAndIncrement()
-            getBotActor(ctx,botId.toString,gameContainer,roomId)
+            getBotActor(ctx,botId.toString,Some(gameContainer),Some(roomId))
           }
           Behaviors.same
 
         case msg:DeleteBot =>
           //todo 删除bot
+          Behaviors.same
+
+        case msg:StopBot=>
+          getBotActor(ctx,msg.bid) ! msg
           Behaviors.same
 
         case ChildDead(child, childRef) =>
@@ -66,14 +75,14 @@ object BotManager {
     }
   }
 
-  private def getBotActor(ctx: ActorContext[Command], id:String, gameContainer: GameContainerServerImpl,roomId:Long):ActorRef[WsMsgSource] = {
+  private def getBotActor(ctx: ActorContext[Command], id:String, gameContainer: Option[GameContainerServerImpl]=None,roomId:Option[Long]=None):ActorRef[BotActor.Command] = {
     val childName = s"BotActor-$id"
     val botName = if(needSpecialName) generateName() else s"tankBot-$id"
     ctx.child(childName).getOrElse{
-      val actor = ctx.spawn(BotActor.create(s"tankBot-$id",botName,gameContainer,roomId), childName)
+      val actor = ctx.spawn(BotActor.create(s"tankBot-$id",botName,gameContainer.get,roomId.get), childName)
       ctx.watchWith(actor, ChildDead(childName, actor))
       actor
-    }.upcast[WsMsgSource]
+    }.upcast[BotActor.Command]
   }
 
   private def generateName():String = {
