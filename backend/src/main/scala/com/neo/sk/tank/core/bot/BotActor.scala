@@ -2,7 +2,6 @@ package com.neo.sk.tank.core.bot
 
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.actor.typed.{ActorRef, Behavior}
-import com.neo.sk.tank.core.UserManager.GetMsgFromBot
 import com.neo.sk.tank.core.game.{GameContainerServerImpl, TankServerImpl}
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.seekloud.byteobject.MiddleBufferInJvm
@@ -10,23 +9,34 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration._
 import com.neo.sk.tank.Boot.{executor, roomManager, scheduler, timeout}
-import com.neo.sk.tank.core.RoomManager
+import com.neo.sk.tank.core.{RoomActor,RoomManager}
 /**
   * Created by sky
   * Date on 2019/1/10
   * Time at 下午8:59
   */
 object BotActor {
-
+  object Keymap{
+    val move="move"
+    val key="key"
+    val click="click"
+  }
 
   private val log = LoggerFactory.getLogger(this.getClass)
   private final val InitTime = Some(5.minutes)
+  private final val moveTime = 5.seconds
+  private final val keyTime = 30.seconds
+  private final val clickTime = 30.seconds
 
   trait Command
 
-  case class JoinRoomSuccess(tank: TankServerImpl) extends Command
+  case class JoinRoomSuccess(tank: TankServerImpl,roomActor:ActorRef[RoomActor.Command]) extends Command
 
   private final case object BehaviorChangeKey
+  private final case object MoveTimeKey
+  private final case object KeyTimeKey
+  private final case object ClickTimeKey
+
 
   final case class SwitchBehavior(
                                    name: String,
@@ -76,8 +86,10 @@ object BotActor {
           log.debug(s"create bot error ${msg.msg} after $InitTime")
           Behaviors.stopped
         case msg: JoinRoomSuccess =>
-          timer.startPeriodicTimer()
-          switchBehavior(ctx, "play", play(bId,name,BotControl(bId,msg.tank.tankId,name,ctx.self,gameContainer),roomId,msg.tank), InitTime, TimeOut("init"))
+          timer.startPeriodicTimer(MoveTimeKey,TimeOut(Keymap.move),moveTime)
+          timer.startPeriodicTimer(KeyTimeKey,TimeOut(Keymap.key),keyTime)
+          timer.startPeriodicTimer(ClickTimeKey,TimeOut(Keymap.click),clickTime)
+          switchBehavior(ctx, "play", play(bId,name,BotControl(bId,msg.tank.tankId,name,msg.roomActor,gameContainer),roomId,msg.tank), InitTime, TimeOut("init"))
       }
     }
 
@@ -92,7 +104,16 @@ object BotActor {
           ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
+        case msg:TimeOut=>
+          msg.msg match {
+            case Keymap.move=>
 
+            case Keymap.key=>
+
+            case Keymap.move=>
+
+          }
+          Behaviors.same
         case unknowMsg =>
           stashBuffer.stash(unknowMsg)
           Behavior.same

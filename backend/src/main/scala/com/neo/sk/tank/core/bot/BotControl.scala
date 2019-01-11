@@ -12,8 +12,10 @@ import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 
 /**
-  * wmy
-  * edit sky*/
+  * @author wmy
+  * @edit sky
+  *      直接对接RoomActor
+  * */
 case class BotControl(bid:String,tankId: Int, name: String,roomActor: ActorRef[RoomActor.Command], gameContainer: GameContainerServerImpl) {
   var gameState: Int = GameState.loadingPlay
 
@@ -31,7 +33,7 @@ case class BotControl(bid:String,tankId: Int, name: String,roomActor: ActorRef[R
   def getActionSerialNum: Int = actionSerialNumGenerator.getAndIncrement()
 
 
-  def sendMsg2Actor(userActor: ActorRef[UserActor.Command]): Unit = {
+  def sendMsg2Actor: Unit = {
     val click = (new util.Random).nextInt(10)
     val eat = (new util.Random).nextInt(10)
     if (gameState == GameState.play) {
