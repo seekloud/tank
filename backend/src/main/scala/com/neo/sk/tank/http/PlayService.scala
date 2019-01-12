@@ -47,6 +47,7 @@ trait PlayService extends AuthService{
     }
   }
 
+
   protected val playRoute:Route = userJoin
 
 }

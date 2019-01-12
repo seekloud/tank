@@ -30,7 +30,6 @@ import scala.concurrent.duration._
   */
 object Boot extends HttpService {
 
-
   import com.neo.sk.tank.common.AppSettings._
   import concurrent.duration._
 
@@ -66,8 +65,6 @@ object Boot extends HttpService {
 //  }
 
   scheduler.schedule(10 minutes, 10 minutes){deleteCode}
-
-
 
 
 

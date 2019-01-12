@@ -144,6 +144,7 @@ trait RoomInfoService extends ServiceUtils with HttpUtil with AuthService{
     }
 
   }
+
   val roomInfoRoute :Route = getRoomList4App ~ getRoomList ~ getRoomId ~ getRoomPlayerList ~ changeWatchedPlayerId
 
 }
