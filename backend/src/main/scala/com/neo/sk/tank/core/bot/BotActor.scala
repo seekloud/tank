@@ -8,7 +8,7 @@ import org.seekloud.byteobject.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration._
-import com.neo.sk.tank.Boot.{executor, roomManager, scheduler, timeout}
+import com.neo.sk.tank.Boot.{executor, roomManager,botManager, scheduler, timeout}
 import com.neo.sk.tank.core.{RoomActor,RoomManager}
 import com.neo.sk.tank.core.bot.BotManager.{Stopmap,StopBot,ReliveBot}
 import com.neo.sk.tank.shared.model.Constants.GameState
@@ -26,7 +26,7 @@ object BotActor {
 
   private val log = LoggerFactory.getLogger(this.getClass)
   private final val InitTime = Some(5.minutes)
-  private final val moveTime = 5.seconds
+  private final val moveTime = 1.seconds
   private final val keyTime = 30.seconds
   private final val clickTime = 30.seconds
 
@@ -64,11 +64,11 @@ object BotActor {
              gameContainer: GameContainerServerImpl,
              roomId: Long): Behavior[Command] = {
     Behaviors.setup[Command] { ctx =>
-      log.debug(s"${ctx.self.path} is starting...")
+      log.debug(s"BotActor is starting...${bId} ")
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       Behaviors.withTimers[Command] { implicit timer =>
         implicit val sendBuffer = new MiddleBufferInJvm(8192)
-        roomManager ! RoomManager.BotJoinRoom(bId,None,name,System.currentTimeMillis(),ctx.self,roomId)
+        roomManager ! RoomActor.BotJoinRoom(bId,None,name,System.currentTimeMillis(),ctx.self,roomId)
         switchBehavior(ctx, "init", init(bId,name,gameContainer,roomId), InitTime, TimeOut("init"))
       }
     }
@@ -88,10 +88,17 @@ object BotActor {
           log.debug(s"create bot error ${msg.msg} after $InitTime")
           Behaviors.stopped
         case msg: JoinRoomSuccess =>
+          log.info(s"bot $bId add success")
+          botManager ! BotManager.AddBotSuccess(roomId,bId)
+          //fixme 之后将动作分离
           timer.startPeriodicTimer(MoveTimeKey,TimeOut(Keymap.move),moveTime)
-          timer.startPeriodicTimer(KeyTimeKey,TimeOut(Keymap.key),keyTime)
-          timer.startPeriodicTimer(ClickTimeKey,TimeOut(Keymap.click),clickTime)
-          switchBehavior(ctx, "play", play(bId,name,BotControl(bId,msg.tank.tankId,name,msg.roomActor,gameContainer),roomId,msg.tank), InitTime, TimeOut("init"))
+//          timer.startPeriodicTimer(KeyTimeKey,TimeOut(Keymap.key),keyTime)
+//          timer.startPeriodicTimer(ClickTimeKey,TimeOut(Keymap.click),clickTime)
+          switchBehavior(ctx, "play", play(bId,name,BotControl(bId,msg.tank.tankId,name,roomId,msg.roomActor,gameContainer),roomId,msg.tank), InitTime, TimeOut("init"))
+        case unknowMsg =>
+          log.info(s"botactpr get unknow init $unknowMsg")
+          stashBuffer.stash(unknowMsg)
+          Behavior.same
       }
     }
 
@@ -110,10 +117,11 @@ object BotActor {
           msg.msg match {
             //todo 动作定时操作
             case Keymap.move=>
+              bot.sendMsg2Actor
 
             case Keymap.key=>
 
-            case Keymap.move=>
+            case Keymap.click=>
 
           }
           Behaviors.same
@@ -121,15 +129,19 @@ object BotActor {
         case msg:StopBot=>
           msg.state match {
             case Stopmap.stop=>
+              log.info(s"bot $id in room $roomId stop")
               bot.setGameState(GameState.stop)
               Behaviors.same
             case Stopmap.delete=>
+              log.info(s"bot $id in room $roomId delete")
+              bot.leftRoom
               Behaviors.stopped
           }
 
         case msg:ReliveBot=>
           bot.setGameState(GameState.play)
           Behaviors.same
+
         case unknowMsg =>
           stashBuffer.stash(unknowMsg)
           Behavior.same

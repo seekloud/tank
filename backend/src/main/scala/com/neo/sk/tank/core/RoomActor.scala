@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.ws.Message
 import akka.stream.scaladsl.Flow
 import com.neo.sk.tank.common.{AppSettings, Constants}
 import com.neo.sk.tank.core.RoomManager.Command
+import com.neo.sk.tank.core.bot.BotManager
 import com.neo.sk.tank.core.game.GameContainerServerImpl
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -14,7 +15,7 @@ import org.slf4j.LoggerFactory
 
 import concurrent.duration._
 import scala.collection.mutable
-import com.neo.sk.tank.Boot.esheepSyncClient
+import com.neo.sk.tank.Boot.{esheepSyncClient,botManager,executor}
 import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.core.bot.BotActor
 /**
@@ -40,11 +41,13 @@ object RoomActor {
 
   case class GetSyncState(uid:String) extends Command
 
-  case class BotJoinRoom(bid: String, tankIdOpt: Option[Int], name: String, startTime: Long, userActor: ActorRef[BotActor.Command], roomId: Long) extends Command
+  case class BotJoinRoom(bid: String, tankIdOpt: Option[Int], name: String, startTime: Long, botActor: ActorRef[BotActor.Command], roomId: Long) extends Command with RoomManager.Command
 
   case class JoinRoom(uid: String, tankIdOpt: Option[Int], name: String, startTime: Long, userActor: ActorRef[UserActor.Command], roomId: Long) extends Command
 
   case class WebSocketMsg(uid: String, tankId: Int, req: TankGameEvent.UserActionEvent) extends Command with RoomManager.Command
+
+  case class BotLeftRoom(uid: String, tankId: Int, name: String,roomId: Long) extends Command with RoomManager.Command
 
   case class LeftRoom(uid: String, tankId: Int, name: String, uidSet: List[(String, String)], roomId: Long) extends Command with RoomManager.Command
 
@@ -177,6 +180,10 @@ object RoomActor {
             idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid), userGroup,subscribersMap, observersMap, gameContainer, tickCount)
           }
 
+        case BotLeftRoom(uid, tankId, name, roomId)=>
+          gameContainer.leftGame(uid, name, tankId)
+          Behaviors.same
+
         case LeftRoom4Watch(uid, playerId) =>
           gameContainer.leftWatchGame(uid, playerId)
           observersMap.remove(uid)
@@ -221,10 +228,14 @@ object RoomActor {
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           val tankFollowEventSnap = gameContainer.getFollowEventSnap()
           justJoinUser.foreach { t =>
-            log.debug(s"${ctx.self.path} justJoinUser=${t}, tankFollowEventSnap=${tankFollowEventSnap}, gameContainerAllState=${gameContainerAllState}")
+//            log.debug(s"${ctx.self.path} justJoinUser=${t}, tankFollowEventSnap=${tankFollowEventSnap}, gameContainerAllState=${gameContainerAllState}")
             val ls = gameContainer.getUserActor4WatchGameList(t._1)
             dispatchTo(subscribersMap, observersMap)(t._1, tankFollowEventSnap, ls)
             dispatchTo(subscribersMap, observersMap)(t._1, TankGameEvent.SyncGameAllState(gameContainerAllState), ls)
+          }
+          //remind 控制人数
+          if(tickCount%20==0){
+            botManager ! BotManager.SysUserSize(roomId,userMap.size,gameContainer)
           }
 
           idle(index,roomId, Nil, userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount + 1)
