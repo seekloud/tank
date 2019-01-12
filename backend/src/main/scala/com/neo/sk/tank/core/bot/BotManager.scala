@@ -25,6 +25,7 @@ object BotManager {
   final case class CreateBot(count:Int, roomId:Long, gameContainer: GameContainerServerImpl) extends Command
   final case class DeleteBot(size:Int, roomId:Long) extends Command
   final case class StopBot(bid:String,state:Byte) extends Command with BotActor.Command
+  final case class ReliveBot(bid:String) extends Command with BotActor.Command
   final case class ChildDead[U](name: String, childRef: ActorRef[U]) extends Command
 
   private val log = LoggerFactory.getLogger(this.getClass)
@@ -61,6 +62,10 @@ object BotManager {
           Behaviors.same
 
         case msg:StopBot=>
+          getBotActor(ctx,msg.bid) ! msg
+          Behaviors.same
+
+        case msg:ReliveBot=>
           getBotActor(ctx,msg.bid) ! msg
           Behaviors.same
 
