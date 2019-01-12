@@ -129,11 +129,11 @@ object BotActor {
         case msg:StopBot=>
           msg.state match {
             case Stopmap.stop=>
-              log.info(s"bot $id in room $roomId stop")
+//              log.info(s"bot $id in room $roomId stop")
               bot.setGameState(GameState.stop)
               Behaviors.same
             case Stopmap.delete=>
-              log.info(s"bot $id in room $roomId delete")
+//              log.info(s"bot $id in room $roomId delete")
               bot.leftRoom
               Behaviors.stopped
           }
