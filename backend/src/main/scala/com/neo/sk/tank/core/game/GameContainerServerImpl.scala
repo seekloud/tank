@@ -110,7 +110,7 @@ case class GameContainerServerImpl(
     }
     //todo 此处需要判断bot
     if(tank.userId.contains("BotActor-")){
-      botManager ! BotManager.StopBot(tank.userId,if(tank.lives>1 && AppSettings.supportLiveLimit) BotManager.Stopmap.stop else BotManager.Stopmap.delete)
+      botManager ! BotManager.StopBot(tank.userId,if(tank.lives>1 && AppSettings.supportLiveLimit) BotManager.StopMap.stop else BotManager.StopMap.delete)
     }else{
       dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
     }

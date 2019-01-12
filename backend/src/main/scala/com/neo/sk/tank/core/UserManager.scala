@@ -73,9 +73,6 @@ object UserManager {
           userActor ! UserActor.StartReplay(rid, wid, f)
           Behaviors.same
 
-
-
-        case GetWebSocketFlow(name,replyTo, playerInfoOpt, roomIdOpt) =>
         case GetWebSocketFlow(name,replyTo,playerInfoOpt,roomIdOpt) =>
           println(s"ssssss$playerInfoOpt,$roomIdOpt")
           val playerInfo = playerInfoOpt match {
@@ -91,8 +88,6 @@ object UserManager {
           replyTo ! getWebSocketFlow(userActor)
           userActor ! ChangeUserInfo(playerInfo)
           userActor ! UserActor.WsSuccess(roomIdOpt)
-//          userActor ! ChangeUserInfo(playerInfo)
-//          userActor ! UserActor.StartGame(roomIdOpt,passwordOpt)
           Behaviors.same
 
 
@@ -114,16 +109,6 @@ object UserManager {
           userActor ! ChangeUserInfo(playerInfo)
           //发送用户观战命令
           userActor ! UserActor.StartObserve(roomId, watchedUserId)
-          Behaviors.same
-
-        case GetMsgFromBot(name, roomId, replyTo) =>
-          val playerInfo = TankGameUserInfo(Constants.TankGameUserIdPrefix + s"-${uidGenerator.getAndIncrement()}", s"guest:${name}", name, false)
-          val userActor = getUserActor(ctx, playerInfo.userId, playerInfo)
-          replyTo ! GetMsgFromUserManager(userActor)
-          userActor ! ChangeUserInfo(playerInfo)
-          userActor ! UserFrontActor(replyTo)
-          userActor ! UserActor.StartGame(roomId,None)
-
           Behaviors.same
 
         case msg:ChangeWatchedPlayerId =>

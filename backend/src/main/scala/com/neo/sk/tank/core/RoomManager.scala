@@ -96,19 +96,20 @@ object RoomManager {
         case msg:BotJoinRoom=>
           log.debug(s"before botJoin roomInUse:$roomInUse")
           roomInUse.get(msg.roomId) match{
-            case Some(ls) => roomInUse.put(msg.roomId,(msg.bid,msg.name) :: ls)
-            case None => roomInUse.put(msg.roomId,List((msg.bid,msg.name)))
+            case Some(ls) => roomInUse.put(msg.roomId,(ls._1,(msg.bid,msg.name):: ls._2))
+            case None => roomInUse.put(msg.roomId,("",List((msg.bid,msg.name))))
           }
+
           getRoomActor(ctx,msg.roomId) ! msg
           log.debug(s"${ctx.self.path}新加入bot${msg.bid}--${msg.name},now roomInUse:$roomInUse")
           Behaviors.same
 
         case msg:BotLeftRoom=>
-          roomInUse.find(_._2.exists(_._1 == msg.uid)) match{
+          roomInUse.find(_._2._2.exists(_._1 == msg.uid)) match{
             case Some(t) =>
-              roomInUse.put(t._1,t._2.filterNot(_._1 == msg.uid))
+              roomInUse.put(t._1,(t._2._1,t._2._2.filterNot(_._1 == msg.uid)))
               getRoomActor(ctx,t._1) ! msg
-              if(roomInUse(t._1).isEmpty && t._1 > 1l)
+              if(roomInUse(t._1)._2.isEmpty && t._1 > 1l)
                 roomInUse.remove(t._1)
               log.debug(s"Bot：${msg.uid}--${msg.name} remember to come back!!!$roomInUse")
             case None => log.debug(s"该bot不在任何房间")
