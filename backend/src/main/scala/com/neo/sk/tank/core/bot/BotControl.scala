@@ -3,6 +3,7 @@ package com.neo.sk.tank.core.bot
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.typed.ActorRef
+import com.neo.sk.tank.Boot.roomManager
 import com.neo.sk.tank.core.{RoomActor, UserActor}
 import com.neo.sk.tank.core.UserActor.WebSocketMsg
 import com.neo.sk.tank.core.game.GameContainerServerImpl
@@ -16,8 +17,8 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
   * @edit sky
   *       直接对接RoomActor
   **/
-case class BotControl(bid: String, tankId: Int, name: String, roomActor: ActorRef[RoomActor.Command], gameContainer: GameContainerServerImpl) {
-  private var gameState: Int = GameState.loadingPlay
+case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomActor: ActorRef[RoomActor.Command], gameContainer: GameContainerServerImpl) {
+  private var gameState: Int = GameState.play
 
   private var lastMouseMoveTheta: Float = 0
   private var currentMouseMOveTheta: Float = 0
@@ -155,8 +156,8 @@ case class BotControl(bid: String, tankId: Int, name: String, roomActor: ActorRe
       false
   }
 
-  def reStart(userActor: ActorRef[UserActor.Command]) = {
-    userActor ! WebSocketMsg(Some(TankGameEvent.RestartGame(Some(tankId), name)))
+  def leftRoom={
+    roomManager ! RoomActor.BotLeftRoom(bid,tankId,name,roomId)
   }
 
 }

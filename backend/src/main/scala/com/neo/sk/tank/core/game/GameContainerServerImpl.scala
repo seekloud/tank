@@ -18,10 +18,10 @@ import concurrent.duration._
 import scala.util.Random
 import collection.mutable
 import com.neo.sk.tank.shared.`object`.TankState
-import com.neo.sk.tank.Boot.{userManager,botManager}
+import com.neo.sk.tank.Boot.{botManager, userManager}
 import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.core.UserActor.TankRelive4UserActor
-import com.neo.sk.tank.core.bot.BotActor
+import com.neo.sk.tank.core.bot.{BotActor, BotManager}
 import com.neo.sk.tank.shared.`object`
 
 /**
@@ -109,7 +109,11 @@ case class GameContainerServerImpl(
       timer.startSingleTimer(s"TankRelive_${tank.tankId}", RoomActor.TankRelive(tank.userId, Some(tank.tankId), tank.name), config.getTankReliveDuration.millis)
     }
     //todo 此处需要判断bot
-    dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
+    if(tank.userId.contains("BotActor-")){
+      botManager ! BotManager.StopBot(tank.userId,if(tank.lives>1 && AppSettings.supportLiveLimit) BotManager.Stopmap.stop else BotManager.Stopmap.delete)
+    }else{
+      dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
+    }
     //后台增加一个玩家离开消息（不传给前端）,以便录像的时候记录玩家死亡和websocket断开的情况。
     //fixme 此处是否存在BUG
     if (tankState.lives <= 1 || (!AppSettings.supportLiveLimit)) {
@@ -321,16 +325,21 @@ case class GameContainerServerImpl(
   def handleTankRelive(userId: String, tankIdOpt: Option[Int], name: String) = {
     val tank = genATank(userId, tankIdOpt, name)
     tankLivesMap.update(tank.tankId, tank.getTankState())
-    val event = TankRelive4UserActor(tank, userId, name, roomActorRef, config.getTankGameConfigImpl())
-    userMapObserver.get(userId) match {
-      case Some(maps) =>
-        maps.foreach { p =>
-          p._2 ! event
-        }
-      case None =>
+    //remind 区分bot和user复活
+    if(userId.contains("BotActor-")){
+      botManager ! BotManager.ReliveBot(userId)
+    }else{
+      val event = TankRelive4UserActor(tank, userId, name, roomActorRef, config.getTankGameConfigImpl())
+      userMapObserver.get(userId) match {
+        case Some(maps) =>
+          maps.foreach { p =>
+            p._2 ! event
+          }
+        case None =>
+      }
+      log.debug(s"${roomActorRef.path} is processing to generate tank for ${userId} ")
+      userManager ! event
     }
-    log.debug(s"${roomActorRef.path} is processing to generate tank for ${userId} ")
-    userManager ! event
     val userReliveEvent = TankGameEvent.UserRelive(userId, name, tank.getTankState(), systemFrame)
     dispatch(userReliveEvent)
     addGameEvent(userReliveEvent)
@@ -338,6 +347,7 @@ case class GameContainerServerImpl(
     quadTree.insert(tank)
     //无敌时间消除
     tankInvincibleCallBack(tank.tankId)
+
   }
 
   def handleJoinRoom4Watch(userActor4WatchGame: ActorRef[UserActor.Command], uid: String, playerId: String) = {

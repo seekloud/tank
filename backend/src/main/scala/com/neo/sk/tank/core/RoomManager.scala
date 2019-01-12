@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
-import com.neo.sk.tank.core.RoomActor.{LeftRoomByKilled, WebSocketMsg}
+import com.neo.sk.tank.core.RoomActor.{BotJoinRoom, BotLeftRoom, LeftRoomByKilled, WebSocketMsg}
 import com.neo.sk.tank.core.UserActor.{JoinRoom, TimeOut}
 import com.neo.sk.tank.core.game.TankServerImpl
 import com.neo.sk.tank.shared.config.TankGameConfigImpl
@@ -33,7 +33,7 @@ object RoomManager {
   private case class TimeOut(msg:String) extends Command
   private case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
 
-  case class BotJoinRoom(bid:String,tankIdOpt:Option[Int],name:String,startTime:Long,botActor:ActorRef[BotActor.Command], roomId:Long) extends Command
+//  case class BotJoinRoom(bid:String,tankIdOpt:Option[Int],name:String,startTime:Long,botActor:ActorRef[BotActor.Command], roomId:Long) extends Command
 
   case class LeftRoom(uid:String,tankId:Int,name:String,userOpt: Option[String]) extends Command
 
@@ -85,10 +85,21 @@ object RoomManager {
             case Some(ls) => roomInUse.put(msg.roomId,(msg.bid,msg.name) :: ls)
             case None => roomInUse.put(msg.roomId,List((msg.bid,msg.name)))
           }
-          getRoomActor(ctx,msg.roomId) ! RoomActor.BotJoinRoom(msg.bid,msg.tankIdOpt,msg.name,msg.startTime,msg.botActor,msg.roomId)
+          getRoomActor(ctx,msg.roomId) ! msg
           log.debug(s"${ctx.self.path}新加入bot${msg.bid}--${msg.name},now roomInUse:$roomInUse")
           Behaviors.same
 
+        case msg:BotLeftRoom=>
+          roomInUse.find(_._2.exists(_._1 == msg.uid)) match{
+            case Some(t) =>
+              roomInUse.put(t._1,t._2.filterNot(_._1 == msg.uid))
+              getRoomActor(ctx,t._1) ! msg
+              if(roomInUse(t._1).isEmpty && t._1 > 1l)
+                roomInUse.remove(t._1)
+              log.debug(s"Bot：${msg.uid}--${msg.name} remember to come back!!!$roomInUse")
+            case None => log.debug(s"该bot不在任何房间")
+          }
+          Behaviors.same
 
         case RoomActor.JoinRoom4Watch(uid,roomId,playerId,userActor4Watch) =>
           log.debug(s"${ctx.self.path} recv a msg=${msg}")
