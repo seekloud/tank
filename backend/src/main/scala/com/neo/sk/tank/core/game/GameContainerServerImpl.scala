@@ -18,8 +18,7 @@ import concurrent.duration._
 import scala.util.Random
 import collection.mutable
 import com.neo.sk.tank.shared.`object`.TankState
-import com.neo.sk.tank.Boot.roomManager
-import com.neo.sk.tank.Boot.userManager
+import com.neo.sk.tank.Boot.{userManager,botManager}
 import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.core.UserActor.TankRelive4UserActor
 import com.neo.sk.tank.core.bot.BotActor
@@ -112,6 +111,7 @@ case class GameContainerServerImpl(
     //todo 此处需要判断bot
     dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
     //后台增加一个玩家离开消息（不传给前端）,以便录像的时候记录玩家死亡和websocket断开的情况。
+    //fixme 此处是否存在BUG
     if (tankState.lives <= 1 || (!AppSettings.supportLiveLimit)) {
       val event = TankGameEvent.UserLeftRoomByKill(tank.userId, tank.name, tank.tankId, systemFrame)
       addGameEvent(event)

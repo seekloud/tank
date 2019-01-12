@@ -14,10 +14,10 @@ import com.neo.sk.tank.shared.protocol.TankGameEvent
 /**
   * @author wmy
   * @edit sky
-  *      直接对接RoomActor
-  * */
-case class BotControl(bid:String,tankId: Int, name: String,roomActor: ActorRef[RoomActor.Command], gameContainer: GameContainerServerImpl) {
-  var gameState: Int = GameState.loadingPlay
+  *       直接对接RoomActor
+  **/
+case class BotControl(bid: String, tankId: Int, name: String, roomActor: ActorRef[RoomActor.Command], gameContainer: GameContainerServerImpl) {
+  private var gameState: Int = GameState.loadingPlay
 
   private var lastMouseMoveTheta: Float = 0
   private var currentMouseMOveTheta: Float = 0
@@ -32,6 +32,7 @@ case class BotControl(bid:String,tankId: Int, name: String,roomActor: ActorRef[R
 
   def getActionSerialNum: Int = actionSerialNumGenerator.getAndIncrement()
 
+  def setGameState(s: Int) = gameState = s
 
   def sendMsg2Actor: Unit = {
     val click = (new util.Random).nextInt(10)
@@ -41,21 +42,21 @@ case class BotControl(bid:String,tankId: Int, name: String,roomActor: ActorRef[R
       if (isHaveTarget && !isEatProp && click > clickRatio) {
         if (math.abs(currentMouseMOveTheta - lastMouseMoveTheta) >= mouseMoveThreshold) {
           lastMouseMoveTheta = currentMouseMOveTheta
-          roomActor ! RoomActor.WebSocketMsg(bid,tankId, userMouseMove(currentMouseMOveTheta))
+          roomActor ! RoomActor.WebSocketMsg(bid, tankId, userMouseMove(currentMouseMOveTheta))
         }
-        roomActor ! RoomActor.WebSocketMsg(bid,tankId, userMouseClick)
+        roomActor ! RoomActor.WebSocketMsg(bid, tankId, userMouseClick)
       }
       else if (isHaveTarget && isEatProp && eat > eatRatio) {
         if (turnMsg > 0) {
           //          log.debug(s"${userActor.path} begin to do to eat the prop ${turnMsg}")
-          roomActor ! RoomActor.WebSocketMsg(bid,tankId,userKeyDown(turnMsg))
-          roomActor ! RoomActor.WebSocketMsg(bid,tankId,userKeyDown(turnMsg))
+          roomActor ! RoomActor.WebSocketMsg(bid, tankId, userKeyDown(turnMsg))
+          roomActor ! RoomActor.WebSocketMsg(bid, tankId, userKeyDown(turnMsg))
         }
       }
       else {
         val randomKeyCode = (new util.Random).nextInt(4) + 37
-        roomActor ! RoomActor.WebSocketMsg(bid,tankId,userKeyDown(randomKeyCode))
-        roomActor ! RoomActor.WebSocketMsg(bid,tankId,userKeyUp(randomKeyCode))
+        roomActor ! RoomActor.WebSocketMsg(bid, tankId, userKeyDown(randomKeyCode))
+        roomActor ! RoomActor.WebSocketMsg(bid, tankId, userKeyUp(randomKeyCode))
       }
     }
   }
@@ -75,7 +76,7 @@ case class BotControl(bid:String,tankId: Int, name: String,roomActor: ActorRef[R
   }
 
   def userKeyUp(keyCode: Int) = {
-    TankGameEvent.UserPressKeyUp(tankId, gameContainer.systemFrame +10+ preExecuteFrameOffset, keyCode, getActionSerialNum)
+    TankGameEvent.UserPressKeyUp(tankId, gameContainer.systemFrame + 10 + preExecuteFrameOffset, keyCode, getActionSerialNum)
   }
 
   private def userMouseClick = {
