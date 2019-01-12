@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.duration._
 import com.neo.sk.tank.Boot.{executor, roomManager,botManager, scheduler, timeout}
 import com.neo.sk.tank.core.{RoomActor,RoomManager}
-import com.neo.sk.tank.core.bot.BotManager.{Stopmap,StopBot,ReliveBot}
+import com.neo.sk.tank.core.bot.BotManager.{StopMap,StopBot,ReliveBot}
 import com.neo.sk.tank.shared.model.Constants.GameState
 /**
   * Created by sky
@@ -128,11 +128,11 @@ object BotActor {
 
         case msg:StopBot=>
           msg.state match {
-            case Stopmap.stop=>
+            case StopMap.stop=>
 //              log.info(s"bot $id in room $roomId stop")
               bot.setGameState(GameState.stop)
               Behaviors.same
-            case Stopmap.delete=>
+            case StopMap.delete=>
 //              log.info(s"bot $id in room $roomId delete")
               bot.leftRoom
               Behaviors.stopped

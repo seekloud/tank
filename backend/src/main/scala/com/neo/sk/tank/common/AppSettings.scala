@@ -42,6 +42,7 @@ object AppSettings {
 
   val personLimit = appConfig.getInt("tankGameRoomManager.personLimit")
   val supportLiveLimit = appConfig.getBoolean("tankGameRoomManager.supportLiveLimit")
+  val botLimit = appConfig.getInt("tankGameRoomManager.botLimit")
 
   val nameList = appConfig.getStringList("botManager.nameList")
   val needSpecialName = appConfig.getBoolean("botManager.needSpecialName")

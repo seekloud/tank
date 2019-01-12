@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 import com.neo.sk.tank.Boot.{executor, roomManager, scheduler, timeout}
+import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.core.RoomActor
 /**
   * Created by sky
@@ -19,12 +20,12 @@ import com.neo.sk.tank.core.RoomActor
   */
 object BotManager {
 
-  object Stopmap {
+  object StopMap {
     val stop: Byte = 1
     val delete: Byte = 2
   }
 
-  val minSize=3
+  val minSize=AppSettings.botLimit
 
   trait Command
 
@@ -53,7 +54,7 @@ object BotManager {
   }
 
   private def idle(bidGenerator: AtomicLong,
-                   botMap:mutable.HashMap[String,(Long,Boolean)]
+                   botMap:mutable.HashMap[String,(Long,Boolean)]  //(bid,(room,success))
                   )
                   (
                     implicit timer: TimerScheduler[Command]
@@ -62,7 +63,7 @@ object BotManager {
       msg match {
         case msg: SysUserSize =>
           if(msg.size>0){
-            val botList=botMap.filter(_._2._1 == msg.roomId)
+            val botList=botMap.filter(r=>r._2._1== msg.roomId&&r._2._2)
 //            log.info(s"room-user count  ${msg.size}  ${botList.size}")
             if((msg.size+botList.size)<minSize){
               for (i <- msg.size+botList.size until minSize) {
@@ -75,11 +76,11 @@ object BotManager {
               if(botList.nonEmpty){
                 if(msg.size>=minSize){
                   botList.foreach{r=>
-                    getBotActor(ctx,r._1) ! StopBot(r._1,Stopmap.delete)
+                    getBotActor(ctx,r._1) ! StopBot(r._1,StopMap.delete)
                   }
                 }else{
                   botList.take(botList.size-(minSize-msg.size)).foreach{r=>
-                    getBotActor(ctx,r._1) ! StopBot(r._1,Stopmap.delete)
+                    getBotActor(ctx,r._1) ! StopBot(r._1,StopMap.delete)
                   }
                 }
               }
