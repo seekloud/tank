@@ -63,7 +63,7 @@ object BotManager {
         case msg: SysUserSize =>
           if(msg.size>0){
             val botList=botMap.filter(_._2._1 == msg.roomId)
-            log.info(s"room-user count  ${msg.size}  ${botList.size}")
+//            log.info(s"room-user count  ${msg.size}  ${botList.size}")
             if((msg.size+botList.size)<minSize){
               for (i <- msg.size+botList.size until minSize) {
                 val botId = bidGenerator.getAndIncrement()
