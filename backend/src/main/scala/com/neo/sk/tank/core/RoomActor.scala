@@ -235,7 +235,8 @@ object RoomActor {
           }
           //remind 控制人数
           if(tickCount%20==0){
-//            botManager ! BotManager.SysUserSize(roomId,userMap.size,gameContainer)
+            if(AppSettings.botSupport)
+            botManager ! BotManager.SysUserSize(roomId,userMap.size,gameContainer)
           }
 
           idle(index,roomId, Nil, userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount + 1)
