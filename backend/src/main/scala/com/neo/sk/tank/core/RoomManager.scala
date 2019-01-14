@@ -45,7 +45,7 @@ object RoomManager {
         implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
         Behaviors.withTimers[Command]{implicit timer =>
           val roomIdGenerator = new AtomicLong(1L)
-          val roomInUse = mutable.HashMap((1l,("",List.empty[(String,String)])),(2l,("123",List.empty[(String,String)])))
+          val roomInUse = mutable.HashMap((1l,("",List.empty[(String,String)])))
           idle(roomIdGenerator,roomInUse)
         }
     }
@@ -64,14 +64,13 @@ object RoomManager {
                 case Some(ls) =>
                  if(pw == ls._1){
                    roomInUse.put(roomId,(pw,(uid,name):: ls._2))
+                   getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
                  } else{
                    //密码不正确
                    userActor ! UserActor.JoinRoomFail("密码错误！")
                  }
-
                 case None => userActor ! UserActor.JoinRoomFail("房间未被创建！")
               }
-              getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
             case None =>
               roomInUse.find(p => p._2._2.length < personLimit).toList.sortBy(_._1).headOption match{
                 case Some(t) =>
