@@ -41,7 +41,6 @@ trait EsRecover { this:GameContainerClientImpl =>
         val curFrame = this.systemFrame
         handleGameContainerAllState(gameContainerAllState)
         //同步所有数据
-
         removeKillInfoByRollback(frame)
         reSetFollowEventMap(frame)
         (frame until curFrame).foreach{ f =>

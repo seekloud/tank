@@ -268,16 +268,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 //          audioForDead.play()
         }
 
-      case e:TankGameEvent.Ranks =>
-        /**
-          * 游戏排行榜
-          * */
-        gameContainerOpt.foreach{ t =>
-          t.currentRank = e.currentRank
-          t.historyRank = e.historyRank
-          t.rankUpdated = true
-        }
-
       case e:TankGameEvent.SyncGameState =>
         gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
 

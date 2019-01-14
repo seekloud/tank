@@ -368,6 +368,7 @@ case class GameContainerServerImpl(
 
 
   def leftGame(userId: String, name: String, tankId: Int) = {
+    log.info(s"bot/user leave $userId")
     val event = TankGameEvent.UserLeftRoom(userId, name, tankId, systemFrame)
     addGameEvent(event)
     dispatch(event)
