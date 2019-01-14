@@ -489,9 +489,8 @@ object UserActor {
               //玩家进入复活状态
 //              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
               switchBehavior(ctx,"waitRestartWhenPlay",waitRestartWhenPlay(uId,userInfo,startTime,frontActor, tank))
-            } else {
-              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
-              switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
+            }else{
+              Behaviors.same
             }
           }else{
               frontActor ! m
