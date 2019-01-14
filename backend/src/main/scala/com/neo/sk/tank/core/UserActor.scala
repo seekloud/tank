@@ -467,19 +467,32 @@ object UserActor {
           play(uId,info,tank,startTime,frontActor,roomActor)
 
         case WebSocketMsg(reqOpt) =>
-          reqOpt.foreach {
-            case t:TankGameEvent.UserActionEvent =>
-              //分发数据给roomActor
-              //              println(s"${ctx.self.path} websocketmsg---------------${t}")
-              roomActor ! RoomActor.WebSocketMsg(uId, tank.tankId, t)
-            case t: TankGameEvent.PingPackage =>
-              frontActor ! TankGameEvent.Wrap(t.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          if(reqOpt.nonEmpty){
+            reqOpt.get match{
+              case t:TankGameEvent.UserActionEvent =>
+                roomActor ! RoomActor.WebSocketMsg(uId, tank.tankId, t)
+                Behaviors.same
 
-            case TankGameEvent.GetSyncGameState =>
-              roomActor ! RoomActor.GetSyncState(uId)
-            case _ =>
+              case t: TankGameEvent.PingPackage =>
+                frontActor ! TankGameEvent.Wrap(t.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+                Behaviors.same
+
+              case TankGameEvent.GetSyncGameState =>
+                roomActor ! RoomActor.GetSyncState(uId)
+                Behaviors.same
+
+              case t:TankGameEvent.RestartGame =>
+                roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
+                val newStartTime = System.currentTimeMillis()
+                roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,newStartTime,ctx.self)
+                switchBehavior(ctx,"idle",idle(uId,userInfo.copy(name = t.name),newStartTime,frontActor))
+
+              case _ =>
+                Behaviors.same
+            }
+          }else{
+            Behaviors.same
           }
-          Behaviors.same
 
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {

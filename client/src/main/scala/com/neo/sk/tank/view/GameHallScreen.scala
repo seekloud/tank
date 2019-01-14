@@ -178,6 +178,7 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     grid.add(sceneTitle, 0, 0)
     grid.add(roomField, 1, 0)
     grid.add(hBox4Plain, 1, 1)
+    grid.add(hBox4Back,1,2)
     val scene = new Scene(grid,Constants.SceneBound.weight,Constants.SceneBound.height)
     context.switchScene(scene)
   }
@@ -193,6 +194,7 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
     grid.add(pwdLabel, 0, 1)
     grid.add(pwBox, 1, 1)
     grid.add(hBox4Encry, 1, 2)
+    grid.add(hBox4Back,1,3)
     val scene = new Scene(grid,Constants.SceneBound.weight,Constants.SceneBound.height)
     context.switchScene(scene)
   }
