@@ -68,7 +68,7 @@ object BotManager {
             if((msg.size+botList.size)<minSize){
               for (i <- msg.size+botList.size until minSize) {
                 val botId = bidGenerator.getAndIncrement()
-                log.info(s"room ${msg.roomId} add BotActor-$botId")
+                log.info(s"room add BotActor ${msg.roomId} $botId")
                 getBotActor(ctx, s"BotActor-$botId", Some(msg.gameContainer), Some(msg.roomId))
                 botMap.put(s"BotActor-$botId",(msg.roomId,false))
               }

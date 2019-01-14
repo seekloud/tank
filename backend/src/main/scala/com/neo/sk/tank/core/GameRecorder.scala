@@ -335,7 +335,8 @@ object GameRecorder {
           initRecorder(roomId,gameRecordData.fileName,fileIndex,gameInformation, userMap)
 
         case unknow =>
-          log.warn(s"${ctx} save got unknow msg ${unknow}")
+          log.warn(s"${ctx} save got unknow msg ${unknow.getClass}")
+          stashBuffer.stash(unknow)
           Behaviors.same
       }
 
