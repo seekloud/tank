@@ -94,7 +94,7 @@ object BotActor {
           timer.startPeriodicTimer(MoveTimeKey,TimeOut(Keymap.move),moveTime)
 //          timer.startPeriodicTimer(KeyTimeKey,TimeOut(Keymap.key),keyTime)
 //          timer.startPeriodicTimer(ClickTimeKey,TimeOut(Keymap.click),clickTime)
-          switchBehavior(ctx, "play", play(bId,name,BotControl(bId,msg.tank.tankId,name,roomId,msg.roomActor,gameContainer),roomId,msg.tank), InitTime, TimeOut("init"))
+          switchBehavior(ctx, "play", play(bId,name,BotControl(bId,msg.tank.tankId,name,roomId,msg.roomActor,gameContainer),roomId,msg.tank))
         case unknowMsg =>
           log.info(s"botactpr get unknow init $unknowMsg")
           stashBuffer.stash(unknowMsg)
