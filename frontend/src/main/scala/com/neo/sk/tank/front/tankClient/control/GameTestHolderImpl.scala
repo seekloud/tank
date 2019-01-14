@@ -201,7 +201,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
   //模拟鼠标点击
   private def fakeUserMouseClick = {
-    val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
+    val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
     gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
     sendMsg2Server(preExecuteAction)
   }
@@ -219,7 +219,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   private def fakeUserMouseMove(theta:Float) = {
-    val preExecuteAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+    val preExecuteAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
     gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
     sendMsg2Server(preExecuteAction)
   }
