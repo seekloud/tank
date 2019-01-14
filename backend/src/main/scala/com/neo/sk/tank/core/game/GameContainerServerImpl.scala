@@ -368,6 +368,7 @@ case class GameContainerServerImpl(
 
 
   def leftGame(userId: String, name: String, tankId: Int) = {
+    log.info(s"bot/user leave $userId")
     val event = TankGameEvent.UserLeftRoom(userId, name, tankId, systemFrame)
     addGameEvent(event)
     dispatch(event)
@@ -498,6 +499,7 @@ case class GameContainerServerImpl(
 
   override def update(): Unit = {
     super.update()
+    log.info(s"userSize ${tankMap.size} list=${tankMap.values.map(r=>(r.tankId,r.name))}")
     super.updateRanks()
   }
 

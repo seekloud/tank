@@ -234,6 +234,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
+    println(data.getClass)
     data match {
       case e:TankGameEvent.WsSuccess =>
         webSocketClient.sendMsg(TankGameEvent.StartGame(e.roomId,None))
@@ -247,11 +248,11 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           * 更新游戏数据
           * */
         gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState,versionInfo = versionInfoOpt))
-        gameContainerOpt.get.getTankId(e.tankId)
+        gameContainerOpt.get.changeTankId(e.tankId)
 //        gameContainerOpt.foreach(e =>)
 
       case e:TankGameEvent.TankFollowEventSnap =>
-        println(s"game TankFollowEventSnap =${e} systemFrame=${gameContainerOpt.get.systemFrame} tankId=${gameContainerOpt.get.tankId} ")
+        println(s"game TankFollowEventSnap =${e} systemFrame=${gameContainerOpt.get.systemFrame} tankId=${gameContainerOpt.get.myTankId} ")
         gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
       case e:TankGameEvent.YouAreKilled =>
@@ -266,16 +267,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           gameContainerOpt.foreach(_.changeTankId(e.tankId))
 //          audioForBgm.pause()
 //          audioForDead.play()
-        }
-
-      case e:TankGameEvent.Ranks =>
-        /**
-          * 游戏排行榜
-          * */
-        gameContainerOpt.foreach{ t =>
-          t.currentRank = e.currentRank
-          t.historyRank = e.historyRank
-          t.rankUpdated = true
         }
 
       case e:TankGameEvent.SyncGameState =>

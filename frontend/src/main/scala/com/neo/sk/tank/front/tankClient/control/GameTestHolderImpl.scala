@@ -234,7 +234,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           * 更新游戏数据
           * */
         gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState,versionInfo = versionInfoOpt))
-        gameContainerOpt.get.getTankId(e.tankId)
+        gameContainerOpt.get.changeTankId(e.tankId)
         thisTankId = e.tankId
 
       case e:TankGameEvent.YouAreKilled =>
@@ -251,7 +251,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         }
 
       case e:TankGameEvent.TankFollowEventSnap =>
-        println(s"game TankFollowEventSnap =${e} systemFrame=${gameContainerOpt.get.systemFrame} tankId=${gameContainerOpt.get.tankId} ")
+        println(s"game TankFollowEventSnap =${e} systemFrame=${gameContainerOpt.get.systemFrame} tankId=${gameContainerOpt.get.myTankId} ")
         gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
       case e:TankGameEvent.Ranks =>
