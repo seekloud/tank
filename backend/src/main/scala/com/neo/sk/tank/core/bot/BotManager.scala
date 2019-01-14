@@ -76,11 +76,19 @@ object BotManager {
               if(botList.nonEmpty){
                 if(msg.size>=minSize){
                   botList.foreach{r=>
-                    getBotActor(ctx,r._1) ! StopBot(r._1,StopMap.delete)
+                    if(ctx.child(r._1).nonEmpty){
+                      getBotActor(ctx,r._1) ! StopBot(r._1,StopMap.delete)
+                    }else{
+                      log.debug(s"here bot error ${r._1}")
+                    }
                   }
                 }else{
                   botList.take(botList.size-(minSize-msg.size)).foreach{r=>
-                    getBotActor(ctx,r._1) ! StopBot(r._1,StopMap.delete)
+                    if(ctx.child(r._1).nonEmpty){
+                      getBotActor(ctx,r._1) ! StopBot(r._1,StopMap.delete)
+                    }else{
+                      log.debug(s"here bot error ${r._1}")
+                    }
                   }
                 }
               }
@@ -94,11 +102,19 @@ object BotManager {
           Behaviors.same
 
         case msg: StopBot =>
-          getBotActor(ctx, msg.bid) ! msg
+          if(ctx.child(msg.bid).nonEmpty){
+            getBotActor(ctx, msg.bid) ! msg
+          }else{
+            log.debug(s"here bot error ${msg.bid}")
+          }
           Behaviors.same
 
         case msg: ReliveBot =>
-          getBotActor(ctx, msg.bid) ! msg
+          if(ctx.child(msg.bid).nonEmpty) {
+            getBotActor(ctx, msg.bid) ! msg
+          }else{
+            log.debug(s"here bot error ${msg.bid}")
+          }
           Behaviors.same
 
         case ChildDead(child, childRef) =>
