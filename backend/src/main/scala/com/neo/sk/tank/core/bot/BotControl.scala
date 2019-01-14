@@ -81,11 +81,11 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
   }
 
   private def userMouseClick = {
-    TankGameEvent.UserMouseClick(tankId, gameContainer.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
+    TankGameEvent.UC(tankId, gameContainer.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
   }
 
   private def userMouseMove(theta: Float) = {
-    TankGameEvent.UserMouseMove(tankId, gameContainer.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+    TankGameEvent.UM(tankId, gameContainer.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
   }
 
   def findAllTank = {
