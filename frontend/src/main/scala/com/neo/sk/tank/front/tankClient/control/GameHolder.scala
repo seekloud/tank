@@ -46,7 +46,7 @@ abstract class GameHolder(name: String) extends NetworkInfo {
   //  protected var damageNum:Int = 0
   //  var killerList = List.empty[String] //（击杀者）
   var versionInfoOpt:Option[String]=None
-  val versionScript=dom.document.getElementById("js-version")
+  val versionScript = dom.document.getElementById("js-version")
   try {
     versionScript match {
       case script: Script =>
@@ -174,16 +174,22 @@ abstract class GameHolder(name: String) extends NetworkInfo {
         tickCount += 1
 
       case GameState.stop =>
-//        dom.window.cancelAnimationFrame(nextFrame)
-//        Shortcut.cancelSchedule(timer)
+        dom.document.getElementById("input_mask_id").asInstanceOf[dom.html.Div].focus()
         if(tickCount % rankCycle == 1){
           gameContainerOpt.foreach(_.updateRanks())
           gameContainerOpt.foreach(t => t.rankUpdated = true)
         }
-        gameContainerOpt.foreach(_.update())
+        gameContainerOpt.foreach{r =>
+          r.update()
+          if(!r.isKillerAlive(r.getCurTankId)){
+            val newWatchId = r.change2OtherTank
+            r.changeTankId(newWatchId)
+          }
+        }
         logicFrameTime = System.currentTimeMillis()
         ping()
         tickCount += 1
+
 
       case _ => println(s"state=$gameState failed")
     }

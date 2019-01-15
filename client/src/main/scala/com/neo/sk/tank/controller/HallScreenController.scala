@@ -95,7 +95,6 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
     override def confirmBtnListener(roomIdListView:String, roomIdTextField:String): Unit = {
       App.pushStack2AppThread{
         if(roomIdTextField != "" && roomMap.contains(roomIdTextField.toLong)){
-          println(s"text field")
           if(!roomMap(roomIdTextField.toLong)){
             val playGameScreen: PlayGameScreen = new PlayGameScreen(context)
             context.switchScene(playGameScreen.getScene(), resize = true, fullScreen = true)
@@ -116,7 +115,6 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
             }
           }
         }else if(roomIdListView != ""){
-          println(s"text list view")
           if(!roomMap(roomIdListView.toLong)){
             val playGameScreen: PlayGameScreen = new PlayGameScreen(context)
             context.switchScene(playGameScreen.getScene(), resize = true, fullScreen = true)
