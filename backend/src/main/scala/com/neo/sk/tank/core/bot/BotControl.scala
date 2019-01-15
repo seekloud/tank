@@ -108,7 +108,7 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
     val tankListOpt = findAllTank
     val tankList = tankListOpt.getOrElse(List())
 
-    if (tankList.nonEmpty) {
+    if (tankList.nonEmpty && tankList.exists(_.tankId == tankId)) {
       val thisTank = tankList.filter(_.tankId == tankId).head
       val thisTankPos = thisTank.getTankState().position
       val obstacleList = findOtherObstacle(thisTank)
