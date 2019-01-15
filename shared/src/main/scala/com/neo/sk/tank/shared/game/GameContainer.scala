@@ -616,7 +616,6 @@ trait GameContainer extends KillInformation{
       systemFrame,
       tankMap.values.map(_.getTankState()).toList,
       bulletMap.values.map(_.getBulletState()).toList,
-//      followEventMap.toList,
       propMap.values.map(_.getPropState).toList,
       obstacleMap.values.map(_.getObstacleState()).toList,
       environmentMap.values.map(_.getObstacleState()).toList,

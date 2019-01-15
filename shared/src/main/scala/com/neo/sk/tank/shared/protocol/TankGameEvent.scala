@@ -95,7 +95,7 @@ object TankGameEvent {
 //  final case class UserMouseMove(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
   @deprecated
   final case class UM(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
-
+  final case class UMB(tankId:Int,override val frame:Long,d:Byte,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
   @deprecated
   type UserMouseMove = UM
 
@@ -121,6 +121,7 @@ object TankGameEvent {
   /**砖块消失事件*/
   final case class ObstacleRemove(obstacleId:Int, override val frame:Long) extends EnvironmentEvent with WsMsgServer
 
+  //fixme 此处回放是没有同步-bigBUG
   /**
     * tank初次进入游戏时用于同步游戏逻辑产生延时事件
     * */

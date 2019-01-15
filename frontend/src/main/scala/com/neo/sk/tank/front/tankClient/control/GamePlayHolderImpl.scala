@@ -111,6 +111,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
       if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
         if(math.abs(theta - lastMouseMoveTheta) >= mouseMoveThreshold ){
+          println("------"+math.round(theta))
           lastMouseMoveTheta = theta
           lastMoveFrame = gameContainerOpt.get.systemFrame
           val preExecuteAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
