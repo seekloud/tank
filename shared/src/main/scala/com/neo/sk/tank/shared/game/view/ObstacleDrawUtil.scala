@@ -13,7 +13,6 @@ import scala.collection.mutable
   */
 trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
 
-  //fixme 将此处map暴露给子类
   private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Any]()
 
   private val steelImg =drawFrame.createImage("/img/钢铁.png")

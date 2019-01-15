@@ -108,14 +108,12 @@ case class GameContainerServerImpl(
       log.debug(s"${roomActorRef.path} timer for relive is starting...")
       timer.startSingleTimer(s"TankRelive_${tank.tankId}", RoomActor.TankRelive(tank.userId, Some(tank.tankId), tank.name), config.getTankReliveDuration.millis)
     }
-    //todo 此处需要判断bot
     if(tank.userId.contains("BotActor-")){
       botManager ! BotManager.StopBot(tank.userId,if(tank.lives>1 && AppSettings.supportLiveLimit) BotManager.StopMap.stop else BotManager.StopMap.delete)
     }else{
       dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
     }
     //后台增加一个玩家离开消息（不传给前端）,以便录像的时候记录玩家死亡和websocket断开的情况。
-    //fixme 此处是否存在BUG
     if (tankState.lives <= 1 || (!AppSettings.supportLiveLimit)) {
       val event = TankGameEvent.UserLeftRoomByKill(tank.userId, tank.name, tank.tankId, systemFrame)
       addGameEvent(event)

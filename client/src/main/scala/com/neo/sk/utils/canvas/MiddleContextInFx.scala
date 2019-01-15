@@ -16,7 +16,6 @@ import javafx.scene.text.{Font, FontWeight, TextAlignment}
 object MiddleContextInFx {
   def apply(canvas: MiddleCanvasInFx): MiddleContextInFx = new MiddleContextInFx(canvas)
 
-  //todo 匹配所有情况
   def string2FontWeight(s: String): FontWeight = {
     s match {
       case "bold" => FontWeight.BOLD

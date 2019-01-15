@@ -206,8 +206,6 @@ object UserManager {
   }
 
 
-
-  //todo 修改userActor初始化userInfo
   private def getUserActor(ctx: ActorContext[Command],id:String, userInfo: TankGameUserInfo):ActorRef[UserActor.Command] = {
     val childName = s"UserActor-${id}"
     ctx.child(childName).getOrElse{
