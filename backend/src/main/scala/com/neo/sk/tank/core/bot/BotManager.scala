@@ -64,9 +64,8 @@ object BotManager {
         case msg: SysUserSize =>
           if(msg.size>0){
             val botList=botMap.filter(r=>r._2._1== msg.roomId&&r._2._2)
-//            log.info(s"room-user count  ${msg.size}  ${botList.size}")
-            if((msg.size+botList.size)<minSize){
-              for (i <- msg.size+botList.size until minSize) {
+            if(msg.size < minSize){
+              for (i <- msg.size until minSize) {
                 val botId = bidGenerator.getAndIncrement()
                 log.info(s"room add BotActor ${msg.roomId} $botId")
                 getBotActor(ctx, s"BotActor-$botId", Some(msg.gameContainer), Some(msg.roomId))
@@ -74,21 +73,11 @@ object BotManager {
               }
             }else{
               if(botList.nonEmpty){
-                if(msg.size>=minSize){
-                  botList.foreach{r=>
-                    if(ctx.child(r._1).nonEmpty){
-                      getBotActor(ctx,r._1) ! StopBot(r._1,StopMap.delete)
-                    }else{
-                      log.debug(s"here bot error ${r._1}")
-                    }
-                  }
-                }else{
-                  botList.take(botList.size-(minSize-msg.size)).foreach{r=>
-                    if(ctx.child(r._1).nonEmpty){
-                      getBotActor(ctx,r._1) ! StopBot(r._1,StopMap.delete)
-                    }else{
-                      log.debug(s"here bot error ${r._1}")
-                    }
+                botList.take(msg.size-minSize).foreach{r=>
+                  if(ctx.child(r._1).nonEmpty){
+                    getBotActor(ctx,r._1) ! StopBot(r._1,StopMap.delete)
+                  }else{
+                    log.debug(s"here bot error ${r._1}")
                   }
                 }
               }

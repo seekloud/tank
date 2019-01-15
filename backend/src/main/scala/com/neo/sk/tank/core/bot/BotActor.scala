@@ -123,6 +123,9 @@ object BotActor {
 
             case Keymap.click=>
 
+            case _ =>
+              log.debug(s"timeout match error$msg")
+
           }
           Behaviors.same
 
@@ -145,7 +148,6 @@ object BotActor {
         case unknowMsg =>
           stashBuffer.stash(unknowMsg)
           Behavior.same
-
       }
     }
 

@@ -499,7 +499,7 @@ case class GameContainerServerImpl(
 
   override def update(): Unit = {
     super.update()
-    log.info(s"userSize ${tankMap.size} list=${tankMap.values.map(r=>(r.tankId,r.name))}")
+//    log.info(s"userSize ${tankMap.size} list=${tankMap.values.map(r=>(r.tankId,r.name))}")
     super.updateRanks()
   }
 
