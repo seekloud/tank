@@ -53,6 +53,18 @@ case class GameContainerClientImpl(
     damageNum = myDamageNum
   }
 
+  def getCurTankId:Int = tankId
+
+  def change2OtherTank:Int = {
+    val keys = tankMap.keys.toArray
+    val idx = (new util.Random).nextInt(keys.length)
+    keys(idx)
+  }
+
+  def isKillerAlive(killerId:Int):Boolean = {
+    if(tankMap.contains(killerId)) true else false
+  }
+
   override def debug(msg: String): Unit = {}
 
   override def info(msg: String): Unit = println(msg)
