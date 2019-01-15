@@ -13,8 +13,6 @@ import scala.collection.mutable
   */
 trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
-//  implicit val drawFrame:MiddleFrame
-  //fixme 将此处map暴露给子类
   private val cacheCanvasMap = mutable.HashMap.empty[String, Any]
   private var canvasBoundary:Point=canvasSize
 
@@ -236,7 +234,6 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
 
     def refreshMinimap():Unit = {
-      //todo 转换为RGB颜色
       val mapColor = "rgba(255,245,238,0.5)"
       val myself = "#000080"
       val otherTankColor = "#CD5C5C"

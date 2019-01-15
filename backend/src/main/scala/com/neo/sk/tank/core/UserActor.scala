@@ -45,7 +45,6 @@ object UserActor {
   case object CompleteMsgFront extends Command
   case class FailMsgFront(ex: Throwable) extends Command
 
-  //fixme 等待变更
   /**此消息用于外部控制状态转入初始状态，以便于重建WebSocket*/
   case object ChangeBehaviorToInit extends Command
 

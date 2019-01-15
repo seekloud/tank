@@ -176,8 +176,6 @@ class PlayScreenController(
 
         case GameState.stop =>
           closeHolder
-//          playGameScreen.drawGameStop(killerName)
-          //todo 死亡结算
           gameContainerOpt.foreach(_.drawCombatGains())
           timeline.play()
 
@@ -370,7 +368,6 @@ class PlayScreenController(
           } else {
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             logicFrameTime = System.currentTimeMillis()
-            //todo
             animationTimer.start()
             playGameActor ! PlayGameActor.StartGameLoop
             setGameState(GameState.play)
