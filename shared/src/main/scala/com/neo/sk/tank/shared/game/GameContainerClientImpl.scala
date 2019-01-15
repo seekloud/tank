@@ -327,7 +327,7 @@ case class GameContainerClientImpl(
       }
     } else {
       super.update()
-      println(s"tankId=$tankId userSize ${tankMap.size} list=${tankMap.values.map(r=>(r.tankId,r.name,r.userId))}")
+//      println(s"tankId=$tankId userSize ${tankMap.size} list=${tankMap.values.map(r=>(r.tankId,r.name,r.userId))}")
       if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
     }
   }

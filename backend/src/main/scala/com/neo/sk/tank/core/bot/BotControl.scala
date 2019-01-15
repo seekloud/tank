@@ -21,7 +21,7 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
   private var gameState: Int = GameState.play
 
   private var lastMouseMoveTheta: Float = 0
-  private var currentMouseMOveTheta: Float = 0
+  private var currentMouseMoveTheta: Float = 0
   private val mouseMoveThreshold = math.Pi / 180
   private val clickRatio = 2
   private val eatRatio = 2
@@ -41,9 +41,9 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
     if (gameState == GameState.play) {
       val isHaveTarget = findTarget
       if (isHaveTarget && !isEatProp && click > clickRatio) {
-        if (math.abs(currentMouseMOveTheta - lastMouseMoveTheta) >= mouseMoveThreshold) {
-          lastMouseMoveTheta = currentMouseMOveTheta
-          roomActor ! RoomActor.WebSocketMsg(bid, tankId, userMouseMove(currentMouseMOveTheta))
+        if (math.abs(currentMouseMoveTheta - lastMouseMoveTheta) >= mouseMoveThreshold) {
+          lastMouseMoveTheta = currentMouseMoveTheta
+          roomActor ! RoomActor.WebSocketMsg(bid, tankId, userMouseMove(currentMouseMoveTheta))
         }
         roomActor ! RoomActor.WebSocketMsg(bid, tankId, userMouseClick)
       }
@@ -118,9 +118,9 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
 
       if (tankList.exists(r => r.tankId != tankId && judgeTheDistance(r.getTankState().position, thisTank.getTankState().position, 70))) {
         val attackTankList = tankList.filter(_.tankId != tankId).filter(r => judgeTheDistance(r.getTankState().position, thisTankPos, 70))
-        val attakTank = attackTankList.minBy(tank => tank.getTankState().position.distance(thisTankPos))
-        val pos = attakTank.getTankState().position
-        currentMouseMOveTheta = pos.getTheta(thisTankPos).toFloat
+        val attackTank = attackTankList.minBy(tank => tank.getTankState().position.distance(thisTankPos))
+        val pos = attackTank.getTankState().position
+        currentMouseMoveTheta = pos.getTheta(thisTankPos).toFloat
         true
       }
       else if (propList.exists(r => judgeTheDistance(r.position, thisTankPos, 70))) {
@@ -134,14 +134,14 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
         val attackAirList = airDropList.filter(r => judgeTheDistance(r.getObstacleState().p, thisTankPos, 70))
         val attackAir = attackAirList.minBy(air => air.getObstacleState().p.distance(thisTankPos))
         val pos = attackAir.getObstacleState().p
-        currentMouseMOveTheta = pos.getTheta(thisTankPos).toFloat
+        currentMouseMoveTheta = pos.getTheta(thisTankPos).toFloat
         true
       }
       else if (brickList.exists(r => judgeTheDistance(r.getObstacleState().p, thisTankPos, 70))) {
         val attackBrickList = brickList.filter(r => judgeTheDistance(r.getObstacleState().p, thisTankPos, 70))
         val attackBrick = attackBrickList.minBy(brick => brick.getObstacleState().p.distance(thisTankPos))
         val pos = attackBrick.getObstacleState().p
-        currentMouseMOveTheta = pos.getTheta(thisTankPos).toFloat
+        currentMouseMoveTheta = pos.getTheta(thisTankPos).toFloat
         true
       }
       else false

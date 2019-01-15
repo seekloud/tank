@@ -313,7 +313,7 @@ class PlayScreenController(
           gameMusicPlayer.play()
           try {
             gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.drawFrame,playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
-            gameContainerOpt.get.getTankId(e.tankId)
+            gameContainerOpt.get.changeTankId(e.tankId)
             recvYourInfo = true
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))
           }catch {
