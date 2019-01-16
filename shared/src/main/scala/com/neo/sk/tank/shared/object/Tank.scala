@@ -73,6 +73,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   }
 
   def setTankGunDirection(d:Float) = {
+    println(s"--------设置炮筒方向")
     gunDirection = d
   }
 
@@ -88,6 +89,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   }
 
   def launchBullet()(implicit config: TankGameConfig):Option[(Float,Point,Int)] = {
+    println(s"=====发射炮弹")
     if(curBulletNum > 0){
       curBulletNum = curBulletNum - 1
       if(!isFillBulletState){
