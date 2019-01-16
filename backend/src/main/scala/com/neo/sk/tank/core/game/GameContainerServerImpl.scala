@@ -63,8 +63,8 @@ case class GameContainerServerImpl(
 
   override def tankExecuteLaunchBulletAction(tankId: Int, tank: Tank): Unit = {
 
-    def transformGenerateBulletEvent(bulletState: BulletState) = {
-      val event = TankGameEvent.GenerateBullet(systemFrame, bulletState)
+    def transformGenerateBulletEvent(bulletState: BulletState, s:Boolean=true) = {
+      val event = TankGameEvent.GenerateBullet(systemFrame, bulletState, s)
       dispatch(event)
       addGameEvent(event)
     }
@@ -84,7 +84,7 @@ case class GameContainerServerImpl(
               config.getMoveDistanceByFrame(tank.getTankSpeedLevel()).rotate(tank.getTankDirection()).*(0.2f)
             else config.bulletSpeed.rotate(bulletDir) * config.frameDuration / 1000
             val bulletState = `object`.BulletState(bulletIdGenerator.getAndIncrement(), tankId, systemFrame, bulletPos, damage.toByte, momentum, tank.name)
-            transformGenerateBulletEvent(bulletState)
+            transformGenerateBulletEvent(bulletState,false)
           }
         }
 
