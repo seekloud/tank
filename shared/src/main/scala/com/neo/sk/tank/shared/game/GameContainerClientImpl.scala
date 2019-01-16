@@ -271,49 +271,57 @@ case class GameContainerClientImpl(
     if (curFrame < gameContainerState.f) {
       println(s"handleGameContainerState update to now use Time=${endTime - startTime} and systemFrame=${systemFrame} sysFrame=${gameContainerState.f}")
     }
-    systemFrame = gameContainerState.f
-    judge(gameContainerState)
-    quadTree.clear()
-    tankMap.clear()
-    gameContainerState.tanks match{
-      case Some(tanks) =>
-        tanks.foreach { t =>
-          val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
-          quadTree.insert(tank)
-          tankMap.put(t.tankId, tank)
-        }
-      case None =>
-        println(s"handle game container client--no tanks")
+
+    if(!judge(gameContainerState)||systemFrame!=gameContainerState.f){
+      println("hahahhahahhahahhahahahha")
+      systemFrame = gameContainerState.f
+      quadTree.clear()
+      tankMap.clear()
+      gameContainerState.tanks match{
+        case Some(tanks) =>
+          tanks.foreach { t =>
+            val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
+            quadTree.insert(tank)
+            tankMap.put(t.tankId, tank)
+          }
+        case None =>
+          println(s"handle game container client--no tanks")
+      }
+      obstacleMap.values.foreach(o=>quadTree.insert(o))
+      propMap.values.foreach(o=>quadTree.insert(o))
+
+      environmentMap.values.foreach(quadTree.insert)
+      bulletMap.values.foreach { bullet =>
+        quadTree.insert(bullet)
+      }
     }
 //    gameContainerState.tanks.foreach { t =>
 //      val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
 //      quadTree.insert(tank)
 //      tankMap.put(t.tankId, tank)
 //    }
-    obstacleMap.values.foreach(o=>quadTree.insert(o))
-    propMap.values.foreach(o=>quadTree.insert(o))
-
-    environmentMap.values.foreach(quadTree.insert)
-    bulletMap.values.foreach { bullet =>
-      quadTree.insert(bullet)
-    }
   }
 
-  private def judge(gameContainerState: GameContainerState): Unit = {
+  private def judge(gameContainerState: GameContainerState) = {
     gameContainerState.tanks match{
       case Some(tanks) =>
-        tanks.foreach { tankState =>
+        tanks.forall { tankState =>
           tankMap.get(tankState.tankId) match {
             case Some(t) =>
               //fixme 此处排除炮筒方向
               if (t.getTankState().copy(gunDirection = 0f) != tankState.copy(gunDirection = 0f)) {
                 println(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
-              }
-            case None => println(s"judge failed,because tank=${tankState.tankId} not exists....")
+                false
+              } else true
+            case None => {
+              println(s"judge failed,because tank=${tankState.tankId} not exists....")
+              true
+            }
           }
         }
       case None =>
         println(s"game container client judge function no tanks---")
+        true
     }
 //    gameContainerState.tanks.foreach { tankState =>
 //      tankMap.get(tankState.tankId) match {

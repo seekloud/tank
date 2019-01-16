@@ -86,7 +86,7 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
   }
 
   private def userMouseMove(theta: Byte) = {
-    TankGameEvent.UMB(tankId, gameContainer.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+    TankGameEvent.UM(tankId, gameContainer.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
   }
 
   def findAllTank = {

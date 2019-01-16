@@ -119,7 +119,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
         if (lastMouseMoveAngle!=angle) {
           lastMouseMoveAngle = angle
           lastMoveFrame = gameContainerOpt.get.systemFrame
-          val preMMBAction = TankGameEvent.UMB(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, angle, getActionSerialNum)
+          val preMMBAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, angle, getActionSerialNum)
           sendMsg2Server(preMMBAction) //发送鼠标位置
           println(preMMBAction)
           e.preventDefault()
@@ -288,7 +288,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
 
       case e: TankGameEvent.UserActionEvent =>
         e match {
-          case e:TankGameEvent.UMB=>
+          case e:TankGameEvent.UM=>
             if(gameContainerOpt.nonEmpty){
               if(gameContainerOpt.get.myTankId!=e.tankId){
                 gameContainerOpt.foreach(_.receiveUserEvent(e))
