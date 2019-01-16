@@ -95,15 +95,13 @@ object TankGameEvent {
 //  final case class UserMouseMove(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 
   /**用于前端流畅*/
-  final case class UserMouseMove(tankId:Int, override val frame:Long, d:Float, override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
-  final case class UMB(tankId:Int,override val frame:Long,d:Byte,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  final case class UserMouseMove(tankId:Int, override val frame:Long, d:Float, override val serialNum:Int) extends UserActionEvent
+  final case class UM(tankId:Int, override val frame:Long, d:Byte, override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 
-  type UserMouseMoveByte = UMB
+  type UserMouseMoveByte = UM
 
   final case class UserKeyboardMove(tankId:Int,override val frame:Long,angle:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 
-//  final case class UserMouseClick(tankId:Int,override val frame:Long,time:Long,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
-  @deprecated
   final case class UC(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 
   type UserMouseClick = UC

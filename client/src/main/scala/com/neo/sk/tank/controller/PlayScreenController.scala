@@ -203,7 +203,7 @@ class PlayScreenController(
         if (lastMouseMoveAngle!=angle) {
           lastMouseMoveAngle = angle
           lastMoveFrame = gameContainerOpt.get.systemFrame
-          val preMMBAction = TankGameEvent.UMB(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, angle, getActionSerialNum)
+          val preMMBAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, angle, getActionSerialNum)
           playGameActor ! DispatchMsg(preMMBAction) //发送鼠标位置
           println(preMMBAction)
         }
