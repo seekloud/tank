@@ -73,9 +73,9 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   }
 
   def setTankGunDirection(d:Float) = {
-    println(s"--------设置炮筒方向")
     gunDirection = d
   }
+
 
   def getMoveState() = isMove
 
