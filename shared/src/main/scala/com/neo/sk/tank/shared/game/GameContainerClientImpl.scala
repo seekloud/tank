@@ -97,6 +97,19 @@ case class GameContainerClientImpl(
     }
   }
 
+  override protected def handleGenerateBullet(e:GenerateBullet) = {
+    println(s"-------------生成子弹")
+    tankMap.get(e.bullet.tankId) match{
+      case Some(tank) =>
+        //todo
+        tank.setTankGunDirection(math.atan2(e.bullet.momentum.y, e.bullet.momentum.x).toFloat)
+        tankExecuteLaunchBulletAction(tank.tankId,tank)
+      case None =>
+        println(s"--------------------该子弹没有对应的tank")
+    }
+    super.handleGenerateBullet(e)
+  }
+
 
   override protected def handleTankAttacked(e: TankGameEvent.TankAttacked): Unit = {
     super.handleTankAttacked(e)
