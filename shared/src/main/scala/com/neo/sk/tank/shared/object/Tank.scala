@@ -50,11 +50,14 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   private def decelerationTime(implicit config: TankGameConfig) = config.getTankDecByLevel(speedLevel)
 
   def getTankLivesLimit(implicit config: TankGameConfig) = config.getTankLivesLimit
+
   def getTankSpeedLevel():Byte = speedLevel
 
   def getTankDirection():Float = direction
 
   def getGunDirection():Float = gunDirection
+
+  def getBulletSize():Int = curBulletNum
 
   def getTankIsMove():Boolean = isMove
 

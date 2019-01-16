@@ -107,7 +107,6 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
   private def addUserActionListenEvent(): Unit = {
     canvas.getCanvas.focus()
     canvas.getCanvas.onmousemove = { e: dom.MouseEvent =>
-      //todo 本地一帧调整一次鼠标方向 传输3帧一次且使用Byte
       val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(24, 24)
       val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
       val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
@@ -128,13 +127,16 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
     }
     canvas.getCanvas.onclick = { e: MouseEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
+        val tank=gameContainerOpt.get.tankMap.get(gameContainerOpt.get.myTankId)
+        if(tank.nonEmpty&&tank.get.getBulletSize()>0){
+          val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(24, 24)
+          val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+          val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+          gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+          sendMsg2Server(preExecuteAction) //发送鼠标位置
+          e.preventDefault()
+        }
         //        audioForBullet.play()
-        val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(24, 24)
-        val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
-        val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
-        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-        sendMsg2Server(preExecuteAction) //发送鼠标位置
-        e.preventDefault()
       }
     }
 
