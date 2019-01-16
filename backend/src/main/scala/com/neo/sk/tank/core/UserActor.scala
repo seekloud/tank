@@ -7,11 +7,11 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.{ActorSink, ActorSource}
 import com.neo.sk.tank.common.{AppSettings, Constants}
-import com.neo.sk.tank.core.RoomActor.TankRelive
 import com.neo.sk.tank.core.game.TankGameConfigServerImpl
 import com.neo.sk.tank.models.TankGameUserInfo
 import com.neo.sk.tank.protocol.EsheepProtocol._
 import com.neo.sk.tank.protocol.ReplayProtocol.ChangeRecordMsg
+import com.neo.sk.tank.shared.config.{RiverParameters, SteelParameters}
 import com.neo.sk.tank.shared.model.Constants.GameState
 import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.tank.shared.protocol.TankGameEvent.{CompleteMsgServer, ReplayFrameData}
@@ -45,25 +45,25 @@ object UserActor {
   case object CompleteMsgFront extends Command
   case class FailMsgFront(ex: Throwable) extends Command
 
-  //fixme 等待变更
   /**此消息用于外部控制状态转入初始状态，以便于重建WebSocket*/
   case object ChangeBehaviorToInit extends Command
 
   case class UserFrontActor(actor:ActorRef[TankGameEvent.WsMsgSource]) extends Command
 
   case class DispatchMsg(msg:TankGameEvent.WsMsgSource) extends Command
+  case class WsSuccess(roomId:Option[Long]) extends Command
+  case class StartGame(roomId:Option[Long], password:Option[String]) extends Command
 
-  case class StartGame(roomId:Option[Long]) extends Command
-  case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None) extends Command with RoomManager.Command
-
+  case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None, passwordOpt:Option[String] = None) extends Command with RoomManager.Command
   case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:String,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
-
+  case class JoinRoomFail(msg:String) extends Command
   case class TankRelive4UserActor(tank:TankServerImpl,userId:String,name:String,roomActor:ActorRef[RoomActor.Command], config:TankGameConfigImpl) extends Command with UserManager.Command
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
-
+  case class CreateRoom(roomId:Option[Long], password: Option[String]) extends Command
   case class StartReplay(rid:Long, wid:String, f:Int) extends Command
 
   case class ChangeUserInfo(info:TankGameUserInfo) extends Command
+  case class JoinGame(roomIdOpt:Option[Long] = None, passwordOpt:Option[String] = None) extends Command
 
   final case class StartObserve(roomId:Long, watchedUserId:String) extends Command
 
@@ -81,8 +81,6 @@ object UserActor {
   case class InputRecordByLeft(killTankNum:Int,lives:Int,damageStatistics:Int) extends Command
 
   case class ChangeWatchedPlayerId(playerInfo:TankGameUserInfo,watchedPlayerId: String) extends Command with UserManager.Command
-
-  case object reJoinRoomKey extends Command
 
   final case class SwitchBehavior(
                                    name: String,
@@ -183,22 +181,42 @@ object UserActor {
 
 
 
-  private def idle(uId:String, userInfo: TankGameUserInfo, startTime:Long, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
+  private def idle(uId:String, userInfo: TankGameUserInfo,startTime:Long, frontActor:ActorRef[TankGameEvent.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command],
     sendBuffer:MiddleBufferInJvm
   ): Behavior[Command] =
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
-        case StartGame(roomIdOpt) =>
+        case StartGame(roomIdOpt, passwordOpt) =>
           /**换成给roomManager发消息,告知uId,name
             * 还要给userActor发送回带roomId的数据
             * */
-          roomManager ! JoinRoom(uId,None,userInfo.name,startTime,ctx.self,roomIdOpt)
+          roomManager ! JoinRoom(uId,None,userInfo.name,startTime,ctx.self, roomIdOpt, passwordOpt)
           Behaviors.same
 
         case ChangeUserInfo(info) =>
           idle(uId,info,startTime,frontActor)
+
+        case WsSuccess(roomIdOpt) =>
+         frontActor ! TankGameEvent.Wrap(TankGameEvent.WsSuccess(roomIdOpt).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+         Behaviors.same
+
+
+        case JoinGame(roomIdOpt, passwordOpt)=>
+          log.info("userActor joingame")
+          ctx.self ! ChangeUserInfo(userInfo)
+          ctx.self ! UserActor.StartGame(roomIdOpt,passwordOpt)
+          Behaviors.same
+
+        case CreateRoom(roomId,pwd) =>
+          roomManager ! RoomManager.CreateRoom(uId,None,userInfo.name,startTime,ctx.self,roomId,pwd)
+          Behaviors.same
+
+        case JoinRoomFail(msg) =>
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.WsMsgErrorRsp(10001, msg).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          Behaviors.same
+
 
         case StartReplay(rid,uid,f) =>
           getGameReplay(ctx,rid) ! GamePlayer.InitReplay(frontActor,uid,f)
@@ -208,8 +226,9 @@ object UserActor {
         case JoinRoomSuccess(tank,config, `uId`,roomActor) =>
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
-//          println("渲染数据")
-          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, userInfo.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+//          println("渲染数据")'
+          val cig = config.copy(obstacleParameters = config.obstacleParameters.copy(riverParameters = RiverParameters(Nil, Nil), steelParameters = SteelParameters(Nil, Nil)))
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, userInfo.name, cig).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId, userInfo,tank,startTime,frontActor,roomActor))
 
 
@@ -224,6 +243,14 @@ object UserActor {
               val newStartTime = System.currentTimeMillis()
               roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,newStartTime,ctx.self)
               idle(uId,userInfo.copy(name = t.name),newStartTime,frontActor)
+            case Some(t:TankGameEvent.StartGame) =>
+              log.info("get ws msg startGame")
+              ctx.self ! JoinGame(t.roomId,t.password)
+              idle(uId,userInfo,startTime,frontActor)
+            case Some(t:TankGameEvent.CreateRoom) =>
+              log.info(s"cerate room msg")
+              ctx.self ! CreateRoom(t.roomId,t.password)
+              idle(uId,userInfo,startTime,frontActor)
             case _ =>
               Behaviors.same
           }
@@ -248,7 +275,7 @@ object UserActor {
 
         case unknowMsg =>
 //          stashBuffer.stash(unknowMsg)
-//          log.warn(s"got unknown msg: $unknowMsg")
+          log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
       }
     }
@@ -442,8 +469,6 @@ object UserActor {
           if(reqOpt.nonEmpty){
             reqOpt.get match{
               case t:TankGameEvent.UserActionEvent =>
-                //分发数据给roomActor
-                //              println(s"${ctx.self.path} websocketmsg---------------${t}")
                 roomActor ! RoomActor.WebSocketMsg(uId, tank.tankId, t)
                 Behaviors.same
 
@@ -460,34 +485,29 @@ object UserActor {
                 val newStartTime = System.currentTimeMillis()
                 roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,newStartTime,ctx.self)
                 switchBehavior(ctx,"idle",idle(uId,userInfo.copy(name = t.name),newStartTime,frontActor))
+
+              case _ =>
+                Behaviors.same
             }
-          }
-          else{
+          }else{
             Behaviors.same
           }
-
-
 
         case DispatchMsg(m) =>
           if(m.asInstanceOf[TankGameEvent.Wrap].isKillMsg) {
             frontActor ! m
             println(s"${ctx.self.path} tank 当前生命值${tank.getTankState().lives}")
-            if (tank.lives > 1 && AppSettings.supportLiveLimit){
+            if (tank.lives > 1){
               //玩家进入复活状态
-              switchBehavior(ctx,"waitRestartWhenPlay",waitRestartWhenPlay(uId,userInfo,startTime,frontActor, tank))
-            }
-              //            else {
-//              log.debug(s"${ctx.self.path}由于玩家生命值用尽或者不支持生命值而切换到idle状态")
 //              roomManager ! RoomActor.LeftRoomByKilled(uId,tank.tankId,tank.getTankState().lives,userInfo.name)
-//              switchBehavior(ctx,"idle",idle(uId,userInfo,startTime,frontActor))
-//            }
-            else
+              switchBehavior(ctx,"waitRestartWhenPlay",waitRestartWhenPlay(uId,userInfo,startTime,frontActor, tank))
+            }else{
               Behaviors.same
+            }
           }else{
-            frontActor ! m
-            Behaviors.same
+              frontActor ! m
+              Behaviors.same
           }
-
 
         case ChangeBehaviorToInit=>
           frontActor ! TankGameEvent.Wrap(TankGameEvent.RebuildWebSocket.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
@@ -510,7 +530,7 @@ object UserActor {
           Behaviors.same
 
         case unknowMsg =>
-          log.warn(s"play got unknown msg: $unknowMsg")
+//          log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
       }
     }
@@ -531,7 +551,6 @@ object UserActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case TankRelive4UserActor(t,userId,name,roomActor,config) =>
-//          frontActor ! TankGameEvent.Wrap(TankGameEvent.TankReliveInfo(config.asInstanceOf[TankGameConfigImpl]).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId,userInfo,t,startTime,frontActor,roomActor))
 
         case DispatchMsg(m) =>
@@ -555,6 +574,8 @@ object UserActor {
           frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,t.tankId, userInfo.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId, userInfo,t,startTime,frontActor,roomActor))
 
+
+
         case unknowMsg =>
           log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
@@ -563,7 +584,6 @@ object UserActor {
 
   import org.seekloud.byteobject.ByteObject._
   private def dispatchTo(subscriber: ActorRef[TankGameEvent.WsMsgSource],msg: TankGameEvent.WsMsgServer)(implicit sendBuffer: MiddleBufferInJvm)= {
-    //    subscriber ! ReplayFrameData(msg.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
     subscriber ! ReplayFrameData(List(msg).fillMiddleBuffer(sendBuffer).result())
   }
 

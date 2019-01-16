@@ -47,7 +47,7 @@ trait GameContainer extends KillInformation{
 
   val maxFollowFrame=math.max(math.max(config.shotgunDuration,config.initInvincibleDuration),config.fillBulletDuration)
 
-  var tankId = -1
+//  var tankId = -1
   var systemFrame:Long = 0L //系统帧数
 
   val tankMap = mutable.HashMap[Int,Tank]() //tankId -> Tank
@@ -58,7 +58,7 @@ trait GameContainer extends KillInformation{
 
   val tankMoveAction = mutable.HashMap[Int,mutable.HashSet[Int]]() //tankId -> pressed direction key code
 
-  protected val quadTree : QuadTree = new QuadTree(Rectangle(Point(0,0),boundary))
+  val quadTree : QuadTree = new QuadTree(Rectangle(Point(0,0),boundary))
 
 
   protected val gameEventMap = mutable.HashMap[Long,List[GameEvent]]() //frame -> List[GameEvent] 待处理的事件 frame >= curFrame
@@ -153,7 +153,7 @@ trait GameContainer extends KillInformation{
 
   protected final def handleMyAction(actions:List[UserActionEvent]) = { //处理出现错误动作的帧
 
-    def isHaveReal(id: Int) = {
+    /*def isHaveReal(id: Int) = {
       var isHave = false
       actionEventMap.get(systemFrame).foreach {
         list =>
@@ -192,12 +192,12 @@ trait GameContainer extends KillInformation{
         }
         tank.isFakeMove = false
       }
-    }
+    }*/
   }
 
-  final def getTankId(id:Int) = {
+ /* final def getTankId(id:Int) = {
     tankId = id
-  }
+  }*/
 
   final protected def handleUserActionEventNow() = {
     actionEventMap.get(systemFrame).foreach{ actionEvents =>
@@ -561,7 +561,6 @@ trait GameContainer extends KillInformation{
     quadTree.refresh(quadTree)
     updateKillInformation()
     clearEventWhenUpdate()
-
   }
 
   implicit val scoreOrdering = new Ordering[Score] {
@@ -617,7 +616,6 @@ trait GameContainer extends KillInformation{
       systemFrame,
       tankMap.values.map(_.getTankState()).toList,
       bulletMap.values.map(_.getBulletState()).toList,
-//      followEventMap.toList,
       propMap.values.map(_.getPropState).toList,
       obstacleMap.values.map(_.getObstacleState()).toList,
       environmentMap.values.map(_.getObstacleState()).toList,

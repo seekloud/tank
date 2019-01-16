@@ -12,8 +12,6 @@ import scala.collection.mutable
   */
 trait TankDrawUtil{ this:GameContainerClientImpl =>
 
-
-  //fixme 将此处map暴露给子类
   private val myTankInfoCacheMap = mutable.HashMap[(Byte,Byte,Byte), Any]()
   private var canvasBoundary:Point=canvasSize
 

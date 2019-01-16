@@ -42,15 +42,27 @@ case class GameContainerClientImpl(
   protected var damageNum: Int = 0
   protected var killerName: String = ""
 
-  protected var tId: Int = myTankId
+  protected var tankId: Int = myTankId
 
-  def changeTankId(id: Int) = tId = id
+  def changeTankId(id: Int) = tankId = id
 
   def updateDamageInfo(myKillNum: Int, name: String, myDamageNum: Int): Unit = {
     killerList = killerList :+ name
     killerName = name
     killNum = myKillNum
     damageNum = myDamageNum
+  }
+
+  def getCurTankId:Int = tankId
+
+  def change2OtherTank:Int = {
+    val keys = tankMap.keys.toArray
+    val idx = (new util.Random).nextInt(keys.length)
+    keys(idx)
+  }
+
+  def isKillerAlive(killerId:Int):Boolean = {
+    if(tankMap.contains(killerId)) true else false
   }
 
   override def debug(msg: String): Unit = {}
@@ -94,7 +106,7 @@ case class GameContainerClientImpl(
   }
 
   override protected def dropTankCallback(bulletTankId: Int, bulletTankName: String, tank: Tank) = {
-    if (tank.tankId == tId) {
+    if (tank.tankId == tankId) {
       setKillCallback(bulletTankName, tank.lives > 1, tank.killTankNum, tank.damageStatistics)
       if (tank.lives <= 1) setGameState(GameState.stop)
     }
@@ -127,7 +139,7 @@ case class GameContainerClientImpl(
 
   //接受服务器的用户事件
   def receiveUserEvent(e: UserActionEvent) = {
-    if (e.tankId == tId) {
+    if (e.tankId == tankId) {
       uncheckedActionMap.get(e.serialNum) match {
         case Some(preFrame) =>
           if (e.frame != preFrame) {
@@ -170,7 +182,7 @@ case class GameContainerClientImpl(
   }
 
   final def addMyAction(action: UserActionEvent): Unit = {
-    if (action.tankId == tId) {
+    if (action.tankId == tankId) {
       myTankAction.get(action.frame - preExecuteFrameOffset) match {
         case Some(actionEvents) => myTankAction.put(action.frame - preExecuteFrameOffset, action :: actionEvents)
         case None => myTankAction.put(action.frame - preExecuteFrameOffset, List(action))
@@ -261,10 +273,32 @@ case class GameContainerClientImpl(
     }
     systemFrame = gameContainerState.f
     judge(gameContainerState)
+    quadTree.clear()
+    tankMap.clear()
+    gameContainerState.tanks.foreach { t =>
+      val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
+      quadTree.insert(tank)
+      tankMap.put(t.tankId, tank)
+    }
+    obstacleMap.values.foreach(o=>quadTree.insert(o))
+    propMap.values.foreach(o=>quadTree.insert(o))
+
+    environmentMap.values.foreach(quadTree.insert)
+    bulletMap.values.foreach { bullet =>
+      quadTree.insert(bullet)
+    }
   }
 
   private def judge(gameContainerState: GameContainerState): Unit = {
-    if(gameContainerState.f!=systemFrame) print(s"judge fail with f=${gameContainerState.f},$systemFrame")
+    gameContainerState.tanks.foreach { tankState =>
+      tankMap.get(tankState.tankId) match {
+        case Some(t) =>
+          if (t.getTankState() != tankState) {
+            println(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
+          }
+        case None => println(s"judge failed,because tank=${tankState.tankId} not exists....")
+      }
+    }
   }
 
   def receiveGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
@@ -305,6 +339,7 @@ case class GameContainerClientImpl(
       }
     } else {
       super.update()
+//      println(s"tankId=$tankId userSize ${tankMap.size} list=${tankMap.values.map(r=>(r.tankId,r.name,r.userId))}")
       if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
     }
   }
@@ -334,7 +369,7 @@ case class GameContainerClientImpl(
     if (!waitSyncData) {
       ctx.setLineCap("round")
       ctx.setLineJoin("round")
-      tankMap.get(tId) match {
+      tankMap.get(tankId) match {
         case Some(tank) =>
           val offset = canvasSize / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime)
           drawBackground(offset)

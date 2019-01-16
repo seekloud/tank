@@ -89,7 +89,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
         }
         //        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
         gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, setKillCallback = setKillCallback, versionInfo = versionInfoOpt))
-        gameContainerOpt.get.getTankId(e.tankId)
+        gameContainerOpt.get.changeTankId(e.tankId)
 
       case e:TankGameEvent.TankFollowEventSnap =>
         gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
@@ -102,7 +102,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
           gameContainerOpt.foreach(_.update())
         }else{
           //remind here allState change into state
-          gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f)))
+          gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks)))
         }
 
       case e:TankGameEvent.Ranks =>

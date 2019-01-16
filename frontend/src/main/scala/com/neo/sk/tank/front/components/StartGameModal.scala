@@ -68,11 +68,11 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
       if(name.nonEmpty){
         inputName = name
         startGame(name,roomIdOpt)
-      }else if(inputName != "") {
-        startGame(inputName,roomIdOpt)
       }
-
       e.preventDefault()
+    }
+    if(e.keyCode == KeyCode.Space){
+      if(inputName != "") startGame(inputName,None)
     }
   }
 
@@ -89,7 +89,7 @@ class StartGameModal(gameState:Var[Int],startGame:(String,Option[Long]) => Unit,
 
   override def render: Elem = {
     <div style={divStyle}>
-      <div class ="input_mask" tabindex="-1" onkeydown ={e:KeyboardEvent => clickEnter(e)}></div>
+      <div class ="input_mask" id="input_mask_id" tabindex="-1" onkeydown ={e:KeyboardEvent => clickEnter(e)}></div>
       <div class ="input_div" style={inputDivStyle}>
         <div class ="input_title">{title}</div>
         <div>

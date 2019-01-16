@@ -20,7 +20,8 @@ object TankGameEvent {
                                         )
 
   case class GameContainerState(
-                                 f:Long
+                                 f:Long,
+                                 tanks:List[TankState]
                                )
 
   /**前端建立WebSocket*/
@@ -44,8 +45,12 @@ object TankGameEvent {
 
   final case class WsMsgErrorRsp(errCode:Int, msg:String) extends WsMsgServer
   //  final case class GameConfig(config:TankGameConfigImpl) extends WsMsgServer
+  final case class WsSuccess(roomId:Option[Long]) extends WsMsgServer
+  final case class StartGame(roomId:Option[Long],password:Option[String]) extends WsMsgFront
+  final case class CreateRoom(roomId:Option[Long],password:Option[String]) extends WsMsgFront
   final case class YourInfo(userId:String,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
   final case class YouAreKilled(tankId:Int, name:String, hasLife:Boolean,killTankNum:Int,lives:Int,damageStatistics:Int) extends WsMsgServer //可能会丢弃
+  @deprecated
   final case class Ranks(currentRank: List[Score], historyRank: List[Score] = Nil) extends WsMsgServer
   final case class SyncGameState(state:GameContainerState) extends WsMsgServer
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
@@ -87,10 +92,21 @@ object TankGameEvent {
   final case class UserLeftRoomByKill(userId:String, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer
   final case class UserLeftRoom(userId:String, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer
   final case class PlayerLeftRoom(userId:String,name:String,tankId:Int,override val frame:Long) extends UserEvent with WsMsgServer
-  final case class UserMouseMove(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+//  final case class UserMouseMove(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  @deprecated
+  final case class UM(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  final case class UMB(tankId:Int,override val frame:Long,d:Byte,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  @deprecated
+  type UserMouseMove = UM
+
   final case class UserKeyboardMove(tankId:Int,override val frame:Long,angle:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 
-  final case class UserMouseClick(tankId:Int,override val frame:Long,time:Long,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+//  final case class UserMouseClick(tankId:Int,override val frame:Long,time:Long,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  @deprecated
+  final case class UC(tankId:Int,override val frame:Long,time:Long,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  @deprecated
+  type UserMouseClick = UC
+
   final case class UserPressKeyDown(tankId:Int,override val frame:Long,keyCodeDown:Int,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
   final case class UserPressKeyUp(tankId:Int,override val frame:Long,keyCodeUp:Int,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
   /**使用医疗包*/
@@ -105,6 +121,7 @@ object TankGameEvent {
   /**砖块消失事件*/
   final case class ObstacleRemove(obstacleId:Int, override val frame:Long) extends EnvironmentEvent with WsMsgServer
 
+  //fixme 此处回放是没有同步-bigBUG
   /**
     * tank初次进入游戏时用于同步游戏逻辑产生延时事件
     * */
