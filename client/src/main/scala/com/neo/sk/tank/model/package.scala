@@ -2,6 +2,8 @@ package com.neo.sk.tank
 
 import com.neo.sk.tank.shared.ptcl.CommonRsp
 
+import scala.collection.mutable
+
 /**
   * Created by hongruying on 2018/10/23
   */
@@ -103,7 +105,7 @@ package object model {
                                 msg: String = "ok"
                               )extends CommonRsp
 
-  case class RoomList(roomList:List[Long])
+  case class RoomList(roomList:mutable.HashMap[Long,Boolean])
   case class RoomListRsp(data:RoomList,
                          errCode:Int = 0,
                          msg:String = "ok")

@@ -18,10 +18,10 @@ import concurrent.duration._
 import scala.util.Random
 import collection.mutable
 import com.neo.sk.tank.shared.`object`.TankState
-import com.neo.sk.tank.Boot.roomManager
-import com.neo.sk.tank.Boot.userManager
+import com.neo.sk.tank.Boot.{botManager, userManager}
 import com.neo.sk.tank.common.AppSettings
 import com.neo.sk.tank.core.UserActor.TankRelive4UserActor
+import com.neo.sk.tank.core.bot.{BotActor, BotManager}
 import com.neo.sk.tank.shared.`object`
 
 /**
@@ -44,6 +44,7 @@ case class GameContainerServerImpl(
   private val propIdGenerator = new AtomicInteger(100)
 
   private var justJoinUser: List[(String, Option[Int], String, ActorRef[UserActor.Command])] = Nil // tankIdOpt
+  private var justJoinBot: List[(String, Option[Int], String, ActorRef[BotActor.Command],ActorRef[RoomActor.Command])] = Nil // tankIdOpt
   private val userMapObserver: mutable.HashMap[String, mutable.HashMap[String, ActorRef[UserActor.Command]]] = mutable.HashMap.empty
   private val random = new Random(System.currentTimeMillis())
 
@@ -107,7 +108,11 @@ case class GameContainerServerImpl(
       log.debug(s"${roomActorRef.path} timer for relive is starting...")
       timer.startSingleTimer(s"TankRelive_${tank.tankId}", RoomActor.TankRelive(tank.userId, Some(tank.tankId), tank.name), config.getTankReliveDuration.millis)
     }
-    dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
+    if(tank.userId.contains("BotActor-")){
+      botManager ! BotManager.StopBot(tank.userId,if(tank.lives>1 && AppSettings.supportLiveLimit) BotManager.StopMap.stop else BotManager.StopMap.delete)
+    }else{
+      dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
+    }
     //后台增加一个玩家离开消息（不传给前端）,以便录像的时候记录玩家死亡和websocket断开的情况。
     if (tankState.lives <= 1 || (!AppSettings.supportLiveLimit)) {
       val event = TankGameEvent.UserLeftRoomByKill(tank.userId, tank.name, tank.tankId, systemFrame)
@@ -278,6 +283,7 @@ case class GameContainerServerImpl(
         addGameEvent(event)
         println(s"the path is $ref")
         ref ! UserActor.JoinRoomSuccess(tank, config.getTankGameConfigImpl(), userId, roomActor = roomActorRef)
+        //ref ! UserActor.JoinRoom()
         userMapObserver.get(userId) match {
           case Some(maps) =>
             maps.foreach { p =>
@@ -294,21 +300,45 @@ case class GameContainerServerImpl(
         tankInvincibleCallBack(tank.tankId)
     }
     justJoinUser = Nil
+    /**加入bot*/
+    justJoinBot.foreach {
+      case (userId, tankIdOpt, name, botActor,roomActor) =>
+        val tank = genATank(userId, tankIdOpt, name)
+        //        tankEatPropMap.update(tank.tankId,mutable.HashSet())
+        if (AppSettings.supportLiveLimit) {
+          tankLivesMap.update(tank.tankId, tank.getTankState())
+        }
+        val event = TankGameEvent.UserJoinRoom(userId, name, tank.getTankState(), systemFrame)
+        dispatch(event)
+        addGameEvent(event)
+        botActor ! BotActor.JoinRoomSuccess(tank,roomActor)
+
+        tankMap.put(tank.tankId, tank)
+        quadTree.insert(tank)
+        //无敌时间消除
+        tankInvincibleCallBack(tank.tankId)
+    }
+    justJoinBot = Nil
   }
 
   def handleTankRelive(userId: String, tankIdOpt: Option[Int], name: String) = {
     val tank = genATank(userId, tankIdOpt, name)
     tankLivesMap.update(tank.tankId, tank.getTankState())
-    val event = TankRelive4UserActor(tank, userId, name, roomActorRef, config.getTankGameConfigImpl())
-    userMapObserver.get(userId) match {
-      case Some(maps) =>
-        maps.foreach { p =>
-          p._2 ! event
-        }
-      case None =>
+    //remind 区分bot和user复活
+    if(userId.contains("BotActor-")){
+      botManager ! BotManager.ReliveBot(userId)
+    }else{
+      val event = TankRelive4UserActor(tank, userId, name, roomActorRef, config.getTankGameConfigImpl())
+      userMapObserver.get(userId) match {
+        case Some(maps) =>
+          maps.foreach { p =>
+            p._2 ! event
+          }
+        case None =>
+      }
+      log.debug(s"${roomActorRef.path} is processing to generate tank for ${userId} ")
+      userManager ! event
     }
-    log.debug(s"${roomActorRef.path} is processing to generate tank for ${userId} ")
-    userManager ! event
     val userReliveEvent = TankGameEvent.UserRelive(userId, name, tank.getTankState(), systemFrame)
     dispatch(userReliveEvent)
     addGameEvent(userReliveEvent)
@@ -316,6 +346,7 @@ case class GameContainerServerImpl(
     quadTree.insert(tank)
     //无敌时间消除
     tankInvincibleCallBack(tank.tankId)
+
   }
 
   def handleJoinRoom4Watch(userActor4WatchGame: ActorRef[UserActor.Command], uid: String, playerId: String) = {
@@ -335,6 +366,7 @@ case class GameContainerServerImpl(
 
 
   def leftGame(userId: String, name: String, tankId: Int) = {
+    log.info(s"bot/user leave $userId")
     val event = TankGameEvent.UserLeftRoom(userId, name, tankId, systemFrame)
     addGameEvent(event)
     dispatch(event)
@@ -355,6 +387,10 @@ case class GameContainerServerImpl(
 
   def joinGame(userId: String, tankIdOpt: Option[Int], name: String, userActor: ActorRef[UserActor.Command]): Unit = {
     justJoinUser = (userId, tankIdOpt, name, userActor) :: justJoinUser
+  }
+
+  def botJoinGame(bId: String, tankIdOpt: Option[Int], name: String, botActor: ActorRef[BotActor.Command],roomActor:ActorRef[RoomActor.Command]): Unit = {
+    justJoinBot = (bId, tankIdOpt, name, botActor,roomActor) :: justJoinBot
   }
 
 
@@ -461,12 +497,14 @@ case class GameContainerServerImpl(
 
   override def update(): Unit = {
     super.update()
-//    super.updateRanks()
+//    log.info(s"userSize ${tankMap.size} list=${tankMap.values.map(r=>(r.tankId,r.name))}")
+    super.updateRanks()
   }
 
   def getGameContainerState(): GameContainerState = {
     GameContainerState(
-      systemFrame
+      systemFrame,
+      tankMap.values.map(_.getTankState()).toList
     )
   }
 

@@ -21,7 +21,7 @@ import akka.actor.typed.scaladsl.AskPattern._
 import org.slf4j.LoggerFactory
 import com.neo.sk.tank.App
 import com.neo.sk.tank.shared.game.GameContainerClientImpl
-import com.neo.sk.tank.shared.protocol.TankGameEvent.UserMouseClick
+import javafx.scene.control.{Alert, ButtonBar, ButtonType}
 import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 import javafx.util.Duration
 
@@ -41,7 +41,9 @@ class PlayScreenController(
                             gameServerInfo: GameServerInfo,
                             context: Context,
                             playGameScreen: PlayGameScreen,
-                            roomInfo:Option[String]=None
+                            roomInfo:Option[String] = None,
+                            roomPwd:Option[String] = None,
+                            isCreated:Boolean
                           ) extends NetworkInfo {
   private val log = LoggerFactory.getLogger(this.getClass)
   val playGameActor = system.spawn(PlayGameActor.create(this), "PlayGameActor")
@@ -174,8 +176,6 @@ class PlayScreenController(
 
         case GameState.stop =>
           closeHolder
-//          playGameScreen.drawGameStop(killerName)
-          //todo 死亡结算
           gameContainerOpt.foreach(_.drawCombatGains())
           timeline.play()
 
@@ -196,7 +196,7 @@ class PlayScreenController(
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         if(math.abs(theta - lastMouseMoveTheta) >= mouseMoveThreshold){
           lastMouseMoveTheta = theta
-          val preExecuteAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction) //发送鼠标位置
         }
@@ -208,7 +208,7 @@ class PlayScreenController(
     playGameScreen.canvas.getCanvas.setOnMouseClicked{ e=>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         bulletMusic.play()
-        val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
+        val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
         playGameActor ! DispatchMsg(preExecuteAction)
       }
@@ -242,7 +242,7 @@ class PlayScreenController(
         }
         else if (keyCode == KeyCode.SPACE && spaceKeyUpState) {
           spaceKeyUpState = false
-          val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction) //发送鼠标位置
         }
@@ -297,8 +297,12 @@ class PlayScreenController(
   def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
 //    println(data.getClass)
     App.pushStack2AppThread{
-//      log.debug(s"${data.getClass}")
       data match {
+
+        case e:TankGameEvent.WsSuccess =>
+          if(isCreated) playGameActor ! DispatchMsg(TankGameEvent.CreateRoom(e.roomId,roomPwd))
+          else playGameActor ! DispatchMsg(TankGameEvent.StartGame(e.roomId,roomPwd))
+
         case e: TankGameEvent.YourInfo =>
           /**
             * 更新游戏数据
@@ -307,7 +311,7 @@ class PlayScreenController(
           gameMusicPlayer.play()
           try {
             gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.drawFrame,playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setGameState))
-            gameContainerOpt.get.getTankId(e.tankId)
+            gameContainerOpt.get.changeTankId(e.tankId)
             recvYourInfo = true
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))
           }catch {
@@ -364,7 +368,6 @@ class PlayScreenController(
           } else {
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             logicFrameTime = System.currentTimeMillis()
-            //todo
             animationTimer.start()
             playGameActor ! PlayGameActor.StartGameLoop
             setGameState(GameState.play)
@@ -399,6 +402,18 @@ class PlayScreenController(
 
         case _:TankGameEvent.DecodeError=>
           log.info("hahahha")
+
+        case e:TankGameEvent.WsMsgErrorRsp =>
+          if(e.errCode == 10001){
+            val warn = new Alert(Alert.AlertType.WARNING,"您输入的房间密码错误",new ButtonType("确定",ButtonBar.ButtonData.YES))
+            warn.setTitle("警示")
+            val buttonType = warn.showAndWait()
+            if(buttonType.get().getButtonData.equals(ButtonBar.ButtonData.YES)) warn.close()
+            val gameHallScreen = new GameHallScreen(context, playerInfo)
+            context.switchScene(gameHallScreen.getScene,resize = true)
+            new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)
+            closeHolder
+          }
         case _ =>
           log.info(s"unknow msg={sss}")
       }

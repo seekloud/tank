@@ -79,6 +79,8 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       addUserActionListenEvent()
       setGameState(GameState.loadingPlay)
       webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, playerInfoOpt,roomIdOpt))
+//      webSocketClient.sendMsg(TankGameEvent.StartGame(roomIdOpt,None))
+
       gameLoop()
 
     }else if(webSocketClient.getWsState){
@@ -109,9 +111,10 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
       if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
         if(math.abs(theta - lastMouseMoveTheta) >= mouseMoveThreshold ){
+          println("------"+math.round(theta))
           lastMouseMoveTheta = theta
           lastMoveFrame = gameContainerOpt.get.systemFrame
-          val preExecuteAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction) //发送鼠标位置
           e.preventDefault()
@@ -121,7 +124,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     canvas.getCanvas.onclick = { e: MouseEvent =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
 //        audioForBullet.play()
-        val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
+        val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
         sendMsg2Server(preExecuteAction) //发送鼠标位置
         e.preventDefault()
@@ -160,7 +163,7 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         else if (keyCode == KeyCode.Space && spaceKeyUpState) {
 //          audioForBullet.play()
           spaceKeyUpState = false
-          val preExecuteAction = TankGameEvent.UserMouseClick(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction) //发送鼠标位置
           e.preventDefault()
@@ -232,7 +235,11 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
+    println(data.getClass)
     data match {
+      case e:TankGameEvent.WsSuccess =>
+        webSocketClient.sendMsg(TankGameEvent.StartGame(e.roomId,None))
+
       case e:TankGameEvent.YourInfo =>
         println(s"new game the id is ${e.tankId}=====${e.name}")
         println(s"玩家信息${e}")
@@ -242,10 +249,11 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           * 更新游戏数据
           * */
         gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState,versionInfo = versionInfoOpt))
-        gameContainerOpt.get.getTankId(e.tankId)
+        gameContainerOpt.get.changeTankId(e.tankId)
 //        gameContainerOpt.foreach(e =>)
 
       case e:TankGameEvent.TankFollowEventSnap =>
+        println(s"game TankFollowEventSnap =${e} systemFrame=${gameContainerOpt.get.systemFrame} tankId=${gameContainerOpt.get.myTankId} ")
         gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
       case e:TankGameEvent.YouAreKilled =>
@@ -260,16 +268,6 @@ class GamePlayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
           gameContainerOpt.foreach(_.changeTankId(e.tankId))
 //          audioForBgm.pause()
 //          audioForDead.play()
-        }
-
-      case e:TankGameEvent.Ranks =>
-        /**
-          * 游戏排行榜
-          * */
-        gameContainerOpt.foreach{ t =>
-          t.currentRank = e.currentRank
-          t.historyRank = e.historyRank
-          t.rankUpdated = true
         }
 
       case e:TankGameEvent.SyncGameState =>

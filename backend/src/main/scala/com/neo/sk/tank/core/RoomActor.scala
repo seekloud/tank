@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.ws.Message
 import akka.stream.scaladsl.Flow
 import com.neo.sk.tank.common.{AppSettings, Constants}
 import com.neo.sk.tank.core.RoomManager.Command
+import com.neo.sk.tank.core.bot.BotManager
 import com.neo.sk.tank.core.game.GameContainerServerImpl
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.protocol.TankGameEvent
@@ -14,9 +15,9 @@ import org.slf4j.LoggerFactory
 
 import concurrent.duration._
 import scala.collection.mutable
-import com.neo.sk.tank.Boot.esheepSyncClient
+import com.neo.sk.tank.Boot.{esheepSyncClient,botManager,executor}
 import org.seekloud.byteobject.MiddleBufferInJvm
-
+import com.neo.sk.tank.core.bot.BotActor
 /**
   * Created by hongruying on 2018/7/9
   * 管理房间的地图数据以及分发操作
@@ -31,7 +32,6 @@ object RoomActor {
   private final val InitTime = Some(5.minutes)
 
   private final val classify= 100 // 10s同步一次状态
-  private final val rankClassify = 50// 20s
 
   private final case object BehaviorChangeKey
 
@@ -41,9 +41,13 @@ object RoomActor {
 
   case class GetSyncState(uid:String) extends Command
 
+  case class BotJoinRoom(bid: String, tankIdOpt: Option[Int], name: String, startTime: Long, botActor: ActorRef[BotActor.Command], roomId: Long) extends Command with RoomManager.Command
+
   case class JoinRoom(uid: String, tankIdOpt: Option[Int], name: String, startTime: Long, userActor: ActorRef[UserActor.Command], roomId: Long) extends Command
 
   case class WebSocketMsg(uid: String, tankId: Int, req: TankGameEvent.UserActionEvent) extends Command with RoomManager.Command
+
+  case class BotLeftRoom(uid: String, tankId: Int, name: String,roomId: Long) extends Command with RoomManager.Command
 
   case class LeftRoom(uid: String, tankId: Int, name: String, uidSet: List[(String, String)], roomId: Long) extends Command with RoomManager.Command
 
@@ -127,6 +131,10 @@ object RoomActor {
           }
           idle(index + 1, roomId, (uid, tankIdOpt, startTime, userActor) :: justJoinUser, (uid, tankIdOpt, name, startTime, index%classify) :: userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount)
 
+        case BotJoinRoom(bid, tankIdOpt, name, startTime, botActor, roomId)=>
+          gameContainer.botJoinGame(bid, tankIdOpt, name, botActor, ctx.self)
+          idle(index,roomId,justJoinUser,userMap,userGroup,subscribersMap,observersMap,gameContainer,tickCount)
+
         case JoinRoom4Watch(uid, _, playerId, userActor4Watch) =>
           log.debug(s"${ctx.self.path} recv a msg=${msg}")
           observersMap.put(uid, userActor4Watch)
@@ -172,6 +180,10 @@ object RoomActor {
             idle(index,roomId, justJoinUser.filter(_._1 != uid), userMap.filter(_._1 != uid), userGroup,subscribersMap, observersMap, gameContainer, tickCount)
           }
 
+        case BotLeftRoom(uid, tankId, name, roomId)=>
+          gameContainer.leftGame(uid, name, tankId)
+          Behaviors.same
+
         case LeftRoom4Watch(uid, playerId) =>
           gameContainer.leftWatchGame(uid, playerId)
           observersMap.remove(uid)
@@ -184,7 +196,6 @@ object RoomActor {
           Behaviors.same
 
         case LeftRoomByKilled(uid, tankId, tankLives, name) =>
-          //          gameContainer.tankL
           log.debug("LeftRoomByKilled")
           subscribersMap.remove(uid)
           userMap.filter(_._1==uid).foreach{u=>
@@ -197,7 +208,6 @@ object RoomActor {
 
 
         case GameLoop =>
-//          val startTime = System.currentTimeMillis()
           val snapshotOpt = gameContainer.getCurSnapshot()
 
           //生成坦克
@@ -206,13 +216,6 @@ object RoomActor {
           val gameEvents = gameContainer.getLastGameEvent()
           if (AppSettings.gameRecordIsWork) {
             getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
-//            if (tickCount % 20 == 1) {
-//              //remind 排行榜
-//              val rankEvent = TankGameEvent.Ranks(gameContainer.currentRank)//历史排行榜未记录
-//              getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame) ! GameRecorder.GameRecord(rankEvent :: gameEvents, snapshotOpt)
-//            } else {
-//              getGameRecorder(ctx, gameContainer, roomId, gameContainer.systemFrame) ! GameRecorder.GameRecord(gameEvents, snapshotOpt)
-//            }
           }
           //remind 错峰发送
           val state = gameContainer.getGameContainerState()
@@ -221,31 +224,20 @@ object RoomActor {
               dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(state))
             }
           }
-          //排行榜更新移到前端
-//          val count=tickCount + 10 % rankClassify
-//          userGroup.get(count).foreach{ s =>
-//            if(s.nonEmpty) dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.Ranks(gameContainer.currentRank, gameContainer.historyRank))
-//          }
-//          for(i <- count*10 until (count+1)*10){
-//            userGroup.get(i).foreach { s =>
-//              if (s.nonEmpty) {
-//                dispatch()
-//              }
-//            }
-//          }
-          //分发新加入坦克的地图全量数据
           justJoinUser.foreach(t => subscribersMap.put(t._1, t._4))
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           val tankFollowEventSnap = gameContainer.getFollowEventSnap()
           justJoinUser.foreach { t =>
+//            log.debug(s"${ctx.self.path} justJoinUser=${t}, tankFollowEventSnap=${tankFollowEventSnap}, gameContainerAllState=${gameContainerAllState}")
             val ls = gameContainer.getUserActor4WatchGameList(t._1)
             dispatchTo(subscribersMap, observersMap)(t._1, tankFollowEventSnap, ls)
             dispatchTo(subscribersMap, observersMap)(t._1, TankGameEvent.SyncGameAllState(gameContainerAllState), ls)
           }
-//          val endTime = System.currentTimeMillis()
-          /*if (tickCount % 100 == 2) {
-            //            log.debug(s"${ctx.self.path} curFrame=${gameContainer.systemFrame} use time=${endTime-startTime}")
-          }*/
+          //remind 控制人数
+          if(tickCount%20==0){
+            if(AppSettings.botSupport)
+            botManager ! BotManager.SysUserSize(roomId,gameContainer.tankMap.size,gameContainer)
+          }
 
           idle(index,roomId, Nil, userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount + 1)
 
@@ -255,7 +247,7 @@ object RoomActor {
           Behaviors.same
 
         case TankRelive(userId, tankIdOpt, name) =>
-          log.debug(s"${userId}")
+          log.debug(s"$userId---relive")
           gameContainer.handleTankRelive(userId, tankIdOpt, name)
           val state = gameContainer.getGameContainerState()
           dispatch(subscribersMap, observersMap)(TankGameEvent.SyncGameState(state))

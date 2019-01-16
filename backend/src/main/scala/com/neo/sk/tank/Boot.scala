@@ -19,6 +19,7 @@ import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.actor.typed.scaladsl.adapter._
 import com.neo.sk.tank.core._
+import com.neo.sk.tank.core.bot.BotManager
 
 import scala.concurrent.duration._
 
@@ -28,7 +29,6 @@ import scala.concurrent.duration._
   * Created by hongruying on 2018/3/11
   */
 object Boot extends HttpService {
-
 
   import com.neo.sk.tank.common.AppSettings._
   import concurrent.duration._
@@ -65,8 +65,6 @@ object Boot extends HttpService {
 //  }
 
   scheduler.schedule(10 minutes, 10 minutes){deleteCode}
-
-
 
 
 
