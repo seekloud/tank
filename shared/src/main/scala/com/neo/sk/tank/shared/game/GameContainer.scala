@@ -131,8 +131,14 @@ trait GameContainer extends KillInformation{
       tankMap.get(action.tankId) match {
         case Some(tank) =>
           action match {
+              //remind 仅在前端处理
             case a:UserMouseMove => tank.setTankGunDirection(a.d)
-            case a:UserMouseClick => tankExecuteLaunchBulletAction(a.tankId,tank)
+            case a:UserMouseMoveByte => tank.setTankGunDirection(a.d)
+            case a:UserMouseClick => {
+              //remind 调整鼠标方向
+              tank.setTankGunDirection(a.d)
+              tankExecuteLaunchBulletAction(a.tankId,tank)
+            }
             case a:UserPressKeyDown =>
               tankMoveSet.add(a.keyCodeDown)
               tankMoveAction.put(a.tankId,tankMoveSet)

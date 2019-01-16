@@ -405,7 +405,7 @@ case class GameContainerServerImpl(
       * 新增按键操作，补充血量，
       **/
     val action = preExecuteUserAction match {
-      case a: TankGameEvent.UserMouseMove => a.copy(frame = f)
+      case a: TankGameEvent.UserMouseMoveByte => a.copy(frame = f)
       case a: TankGameEvent.UserMouseClick => a.copy(frame = f)
       case a: TankGameEvent.UserPressKeyDown => a.copy(frame = f)
       case a: TankGameEvent.UserPressKeyUp => a.copy(frame = f)

@@ -53,6 +53,17 @@ package object model {
       math.atan2(y - center.y, x - center.x)
     }
 
+    def getAngle(center: Point): Byte = {
+      val y_i=y - center.y
+      val x_i=x - center.x
+      val angle=math.atan2(y_i, x_i)/3.14*180
+      if(y_i<=0){
+        ((math.round(angle)/3)%120).toByte
+      }else{
+        (((360-math.round(angle))/3)%120).toByte
+      }
+    }
+
     def in(view: Point, extra: Point) = {
       x >= (0 - extra.x) && y >= (0 - extra.y) && x <= (view.x + extra.x) && y <= (view.y + extra.y)
     }
