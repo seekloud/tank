@@ -97,6 +97,21 @@ case class GameContainerClientImpl(
     }
   }
 
+  override protected def handleGenerateBullet(e:GenerateBullet) = {
+    println(s"-------------生成子弹")
+    tankMap.get(e.bullet.tankId) match{
+      case Some(tank) =>
+        //todo
+//        val point = Point(e.bullet.position.x, e.bullet.position.y) + Point(24, 24)
+//        val theta = point.getTheta(canvasSize * canvasUnit / 2).toFloat
+//        tank.setTankGunDirection(theta)
+        tankExecuteLaunchBulletAction(tank.tankId,tank)
+      case None =>
+        println(s"--------------------该子弹没有对应的tank")
+    }
+    super.handleGenerateBullet(e)
+  }
+
 
   override protected def handleTankAttacked(e: TankGameEvent.TankAttacked): Unit = {
     super.handleTankAttacked(e)

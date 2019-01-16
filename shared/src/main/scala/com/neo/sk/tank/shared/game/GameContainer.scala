@@ -308,6 +308,7 @@ trait GameContainer extends KillInformation{
   }
 
   protected def handleGenerateBullet(e:GenerateBullet) :Unit = {
+    //客户端和服务端重写
     val bullet = new Bullet(config,e.bullet)
     bulletMap.put(e.bullet.bId,bullet)
     quadTree.insert(bullet)
@@ -541,6 +542,7 @@ trait GameContainer extends KillInformation{
   def update():Unit = {
     handleUserLeftRoomNow()
     objectMove()
+    //todo
     handleUserActionEventNow()
     if(com.neo.sk.tank.shared.model.Constants.fakeRender) {
       handleMyActionNow()
@@ -560,6 +562,7 @@ trait GameContainer extends KillInformation{
     handleObstacleRemoveNow() //此处需要结合坦克攻击，在移动之后
     handleGenerateObstacleNow()
     handleGeneratePropNow()
+    //todo
     handleGenerateBulletNow()
     handleUserJoinRoomEventNow()
     handleUserReliveNow()

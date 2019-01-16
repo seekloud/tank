@@ -414,7 +414,11 @@ case class GameContainerServerImpl(
     }
 
     addUserAction(action)
-    dispatch(action)
+    preExecuteUserAction match {
+      case a:TankGameEvent.UserMouseClick =>
+      case _ =>dispatch(action)
+    }
+//    dispatch(action)
   }
 
   private def generateEnvironment(pType: Byte, barrierPosList: List[RectangleObjectOfGame], barrier: List[List[(Int, Int)]]) = {
