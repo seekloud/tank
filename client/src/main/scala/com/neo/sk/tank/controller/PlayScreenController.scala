@@ -191,12 +191,12 @@ class PlayScreenController(
       * 增加鼠标移动操作
       **/
     playGameScreen.canvas.getCanvas.setOnMouseMoved{ e =>
-      val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(16,16)
+      val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24,24)
       val theta = point.getTheta(playGameScreen.canvasBoundary * playGameScreen.canvasUnit / 2).toFloat
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         if(math.abs(theta - lastMouseMoveTheta) >= mouseMoveThreshold){
           lastMouseMoveTheta = theta
-          val preExecuteAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction) //发送鼠标位置
         }
@@ -207,8 +207,10 @@ class PlayScreenController(
       **/
     playGameScreen.canvas.getCanvas.setOnMouseClicked{ e=>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
+        val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24,24)
+        val theta = point.getTheta(playGameScreen.canvasBoundary * playGameScreen.canvasUnit / 2).toFloat
         bulletMusic.play()
-        val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
+        val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
         playGameActor ! DispatchMsg(preExecuteAction)
       }
@@ -242,7 +244,7 @@ class PlayScreenController(
         }
         else if (keyCode == KeyCode.SPACE && spaceKeyUpState) {
           spaceKeyUpState = false
-          val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, gameContainerOpt.get.tankMap(gameContainerOpt.get.myTankId).getGunDirection(), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction) //发送鼠标位置
         }

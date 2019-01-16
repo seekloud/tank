@@ -54,11 +54,23 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
 
   def getTankDirection():Float = direction
 
+  def getGunDirection():Float = gunDirection
+
   def getTankIsMove():Boolean = isMove
 
   def getShotGunState():Boolean = shotgunState
 
   def isLived() : Boolean = blood > 0
+
+  def setTankGunDirection(a:Byte) = {
+    val a_d=a.toDouble*3
+    val theta=if(a<60){
+      a_d*3.14/180
+    }else{
+      (360-a_d)*3.14/180
+    }
+    gunDirection = theta.toFloat
+  }
 
   def setTankGunDirection(d:Float) = {
     gunDirection = d
