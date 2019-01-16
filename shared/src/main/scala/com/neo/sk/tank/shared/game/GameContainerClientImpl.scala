@@ -305,7 +305,8 @@ case class GameContainerClientImpl(
         tanks.foreach { tankState =>
           tankMap.get(tankState.tankId) match {
             case Some(t) =>
-              if (t.getTankState() != tankState) {
+              //fixme 此处排除炮筒方向
+              if (t.getTankState().copy(gunDirection = 0f) != tankState.copy(gunDirection = 0f)) {
                 println(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
               }
             case None => println(s"judge failed,because tank=${tankState.tankId} not exists....")
