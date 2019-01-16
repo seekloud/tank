@@ -4,7 +4,7 @@ import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.util.canvas.{MiddleCanvas, MiddleContext, MiddleFrame, MiddleImage}
 import com.neo.sk.tank.shared.model.Constants.LittleMap
-import com.neo.sk.tank.shared.model.{Point, Score}
+import com.neo.sk.tank.shared.model.{Constants, Point, Score}
 
 import scala.collection.mutable
 
@@ -124,7 +124,6 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
   }
 
   protected def drawRank(supportLiveLimit:Boolean,curTankId:Int,curName:String):Unit = {
-    val drawHistory = false
     def drawTextLine(str: String, x: Double, y: Double, context:MiddleContext) = {
       context.fillText(str, x, y)
     }
@@ -203,7 +202,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
     def refresh():Unit = {
       refreshCacheCanvas(currentRankCanvas.getCtx, " --- Current Rank --- ", currentRank,false)
-      if(drawHistory){
+      if(Constants.drawHistory){
         refreshCacheCanvas(historyRankCanvas.getCtx, " --- History Rank --- ", historyRank,true)
       }
     }
@@ -215,7 +214,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     }
     ctx.setGlobalAlpha(0.8)
     ctx.drawImage(currentRankCanvas.change2Image(),0,0)
-    if(drawHistory){
+    if(Constants.drawHistory){
       ctx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,0)
     }
     ctx.setGlobalAlpha(1)

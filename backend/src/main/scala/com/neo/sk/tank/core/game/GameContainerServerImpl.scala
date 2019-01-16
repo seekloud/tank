@@ -501,10 +501,10 @@ case class GameContainerServerImpl(
     super.updateRanks()
   }
 
-  def getGameContainerState(): GameContainerState = {
+  def getGameContainerState(frameOnly:Boolean = false): GameContainerState = {
     GameContainerState(
       systemFrame,
-      tankMap.values.map(_.getTankState()).toList
+      if(frameOnly) None else Some(tankMap.values.map(_.getTankState()).toList)
     )
   }
 

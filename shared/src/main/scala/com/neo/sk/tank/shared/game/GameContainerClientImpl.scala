@@ -275,11 +275,21 @@ case class GameContainerClientImpl(
     judge(gameContainerState)
     quadTree.clear()
     tankMap.clear()
-    gameContainerState.tanks.foreach { t =>
-      val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
-      quadTree.insert(tank)
-      tankMap.put(t.tankId, tank)
+    gameContainerState.tanks match{
+      case Some(tanks) =>
+        tanks.foreach { t =>
+          val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
+          quadTree.insert(tank)
+          tankMap.put(t.tankId, tank)
+        }
+      case None =>
+        println(s"handle game container client--no tanks")
     }
+//    gameContainerState.tanks.foreach { t =>
+//      val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
+//      quadTree.insert(tank)
+//      tankMap.put(t.tankId, tank)
+//    }
     obstacleMap.values.foreach(o=>quadTree.insert(o))
     propMap.values.foreach(o=>quadTree.insert(o))
 
@@ -290,28 +300,58 @@ case class GameContainerClientImpl(
   }
 
   private def judge(gameContainerState: GameContainerState): Unit = {
-    gameContainerState.tanks.foreach { tankState =>
-      tankMap.get(tankState.tankId) match {
-        case Some(t) =>
-          if (t.getTankState() != tankState) {
-            println(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
+    gameContainerState.tanks match{
+      case Some(tanks) =>
+        tanks.foreach { tankState =>
+          tankMap.get(tankState.tankId) match {
+            case Some(t) =>
+              if (t.getTankState() != tankState) {
+                println(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
+              }
+            case None => println(s"judge failed,because tank=${tankState.tankId} not exists....")
           }
-        case None => println(s"judge failed,because tank=${tankState.tankId} not exists....")
-      }
+        }
+      case None =>
+        println(s"game container client judge function no tanks---")
     }
+//    gameContainerState.tanks.foreach { tankState =>
+//      tankMap.get(tankState.tankId) match {
+//        case Some(t) =>
+//          if (t.getTankState() != tankState) {
+//            println(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
+//          }
+//        case None => println(s"judge failed,because tank=${tankState.tankId} not exists....")
+//      }
+//    }
   }
 
   def receiveGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
     gameContainerAllStateOpt = Some(gameContainerAllState)
+//    gameContainerStateOpt = Some(TankGameEvent.GameContainerState(gameContainerAllState.f,Some(gameContainerAllState.tanks)))
   }
 
   def receiveGameContainerState(gameContainerState: GameContainerState) = {
     if (gameContainerState.f > systemFrame) {
-      gameContainerStateOpt = Some(gameContainerState)
+      gameContainerState.tanks match {
+        case Some(tank) =>
+          gameContainerStateOpt = Some(gameContainerState)
+        case None =>
+          gameContainerStateOpt match{
+            case Some(state) =>
+              gameContainerStateOpt = Some(TankGameEvent.GameContainerState(gameContainerState.f,state.tanks))
+            case None =>
+          }
+      }
     } else if (gameContainerState.f == systemFrame) {
-      info(s"收到同步数据，立即同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
-      gameContainerStateOpt = None
-      handleGameContainerState(gameContainerState)
+      gameContainerState.tanks match{
+        case Some(tanks) =>
+          info(s"收到同步数据，立即同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
+          gameContainerStateOpt = None
+          handleGameContainerState(gameContainerState)
+        case None =>
+          info(s"收到同步帧号的数据")
+      }
+
     } else {
       info(s"收到同步数据，但未同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
     }
