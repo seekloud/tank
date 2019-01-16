@@ -114,7 +114,7 @@ object TankGameEvent {
   final case class TankEatProp(tankId:Int,propId:Int,propType:Byte,frame:Long) extends GameEvent with WsMsgServer
   /**生成道具*/
   final case class GenerateProp(override val frame:Long,propState: PropState,generateType:Byte = 0) extends EnvironmentEvent with WsMsgServer
-  final case class GenerateBullet(override val frame:Long,bullet:BulletState) extends EnvironmentEvent with WsMsgServer
+  final case class GenerateBullet(override val frame:Long,bullet:BulletState,s:Boolean) extends EnvironmentEvent with WsMsgServer
   /**生成河流，钢铁*/
   final case class GenerateObstacle(override val frame:Long,obstacleState: ObstacleState) extends EnvironmentEvent with WsMsgServer
   /**砖块消失事件*/
