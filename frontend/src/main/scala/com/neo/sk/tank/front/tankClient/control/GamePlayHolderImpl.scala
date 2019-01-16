@@ -26,7 +26,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
   private var spaceKeyUpState = true
   private var lastMouseMoveAngle: Byte = 0
-  private val perMouseMoveFrame = 2
+  private val perMouseMoveFrame = 3
   private var lastMoveFrame = -1L
   private val poKeyBoardMoveTheta = 2 * math.Pi / 72 //炮筒顺时针转
   private val neKeyBoardMoveTheta = -2 * math.Pi / 72 //炮筒逆时针转
@@ -115,12 +115,13 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
       //fixme 此处序列号是否存疑
       val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
-      if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
+      if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame+perMouseMoveFrame < gameContainerOpt.get.systemFrame) {
         if (lastMouseMoveAngle!=angle) {
           lastMouseMoveAngle = angle
           lastMoveFrame = gameContainerOpt.get.systemFrame
           val preMMBAction = TankGameEvent.UMB(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, angle, getActionSerialNum)
           sendMsg2Server(preMMBAction) //发送鼠标位置
+          println(preMMBAction)
           e.preventDefault()
         }
       }
@@ -241,7 +242,6 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
   }
 
   override protected def wsMessageHandler(data: TankGameEvent.WsMsgServer): Unit = {
-    println(data.getClass)
     data match {
       case e: TankGameEvent.WsSuccess =>
         webSocketClient.sendMsg(TankGameEvent.StartGame(e.roomId, None))
@@ -287,10 +287,15 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
         setGameState(GameState.play)
 
       case e: TankGameEvent.UserActionEvent =>
-        //        Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveUserEvent(e)),100)
-        if(!e.isInstanceOf[TankGameEvent.UserMouseMoveByte]){
-          //remind 排除本消息
-          gameContainerOpt.foreach(_.receiveUserEvent(e))
+        e match {
+          case e:TankGameEvent.UMB=>
+            if(gameContainerOpt.nonEmpty){
+              if(gameContainerOpt.get.myTankId!=e.tankId){
+                gameContainerOpt.foreach(_.receiveUserEvent(e))
+              }
+            }
+          case _=>
+            gameContainerOpt.foreach(_.receiveUserEvent(e))
         }
 
 

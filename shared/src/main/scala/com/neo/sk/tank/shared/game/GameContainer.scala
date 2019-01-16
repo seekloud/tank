@@ -131,7 +131,6 @@ trait GameContainer extends KillInformation{
       tankMap.get(action.tankId) match {
         case Some(tank) =>
           action match {
-              //remind 仅在前端处理
             case a:UserMouseMove => tank.setTankGunDirection(a.d)
             case a:UserMouseMoveByte => tank.setTankGunDirection(a.d)
             case a:UserMouseClick => {
@@ -490,7 +489,6 @@ trait GameContainer extends KillInformation{
     /**
       * 增加用户使用血包
       * */
-//    info(s"frame=${action.frame},action=${action}")
     actionEventMap.get(action.frame) match {
       case Some(actionEvents) => actionEventMap.put(action.frame,action :: actionEvents)
       case None => actionEventMap.put(action.frame,List(action))

@@ -94,6 +94,7 @@ object TankGameEvent {
   final case class PlayerLeftRoom(userId:String,name:String,tankId:Int,override val frame:Long) extends UserEvent with WsMsgServer
 //  final case class UserMouseMove(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 
+  /**用于前端流畅*/
   final case class UserMouseMove(tankId:Int, override val frame:Long, d:Float, override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
   final case class UMB(tankId:Int,override val frame:Long,d:Byte,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 

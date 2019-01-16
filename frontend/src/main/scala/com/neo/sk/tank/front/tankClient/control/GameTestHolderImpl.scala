@@ -219,9 +219,8 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   private def fakeUserMouseMove(theta:Float) = {
-    val preExecuteAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
-    gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-    sendMsg2Server(preExecuteAction)
+    val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+    gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
   }
 
 
