@@ -224,6 +224,11 @@ object RoomActor {
               dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(state))
             }
           }
+          userGroup.get(tickCount % 20).foreach{s =>
+            if(s.nonEmpty){
+              dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(gameContainer.getGameContainerState(true)))
+            }
+          }
           justJoinUser.foreach(t => subscribersMap.put(t._1, t._4))
           val gameContainerAllState = gameContainer.getGameContainerAllState()
           val tankFollowEventSnap = gameContainer.getFollowEventSnap()
@@ -247,7 +252,7 @@ object RoomActor {
           Behaviors.same
 
         case TankRelive(userId, tankIdOpt, name) =>
-          log.debug(s"$userId---relive")
+          log.debug(s"${userId}")
           gameContainer.handleTankRelive(userId, tankIdOpt, name)
           val state = gameContainer.getGameContainerState()
           dispatch(subscribersMap, observersMap)(TankGameEvent.SyncGameState(state))

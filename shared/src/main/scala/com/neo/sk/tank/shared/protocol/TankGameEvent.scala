@@ -21,7 +21,7 @@ object TankGameEvent {
 
   case class GameContainerState(
                                  f:Long,
-                                 tanks:List[TankState]
+                                 tanks:Option[List[TankState]]
                                )
 
   /**前端建立WebSocket*/
