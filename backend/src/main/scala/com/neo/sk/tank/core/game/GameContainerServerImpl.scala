@@ -71,12 +71,11 @@ case class GameContainerServerImpl(
 
     tank.launchBullet()(config) match {
       case Some((bulletDirection, position, damage)) =>
+        //fixme 此处涉及到子弹到达顺序 之后可以对子弹增加标志位确认是否为中心
         val momentum = if (tank.getTankIsMove()) config.bulletSpeed.rotate(bulletDirection) * config.frameDuration / 1000 +
           config.getMoveDistanceByFrame(tank.getTankSpeedLevel()).rotate(tank.getTankDirection()).*(0.2f)
         else config.bulletSpeed.rotate(bulletDirection) * config.frameDuration / 1000
 
-        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(), tankId, systemFrame, position, damage.toByte, momentum, tank.name)
-        transformGenerateBulletEvent(bulletState)
         if (tank.getShotGunState()) {
           List(Math.PI / 8, -Math.PI / 8).foreach { bulletOffsetDirection =>
             val bulletPos = tank.getOtherLaunchBulletPosition(bulletOffsetDirection.toFloat)(config)
@@ -88,6 +87,9 @@ case class GameContainerServerImpl(
             transformGenerateBulletEvent(bulletState)
           }
         }
+
+        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(), tankId, systemFrame, position, damage.toByte, momentum, tank.name)
+        transformGenerateBulletEvent(bulletState)
       case None => debug(s"tankId=${tankId} has no bullet now")
     }
   }
