@@ -161,7 +161,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
       var index = 0
       context.setFill("black")
       context.setTextAlign("center")
-      minimapCanvas.getCtx.setTextBaseline("center")
+      context.setTextBaseline("middle")
       context.setLineCap("round")
       drawTextLine(header, currentRankCanvas.getWidth() / 2 , 1 * unit, context)
       rank.take(currentRankNum).foreach{ score =>
