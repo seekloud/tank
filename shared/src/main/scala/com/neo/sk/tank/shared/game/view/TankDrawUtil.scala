@@ -1,7 +1,7 @@
 package com.neo.sk.tank.shared.game.view
 
 import com.neo.sk.tank.shared.game.{GameContainerClientImpl, TankClientImpl}
-import com.neo.sk.tank.shared.model.Constants.{InvincibleSize, SmallBullet}
+import com.neo.sk.tank.shared.model.Constants.{InvincibleSize, SmallBullet, TankStar}
 import com.neo.sk.tank.shared.model.Point
 import com.neo.sk.tank.shared.util.canvas.MiddleContext
 
@@ -21,6 +21,9 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   private val emptyBulletImg = drawFrame.createImage("/img/子弹消失重构.png")
   private val fillMedicalImg = drawFrame.createImage("/img/yiliao.png")
   private val emptyMedicalImg = drawFrame.createImage("/img/huiyiliao.png")
+  private val tankStarImg = drawFrame.createImage("/img/star.png")
+
+  private val Pi = 3.14f
 
 
   def updateTankSize(canvasSize:Point)={
@@ -93,6 +96,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         ctx.closePath()
 
         drawTankBullet(p, tank)
+        drawTankStart(p, tank)
       }
     }
   }
@@ -156,6 +160,19 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
     }
     ctx.setGlobalAlpha(1)
+
+  }
+
+  def drawTankStart(tankPosition:Point, tank:TankClientImpl) = {
+    val firstStarPos = Point(tank.getRadius+TankStar.interval, -(tank.getRadius+TankStar.interval))
+    val endStarNum = if(tank.killTankNum > TankStar.maxNum) TankStar.maxNum else tank.killTankNum
+    (0 until endStarNum).foreach{idx =>
+      val starPos = tankPosition + firstStarPos.rotate(idx * Pi/6)
+      val img = tankStarImg
+      ctx.drawImage(img, starPos.x * canvasUnit,
+        starPos.y * canvasUnit,
+        Some(TankStar.width * canvasUnit, TankStar.height * canvasUnit))
+    }
 
   }
 
