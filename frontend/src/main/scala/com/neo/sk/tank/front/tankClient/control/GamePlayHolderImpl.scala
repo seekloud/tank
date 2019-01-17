@@ -120,7 +120,6 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
           lastMoveFrame = gameContainerOpt.get.systemFrame
           val preMMBAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, angle, getActionSerialNum)
           sendMsg2Server(preMMBAction) //发送鼠标位置
-          println(preMMBAction)
           e.preventDefault()
         }
       }
