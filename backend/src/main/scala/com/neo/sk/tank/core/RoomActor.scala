@@ -224,19 +224,21 @@ object RoomActor {
               dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(state))
             }
           }
+          //fixme 此处错峰发送存在问题，之后可能会修改为对新加入用户提供本同步
           userGroup.get(tickCount % 20).foreach{s =>
             if(s.nonEmpty){
               dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(gameContainer.getGameContainerState(true)))
             }
           }
-          justJoinUser.foreach(t => subscribersMap.put(t._1, t._4))
-          val gameContainerAllState = gameContainer.getGameContainerAllState()
-          val tankFollowEventSnap = gameContainer.getFollowEventSnap()
-          justJoinUser.foreach { t =>
-//            log.debug(s"${ctx.self.path} justJoinUser=${t}, tankFollowEventSnap=${tankFollowEventSnap}, gameContainerAllState=${gameContainerAllState}")
-            val ls = gameContainer.getUserActor4WatchGameList(t._1)
-            dispatchTo(subscribersMap, observersMap)(t._1, tankFollowEventSnap, ls)
-            dispatchTo(subscribersMap, observersMap)(t._1, TankGameEvent.SyncGameAllState(gameContainerAllState), ls)
+          if(justJoinUser.nonEmpty){
+            val gameContainerAllState = gameContainer.getGameContainerAllState()
+            val tankFollowEventSnap = gameContainer.getFollowEventSnap()
+            justJoinUser.foreach { t =>
+              subscribersMap.put(t._1, t._4)
+              val ls = gameContainer.getUserActor4WatchGameList(t._1)
+              dispatchTo(subscribersMap, observersMap)(t._1, tankFollowEventSnap, ls)
+              dispatchTo(subscribersMap, observersMap)(t._1, TankGameEvent.SyncGameAllState(gameContainerAllState), ls)
+            }
           }
           //remind 控制人数
           if(tickCount%20==0){
