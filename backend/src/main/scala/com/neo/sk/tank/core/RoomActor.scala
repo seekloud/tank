@@ -244,6 +244,8 @@ object RoomActor {
               val ls = gameContainer.getUserActor4WatchGameList(t._1)
               dispatchTo(subscribersMap, observersMap)(t._1, tankFollowEventSnap, ls)
               dispatchTo(subscribersMap, observersMap)(t._1, TankGameEvent.SyncGameAllState(gameContainerAllState), ls)
+              timer.startSingleTimer(s"newComer${t._1}",SyncFrame4NewComer(t._1,1),100.millis)
+
             }
           }
           //remind 控制人数
@@ -255,7 +257,7 @@ object RoomActor {
           idle(index,roomId, Nil, userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount + 1)
 
         case SyncFrame4NewComer(userId,tickCount) =>
-          if(tickCount < 21){
+          if(tickCount < 21){//新加入的玩家前2s高频率同步帧号
             dispatchTo(subscribersMap, observersMap)(userId, TankGameEvent.SyncGameState(gameContainer.getGameContainerState(true)), gameContainer.getUserActor4WatchGameList(userId))
             timer.startSingleTimer(s"newComer${userId}",SyncFrame4NewComer(userId,tickCount + 1),100.millis)
           }
