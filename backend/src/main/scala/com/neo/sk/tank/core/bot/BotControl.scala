@@ -22,6 +22,7 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
 
   private var lastMouseMoveTheta: Float = 0
   private var currentMouseMoveTheta: Float = 0
+  private var currentMouseMoveAngle: Byte = 0
   private val mouseMoveThreshold = math.Pi / 180
   private val clickRatio = 2
   private val eatRatio = 2
@@ -43,9 +44,9 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
       if (isHaveTarget && !isEatProp && click > clickRatio) {
         if (math.abs(currentMouseMoveTheta - lastMouseMoveTheta) >= mouseMoveThreshold) {
           lastMouseMoveTheta = currentMouseMoveTheta
-          roomActor ! RoomActor.WebSocketMsg(bid, tankId, userMouseMove(currentMouseMoveTheta))
+          roomActor ! RoomActor.WebSocketMsg(bid, tankId, userMouseMove(currentMouseMoveAngle))
         }
-        roomActor ! RoomActor.WebSocketMsg(bid, tankId, userMouseClick)
+        roomActor ! RoomActor.WebSocketMsg(bid, tankId, userMouseClick(currentMouseMoveTheta))
       }
       else if (isHaveTarget && isEatProp && eat > eatRatio) {
         if (turnMsg > 0) {
@@ -80,11 +81,11 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
     TankGameEvent.UserPressKeyUp(tankId, gameContainer.systemFrame + 10 + preExecuteFrameOffset, keyCode, getActionSerialNum)
   }
 
-  private def userMouseClick = {
-    TankGameEvent.UC(tankId, gameContainer.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
+  private def userMouseClick(d:Float) = {
+    TankGameEvent.UC(tankId, gameContainer.systemFrame + preExecuteFrameOffset, d, getActionSerialNum)
   }
 
-  private def userMouseMove(theta: Float) = {
+  private def userMouseMove(theta: Byte) = {
     TankGameEvent.UM(tankId, gameContainer.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
   }
 
@@ -121,6 +122,7 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
         val attackTank = attackTankList.minBy(tank => tank.getTankState().position.distance(thisTankPos))
         val pos = attackTank.getTankState().position
         currentMouseMoveTheta = pos.getTheta(thisTankPos).toFloat
+        currentMouseMoveAngle = pos.getAngle(thisTankPos)
         true
       }
       else if (propList.exists(r => judgeTheDistance(r.position, thisTankPos, 70))) {
@@ -135,6 +137,7 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
         val attackAir = attackAirList.minBy(air => air.getObstacleState().p.distance(thisTankPos))
         val pos = attackAir.getObstacleState().p
         currentMouseMoveTheta = pos.getTheta(thisTankPos).toFloat
+        currentMouseMoveAngle = pos.getAngle(thisTankPos)
         true
       }
       else if (brickList.exists(r => judgeTheDistance(r.getObstacleState().p, thisTankPos, 70))) {
@@ -142,6 +145,7 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
         val attackBrick = attackBrickList.minBy(brick => brick.getObstacleState().p.distance(thisTankPos))
         val pos = attackBrick.getObstacleState().p
         currentMouseMoveTheta = pos.getTheta(thisTankPos).toFloat
+        currentMouseMoveAngle = pos.getAngle(thisTankPos)
         true
       }
       else false

@@ -33,6 +33,8 @@ object RoomActor {
 
   private final val classify= 100 // 10s同步一次状态
 
+  private final val syncFrameOnly = 20 // 2s同步一次状态
+
   private final case object BehaviorChangeKey
 
   private final case object GameLoopKey
@@ -62,6 +64,9 @@ object RoomActor {
   case object GameLoop extends Command
 
   case class TankRelive(userId: String, tankIdOpt: Option[Int], name: String) extends Command
+
+  private final case object SyncFrame4NewComerKey extends  Command
+  final case class SyncFrame4NewComer(userId:String,tickCount:Int) extends Command
 
 
   final case class SwitchBehavior(
@@ -224,14 +229,24 @@ object RoomActor {
               dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(state))
             }
           }
-          justJoinUser.foreach(t => subscribersMap.put(t._1, t._4))
-          val gameContainerAllState = gameContainer.getGameContainerAllState()
-          val tankFollowEventSnap = gameContainer.getFollowEventSnap()
-          justJoinUser.foreach { t =>
-//            log.debug(s"${ctx.self.path} justJoinUser=${t}, tankFollowEventSnap=${tankFollowEventSnap}, gameContainerAllState=${gameContainerAllState}")
-            val ls = gameContainer.getUserActor4WatchGameList(t._1)
-            dispatchTo(subscribersMap, observersMap)(t._1, tankFollowEventSnap, ls)
-            dispatchTo(subscribersMap, observersMap)(t._1, TankGameEvent.SyncGameAllState(gameContainerAllState), ls)
+          for(i <- (tickCount % syncFrameOnly) * (classify / syncFrameOnly) until (tickCount % syncFrameOnly + 1) * (classify / syncFrameOnly)){
+            userGroup.get(i).foreach{s =>
+              if(s.nonEmpty){
+                dispatch(subscribersMap.filter(r=>s.contains(r._1)), observersMap.filter(r=>s.contains(r._1)))(TankGameEvent.SyncGameState(gameContainer.getGameContainerState(true)))
+              }
+            }
+          }
+          if(justJoinUser.nonEmpty){
+            val gameContainerAllState = gameContainer.getGameContainerAllState()
+            val tankFollowEventSnap = gameContainer.getFollowEventSnap()
+            justJoinUser.foreach { t =>
+              subscribersMap.put(t._1, t._4)
+              val ls = gameContainer.getUserActor4WatchGameList(t._1)
+              dispatchTo(subscribersMap, observersMap)(t._1, tankFollowEventSnap, ls)
+              dispatchTo(subscribersMap, observersMap)(t._1, TankGameEvent.SyncGameAllState(gameContainerAllState), ls)
+              timer.startSingleTimer(s"newComer${t._1}",SyncFrame4NewComer(t._1,1),100.millis)
+
+            }
           }
           //remind 控制人数
           if(tickCount%20==0){
@@ -241,13 +256,21 @@ object RoomActor {
 
           idle(index,roomId, Nil, userMap,userGroup, subscribersMap, observersMap, gameContainer, tickCount + 1)
 
+        case SyncFrame4NewComer(userId,tickCount) =>
+          if(tickCount < 21){//新加入的玩家前2s高频率同步帧号
+            dispatchTo(subscribersMap, observersMap)(userId, TankGameEvent.SyncGameState(gameContainer.getGameContainerState(true)), gameContainer.getUserActor4WatchGameList(userId))
+            timer.startSingleTimer(s"newComer${userId}",SyncFrame4NewComer(userId,tickCount + 1),100.millis)
+          }
+
+          Behaviors.same
+
         case ChildDead(name, childRef) =>
           //          log.debug(s"${ctx.self.path} recv a msg:${msg}")
           ctx.unwatch(childRef)
           Behaviors.same
 
         case TankRelive(userId, tankIdOpt, name) =>
-          log.debug(s"$userId---relive")
+          log.debug(s"${userId}")
           gameContainer.handleTankRelive(userId, tankIdOpt, name)
           val state = gameContainer.getGameContainerState()
           dispatch(subscribersMap, observersMap)(TankGameEvent.SyncGameState(state))

@@ -112,12 +112,8 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       val r = random.nextInt(3)
       println("sss,=",r)
       if(r % 3 == 1){
-//      if(true){
         val theta = random.nextFloat() * math.Pi * 2
-        println(theta)
         userClick(theta.toFloat)
-//        timerForClick = Shortcut.schedule(() => userClick(currentMouseMOveTheta), 500)
-
       } else{
         userMove
 
@@ -201,7 +197,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
 
   //模拟鼠标点击
   private def fakeUserMouseClick = {
-    val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
+    val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, gameContainerOpt.get.tankMap(gameContainerOpt.get.myTankId).getGunDirection(), getActionSerialNum)
     gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
     sendMsg2Server(preExecuteAction)
   }
@@ -219,9 +215,8 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   private def fakeUserMouseMove(theta:Float) = {
-    val preExecuteAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
-    gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-    sendMsg2Server(preExecuteAction)
+    val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+    gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
   }
 
 

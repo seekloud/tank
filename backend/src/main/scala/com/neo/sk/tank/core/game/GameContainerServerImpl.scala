@@ -63,20 +63,19 @@ case class GameContainerServerImpl(
 
   override def tankExecuteLaunchBulletAction(tankId: Int, tank: Tank): Unit = {
 
-    def transformGenerateBulletEvent(bulletState: BulletState) = {
-      val event = TankGameEvent.GenerateBullet(systemFrame, bulletState)
+    def transformGenerateBulletEvent(bulletState: BulletState, s:Boolean=true) = {
+      val event = TankGameEvent.GenerateBullet(systemFrame, bulletState, s)
       dispatch(event)
       addGameEvent(event)
     }
 
     tank.launchBullet()(config) match {
       case Some((bulletDirection, position, damage)) =>
+        //fixme 此处涉及到子弹到达顺序 之后可以对子弹增加标志位确认是否为中心
         val momentum = if (tank.getTankIsMove()) config.bulletSpeed.rotate(bulletDirection) * config.frameDuration / 1000 +
           config.getMoveDistanceByFrame(tank.getTankSpeedLevel()).rotate(tank.getTankDirection()).*(0.2f)
         else config.bulletSpeed.rotate(bulletDirection) * config.frameDuration / 1000
 
-        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(), tankId, systemFrame, position, damage.toByte, momentum, tank.name)
-        transformGenerateBulletEvent(bulletState)
         if (tank.getShotGunState()) {
           List(Math.PI / 8, -Math.PI / 8).foreach { bulletOffsetDirection =>
             val bulletPos = tank.getOtherLaunchBulletPosition(bulletOffsetDirection.toFloat)(config)
@@ -85,9 +84,12 @@ case class GameContainerServerImpl(
               config.getMoveDistanceByFrame(tank.getTankSpeedLevel()).rotate(tank.getTankDirection()).*(0.2f)
             else config.bulletSpeed.rotate(bulletDir) * config.frameDuration / 1000
             val bulletState = `object`.BulletState(bulletIdGenerator.getAndIncrement(), tankId, systemFrame, bulletPos, damage.toByte, momentum, tank.name)
-            transformGenerateBulletEvent(bulletState)
+            transformGenerateBulletEvent(bulletState,false)
           }
         }
+
+        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(), tankId, systemFrame, position, damage.toByte, momentum, tank.name)
+        transformGenerateBulletEvent(bulletState)
       case None => debug(s"tankId=${tankId} has no bullet now")
     }
   }
@@ -108,14 +110,12 @@ case class GameContainerServerImpl(
       log.debug(s"${roomActorRef.path} timer for relive is starting...")
       timer.startSingleTimer(s"TankRelive_${tank.tankId}", RoomActor.TankRelive(tank.userId, Some(tank.tankId), tank.name), config.getTankReliveDuration.millis)
     }
-    //todo 此处需要判断bot
     if(tank.userId.contains("BotActor-")){
       botManager ! BotManager.StopBot(tank.userId,if(tank.lives>1 && AppSettings.supportLiveLimit) BotManager.StopMap.stop else BotManager.StopMap.delete)
     }else{
       dispatchTo(tank.userId, killEvent, getUserActor4WatchGameList(tank.userId))
     }
     //后台增加一个玩家离开消息（不传给前端）,以便录像的时候记录玩家死亡和websocket断开的情况。
-    //fixme 此处是否存在BUG
     if (tankState.lives <= 1 || (!AppSettings.supportLiveLimit)) {
       val event = TankGameEvent.UserLeftRoomByKill(tank.userId, tank.name, tank.tankId, systemFrame)
       addGameEvent(event)
@@ -407,7 +407,7 @@ case class GameContainerServerImpl(
       * 新增按键操作，补充血量，
       **/
     val action = preExecuteUserAction match {
-      case a: TankGameEvent.UserMouseMove => a.copy(frame = f)
+      case a: TankGameEvent.UserMouseMoveByte => a.copy(frame = f)
       case a: TankGameEvent.UserMouseClick => a.copy(frame = f)
       case a: TankGameEvent.UserPressKeyDown => a.copy(frame = f)
       case a: TankGameEvent.UserPressKeyUp => a.copy(frame = f)
@@ -416,7 +416,11 @@ case class GameContainerServerImpl(
     }
 
     addUserAction(action)
-    dispatch(action)
+    preExecuteUserAction match {
+      case a:TankGameEvent.UserMouseClick =>
+      case _ =>dispatch(action)
+    }
+//    dispatch(action)
   }
 
   private def generateEnvironment(pType: Byte, barrierPosList: List[RectangleObjectOfGame], barrier: List[List[(Int, Int)]]) = {
@@ -490,7 +494,6 @@ case class GameContainerServerImpl(
   }
 
   override protected def clearEventWhenUpdate(): Unit = {
-    super.clearEventWhenUpdate()
     gameEventMap -= systemFrame - 1
     actionEventMap -= systemFrame - 1
     followEventMap -= systemFrame - maxFollowFrame - 1
@@ -503,10 +506,10 @@ case class GameContainerServerImpl(
     super.updateRanks()
   }
 
-  def getGameContainerState(): GameContainerState = {
+  def getGameContainerState(frameOnly:Boolean = false): GameContainerState = {
     GameContainerState(
       systemFrame,
-      tankMap.values.map(_.getTankState()).toList
+      if(frameOnly) None else Some(tankMap.values.map(_.getTankState()).toList)
     )
   }
 

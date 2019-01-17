@@ -57,8 +57,9 @@ class PlayScreenController(
 
   private val actionSerialNumGenerator = new AtomicInteger(0)
   private var spaceKeyUpState = true
-  private var lastMouseMoveTheta: Float = 0
-  private val mouseMoveThreshold = math.Pi / 180
+  private var lastMouseMoveAngle: Byte = 0
+  private val perMouseMoveFrame = 2
+  private var lastMoveFrame = -1L
   private val poKeyBoardMoveTheta = 2 * math.Pi / 72 //炮筒顺时针转
   private val neKeyBoardMoveTheta = -2 * math.Pi / 72 //炮筒逆时针转
   private var poKeyBoardFrame = 0L
@@ -176,8 +177,6 @@ class PlayScreenController(
 
         case GameState.stop =>
           closeHolder
-//          playGameScreen.drawGameStop(killerName)
-          //todo 死亡结算
           gameContainerOpt.foreach(_.drawCombatGains())
           timeline.play()
 
@@ -193,14 +192,20 @@ class PlayScreenController(
       * 增加鼠标移动操作
       **/
     playGameScreen.canvas.getCanvas.setOnMouseMoved{ e =>
-      val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(16,16)
+      val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24,24)
       val theta = point.getTheta(playGameScreen.canvasBoundary * playGameScreen.canvasUnit / 2).toFloat
-      if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
-        if(math.abs(theta - lastMouseMoveTheta) >= mouseMoveThreshold){
-          lastMouseMoveTheta = theta
-          val preExecuteAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
-          gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-          playGameActor ! DispatchMsg(preExecuteAction) //发送鼠标位置
+      val angle = point.getAngle(playGameScreen.canvasBoundary * playGameScreen.canvasUnit / 2)
+      //remind tank自身流畅显示
+      //fixme 此处序列号是否存疑
+      val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+      gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
+      if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
+        if (lastMouseMoveAngle!=angle) {
+          lastMouseMoveAngle = angle
+          lastMoveFrame = gameContainerOpt.get.systemFrame
+          val preMMBAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, angle, getActionSerialNum)
+          playGameActor ! DispatchMsg(preMMBAction) //发送鼠标位置
+          println(preMMBAction)
         }
       }
     }
@@ -209,8 +214,10 @@ class PlayScreenController(
       **/
     playGameScreen.canvas.getCanvas.setOnMouseClicked{ e=>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
+        val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24,24)
+        val theta = point.getTheta(playGameScreen.canvasBoundary * playGameScreen.canvasUnit / 2).toFloat
         bulletMusic.play()
-        val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
+        val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
         playGameActor ! DispatchMsg(preExecuteAction)
       }
@@ -244,7 +251,7 @@ class PlayScreenController(
         }
         else if (keyCode == KeyCode.SPACE && spaceKeyUpState) {
           spaceKeyUpState = false
-          val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, System.currentTimeMillis(), getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, gameContainerOpt.get.tankMap(gameContainerOpt.get.myTankId).getGunDirection(), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction) //发送鼠标位置
         }
@@ -370,7 +377,6 @@ class PlayScreenController(
           } else {
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             logicFrameTime = System.currentTimeMillis()
-            //todo
             animationTimer.start()
             playGameActor ! PlayGameActor.StartGameLoop
             setGameState(GameState.play)

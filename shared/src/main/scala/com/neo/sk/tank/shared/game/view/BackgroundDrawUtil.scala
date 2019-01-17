@@ -4,7 +4,7 @@ import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.util.canvas.{MiddleCanvas, MiddleContext, MiddleFrame, MiddleImage}
 import com.neo.sk.tank.shared.model.Constants.LittleMap
-import com.neo.sk.tank.shared.model.{Point, Score}
+import com.neo.sk.tank.shared.model.{Constants, Point, Score}
 
 import scala.collection.mutable
 
@@ -13,8 +13,6 @@ import scala.collection.mutable
   */
 trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
-//  implicit val drawFrame:MiddleFrame
-  //fixme 将此处map暴露给子类
   private val cacheCanvasMap = mutable.HashMap.empty[String, Any]
   private var canvasBoundary:Point=canvasSize
 
@@ -126,7 +124,6 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
   }
 
   protected def drawRank(supportLiveLimit:Boolean,curTankId:Int,curName:String):Unit = {
-    val drawHistory = false
     def drawTextLine(str: String, x: Double, y: Double, context:MiddleContext) = {
       context.fillText(str, x, y)
     }
@@ -164,7 +161,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
       var index = 0
       context.setFill("black")
       context.setTextAlign("center")
-      minimapCanvas.getCtx.setTextBaseline("center")
+      context.setTextBaseline("middle")
       context.setLineCap("round")
       drawTextLine(header, currentRankCanvas.getWidth() / 2 , 1 * unit, context)
       rank.take(currentRankNum).foreach{ score =>
@@ -205,7 +202,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
     def refresh():Unit = {
       refreshCacheCanvas(currentRankCanvas.getCtx, " --- Current Rank --- ", currentRank,false)
-      if(drawHistory){
+      if(Constants.drawHistory){
         refreshCacheCanvas(historyRankCanvas.getCtx, " --- History Rank --- ", historyRank,true)
       }
     }
@@ -217,7 +214,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     }
     ctx.setGlobalAlpha(0.8)
     ctx.drawImage(currentRankCanvas.change2Image(),0,0)
-    if(drawHistory){
+    if(Constants.drawHistory){
       ctx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,0)
     }
     ctx.setGlobalAlpha(1)
@@ -236,7 +233,6 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
 
     def refreshMinimap():Unit = {
-      //todo 转换为RGB颜色
       val mapColor = "rgba(255,245,238,0.5)"
       val myself = "#000080"
       val otherTankColor = "#CD5C5C"
