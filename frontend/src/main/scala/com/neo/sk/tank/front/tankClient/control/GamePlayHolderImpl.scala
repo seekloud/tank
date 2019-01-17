@@ -132,7 +132,6 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
           val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(24, 24)
           val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
           val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
-//          gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction) //发送鼠标位置
           e.preventDefault()
         }
