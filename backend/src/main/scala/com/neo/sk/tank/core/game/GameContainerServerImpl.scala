@@ -494,7 +494,6 @@ case class GameContainerServerImpl(
   }
 
   override protected def clearEventWhenUpdate(): Unit = {
-    super.clearEventWhenUpdate()
     gameEventMap -= systemFrame - 1
     actionEventMap -= systemFrame - 1
     followEventMap -= systemFrame - maxFollowFrame - 1
