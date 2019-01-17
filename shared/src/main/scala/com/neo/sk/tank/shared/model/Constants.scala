@@ -43,6 +43,13 @@ object Constants {
     val width = 1
   }
 
+  object TankStar{
+    val maxNum = 10
+    val height = 3
+    val width = 3
+    val interval = 3
+  }
+
   object ObstacleType{
     val airDropBox:Byte = 1
     val brick:Byte = 2

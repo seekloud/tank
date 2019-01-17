@@ -36,8 +36,8 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
 
   private def getRoomListInit() = {
     //需要起一个定时器，定时刷新请求
-//    val url = s"http://${gameServerInfo.domain}/tank/getRoomList"
-    val url = s"http://localhost:30369/tank/getRoomList"
+    val url = s"http://${gameServerInfo.domain}/tank/getRoomList"
+//    val url = s"http://localhost:30369/tank/getRoomList"
     val jsonData = genPostEnvelope("esheep",System.nanoTime().toString,{}.asJson.noSpaces,"").asJson.noSpaces
     postJsonRequestSend("post",url,List(),jsonData,timeOut = 60 * 1000,needLogRsp = false).map{
       case Right(value) =>
