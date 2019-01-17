@@ -64,7 +64,6 @@ trait GameContainer extends KillInformation{
   protected val gameEventMap = mutable.HashMap[Long,List[GameEvent]]() //frame -> List[GameEvent] 待处理的事件 frame >= curFrame
   protected val actionEventMap = mutable.HashMap[Long,List[UserActionEvent]]() //frame -> List[UserActionEvent]
   protected val followEventMap = mutable.HashMap[Long,List[FollowEvent]]()  // 记录游戏逻辑中产生事件
-  protected val myTankAction = mutable.HashMap[Long,List[UserActionEvent]]()
   final protected def handleUserJoinRoomEvent(l:List[UserJoinRoom]) :Unit = {
     l foreach handleUserJoinRoomEvent
   }
@@ -132,7 +131,12 @@ trait GameContainer extends KillInformation{
         case Some(tank) =>
           action match {
             case a:UserMouseMove => tank.setTankGunDirection(a.d)
-            case a:UserMouseClick => tankExecuteLaunchBulletAction(a.tankId,tank)
+            case a:UserMouseMoveByte => tank.setTankGunDirection(a.d)
+            case a:UserMouseClick => {
+              //remind 调整鼠标方向
+              tank.setTankGunDirection(a.d)
+              tankExecuteLaunchBulletAction(a.tankId,tank)
+            }
             case a:UserPressKeyDown =>
               tankMoveSet.add(a.keyCodeDown)
               tankMoveAction.put(a.tankId,tankMoveSet)
@@ -148,65 +152,11 @@ trait GameContainer extends KillInformation{
       }
     }
   }
-  var fakeFrameStart = 0l
-
-
-  protected final def handleMyAction(actions:List[UserActionEvent]) = { //处理出现错误动作的帧
-
-    /*def isHaveReal(id: Int) = {
-      var isHave = false
-      actionEventMap.get(systemFrame).foreach {
-        list =>
-          list.foreach {
-            a =>
-              if (a.tankId == id) isHave = true
-          }
-      }
-      isHave
-    }
-
-    if (tankId != -1 && tankMap.contains(tankId)) {
-      val tank = tankMap(tankId)
-      if (!isHaveReal(tankId)) {
-        if (!tank.getMoveState()) {
-          tank.isFakeMove = true
-          tank.fakePosition = tank.getPosition
-          fakeFrameStart = systemFrame
-          val tankMoveSet = mutable.Set[Int]()
-          actions.sortBy(t => t.serialNum).foreach {
-
-            case a: UserPressKeyDown =>
-              tankMoveSet.add(a.keyCodeDown)
-              tank.setTankDirection(tankMoveSet.toSet)
-//            case a: UserPressKeyUp =>
-//              tankMoveSet.remove(a.keyCodeUp)
-//              tank.setTankDirection(tankMoveSet.toSet)
-            case a: UserKeyboardMove => tank.setTankKeyBoardDirection(a.angle)
-            case _ =>
-          }
-        }
-      }else{
-        if(tank.isFakeMove) {
-          tank.cavasFrame = 1
-          tank.fakeFrame = systemFrame - fakeFrameStart
-        }
-        tank.isFakeMove = false
-      }
-    }*/
-  }
-
- /* final def getTankId(id:Int) = {
-    tankId = id
-  }*/
 
   final protected def handleUserActionEventNow() = {
     actionEventMap.get(systemFrame).foreach{ actionEvents =>
       handleUserActionEvent(actionEvents.reverse)
     }
-  }
-  final protected def handleMyActionNow() = {
-    handleMyAction(myTankAction.getOrElse(systemFrame,Nil).reverse)
-    myTankAction.remove(systemFrame - 10)
   }
 
   /**
@@ -302,6 +252,7 @@ trait GameContainer extends KillInformation{
   }
 
   protected def handleGenerateBullet(e:GenerateBullet) :Unit = {
+    //客户端和服务端重写
     val bullet = new Bullet(config,e.bullet)
     bulletMap.put(e.bullet.bId,bullet)
     quadTree.insert(bullet)
@@ -484,7 +435,6 @@ trait GameContainer extends KillInformation{
     /**
       * 增加用户使用血包
       * */
-//    info(s"frame=${action.frame},action=${action}")
     actionEventMap.get(action.frame) match {
       case Some(actionEvents) => actionEventMap.put(action.frame,action :: actionEvents)
       case None => actionEventMap.put(action.frame,List(action))
@@ -535,10 +485,8 @@ trait GameContainer extends KillInformation{
   def update():Unit = {
     handleUserLeftRoomNow()
     objectMove()
+
     handleUserActionEventNow()
-    if(com.neo.sk.tank.shared.model.Constants.fakeRender) {
-      handleMyActionNow()
-    }
 
     handleTankAttackedNow()
     handleObstacleAttackedNow()
@@ -554,6 +502,7 @@ trait GameContainer extends KillInformation{
     handleObstacleRemoveNow() //此处需要结合坦克攻击，在移动之后
     handleGenerateObstacleNow()
     handleGeneratePropNow()
+
     handleGenerateBulletNow()
     handleUserJoinRoomEventNow()
     handleUserReliveNow()
@@ -603,20 +552,13 @@ trait GameContainer extends KillInformation{
     }
   }
 
-  protected def clearEventWhenUpdate():Unit = {
-    //fixme forTest
-    /*if(systemFrame%50==0){
-      println(s"systemFrame----$systemFrame")
-      println(tankMap.toList.map(r=>(r._1,r._2.returnCurNum)))
-    }*/
-  }
+  protected def clearEventWhenUpdate():Unit
 
   def getGameContainerAllState():GameContainerAllState = {
     GameContainerAllState(
       systemFrame,
       tankMap.values.map(_.getTankState()).toList,
       bulletMap.values.map(_.getBulletState()).toList,
-//      followEventMap.toList,
       propMap.values.map(_.getPropState).toList,
       obstacleMap.values.map(_.getObstacleState()).toList,
       environmentMap.values.map(_.getObstacleState()).toList,

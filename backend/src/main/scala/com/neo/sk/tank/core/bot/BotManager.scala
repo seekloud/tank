@@ -62,8 +62,8 @@ object BotManager {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case msg: SysUserSize =>
-          if(msg.size>0){
-            val botList=botMap.filter(r=>r._2._1== msg.roomId&&r._2._2)
+          val botList=botMap.filter(r=>r._2._1== msg.roomId&&r._2._2)
+          if(msg.size-botList.size>0){
             if(msg.size < minSize){
               for (i <- msg.size until minSize) {
                 val botId = bidGenerator.getAndIncrement()
@@ -83,6 +83,15 @@ object BotManager {
               }
             }
           }
+          //remind 此处设置房间没有用户清除bot
+          /*else{
+            botList.foreach(r=>
+              if(ctx.child(r._1).nonEmpty){
+                getBotActor(ctx,r._1) ! StopBot(r._1,StopMap.delete)
+              }else{
+                log.debug(s"here bot error ${r._1}")
+              })
+          }*/
           Behaviors.same
 
 

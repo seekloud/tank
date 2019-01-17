@@ -43,6 +43,7 @@ case class GameContainerClientImpl(
   protected var killerName: String = ""
 
   protected var tankId: Int = myTankId
+  protected val myTankMoveAction = mutable.HashMap[Long,List[UserActionEvent]]()
 
   def changeTankId(id: Int) = tankId = id
 
@@ -95,6 +96,20 @@ case class GameContainerClientImpl(
     if (obstacleMap.get(e.obstacleId).nonEmpty || environmentMap.get(e.obstacleId).nonEmpty) {
       obstacleAttackedAnimationMap.put(e.obstacleId, GameAnimation.bulletHitAnimationFrame)
     }
+  }
+
+  override protected def handleGenerateBullet(e:GenerateBullet) = {
+    tankMap.get(e.bullet.tankId) match{
+      case Some(tank) =>
+        //todo
+        if(e.s){
+          tank.setTankGunDirection(math.atan2(e.bullet.momentum.y, e.bullet.momentum.x).toFloat)
+          tankExecuteLaunchBulletAction(tank.tankId,tank)
+        }
+      case None =>
+        println(s"--------------------该子弹没有对应的tank")
+    }
+    super.handleGenerateBullet(e)
   }
 
 
@@ -183,28 +198,71 @@ case class GameContainerClientImpl(
 
   final def addMyAction(action: UserActionEvent): Unit = {
     if (action.tankId == tankId) {
-      myTankAction.get(action.frame - preExecuteFrameOffset) match {
-        case Some(actionEvents) => myTankAction.put(action.frame - preExecuteFrameOffset, action :: actionEvents)
-        case None => myTankAction.put(action.frame - preExecuteFrameOffset, List(action))
+      myTankMoveAction.get(action.frame - preExecuteFrameOffset) match {
+        case Some(actionEvents) => myTankMoveAction.put(action.frame - preExecuteFrameOffset, action :: actionEvents)
+        case None => myTankMoveAction.put(action.frame - preExecuteFrameOffset, List(action))
       }
     }
   }
 
-  //  def setUserInfo(name:String,userId:Long,tankId:Int) = {
-  //    myName = name
-  //    myId = userId
-  //    myTankId = tankId
-  //  }
+  var fakeFrameStart = 0l
+  protected final def handleMyAction(actions:List[UserActionEvent]) = { //处理出现错误动作的帧
 
-  //客户端增加坦克无敌失效callBack
+    def isHaveReal(id: Int) = {
+      var isHave = false
+      actionEventMap.get(systemFrame).foreach {
+        list =>
+          list.foreach {
+            a =>
+              if (a.tankId == id) isHave = true
+          }
+      }
+      isHave
+    }
+    if (tankId != -1 && tankMap.contains(tankId)) {
+      val tank = tankMap(tankId)
+      if (!isHaveReal(tankId)) {
+        if (!tank.getMoveState()) {
+          tank.isFakeMove = true
+          tank.fakePosition = tank.getPosition
+          fakeFrameStart = systemFrame
+          val tankMoveSet = mutable.Set[Int]()
+          actions.sortBy(t => t.serialNum).foreach {
+
+            case a: UserPressKeyDown =>
+              tankMoveSet.add(a.keyCodeDown)
+              tank.setTankDirection(tankMoveSet.toSet)
+//            case a: UserPressKeyUp =>
+//              tankMoveSet.remove(a.keyCodeUp)
+//              tank.setTankDirection(tankMoveSet.toSet)
+            case a: UserKeyboardMove => tank.setTankKeyBoardDirection(a.angle)
+            case _ =>
+          }
+        }
+      }else{
+        if(tank.isFakeMove) {
+          tank.cavasFrame = 1
+          tank.fakeFrame = systemFrame - fakeFrameStart
+        }
+        tank.isFakeMove = false
+      }
+    }
+  }
+
+  protected def handleFakeActionNow():Unit = {
+    if(com.neo.sk.tank.shared.model.Constants.fakeRender) {
+      handleMyAction(myTankMoveAction.getOrElse(systemFrame,Nil).reverse)
+      myTankMoveAction.remove(systemFrame - 10)
+    }
+  }
+
+
   override protected def handleUserJoinRoomEvent(e: TankGameEvent.UserJoinRoom): Unit = {
-    //    println(s"addininEvent${e.tankState.tankId}")
     super.handleUserJoinRoomEvent(e)
     tankInvincibleCallBack(e.tankState.tankId)
   }
 
   override protected def handleUserReliveEvent(e: TankGameEvent.UserRelive): Unit = {
-    //    println(s"addininEvent${e.tankState.tankId}")
     super.handleUserReliveEvent(e)
     tankInvincibleCallBack(e.tankState.tankId)
   }
@@ -271,47 +329,80 @@ case class GameContainerClientImpl(
     if (curFrame < gameContainerState.f) {
       println(s"handleGameContainerState update to now use Time=${endTime - startTime} and systemFrame=${systemFrame} sysFrame=${gameContainerState.f}")
     }
-    systemFrame = gameContainerState.f
-    judge(gameContainerState)
-    quadTree.clear()
-    tankMap.clear()
-    gameContainerState.tanks.foreach { t =>
-      val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
-      quadTree.insert(tank)
-      tankMap.put(t.tankId, tank)
-    }
-    obstacleMap.values.foreach(o=>quadTree.insert(o))
-    propMap.values.foreach(o=>quadTree.insert(o))
 
-    environmentMap.values.foreach(quadTree.insert)
-    bulletMap.values.foreach { bullet =>
-      quadTree.insert(bullet)
+    if(!judge(gameContainerState)||systemFrame!=gameContainerState.f){
+      systemFrame = gameContainerState.f
+      quadTree.clear()
+      tankMap.clear()
+      gameContainerState.tanks match{
+        case Some(tanks) =>
+          tanks.foreach { t =>
+            val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
+            quadTree.insert(tank)
+            tankMap.put(t.tankId, tank)
+          }
+        case None =>
+          println(s"handle game container client--no tanks")
+      }
+      obstacleMap.values.foreach(o=>quadTree.insert(o))
+      propMap.values.foreach(o=>quadTree.insert(o))
+
+      environmentMap.values.foreach(quadTree.insert)
+      bulletMap.values.foreach { bullet =>
+        quadTree.insert(bullet)
+      }
     }
   }
 
-  private def judge(gameContainerState: GameContainerState): Unit = {
-    gameContainerState.tanks.foreach { tankState =>
-      tankMap.get(tankState.tankId) match {
-        case Some(t) =>
-          if (t.getTankState() != tankState) {
-            println(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
+  private def judge(gameContainerState: GameContainerState) = {
+    gameContainerState.tanks match{
+      case Some(tanks) =>
+        tanks.forall { tankState =>
+          tankMap.get(tankState.tankId) match {
+            case Some(t) =>
+              //fixme 此处排除炮筒方向
+              if (t.getTankState().copy(gunDirection = 0f) != tankState.copy(gunDirection = 0f)) {
+                println(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
+                false
+              } else true
+            case None => {
+              println(s"judge failed,because tank=${tankState.tankId} not exists....")
+              true
+            }
           }
-        case None => println(s"judge failed,because tank=${tankState.tankId} not exists....")
-      }
+        }
+      case None =>
+        println(s"game container client judge function no tanks---")
+        true
     }
   }
 
   def receiveGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
     gameContainerAllStateOpt = Some(gameContainerAllState)
-  }
+ }
 
   def receiveGameContainerState(gameContainerState: GameContainerState) = {
     if (gameContainerState.f > systemFrame) {
-      gameContainerStateOpt = Some(gameContainerState)
+      gameContainerState.tanks match {
+        case Some(tank) =>
+          gameContainerStateOpt = Some(gameContainerState)
+        case None =>
+          gameContainerStateOpt match{
+            case Some(state) =>
+              gameContainerStateOpt = Some(TankGameEvent.GameContainerState(gameContainerState.f,state.tanks))
+            case None =>
+          }
+      }
     } else if (gameContainerState.f == systemFrame) {
-      info(s"收到同步数据，立即同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
-      gameContainerStateOpt = None
-      handleGameContainerState(gameContainerState)
+      gameContainerState.tanks match{
+        case Some(tanks) =>
+          info(s"收到同步数据，立即同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
+          gameContainerStateOpt = None
+          handleGameContainerState(gameContainerState)
+        case None =>
+          info(s"收到同步帧号的数据")
+      }
+
     } else {
       info(s"收到同步数据，但未同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
     }
@@ -339,16 +430,15 @@ case class GameContainerClientImpl(
       }
     } else {
       super.update()
-//      println(s"tankId=$tankId userSize ${tankMap.size} list=${tankMap.values.map(r=>(r.tankId,r.name,r.userId))}")
       if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
     }
   }
 
   override protected def clearEventWhenUpdate(): Unit = {
-    super.clearEventWhenUpdate()
     if (esRecoverSupport) {
       addEventHistory(systemFrame, gameEventMap.getOrElse(systemFrame, Nil), actionEventMap.getOrElse(systemFrame, Nil))
     }
+    handleFakeActionNow()
     gameEventMap -= systemFrame
     actionEventMap -= systemFrame
     followEventMap -= systemFrame - maxFollowFrame

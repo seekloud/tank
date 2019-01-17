@@ -102,7 +102,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
           gameContainerOpt.foreach(_.update())
         }else{
           //remind here allState change into state
-          gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,e.gState.tanks)))
+          gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,Some(e.gState.tanks))))
         }
 
       case e:TankGameEvent.Ranks =>

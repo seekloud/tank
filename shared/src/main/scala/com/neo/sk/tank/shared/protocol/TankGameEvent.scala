@@ -21,7 +21,7 @@ object TankGameEvent {
 
   case class GameContainerState(
                                  f:Long,
-                                 tanks:List[TankState]
+                                 tanks:Option[List[TankState]]
                                )
 
   /**前端建立WebSocket*/
@@ -93,14 +93,17 @@ object TankGameEvent {
   final case class UserLeftRoom(userId:String, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer
   final case class PlayerLeftRoom(userId:String,name:String,tankId:Int,override val frame:Long) extends UserEvent with WsMsgServer
 //  final case class UserMouseMove(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
-  final case class UM(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 
-  type UserMouseMove = UM
+  /**用于前端流畅*/
+  final case class UserMouseMove(tankId:Int, override val frame:Long, d:Float, override val serialNum:Int) extends UserActionEvent
+  final case class UM(tankId:Int, override val frame:Long, d:Byte, override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+
+  type UserMouseMoveByte = UM
 
   final case class UserKeyboardMove(tankId:Int,override val frame:Long,angle:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 
-//  final case class UserMouseClick(tankId:Int,override val frame:Long,time:Long,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
-  final case class UC(tankId:Int,override val frame:Long,time:Long,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  final case class UC(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+
   type UserMouseClick = UC
 
   final case class UserPressKeyDown(tankId:Int,override val frame:Long,keyCodeDown:Int,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
@@ -111,12 +114,13 @@ object TankGameEvent {
   final case class TankEatProp(tankId:Int,propId:Int,propType:Byte,frame:Long) extends GameEvent with WsMsgServer
   /**生成道具*/
   final case class GenerateProp(override val frame:Long,propState: PropState,generateType:Byte = 0) extends EnvironmentEvent with WsMsgServer
-  final case class GenerateBullet(override val frame:Long,bullet:BulletState) extends EnvironmentEvent with WsMsgServer
+  final case class GenerateBullet(override val frame:Long,bullet:BulletState,s:Boolean) extends EnvironmentEvent with WsMsgServer
   /**生成河流，钢铁*/
   final case class GenerateObstacle(override val frame:Long,obstacleState: ObstacleState) extends EnvironmentEvent with WsMsgServer
   /**砖块消失事件*/
   final case class ObstacleRemove(obstacleId:Int, override val frame:Long) extends EnvironmentEvent with WsMsgServer
 
+  //fixme 此处回放是没有同步-bigBUG
   /**
     * tank初次进入游戏时用于同步游戏逻辑产生延时事件
     * */
