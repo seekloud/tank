@@ -112,12 +112,8 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       val r = random.nextInt(3)
       println("sss,=",r)
       if(r % 3 == 1){
-//      if(true){
         val theta = random.nextFloat() * math.Pi * 2
-        println(theta)
         userClick(theta.toFloat)
-//        timerForClick = Shortcut.schedule(() => userClick(currentMouseMOveTheta), 500)
-
       } else{
         userMove
 
