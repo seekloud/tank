@@ -103,7 +103,7 @@ case class GameContainerClientImpl(
         //todo
         if(e.s){
           tank.setTankGunDirection(math.atan2(e.bullet.momentum.y, e.bullet.momentum.x).toFloat)
-//          tankExecuteLaunchBulletAction(tank.tankId,tank)
+          tankExecuteLaunchBulletAction(tank.tankId,tank)
         }
       case None =>
         println(s"--------------------该子弹没有对应的tank")
