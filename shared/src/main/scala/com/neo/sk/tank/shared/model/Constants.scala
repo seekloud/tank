@@ -44,10 +44,10 @@ object Constants {
   }
 
   object TankStar{
-    val maxNum = 10
-    val height = 3
-    val width = 3
-    val interval = 3
+    val maxNum = 16
+    val height = 2
+    val width = 2
+    val interval = 2
   }
 
   object ObstacleType{
