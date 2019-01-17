@@ -96,7 +96,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         ctx.closePath()
 
         drawTankBullet(p, tank)
-        drawTankStart(p, tank)
+        drawTankStar(p, tank)
       }
     }
   }
@@ -163,11 +163,11 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
   }
 
-  def drawTankStart(tankPosition:Point, tank:TankClientImpl) = {
+  def drawTankStar(tankPosition:Point, tank:TankClientImpl) = {
     val firstStarPos = Point(tank.getRadius+TankStar.interval, -(tank.getRadius+TankStar.interval))
     val endStarNum = if(tank.killTankNum > TankStar.maxNum) TankStar.maxNum else tank.killTankNum
     (0 until endStarNum).foreach{idx =>
-      val starPos = tankPosition + firstStarPos.rotate(idx * Pi/6)
+      val starPos = tankPosition + firstStarPos.rotate(idx * Pi/10)
       val img = tankStarImg
       ctx.drawImage(img, starPos.x * canvasUnit,
         starPos.y * canvasUnit,
