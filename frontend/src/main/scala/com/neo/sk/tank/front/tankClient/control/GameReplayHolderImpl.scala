@@ -3,6 +3,7 @@ package com.neo.sk.tank.front.tankClient.control
 import com.neo.sk.tank.front.common.Routes
 import com.neo.sk.tank.front.model.{PlayerInfo, ReplayInfo}
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
+import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.protocol.TankGameEvent.GameContainerState
 import com.neo.sk.tank.shared.model.Constants.GameState
@@ -72,9 +73,12 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
   }
 
 
-  private def setKillCallback(name:String, hasLife:Boolean, killTankNum:Int, damage:Int) = {
-    println(s"you are killed")
-    gameContainerOpt.foreach(_.updateDamageInfo(killTankNum,name,damage))
+  override protected def setKillCallback(tank: Tank,name:String) = {
+    removeHistoryMap(tank.tankId)
+    if (gameContainerOpt.nonEmpty&&tank.tankId ==gameContainerOpt.get.tankId) {
+      gameContainerOpt.foreach(_.updateDamageInfo(tank.killTankNum,name,tank.damageStatistics))
+      if (tank.lives <= 1) setGameState(GameState.stop)
+    }
   }
 
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
@@ -88,7 +92,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
           firstCome = true
         }
         //        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
-        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, setKillCallback = setKillCallback, versionInfo = versionInfoOpt))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit, setKillCallback,tankHistoryMap,versionInfoOpt))
         gameContainerOpt.get.changeTankId(e.tankId)
 
       case e:TankGameEvent.TankFollowEventSnap =>

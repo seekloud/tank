@@ -9,7 +9,7 @@ import com.neo.sk.tank.shared.model.Point
   * 子弹
   */
 
-case class BulletState(bId:Int, tankId:Int, startFrame:Long, position:Point, damage:Byte, momentum:Point, name:String)
+case class BulletState(bId:Int, tankId:Int, startFrame:Long, position:Point, damage:Byte, momentum:Point)
 
 
 case class Bullet(
@@ -19,12 +19,11 @@ case class Bullet(
                  damage:Int, //威力
                  momentum:Point,
                  bId:Int,
-                 tankId:Int,
-                 tankName:String
+                 tankId:Int
                  ) extends CircleObjectOfGame{
 
   def this(config:TankGameConfig, bulletState: BulletState){
-    this(config,bulletState.position,bulletState.startFrame,bulletState.damage.toInt,bulletState.momentum,bulletState.bId,bulletState.tankId,bulletState.name)
+    this(config,bulletState.position,bulletState.startFrame,bulletState.damage.toInt,bulletState.momentum,bulletState.bId,bulletState.tankId)
   }
 
 
@@ -40,7 +39,7 @@ case class Bullet(
 
 
   def getBulletState(): BulletState = {
-    BulletState(bId,tankId,startFrame,position,damage.toByte,momentum,tankName)
+    BulletState(bId,tankId,startFrame,position,damage.toByte,momentum)
   }
 
 

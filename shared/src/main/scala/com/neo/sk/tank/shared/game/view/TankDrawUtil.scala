@@ -163,7 +163,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
   def drawTankStar(tankPosition:Point, tank:TankClientImpl) = {
     val firstStarPos = Point(tank.getRadius+TankStar.interval, -(tank.getRadius+TankStar.interval))
-    val endStarNum = if(tank.killTankNum > TankStar.maxNum) TankStar.maxNum else tank.killTankNum
+    val endStarNum = math.min(TankStar.maxNum ,tank.killTankNum)
     (0 until endStarNum).foreach{idx =>
       val starPos = tankPosition + firstStarPos.rotate(idx * Pi/10)
       val img = tankStarImg

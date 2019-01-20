@@ -180,7 +180,7 @@ trait GameContainer extends KillInformation{
         tankMap.remove(e.tankId)
         tankMoveAction.remove(e.tankId)
 
-        addKillInfo(e.bulletTankName,tank.name)
+        addKillInfo(,tank.name)
         dropTankCallback(e.bulletTankId, e.bulletTankName,tank)
       }
     }
@@ -409,7 +409,7 @@ trait GameContainer extends KillInformation{
   //游戏后端需要重写，生成伤害事件
   protected def attackTankCallBack(bullet: Bullet)(tank:Tank):Unit = {
     removeBullet(bullet)
-    val event = TankGameEvent.TankAttacked(tank.tankId,bullet.bId, bullet.tankId, bullet.tankName,bullet.damage,systemFrame)
+    val event = TankGameEvent.TankAttacked(tank.tankId,bullet.bId, bullet.tankId, bullet.damage,systemFrame)
     addFollowEvent(event)
   }
 
