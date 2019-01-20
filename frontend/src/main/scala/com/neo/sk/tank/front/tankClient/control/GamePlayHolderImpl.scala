@@ -6,6 +6,7 @@ import com.neo.sk.tank.front.common.{Constants, Routes}
 import com.neo.sk.tank.front.components.StartGameModal
 import com.neo.sk.tank.front.model.PlayerInfo
 import com.neo.sk.tank.front.utils.{JsFunc, Shortcut}
+import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.game.GameContainerClientImpl
 import com.neo.sk.tank.shared.model.Constants.GameState
 import com.neo.sk.tank.shared.model.Point
@@ -241,6 +242,13 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
     }
   }
 
+  override protected def setKillCallback(tank: Tank,name:String) = {
+    removeHistoryMap(tank.tankId)
+    if (gameContainerOpt.nonEmpty&&tank.tankId ==gameContainerOpt.get.tankId) {
+      if (tank.lives <= 1) setGameState(GameState.stop)
+    }
+  }
+
   override protected def wsMessageHandler(data: TankGameEvent.WsMsgServer): Unit = {
     data match {
       case e: TankGameEvent.WsSuccess =>
@@ -254,7 +262,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
         /**
           * 更新游戏数据
           **/
-        gameContainerOpt = Some(GameContainerClientImpl(drawFrame, ctx, e.config, e.userId, e.tankId, e.name, canvasBoundary, canvasUnit, setGameState, versionInfo = versionInfoOpt))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame, ctx, e.config, e.userId, e.tankId, e.name, canvasBoundary, canvasUnit, setKillCallback, tankHistoryMap, versionInfoOpt))
         gameContainerOpt.get.changeTankId(e.tankId)
       //        gameContainerOpt.foreach(e =>)
 
@@ -300,20 +308,14 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
 
 
       case e: TankGameEvent.GameEvent =>
+        gameContainerOpt.foreach(_.receiveGameEvent(e))
         e match {
           case e: TankGameEvent.UserRelive =>
-            gameContainerOpt.foreach(_.receiveGameEvent(e))
             if (e.userId == gameContainerOpt.get.myId) {
               dom.window.cancelAnimationFrame(nextFrame)
               nextFrame = dom.window.requestAnimationFrame(gameRender())
             }
-
-          case ee: TankGameEvent.GenerateBullet =>
-            gameContainerOpt.foreach(_.receiveGameEvent(e))
-          //            if(gameContainerOpt.get.systemFrame > ee.frame)
-          //              println(s"recv GenerateBullet, curFrame=${gameContainerOpt.get.systemFrame}, eventFrame=${ee.frame}. event=${ee}")
-          //            Shortcut.scheduleOnce(() => gameContainerOpt.foreach(_.receiveGameEvent(e)),100)
-          case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
+          case _ =>
         }
 
       case e: TankGameEvent.PingPackage =>

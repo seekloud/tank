@@ -25,8 +25,8 @@ case class GameContainerClientImpl(
                                     myName: String,
                                     var canvasSize: Point,
                                     var canvasUnit: Int,
-                                    setGameState: Int => Unit,
-                                    setKillCallback: (String, Boolean, Int, Int) => Unit = { (_, _, _, _) => },
+                                    setKillCallback: (Tank,String) => Unit,
+                                    tankHistoryMap:mutable.HashMap[Int,String],
                                     versionInfo: Option[String] = None
                                   ) extends GameContainer with EsRecover
   with BackgroundDrawUtil with BulletDrawUtil with FpsComponentsDrawUtil with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil with InfoDrawUtil {
@@ -42,7 +42,7 @@ case class GameContainerClientImpl(
   protected var damageNum: Int = 0
   protected var killerName: String = ""
 
-  protected var tankId: Int = myTankId
+  var tankId: Int = myTankId
   protected val myTankMoveAction = mutable.HashMap[Long,List[UserActionEvent]]()
 
   def changeTankId(id: Int) = tankId = id
@@ -121,10 +121,7 @@ case class GameContainerClientImpl(
   }
 
   override protected def dropTankCallback(bulletTankId: Int, bulletTankName: String, tank: Tank) = {
-    if (tank.tankId == tankId) {
-      setKillCallback(bulletTankName, tank.lives > 1, tank.killTankNum, tank.damageStatistics)
-      if (tank.lives <= 1) setGameState(GameState.stop)
-    }
+    setKillCallback(tank,bulletTankName)
   }
 
   override protected def handleGenerateProp(e: TankGameEvent.GenerateProp): Unit = {
@@ -207,7 +204,6 @@ case class GameContainerClientImpl(
 
   var fakeFrameStart = 0l
   protected final def handleMyAction(actions:List[UserActionEvent]) = { //处理出现错误动作的帧
-
     def isHaveReal(id: Int) = {
       var isHave = false
       actionEventMap.get(systemFrame).foreach {
@@ -228,7 +224,6 @@ case class GameContainerClientImpl(
           fakeFrameStart = systemFrame
           val tankMoveSet = mutable.Set[Int]()
           actions.sortBy(t => t.serialNum).foreach {
-
             case a: UserPressKeyDown =>
               tankMoveSet.add(a.keyCodeDown)
               tank.setTankDirection(tankMoveSet.toSet)
@@ -288,6 +283,7 @@ case class GameContainerClientImpl(
       val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
       quadTree.insert(tank)
       tankMap.put(t.tankId, tank)
+      tankHistoryMap.put(t.tankId,t.name)
     }
     gameContainerAllState.obstacle.foreach { o =>
       val obstacle = Obstacle(config, o)
@@ -315,7 +311,6 @@ case class GameContainerClientImpl(
       environmentMap.put(obstacle.oId, obstacle)
     }
     waitSyncData = false
-
   }
 
   protected def handleGameContainerState(gameContainerState: GameContainerState) = {
@@ -340,6 +335,7 @@ case class GameContainerClientImpl(
             val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
             quadTree.insert(tank)
             tankMap.put(t.tankId, tank)
+            tankHistoryMap.put(t.tankId,t.name)
           }
         case None =>
           println(s"handle game container client--no tanks")
@@ -402,7 +398,6 @@ case class GameContainerClientImpl(
         case None =>
           info(s"收到同步帧号的数据")
       }
-
     } else {
       info(s"收到同步数据，但未同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
     }

@@ -88,7 +88,7 @@ case class GameContainerServerImpl(
           }
         }
 
-        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(), tankId, systemFrame, position, damage.toByte, momentum, tank.name)
+        val bulletState = BulletState(bulletIdGenerator.getAndIncrement(), tankId, systemFrame, position, damage.toByte, momentum)
         transformGenerateBulletEvent(bulletState)
       case None => debug(s"tankId=${tankId} has no bullet now")
     }

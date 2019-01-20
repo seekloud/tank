@@ -2,10 +2,12 @@ package com.neo.sk.tank.front.tankClient.control
 
 import com.neo.sk.tank.front.common.{Constants, Routes}
 import com.neo.sk.tank.front.utils.Shortcut
+import com.neo.sk.tank.shared.`object`.Tank
 import com.neo.sk.tank.shared.protocol.TankGameEvent
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
 import com.neo.sk.tank.shared.game.GameContainerClientImpl
+import com.neo.sk.tank.shared.model.Constants.GameState
 
 /**
   * User: sky
@@ -30,12 +32,19 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
     webSocketClient.setup(Routes.getWsSocketUri(roomId, accessCode, playerId))
   }
 
+  override protected def setKillCallback(tank: Tank,name:String) = {
+    removeHistoryMap(tank.tankId)
+    if (gameContainerOpt.nonEmpty&&tank.tankId ==gameContainerOpt.get.tankId) {
+      if (tank.lives <= 1) setGameState(GameState.stop)
+    }
+  }
+
   override protected def wsMessageHandler(data:TankGameEvent.WsMsgServer):Unit = {
 //    println(data.getClass)
     data match {
       case e:TankGameEvent.YourInfo =>
         //        setGameState(Constants.GameState.loadingPlay)
-        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setGameState, versionInfo = versionInfoOpt))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setKillCallback, tankHistoryMap,versionInfoOpt))
         gameContainerOpt.get.changeTankId(e.tankId)
         Shortcut.cancelSchedule(timer)
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)

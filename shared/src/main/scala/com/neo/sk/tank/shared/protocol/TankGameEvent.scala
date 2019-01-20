@@ -56,7 +56,6 @@ object TankGameEvent {
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
   final case class FirstSyncGameAllState(gState:GameContainerAllState,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
   final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false) extends WsMsgSource
-//  final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false) extends WsMsgSource
   final case class PingPackage(sendTime:Long) extends WsMsgServer with WsMsgFront
 
   sealed trait GameEvent {
@@ -138,7 +137,7 @@ object TankGameEvent {
   /**散弹枪失效*/
   final case class TankShotgunExpire(tankId:Int,override val frame:Long) extends FollowEvent
   /**伤害计算*/
-  final case class TankAttacked(tankId:Int,bulletId:Int, bulletTankId:Int, bulletTankName:String, damage:Int,override val frame:Long) extends FollowEvent
+  final case class TankAttacked(tankId:Int,bulletId:Int, bulletTankId:Int, damage:Int,override val frame:Long) extends FollowEvent
 
   final case class ObstacleAttacked(obstacleId:Int, bulletId:Int, damage:Int, override val frame:Long) extends FollowEvent
 
