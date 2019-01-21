@@ -83,7 +83,7 @@ case class GameContainerServerImpl(
             val momentum = if (tank.getTankIsMove()) config.bulletSpeed.rotate(bulletDir) * config.frameDuration / 1000 +
               config.getMoveDistanceByFrame(tank.getTankSpeedLevel()).rotate(tank.getTankDirection()).*(0.2f)
             else config.bulletSpeed.rotate(bulletDir) * config.frameDuration / 1000
-            val bulletState = `object`.BulletState(bulletIdGenerator.getAndIncrement(), tankId, systemFrame, bulletPos, damage.toByte, momentum, tank.name)
+            val bulletState = `object`.BulletState(bulletIdGenerator.getAndIncrement(), tankId, systemFrame, bulletPos, damage.toByte, momentum)
             transformGenerateBulletEvent(bulletState,false)
           }
         }
@@ -297,6 +297,7 @@ case class GameContainerServerImpl(
             userMapObserver.update(userId, mutable.HashMap.empty)
         }
         tankMap.put(tank.tankId, tank)
+        tankHistoryMap.put(tank.tankId,tank.name)
         quadTree.insert(tank)
         //无敌时间消除
         tankInvincibleCallBack(tank.tankId)
@@ -316,6 +317,7 @@ case class GameContainerServerImpl(
         botActor ! BotActor.JoinRoomSuccess(tank,roomActor)
 
         tankMap.put(tank.tankId, tank)
+        tankHistoryMap.put(tank.tankId,tank.name)
         quadTree.insert(tank)
         //无敌时间消除
         tankInvincibleCallBack(tank.tankId)

@@ -49,6 +49,7 @@ object TankGameEvent {
   final case class StartGame(roomId:Option[Long],password:Option[String]) extends WsMsgFront
   final case class CreateRoom(roomId:Option[Long],password:Option[String]) extends WsMsgFront
   final case class YourInfo(userId:String,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer
+
   final case class YouAreKilled(tankId:Int, name:String, hasLife:Boolean,killTankNum:Int,lives:Int,damageStatistics:Int) extends WsMsgServer //可能会丢弃
   @deprecated
   final case class Ranks(currentRank: List[Score], historyRank: List[Score] = Nil) extends WsMsgServer

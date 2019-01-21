@@ -73,10 +73,9 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
   }
 
 
-  override protected def setKillCallback(tank: Tank,name:String) = {
-    removeHistoryMap(tank.tankId)
+  override protected def setKillCallback(tank: Tank) = {
     if (gameContainerOpt.nonEmpty&&tank.tankId ==gameContainerOpt.get.tankId) {
-      gameContainerOpt.foreach(_.updateDamageInfo(tank.killTankNum,name,tank.damageStatistics))
+      gameContainerOpt.foreach(_.updateDamageInfo(tank.killTankNum,"",tank.damageStatistics))
       if (tank.lives <= 1) setGameState(GameState.stop)
     }
   }
@@ -92,7 +91,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
           firstCome = true
         }
         //        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
-        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit, setKillCallback,tankHistoryMap,versionInfoOpt))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit, setKillCallback,versionInfoOpt))
         gameContainerOpt.get.changeTankId(e.tankId)
 
       case e:TankGameEvent.TankFollowEventSnap =>
