@@ -254,16 +254,6 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         println(s"game TankFollowEventSnap =${e} systemFrame=${gameContainerOpt.get.systemFrame} tankId=${gameContainerOpt.get.myTankId} ")
         gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
-      case e:TankGameEvent.Ranks =>
-        /**
-          * 游戏排行榜
-          * */
-        gameContainerOpt.foreach{ t =>
-          t.currentRank = e.currentRank
-          t.historyRank = e.historyRank
-          t.rankUpdated = true
-        }
-
       case e:TankGameEvent.SyncGameState =>
         gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
 

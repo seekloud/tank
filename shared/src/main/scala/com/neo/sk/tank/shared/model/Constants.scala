@@ -81,7 +81,7 @@ object Constants {
 
 
   val PreExecuteFrameOffset = 2 //预执行2帧
-  val fakeRender = false
+  val fakeRender = true
 
   object GameState{
     val firstCome = 1

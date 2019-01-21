@@ -63,16 +63,6 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
       case e:TankGameEvent.SyncGameState =>
         gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
 
-      case e:TankGameEvent.Ranks =>
-        /**
-          * 游戏排行榜
-          * */
-        gameContainerOpt.foreach{ t =>
-          t.currentRank = e.currentRank
-          t.historyRank = e.historyRank
-          t.rankUpdated = true
-        }
-
       case e:TankGameEvent.UserActionEvent =>
         gameContainerOpt.foreach(_.receiveUserEvent(e))
 
