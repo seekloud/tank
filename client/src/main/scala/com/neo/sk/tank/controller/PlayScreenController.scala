@@ -106,13 +106,6 @@ class PlayScreenController(
   })
   timeline.getKeyFrames.add(keyFrame)
 
-  protected val tankHistoryMap = mutable.HashMap[Int,String]()
-
-  //todo 启用定时清除坦克信息
-  protected def removeHistoryMap(id:Int)={
-
-  }
-
   private val animationTimer = new AnimationTimer() {
     override def handle(now: Long): Unit = {
       drawGame(System.currentTimeMillis() - logicFrameTime)
@@ -137,8 +130,7 @@ class PlayScreenController(
     gameState = s
   }
 
-  protected def setKillCallback(tank: Tank,name:String) = {
-    removeHistoryMap(tank.tankId)
+  protected def setKillCallback(tank: Tank) = {
     if (gameContainerOpt.nonEmpty&&tank.tankId ==gameContainerOpt.get.tankId) {
       if (tank.lives <= 1) setGameState(GameState.stop)
     }
@@ -334,7 +326,7 @@ class PlayScreenController(
           println("start------------")
           gameMusicPlayer.play()
           try {
-            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.drawFrame,playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setKillCallback,tankHistoryMap))
+            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.drawFrame,playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setKillCallback))
             gameContainerOpt.get.changeTankId(e.tankId)
             recvYourInfo = true
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))

@@ -25,8 +25,7 @@ case class GameContainerClientImpl(
                                     myName: String,
                                     var canvasSize: Point,
                                     var canvasUnit: Int,
-                                    setKillCallback: (Tank,String) => Unit,
-                                    tankHistoryMap:mutable.HashMap[Int,String],
+                                    setKillCallback: Tank => Unit,
                                     versionInfo: Option[String] = None
                                   ) extends GameContainer with EsRecover
   with BackgroundDrawUtil with BulletDrawUtil with FpsComponentsDrawUtil with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil with InfoDrawUtil {
@@ -121,7 +120,7 @@ case class GameContainerClientImpl(
   }
 
   override protected def dropTankCallback(bulletTankId: Int, bulletTankName: String, tank: Tank) = {
-    setKillCallback(tank,bulletTankName)
+    setKillCallback(tank)
   }
 
   override protected def handleGenerateProp(e: TankGameEvent.GenerateProp): Unit = {
@@ -283,7 +282,7 @@ case class GameContainerClientImpl(
       val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
       quadTree.insert(tank)
       tankMap.put(t.tankId, tank)
-      tankHistoryMap.put(t.tankId,t.name)
+      tankHistoryMap.put(t.tankId,tank.name)
     }
     gameContainerAllState.obstacle.foreach { o =>
       val obstacle = Obstacle(config, o)
@@ -335,7 +334,7 @@ case class GameContainerClientImpl(
             val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
             quadTree.insert(tank)
             tankMap.put(t.tankId, tank)
-            tankHistoryMap.put(t.tankId,t.name)
+            tankHistoryMap.put(t.tankId,tank.name)
           }
         case None =>
           println(s"handle game container client--no tanks")

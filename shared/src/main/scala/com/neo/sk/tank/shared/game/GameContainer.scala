@@ -60,6 +60,8 @@ trait GameContainer extends KillInformation{
 
   val quadTree : QuadTree = new QuadTree(Rectangle(Point(0,0),boundary))
 
+  protected val tankHistoryMap = mutable.HashMap[Int,String]()
+  protected val removeTankHistoryMap=mutable.HashMap[Long,List[Int]]()
 
   protected val gameEventMap = mutable.HashMap[Long,List[GameEvent]]() //frame -> List[GameEvent] 待处理的事件 frame >= curFrame
   protected val actionEventMap = mutable.HashMap[Long,List[UserActionEvent]]() //frame -> List[UserActionEvent]
@@ -68,11 +70,21 @@ trait GameContainer extends KillInformation{
     l foreach handleUserJoinRoomEvent
   }
 
+  protected def handleRemoveHistoryMapNow():Unit={
+    removeTankHistoryMap.get(systemFrame) match {
+      case Some(l)=>
+        l.foreach(t=>tankHistoryMap.remove(t))
+        removeTankHistoryMap.remove(systemFrame)
+      case None=>
+    }
+  }
+
 
   protected def handleUserJoinRoomEvent(e:UserJoinRoom) :Unit = {
 //    println(s"-------------------处理用户加入房间事件")
     val tank : Tank = e.tankState
     tankMap.put(e.tankState.tankId,tank)
+    tankHistoryMap.put(e.tankState.tankId,e.tankState.name)
     quadTree.insert(tank)
   }
 
@@ -109,6 +121,10 @@ trait GameContainer extends KillInformation{
     tankMoveAction.remove(e.tankId)
     tankMap.get(e.tankId).foreach(quadTree.remove)
     tankMap.remove(e.tankId)
+    removeTankHistoryMap.get(systemFrame+1000) match {
+      case Some(l)=>removeTankHistoryMap.put(systemFrame+1000,e.tankId::l)
+      case None=>removeTankHistoryMap.put(systemFrame+1000,List(e.tankId))
+    }
   }
 
   final protected def handleUserLeftRoom(l:List[UserLeftRoom]) :Unit = {
@@ -179,9 +195,8 @@ trait GameContainer extends KillInformation{
         quadTree.remove(tank)
         tankMap.remove(e.tankId)
         tankMoveAction.remove(e.tankId)
-
-        addKillInfo(,tank.name)
-        dropTankCallback(e.bulletTankId, e.bulletTankName,tank)
+        addKillInfo(tankHistoryMap.getOrElse(e.bulletTankId,"未知"),tank.name)
+        dropTankCallback(e.bulletTankId,tankHistoryMap.getOrElse(e.bulletTankId,"未知"),tank)
       }
     }
   }
@@ -509,6 +524,8 @@ trait GameContainer extends KillInformation{
 
     quadTree.refresh(quadTree)
     updateKillInformation()
+
+    handleRemoveHistoryMapNow()
     clearEventWhenUpdate()
   }
 

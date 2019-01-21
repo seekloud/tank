@@ -36,13 +36,8 @@ abstract class GameHolder(name: String) extends NetworkInfo {
 
   protected var tickCount = 1//更新排行榜信息计时器
   protected val rankCycle = 20
-  protected val tankHistoryMap = mutable.HashMap[Int,String]()
 
-  protected def removeHistoryMap(id:Int)={
-    Shortcut.scheduleOnce(()=>tankHistoryMap.remove(id),60000)
-  }
-
-  protected def setKillCallback(tank: Tank,name:String):Unit
+  protected def setKillCallback(tank: Tank):Unit
 //  protected val audioForBgm = dom.document.getElementById("GameAudioForBgm").asInstanceOf[Audio]
 //  audioForBgm.volume = 0.3
 //  protected val audioForDead = dom.document.getElementById("GameAudioForDead").asInstanceOf[Audio]

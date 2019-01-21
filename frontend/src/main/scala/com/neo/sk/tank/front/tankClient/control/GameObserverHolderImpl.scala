@@ -32,8 +32,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
     webSocketClient.setup(Routes.getWsSocketUri(roomId, accessCode, playerId))
   }
 
-  override protected def setKillCallback(tank: Tank,name:String) = {
-    removeHistoryMap(tank.tankId)
+  override protected def setKillCallback(tank: Tank) = {
     if (gameContainerOpt.nonEmpty&&tank.tankId ==gameContainerOpt.get.tankId) {
       if (tank.lives <= 1) setGameState(GameState.stop)
     }
@@ -44,7 +43,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
     data match {
       case e:TankGameEvent.YourInfo =>
         //        setGameState(Constants.GameState.loadingPlay)
-        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setKillCallback, tankHistoryMap,versionInfoOpt))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setKillCallback,versionInfoOpt))
         gameContainerOpt.get.changeTankId(e.tankId)
         Shortcut.cancelSchedule(timer)
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)
