@@ -108,17 +108,6 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
           gameContainerOpt.foreach(_.receiveGameContainerState(GameContainerState(e.gState.f,Some(e.gState.tanks))))
         }
 
-      case e:TankGameEvent.Ranks =>
-        /**
-          * 游戏排行榜
-          * */
-        gameContainerOpt.foreach{ t =>
-          t.currentRank = e.currentRank
-          t.historyRank = e.historyRank
-          t.rankUpdated = true
-        }
-
-
       case TankGameEvent.StartReplay =>
         println("start replay---")
         setGameState(GameState.play)

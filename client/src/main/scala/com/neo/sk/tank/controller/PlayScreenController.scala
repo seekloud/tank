@@ -362,18 +362,6 @@ class PlayScreenController(
 //        case e:TankGameEvent.TankReliveInfo =>
 //          animationTimer.start()
 
-        case e: TankGameEvent.Ranks =>
-
-          /**
-            * 游戏排行榜
-            **/
-          gameContainerOpt.foreach{ t =>
-            t.currentRank = e.currentRank
-            t.historyRank = e.historyRank
-            t.rankUpdated = true
-          }
-
-
         case e: TankGameEvent.SyncGameState =>
           gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
 
