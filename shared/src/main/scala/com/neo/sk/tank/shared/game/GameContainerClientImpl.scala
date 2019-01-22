@@ -216,7 +216,7 @@ case class GameContainerClientImpl(
       isHave
     }
     if (tankMap.contains(tankId)) {
-      val tank = tankMap(tankId)
+      val tank = tankMap(tankId).asInstanceOf[TankClientImpl]
       if(actions.nonEmpty){
         val tankMoveSet = mutable.Set[Byte]()
         actions.sortBy(t => t.serialNum).foreach {
