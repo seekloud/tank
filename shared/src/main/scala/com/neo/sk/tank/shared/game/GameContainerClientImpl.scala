@@ -222,7 +222,7 @@ case class GameContainerClientImpl(
           tank.isFakeMove = true
           tank.fakePosition = tank.getPosition
           fakeFrameStart = systemFrame
-          val tankMoveSet = mutable.Set[Int]()
+          val tankMoveSet = mutable.Set[Byte]()
           actions.sortBy(t => t.serialNum).foreach {
             case a: UserPressKeyDown =>
               tankMoveSet.add(a.keyCodeDown)
@@ -292,8 +292,8 @@ case class GameContainerClientImpl(
       propMap.put(t.pId, prop)
     }
     gameContainerAllState.tankMoveAction.foreach { t =>
-      val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Int]())
-      t._2.foreach(set.add)
+      val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Byte]())
+      t._2.foreach(l=>l.foreach(set.add))
       tankMoveAction.put(t._1, set)
     }
     gameContainerAllState.bullet.foreach { t =>
@@ -325,6 +325,7 @@ case class GameContainerClientImpl(
       systemFrame = gameContainerState.f
       quadTree.clear()
       tankMap.clear()
+      tankMoveAction.clear()
       gameContainerState.tanks match{
         case Some(tanks) =>
           tanks.foreach { t =>
@@ -335,6 +336,15 @@ case class GameContainerClientImpl(
           }
         case None =>
           println(s"handle game container client--no tanks")
+      }
+      gameContainerState.tankMoveAction match {
+        case Some(as)=>
+          as.foreach { t =>
+            val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Byte]())
+            t._2.foreach(l=>l.foreach(set.add))
+            tankMoveAction.put(t._1, set)
+          }
+        case None=>
       }
       obstacleMap.values.foreach(o=>quadTree.insert(o))
       propMap.values.foreach(o=>quadTree.insert(o))
@@ -381,7 +391,7 @@ case class GameContainerClientImpl(
         case None =>
           gameContainerStateOpt match{
             case Some(state) =>
-              gameContainerStateOpt = Some(TankGameEvent.GameContainerState(gameContainerState.f,state.tanks))
+              gameContainerStateOpt = Some(TankGameEvent.GameContainerState(gameContainerState.f,state.tanks,state.tankMoveAction))
             case None =>
           }
       }

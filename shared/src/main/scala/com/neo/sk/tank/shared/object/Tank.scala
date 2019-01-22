@@ -478,7 +478,8 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   /**
     * 根据坦克的按键修改坦克的方向状态
     * */
-  final def setTankDirection(actionSet:Set[Int]) = {
+  final def setTankDirection(actionSet:Set[Byte]) = {
+
     val targetDirectionOpt = getDirection(actionSet)
     if(targetDirectionOpt.nonEmpty) {
       isMove = true
@@ -487,7 +488,9 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
     else isMove = false
   }
 
-  private final def getDirection(actionSet:Set[Int]):Option[Float] = {
+  import scala.language.implicitConversions
+  private final def getDirection(actionSet:Set[Byte]):Option[Float] = {
+    implicit def changeInt2Byte(i:Int):Byte=i.toByte
     if(actionSet.contains(KeyEvent.VK_LEFT) && actionSet.contains(KeyEvent.VK_UP)){
       Some(DirectionType.upLeft.toFloat)
     }else if(actionSet.contains(KeyEvent.VK_RIGHT) && actionSet.contains(KeyEvent.VK_UP)){
