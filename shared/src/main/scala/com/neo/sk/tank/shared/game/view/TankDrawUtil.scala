@@ -19,7 +19,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   private val emptyBulletImg = drawFrame.createImage("/img/子弹消失重构.png")
   private val fillMedicalImg = drawFrame.createImage("/img/yiliao.png")
   private val emptyMedicalImg = drawFrame.createImage("/img/huiyiliao.png")
-  private val sunImg = drawFrame.createImage("/img/sun.png")
+//  private val sunImg = drawFrame.createImage("/img/sun.png")
   private val tankStarImg = drawFrame.createImage("/img/star.png")
 
 

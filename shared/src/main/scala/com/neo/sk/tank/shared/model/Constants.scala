@@ -46,7 +46,7 @@ object Constants {
   }
 
   object TankStar{
-    val maxNum = 79
+    val maxNum = 16
     val height = 2
     val width = 2
     val interval = 2
