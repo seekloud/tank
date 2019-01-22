@@ -58,7 +58,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
     case origin => origin
   }
 
-  def getActionSerialNum: Byte = actionSerialNumGenerator.getAndIncrement().toByte
+  def getActionSerialNum: Byte = (actionSerialNumGenerator.getAndIncrement()%127).toByte
 
   def getStartGameModal(): Elem = {
     startGameModal.render
@@ -106,7 +106,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
       val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
       //remind tank自身流畅显示
       //fixme 此处序列号是否存疑
-      val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+      val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta,-1)
       gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
       if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame+perMouseMoveFrame < gameContainerOpt.get.systemFrame) {
         if (lastMouseMoveAngle!=angle) {
