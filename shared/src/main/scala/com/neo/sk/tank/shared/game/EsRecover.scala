@@ -66,7 +66,7 @@ trait EsRecover { this:GameContainerClientImpl =>
   }
 
 
-  def removePreEventHistory(frame:Long, tankId:Int, serialNum:Int):Unit = {
+  def removePreEventHistory(frame:Long, tankId:Int, serialNum:Byte):Unit = {
     actionEventHistoryMap.get(frame).foreach{ actions =>
       actionEventHistoryMap.put(frame,actions.filterNot(t => t.tankId == tankId && t.serialNum == serialNum))
     }

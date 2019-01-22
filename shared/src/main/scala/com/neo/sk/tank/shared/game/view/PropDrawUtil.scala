@@ -9,7 +9,7 @@ import com.neo.sk.tank.shared.model.Point
   */
 trait PropDrawUtil { this: GameContainerClientImpl =>
   private val bloodPropImg =drawFrame.createImage("/img/xueliang.png")
-  private val speedPropImg = drawFrame.createImage("/img/sudu.png")
+  private val speedPropImg = drawFrame.createImage("/img/加速.png")
   private val bulletPowerPropImg = drawFrame.createImage("/img/qiang.png")
   private val medicalPropImg =drawFrame.createImage("/img/yiliao.png")
   private val shotgunPropImg = drawFrame.createImage("/img/sandan.png")

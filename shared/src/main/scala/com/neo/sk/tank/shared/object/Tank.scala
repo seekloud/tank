@@ -37,7 +37,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   def returnCurNum = curBulletNum
   protected var direction:Float //移动方向
   protected var gunDirection:Float
-  var cavasFrame = 0
+  var canvasFrame = 0
   protected var shotgunState:Boolean
   protected var invincibleState:Boolean
   protected var isMove: Boolean
@@ -318,10 +318,10 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
 //    modifySpeed()
   }
 
-  def canMove(boundary:Point,quadTree:QuadTree, cavasFrameLeft:Int)(implicit tankGameConfig: TankGameConfig):Option[Point] = {
+  def canMove(boundary:Point, quadTree:QuadTree, canvasFrameLeft:Int)(implicit tankGameConfig: TankGameConfig):Option[Point] = {
     if(com.neo.sk.tank.shared.model.Constants.fakeRender){
       if(isMove){
-        if(!isFakeMove && (cavasFrame <= 0 || cavasFrame >= cavasFrameLeft)) {
+        if(!isFakeMove && (canvasFrame <= 0 || canvasFrame >= canvasFrameLeft)) {
           var moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
           val horizontalDistance = moveDistance.copy(y = 0)
           val verticalDistance = moveDistance.copy(x = 0)

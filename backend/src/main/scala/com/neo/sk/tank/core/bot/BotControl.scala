@@ -32,7 +32,7 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
   private val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
   private val actionSerialNumGenerator = new AtomicInteger(0)
 
-  def getActionSerialNum: Int = actionSerialNumGenerator.getAndIncrement()
+  def getActionSerialNum: Byte = actionSerialNumGenerator.getAndIncrement().toByte
 
   def setGameState(s: Int) = gameState = s
 
@@ -74,11 +74,11 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
   }
 
   private def userKeyDown(keyCode: Int) = {
-    TankGameEvent.UserPressKeyDown(tankId, gameContainer.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
+    TankGameEvent.UserPressKeyDown(tankId, gameContainer.systemFrame + preExecuteFrameOffset, keyCode.toByte, getActionSerialNum)
   }
 
   def userKeyUp(keyCode: Int) = {
-    TankGameEvent.UserPressKeyUp(tankId, gameContainer.systemFrame + 10 + preExecuteFrameOffset, keyCode, getActionSerialNum)
+    TankGameEvent.UserPressKeyUp(tankId, gameContainer.systemFrame + 10 + preExecuteFrameOffset, keyCode.toByte, getActionSerialNum)
   }
 
   private def userMouseClick(d:Float) = {

@@ -43,13 +43,6 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
     KeyCode.Down
   )
 
-  private val watchBakKeys = Set(
-    KeyCode.W,
-    KeyCode.S,
-    KeyCode.A,
-    KeyCode.D
-  )
-
   private val gunAngleAdjust = Set(
     KeyCode.K,
     KeyCode.L
@@ -65,7 +58,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
     case origin => origin
   }
 
-  def getActionSerialNum: Int = actionSerialNumGenerator.getAndIncrement()
+  def getActionSerialNum: Byte = actionSerialNumGenerator.getAndIncrement().toByte
 
   def getStartGameModal(): Elem = {
     startGameModal.render
@@ -148,7 +141,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
           myKeySet.add(keyCode)
           //          println(s"key down: [${e.keyCode}]")
-          val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode.toByte, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
           if (com.neo.sk.tank.shared.model.Constants.fakeRender) {
@@ -186,15 +179,6 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
           sendMsg2Server(preExecuteAction)
           e.preventDefault()
         }
-        //        else if(keyCode == KeyCode.M){
-        //          if(needBgm){
-        //            audioForBgm.pause()
-        //            needBgm = false
-        //          }else{
-        //            audioForBgm.play()
-        //            needBgm = true
-        //          }
-        //        }
       }
 
     }
@@ -205,7 +189,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
         if (watchKeys.contains(keyCode)) {
           myKeySet.remove(keyCode)
           //          println(s"key up: [${e.keyCode}]")
-          val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode.toByte, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
           if (com.neo.sk.tank.shared.model.Constants.fakeRender) {

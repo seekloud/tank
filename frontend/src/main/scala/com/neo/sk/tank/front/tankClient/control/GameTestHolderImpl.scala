@@ -47,13 +47,6 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     KeyCode.Down
   )
 
-  private val watchBakKeys = Set(
-    KeyCode.W,
-    KeyCode.S,
-    KeyCode.A,
-    KeyCode.D
-  )
-
   private val gunAngleAdjust = Set(
     KeyCode.K,
     KeyCode.L
@@ -69,7 +62,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     case origin => origin
   }
 
-  def getActionSerialNum:Int = actionSerialNumGenerator.getAndIncrement()
+  def getActionSerialNum:Byte = actionSerialNumGenerator.getAndIncrement().toByte
 
   def getStartGameModal():Elem = {
     startGameModal.render
@@ -177,7 +170,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
     val keyCode = changeKeys(randomKeyCode)
     if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
       myKeySet.add(keyCode)
-      val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
+      val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode.toByte, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
       sendMsg2Server(preExecuteAction)
       if (com.neo.sk.tank.shared.model.Constants.fakeRender) {
@@ -205,7 +198,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   private def fakeUserKeyUp(keyCode:Int) = {
     if (watchKeys.contains(keyCode)){
       myKeySet.remove(keyCode)
-      val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode, getActionSerialNum)
+      val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode.toByte, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
       sendMsg2Server(preExecuteAction)
       if (com.neo.sk.tank.shared.model.Constants.fakeRender) {

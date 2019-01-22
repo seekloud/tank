@@ -69,7 +69,7 @@ object TankGameEvent {
   trait FollowEvent extends GameEvent  //游戏逻辑产生事件
   trait UserActionEvent extends UserEvent{   //游戏用户动作事件
     val tankId:Int
-    val serialNum:Int
+    val serialNum:Byte
   }
   /**异地登录消息
     * WebSocket连接重新建立*/
@@ -96,21 +96,21 @@ object TankGameEvent {
 //  final case class UserMouseMove(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 
   /**用于前端流畅*/
-  final case class UserMouseMove(tankId:Int, override val frame:Long, d:Float, override val serialNum:Int) extends UserActionEvent
-  final case class UM(tankId:Int, override val frame:Long, d:Byte, override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  final case class UserMouseMove(tankId:Int, override val frame:Long, d:Float, override val serialNum:Byte) extends UserActionEvent
+  final case class UM(tankId:Int, override val frame:Long, d:Byte, override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
 
   type UserMouseMoveByte = UM
 
-  final case class UserKeyboardMove(tankId:Int,override val frame:Long,angle:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  final case class UserKeyboardMove(tankId:Int,override val frame:Long,angle:Float,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
 
-  final case class UC(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  final case class UC(tankId:Int,override val frame:Long,d:Float,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
 
   type UserMouseClick = UC
 
-  final case class UserPressKeyDown(tankId:Int,override val frame:Long,keyCodeDown:Int,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
-  final case class UserPressKeyUp(tankId:Int,override val frame:Long,keyCodeUp:Int,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  final case class UserPressKeyDown(tankId:Int,override val frame:Long,keyCodeDown:Byte,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
+  final case class UserPressKeyUp(tankId:Int,override val frame:Long,keyCodeUp:Byte,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
   /**使用医疗包*/
-  final case class UserPressKeyMedical(tankId:Int,override val frame:Long, override val serialNum: Int) extends UserActionEvent with WsMsgFront with WsMsgServer
+  final case class UserPressKeyMedical(tankId:Int,override val frame:Long, override val serialNum: Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
   /**tank吃道具*/
   final case class TankEatProp(tankId:Int,propId:Int,propType:Byte,frame:Long) extends GameEvent with WsMsgServer
   /**生成道具*/
