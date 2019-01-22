@@ -204,17 +204,6 @@ case class GameContainerClientImpl(
 
   //todo 处理出现错误动作的帧
   protected final def handleMyAction(actions:List[UserActionEvent]) = {
-    def isHaveReal(id: Int) = {
-      var isHave = false
-      actionEventMap.get(systemFrame).foreach {
-        list =>
-          list.foreach {
-            a =>
-              if (a.tankId == id) isHave = true
-          }
-      }
-      isHave
-    }
     if (tankMap.contains(tankId)) {
       val tank = tankMap(tankId).asInstanceOf[TankClientImpl]
       if(actions.nonEmpty){
@@ -224,8 +213,9 @@ case class GameContainerClientImpl(
             tankMoveSet.add(a.keyCodeDown)
           case _ =>
         }
-        if(tankMoveSet.nonEmpty && !tank.getMoveState() && !tank.getFakeMoveState() && !isHaveReal(tankId)){
-          tank.setFakeTankDirection(tankMoveSet.toSet)
+        if(tankMoveSet.nonEmpty && !tank.getMoveState() && !tank.getFakeMoveState()){
+          println("=======start fake move")
+          tank.setFakeTankDirection(tankMoveSet.toSet,systemFrame)
         }
       }
     }
@@ -453,7 +443,7 @@ case class GameContainerClientImpl(
       ctx.setLineJoin("round")
       tankMap.get(tankId) match {
         case Some(tank) =>
-          val offset = canvasSize / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime)
+          val offset = canvasSize / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime,systemFrame)
           drawBackground(offset)
           drawObstacles(offset, Point(w, h))
           drawEnvironment(offset, Point(w, h))

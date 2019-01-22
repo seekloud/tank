@@ -33,7 +33,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   protected def drawTank(offset:Point, offsetTime:Long, view:Point) = {
     tankMap.values.foreach { t =>
       val tank = t.asInstanceOf[TankClientImpl]
-      val p = tank.getPosition4Animation(boundary, quadTree, offsetTime) + offset
+      val p = tank.getPosition4Animation(boundary, quadTree, offsetTime,systemFrame) + offset
       if (p.in(view, Point(t.getRadius * 4, t.getRadius * 4))) {
         if (tankAttackedAnimationMap.contains(tank.tankId)) {
           if (tankAttackedAnimationMap(tank.tankId) <= 0) tankAttackedAnimationMap.remove(tank.tankId)
