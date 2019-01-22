@@ -133,16 +133,45 @@ case class GameContainerServerImpl(
       }
     }
     val totalScore = tankState.bulletPowerLevel.toInt + tankState.bloodLevel.toInt + tankState.speedLevel.toInt - 2
-    val propType: Byte = random.nextInt(4 + totalScore) + 1 match {
-      case 1 => 1
-      case 2 => 2
-      case 3 => 3
-      case 4 => 4
-      case _ => 5
+    //fixme 出现多道具
+    var index=1
+    def changeInt2P(index:Int)={
+      index match {
+        case 1=>(0f,0f)
+        case 1.8=>(1.8f,0f)
+        case 3=>(1.8f,-1.8f)
+        case 4=>(0f,-1.8f)
+        case 5=>(-1.8f,-1.8f)
+        case 6=>(-1.8f,0f)
+        case 7=>(-1.8f,1.8f)
+        case 8=>(0f,1.8f)
+        case 9=>(1.8f,1.8f)
+        case _=>(0f,0f)
+      }
     }
-    val event = TankGameEvent.GenerateProp(systemFrame, PropState(propIdGenerator.getAndIncrement(), propType, tank.getPosition, config.getPropDisappearFrame), PropGenerateType.tank)
-    dispatch(event)
-    addGameEvent(event)
+    for(i <- 1 to math.min(3,tankState.killTankNum/3+1)){
+      val propType: Byte = random.nextInt(4 + totalScore) + 1 match {
+        case 1 => 1
+        case 2 => 2
+        case 3 => 3
+        case 4 => 4
+        case _ => 5
+      }
+      var pos=tank.getPosition+Point(changeInt2P(index)._1*config.propRadius,changeInt2P(index)._2*config.propRadius)
+      var prop = Prop(PropState(0, propType, pos, config.getPropDisappearFrame),config.propRadius)
+      val objects = quadTree.retrieveFilter(prop).filter(t => t.isInstanceOf[Obstacle])
+      while (prop.isIntersectsObject(objects)&&index<10) {
+        index+=1
+        pos=tank.getPosition+Point(changeInt2P(index)._1*config.propRadius,changeInt2P(index)._2*config.propRadius)
+        prop = Prop(PropState(0, propType, pos, config.getPropDisappearFrame),config.propRadius)
+      }
+      if(!prop.isIntersectsObject(objects)){
+        index+=1
+        val event = TankGameEvent.GenerateProp(systemFrame, PropState(propIdGenerator.getAndIncrement(), propType, pos, config.getPropDisappearFrame), PropGenerateType.tank)
+        dispatch(event)
+        addGameEvent(event)
+      }
+    }
   }
 
   private def genObstaclePositionRandom(): Point = {
@@ -511,7 +540,8 @@ case class GameContainerServerImpl(
   def getGameContainerState(frameOnly:Boolean = false): GameContainerState = {
     GameContainerState(
       systemFrame,
-      if(frameOnly) None else Some(tankMap.values.map(_.getTankState()).toList)
+      if(frameOnly) None else Some(tankMap.values.map(_.getTankState()).toList),
+      if(frameOnly) None else Some(tankMoveAction.toList.map(t => (t._1,if(t._2.isEmpty) None else Some(t._2.toList))))
     )
   }
 

@@ -33,6 +33,10 @@ trait Prop extends CircleObjectOfGame{
     else false
   }
 
+  final def isIntersectsObject(o:Seq[ObjectOfGame]):Boolean = {
+    o.exists(t => t.isIntersects(this))
+  }
+
   override var position: model.Point
 
   final def getPropState:PropState = PropState(pId,propType,position, disappearTime)

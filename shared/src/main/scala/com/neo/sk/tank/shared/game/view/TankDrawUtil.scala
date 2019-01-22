@@ -201,7 +201,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
   protected def drawMyTankInfo(tank:TankClientImpl,supportLiveLimit:Boolean) = {
     val cache = myTankInfoCacheMap.getOrElseUpdate((tank.getBloodLevel,tank.getSpeedLevel,tank.getBulletLevel),generateMyTankInfoCanvas(tank,supportLiveLimit))
-    ctx.drawImage(cache,0,(canvasBoundary.y - 20) * canvasUnit)
+    ctx.drawImage(cache,0,2 * canvasUnit)
   }
 
   def drawLevel(level:Byte,maxLevel:Byte,name:String,start:Point,length:Float,color:String, context:MiddleContext) = {
@@ -255,13 +255,13 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     ctx.setTextAlign("left")
     ctx.setFont("隶书", "bold", 1.8 * canvasUnit)
     ctx.setLineWidth(1)
-    ctx.fillText(s"血包${("                       ").take(30)}(按E键使用)", 4.5*canvasUnit,(canvasBoundary.y - 22.5)  * canvasUnit , 30 * canvasUnit)
+    ctx.fillText(s"血包${("                       ").take(30)}(按E键使用)", 4.5*canvasUnit,5.5  * canvasUnit , 30 * canvasUnit)
     val medicalNum = tank.medicalNumOpt match{
       case Some(num) =>num
       case None =>0
     }
     (1 to medicalNum).foreach{ index =>
-      val smallMedicalPosition = (Point(8,(canvasBoundary.y - 21)) + Point(index * config.propRadius * 3 / 2,0))
+      val smallMedicalPosition = (Point(8,6) + Point(index * config.propRadius * 3 / 2,0))
       val img = fillMedicalImg
       ctx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
         (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
@@ -270,7 +270,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     ctx.setGlobalAlpha(0.5)
 
     (medicalNum + 1 to config.getTankMedicalLimit).foreach{ index =>
-      val smallMedicalPosition = (Point(8,(canvasBoundary.y - 21)) + Point(index * config.propRadius * 3 / 2,0))
+      val smallMedicalPosition = (Point(8,6) + Point(index * config.propRadius * 3 / 2,0))
       val img = emptyMedicalImg
       ctx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
         (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,

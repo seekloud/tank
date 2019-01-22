@@ -19,8 +19,8 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
   private val rankWidth = 26
   private val rankHeight = 50
   private val currentRankNum = 10
-  private val currentRankCanvas=drawFrame.createCanvas(math.max(rankWidth * canvasUnit, 26 * 10),math.max(rankHeight * canvasUnit, 24 * 10))
-  private val historyRankCanvas=drawFrame.createCanvas(math.max(rankWidth * canvasUnit, 26 * 10),math.max(rankHeight * canvasUnit, 24 * 10))
+  private val currentRankCanvas=drawFrame.createCanvas(math.max(rankWidth * canvasUnit, 26 * 10),math.max(rankHeight * canvasUnit, 26 * 10))
+  private val historyRankCanvas=drawFrame.createCanvas(math.max(rankWidth * canvasUnit, 26 * 10),math.max(rankHeight * canvasUnit, 26 * 10))
   var rankUpdated: Boolean = true
   private val goldImg=drawFrame.createImage("/img/金牌.png")
   private val silverImg=drawFrame.createImage("/img/银牌.png")
@@ -213,9 +213,9 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
       rankUpdated = false
     }
     ctx.setGlobalAlpha(0.8)
-    ctx.drawImage(currentRankCanvas.change2Image(),0,0)
+    ctx.drawImage(currentRankCanvas.change2Image(),canvasBoundary.x * canvasUnit - rankWidth*10,0)
     if(Constants.drawHistory){
-      ctx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,0)
+      ctx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,canvasBoundary.y * canvasUnit - rankHeight * 10)
     }
     ctx.setGlobalAlpha(1)
   }
@@ -260,7 +260,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
       minimapRenderFrame = systemFrame
     }
 
-    ctx.drawImage(minimapCanvas.change2Image(), (canvasBoundary.x - LittleMap.w) * canvasUnit - 6, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
+    ctx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
 
   }
 
@@ -293,13 +293,13 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     ctx.setFont("Arial","normal",3*canvasUnit)
     ctx.setLineWidth(1)
     val offsetX = canvasBoundary.x - 20
-    ctx.strokeText(s"当前在线人数： ${tankMap.size}", offsetX*canvasUnit,(canvasBoundary.y - LittleMap.h -6) * canvasUnit , 20 * canvasUnit)
+    ctx.strokeText(s"当前在线人数： ${tankMap.size}", 0,(canvasBoundary.y - LittleMap.h -6) * canvasUnit , 20 * canvasUnit)
 
     ctx.beginPath()
     ctx.setFont("Helvetica", "normal",2 * canvasUnit)
     //      ctx.setTextAlign(TextAlignment.JUSTIFY)
     ctx.setFill("rgb(0,0,0)")
-    versionInfo.foreach(r=>ctx.strokeText(s"Version： $r", offsetX*canvasUnit,(canvasBoundary.y - LittleMap.h -16) * canvasUnit , 20 * canvasUnit))
+    versionInfo.foreach(r=>ctx.strokeText(s"Version： $r", offsetX*canvasUnit,(canvasBoundary.y -16) * canvasUnit , 20 * canvasUnit))
 
 
   }
