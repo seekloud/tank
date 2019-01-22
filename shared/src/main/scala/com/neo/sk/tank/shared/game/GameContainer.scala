@@ -602,7 +602,7 @@ trait GameContainer extends KillInformation{
     actionEventMap.put(frame,actionEvents)
   }
 
-  def removePreEvent(frame:Long, tankId:Int, serialNum:Int):Unit = {
+  def removePreEvent(frame:Long, tankId:Int, serialNum:Byte):Unit = {
     actionEventMap.get(frame).foreach{ actions =>
       actionEventMap.put(frame,actions.filterNot(t => t.tankId == tankId && t.serialNum == serialNum))
     }

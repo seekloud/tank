@@ -71,7 +71,7 @@ case class GameContainerClientImpl(
 
   private val esRecoverSupport: Boolean = true
 
-  private val uncheckedActionMap = mutable.HashMap[Int, Long]() //serinum -> frame
+  private val uncheckedActionMap = mutable.HashMap[Byte, Long]() //serinum -> frame
 
   private var gameContainerAllStateOpt: Option[GameContainerAllState] = None
   private var gameContainerStateOpt: Option[GameContainerState] = None
@@ -201,8 +201,9 @@ case class GameContainerClientImpl(
     }
   }
 
-  var fakeFrameStart = 0l
+
   protected final def handleMyAction(actions:List[UserActionEvent]) = { //处理出现错误动作的帧
+    var fakeFrameStart = 0l
     def isHaveReal(id: Int) = {
       var isHave = false
       actionEventMap.get(systemFrame).foreach {
@@ -214,7 +215,7 @@ case class GameContainerClientImpl(
       }
       isHave
     }
-    if (tankId != -1 && tankMap.contains(tankId)) {
+    if (tankMap.contains(tankId)) {
       val tank = tankMap(tankId)
       if (!isHaveReal(tankId)) {
         if (!tank.getMoveState()) {
@@ -225,17 +226,13 @@ case class GameContainerClientImpl(
           actions.sortBy(t => t.serialNum).foreach {
             case a: UserPressKeyDown =>
               tankMoveSet.add(a.keyCodeDown)
-              tank.setTankDirection(tankMoveSet.toSet)
-//            case a: UserPressKeyUp =>
-//              tankMoveSet.remove(a.keyCodeUp)
-//              tank.setTankDirection(tankMoveSet.toSet)
-            case a: UserKeyboardMove => tank.setTankKeyBoardDirection(a.angle)
             case _ =>
           }
+          tank.setTankDirection(tankMoveSet.toSet)
         }
       }else{
         if(tank.isFakeMove) {
-          tank.cavasFrame = 1
+          tank.canvasFrame = 1
           tank.fakeFrame = systemFrame - fakeFrameStart
         }
         tank.isFakeMove = false
@@ -471,8 +468,8 @@ case class GameContainerClientImpl(
           drawRoomNumber()
           drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
 
-          if (tank.cavasFrame >= 1) {
-            tank.cavasFrame += 1
+          if (tank.canvasFrame >= 1) {
+            tank.canvasFrame += 1
           }
           val endTime = System.currentTimeMillis()
         //          renderTimes += 1
