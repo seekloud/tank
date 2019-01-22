@@ -19,7 +19,9 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   private val emptyBulletImg = drawFrame.createImage("/img/子弹消失重构.png")
   private val fillMedicalImg = drawFrame.createImage("/img/yiliao.png")
   private val emptyMedicalImg = drawFrame.createImage("/img/huiyiliao.png")
+//  private val sunImg = drawFrame.createImage("/img/sun.png")
   private val tankStarImg = drawFrame.createImage("/img/star.png")
+
 
   private val Pi = 3.14f
 
@@ -164,8 +166,18 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   def drawTankStar(tankPosition:Point, tank:TankClientImpl) = {
     val firstStarPos = Point(tank.getRadius+TankStar.interval, -(tank.getRadius+TankStar.interval))
     val endStarNum = math.min(TankStar.maxNum ,tank.killTankNum)
+//    val endStarDigits = endStarNum / 10
+//    val endStarUnits = endStarNum - (endStarDigits * 10)
+
+//    (0 until endStarDigits).foreach{idx =>
+//      val starPos = Point(tankPosition.x-1.1f,tankPosition.y-1.1f) + firstStarPos.rotate(idx * Pi/10)
+//      val img = tankSunImg
+//      ctx.drawImage(img, starPos.x * canvasUnit,
+//        starPos.y * canvasUnit,
+//        Some(TankStar.width * canvasUnit, TankStar.height * canvasUnit))
+//    }
     (0 until endStarNum).foreach{idx =>
-      val starPos = tankPosition + firstStarPos.rotate(idx * Pi/10)
+      val starPos = Point(tankPosition.x-1.1f,tankPosition.y-1.1f) + firstStarPos.rotate(idx * Pi/10)
       val img = tankStarImg
       ctx.drawImage(img, starPos.x * canvasUnit,
         starPos.y * canvasUnit,
