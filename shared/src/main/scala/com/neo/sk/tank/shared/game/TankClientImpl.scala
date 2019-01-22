@@ -56,10 +56,9 @@ case class TankClientImpl(
 
 
   def getPosition4Animation(boundary: Point, quadTree: QuadTree, offSetTime: Long): Point = {
-    val canvasFrameLeft = if (fakeFrame < 3) 4 else 5
-    val logicMoveDistanceOpt = this.canMove(boundary, quadTree, canvasFrameLeft)(config)
+    val logicMoveDistanceOpt = this.canMove(boundary, quadTree)(config)
     if (logicMoveDistanceOpt.nonEmpty) {
-      if (!isFakeMove && (canvasFrame <= 0 || canvasFrame >= canvasFrameLeft)) {
+      if (!isFakeMove) {
         this.position + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
       } else {
         this.fakePosition + logicMoveDistanceOpt.get / config.frameDuration * offSetTime

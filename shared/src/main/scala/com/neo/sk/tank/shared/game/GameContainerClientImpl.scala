@@ -202,8 +202,8 @@ case class GameContainerClientImpl(
   }
 
 
-  protected final def handleMyAction(actions:List[UserActionEvent]) = { //处理出现错误动作的帧
-    var fakeFrameStart = 0l
+  //todo 处理出现错误动作的帧
+  protected final def handleMyAction(actions:List[UserActionEvent]) = {
     def isHaveReal(id: Int) = {
       var isHave = false
       actionEventMap.get(systemFrame).foreach {
@@ -217,25 +217,16 @@ case class GameContainerClientImpl(
     }
     if (tankMap.contains(tankId)) {
       val tank = tankMap(tankId)
-      if (!isHaveReal(tankId)) {
-        if (!tank.getMoveState()) {
-          tank.isFakeMove = true
-          tank.fakePosition = tank.getPosition
-          fakeFrameStart = systemFrame
-          val tankMoveSet = mutable.Set[Byte]()
-          actions.sortBy(t => t.serialNum).foreach {
-            case a: UserPressKeyDown =>
-              tankMoveSet.add(a.keyCodeDown)
-            case _ =>
-          }
-          tank.setTankDirection(tankMoveSet.toSet)
+      if(actions.nonEmpty){
+        val tankMoveSet = mutable.Set[Byte]()
+        actions.sortBy(t => t.serialNum).foreach {
+          case a: UserPressKeyDown =>
+            tankMoveSet.add(a.keyCodeDown)
+          case _ =>
         }
-      }else{
-        if(tank.isFakeMove) {
-          tank.canvasFrame = 1
-          tank.fakeFrame = systemFrame - fakeFrameStart
+        if(tankMoveSet.nonEmpty && !tank.getMoveState() && !tank.getFakeMoveState() && !isHaveReal(tankId)){
+          tank.setFakeTankDirection(tankMoveSet.toSet)
         }
-        tank.isFakeMove = false
       }
     }
   }
@@ -477,10 +468,6 @@ case class GameContainerClientImpl(
           drawKillInformation()
           drawRoomNumber()
           drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
-
-          if (tank.canvasFrame >= 1) {
-            tank.canvasFrame += 1
-          }
           val endTime = System.currentTimeMillis()
         //          renderTimes += 1
         //          renderTime += endTime - startTime

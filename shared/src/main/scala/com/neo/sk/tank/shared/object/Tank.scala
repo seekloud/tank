@@ -27,8 +27,8 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   val bulletMaxCapacity:Int
   protected var blood:Int
 
-  var isFakeMove = false
-  var fakePosition = Point(0,0)
+  protected var isFakeMove = false
+  protected var fakePosition = Point(0,0)
   protected var bloodLevel:Byte //血量等级
   protected var speedLevel:Byte //移动速度等级
   protected var bulletLevel:Byte //子弹等级
@@ -37,7 +37,6 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   def returnCurNum = curBulletNum
   protected var direction:Float //移动方向
   protected var gunDirection:Float
-  var canvasFrame = 0
   protected var shotgunState:Boolean
   protected var invincibleState:Boolean
   protected var isMove: Boolean
@@ -45,7 +44,6 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   private var isFillBulletState:Boolean = false
 
   var speed: Point
-  var fakeFrame = 0l
   private def accelerationTime(implicit config: TankGameConfig) = config.getTankAccByLevel(speedLevel)
   private def decelerationTime(implicit config: TankGameConfig) = config.getTankDecByLevel(speedLevel)
 
@@ -81,6 +79,8 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
 
 
   def getMoveState() = isMove
+
+  def getFakeMoveState() = isFakeMove
 
   def setTankKeyBoardDirection(angle:Float) ={
     gunDirection += angle
@@ -182,144 +182,74 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
 
   // 根据方向和地图边界以及地图所有的障碍物和坦克（不包括子弹）进行碰撞检测和移动
   def move(boundary: Point,quadTree: QuadTree)(implicit tankGameConfig: TankGameConfig):Unit = {
-    def modifySpeed(): Unit = {
-      val targetSpeed = if(isMove){
-        tankGameConfig.getMoveDistanceByFrame(speedLevel).rotate(this.direction)
-      }else Point(0,0)
-//      println(s"target:${targetSpeed}")
-
-      targetSpeed.x * speed.x match {
-        case x:Float if math.abs(x) <= 1e-5 =>
-          if(math.abs(targetSpeed.x) <= 1e-5){
-            val vx = getDeceleration(speed.x).x + speed.x
-            if(speed.x * vx > 0) speed = speed.copy(x = vx)
-            else speed = speed.copy(x = 0)
-          }else{
-            val vx = getAcceleration.rotate(this.direction).x + speed.x
-            if(math.abs(vx) < math.abs(targetSpeed.x)) speed = speed.copy(x = vx)
-            else speed = speed.copy(x = targetSpeed.x)
-          }
-        case x:Float if x > 0 =>
-          if(math.abs(targetSpeed.x) >= math.abs(speed.x)){
-            val vx = getAcceleration.rotate(this.direction).x + speed.x
-            if(math.abs(vx) < math.abs(targetSpeed.x)) speed = speed.copy(x = vx)
-            else speed = speed.copy(x = targetSpeed.x)
-          }else{
-            val vx = getDeceleration(speed.x).x + speed.x
-            if(math.abs(vx) > math.abs(targetSpeed.x)) speed = speed.copy(x = vx)
-            else speed = speed.copy(x = targetSpeed.x)
-          }
-        case x:Float if x < 0 =>
-          val vx = getAcceleration.rotate(this.direction).x + getDeceleration(speed.x).x + speed.x
-          speed = speed.copy(x = vx)
-      }
-
-
-      targetSpeed.y * speed.y match {
-        case x:Float if math.abs(x) <= 1e-5 =>
-          if(math.abs(targetSpeed.y) <= 1e-5){
-            val vy = getDeceleration(speed.y).x + speed.y
-//            println(s"sssssssss${vy}")
-            if(speed.y * vy > 0) speed = speed.copy(y = vy)
-            else speed = speed.copy(y = 0)
-          }else{
-            val vy = getAcceleration.rotate(this.direction).y + speed.y
-            if(math.abs(vy) < math.abs(targetSpeed.y)) speed = speed.copy(y = vy)
-            else speed = speed.copy(y = targetSpeed.y)
-          }
-        case x:Float if x > 0 =>
-          if(math.abs(targetSpeed.y) >= math.abs(speed.y)){
-            val vy = getAcceleration.rotate(this.direction).y + speed.y
-//            println(s"targert${math.abs(targetSpeed.y)} , spped by=${math.abs(vy)}")
-            if(math.abs(vy) < math.abs(targetSpeed.y)) speed = speed.copy(y = vy)
-            else speed = speed.copy(y = targetSpeed.y)
-          }else{
-            val vy = getDeceleration(speed.y).x + speed.y
-            if(math.abs(vy) > math.abs(targetSpeed.y)) speed = speed.copy(y = vy)
-            else speed = speed.copy(y = targetSpeed.y)
-          }
-        case x:Float if x < 0 =>
-          val vy = getAcceleration.rotate(this.direction).y + getDeceleration(speed.y).x + speed.y
-          speed = speed.copy(y = vy)
-      }
-      //    speed += acceleration
-      //    if(speed > maxSpeed) speed = maxSpeed
-      //    if(speed < 0) speed = 0
-    }
-
-    if(com.neo.sk.tank.shared.model.Constants.fakeRender){
-      if(isMove) {
-        if (!isFakeMove) {
-          val moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
-
-          val horizontalDistance = moveDistance.copy(y = 0)
-          val verticalDistance = moveDistance.copy(x = 0)
-          List(horizontalDistance, verticalDistance).foreach { d =>
-            if (d.x != 0 || d.y != 0) {
-              val originPosition = this.position
-              this.position = this.position + d
-              val movedRec = Rectangle(this.position - Point(radius, radius), this.position + Point(radius, radius))
-              val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
-              if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
-                quadTree.updateObject(this)
-              } else {
-                this.position = originPosition
-              }
-            }
-          }
-        }else{
-          val moveDistance = (tankGameConfig.getMoveDistanceByFrame(this.speedLevel) * 0.19f).rotate(direction)
-          val horizontalDistance = moveDistance.copy(y = 0)
-          val verticalDistance = moveDistance.copy(x = 0)
-          List(horizontalDistance, verticalDistance).foreach { d =>
-            if (d.x != 0 || d.y != 0) {
-              val originPosition = this.fakePosition
-              this.fakePosition = this.fakePosition + d
-              val movedRec = Rectangle(this.fakePosition - Point(radius, radius), this.fakePosition + Point(radius, radius))
-              val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
-              if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
-              } else {
-                this.fakePosition = originPosition
-              }
-            }
-          }
-        }
-
-      }
-    } else {
-      if(isMove) {
-        val moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
-        val horizontalDistance = moveDistance.copy(y = 0)
-        val verticalDistance = moveDistance.copy(x = 0)
-        List(horizontalDistance, verticalDistance).foreach { d =>
-          if (d.x != 0 || d.y != 0) {
-            val originPosition = this.position
-            this.position = this.position + d
-//            println(s"${this.position}--------------------")
-            val movedRec = Rectangle(this.position - Point(radius, radius), this.position + Point(radius, radius))
-            val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
-            if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
-              quadTree.updateObject(this)
-//              println(s"---fa")
-            } else {
-              this.position = originPosition
-            }
+    if(isMove) {
+      val moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
+      val horizontalDistance = moveDistance.copy(y = 0)
+      val verticalDistance = moveDistance.copy(x = 0)
+      List(horizontalDistance, verticalDistance).foreach { d =>
+        if (d.x != 0 || d.y != 0) {
+          val originPosition = this.position
+          this.position = this.position + d
+          val movedRec = Rectangle(this.position - Point(radius, radius), this.position + Point(radius, radius))
+          val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+          if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
+            quadTree.updateObject(this)
+          } else {
+            this.position = originPosition
           }
         }
       }
     }
-
-
-//    val maxSpeed = tankGameConfig.getMoveDistanceByFrame(speedLevel).distance(Point(0,0)).toFloat
-//    val acceleration = getAcceleration
-//    speed += acceleration
-//    if(speed > maxSpeed) speed = maxSpeed
-//    if(speed < 0) speed = 0
-//    modifySpeed()
   }
 
-  def canMove(boundary:Point, quadTree:QuadTree, canvasFrameLeft:Int)(implicit tankGameConfig: TankGameConfig):Option[Point] = {
-    if(com.neo.sk.tank.shared.model.Constants.fakeRender){
+  def canMove(boundary:Point, quadTree:QuadTree)(implicit tankGameConfig: TankGameConfig):Option[Point] = {
+    if(isMove){
+      var moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
+      val horizontalDistance = moveDistance.copy(y = 0)
+      val verticalDistance = moveDistance.copy(x = 0)
+      val originPosition = this.position
+      List(horizontalDistance,verticalDistance).foreach{ d =>
+        if(d.x != 0 || d.y != 0){
+          val pos = this.position
+          this.position = this.position + d
+          val movedRec = Rectangle(this.position-Point(radius,radius),this.position+Point(radius,radius))
+          val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+          if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
+            quadTree.updateObject(this)
+          }else{
+            this.position = pos
+            moveDistance -= d
+          }
+        }
+      }
+      this.position = originPosition
+      Some(moveDistance)
+    }else{
+      if(com.neo.sk.tank.shared.model.Constants.fakeRender&&isFakeMove){
+        var moveDistance =( tankGameConfig.getMoveDistanceByFrame(this.speedLevel)/3).rotate(direction)
+        val horizontalDistance = moveDistance.copy(y = 0)
+        val verticalDistance = moveDistance.copy(x = 0)
+        val originPosition = this.fakePosition
+        List(horizontalDistance, verticalDistance).foreach { d =>
+          if (d.x != 0 || d.y != 0) {
+            val pos = this.fakePosition
+            this.fakePosition = this.fakePosition + d
+            val movedRec = Rectangle(this.fakePosition - Point(radius, radius), this.fakePosition + Point(radius, radius))
+            val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+            if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
+            } else {
+              this.fakePosition = pos
+              moveDistance -= d
+            }
+          }
+        }
+        this.fakePosition = originPosition
+        Some(moveDistance)
+      }else{
+        None
+      }
+    }
+    /*if(com.neo.sk.tank.shared.model.Constants.fakeRender){
       if(isMove){
         if(!isFakeMove && (canvasFrame <= 0 || canvasFrame >= canvasFrameLeft)) {
           var moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
@@ -409,7 +339,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
       }
 
 
-    }
+    }*/
 
 
   }
@@ -479,13 +409,21 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
     * 根据坦克的按键修改坦克的方向状态
     * */
   final def setTankDirection(actionSet:Set[Byte]) = {
-
     val targetDirectionOpt = getDirection(actionSet)
     if(targetDirectionOpt.nonEmpty) {
       isMove = true
+      isFakeMove = false
       this.direction = targetDirectionOpt.get
-    }
-    else isMove = false
+    } else isMove = false
+  }
+
+  final def setFakeTankDirection(actionSet:Set[Byte]) = {
+    fakePosition = position
+    val targetDirectionOpt = getDirection(actionSet)
+    if(targetDirectionOpt.nonEmpty) {
+      isFakeMove = true
+      this.direction = targetDirectionOpt.get
+    } else isFakeMove = false
   }
 
   import scala.language.implicitConversions
