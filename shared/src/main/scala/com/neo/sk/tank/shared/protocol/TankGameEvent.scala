@@ -16,12 +16,13 @@ object TankGameEvent {
                                           props:List[PropState],
                                           obstacle:List[ObstacleState],
                                           environment:List[ObstacleState],
-                                          tankMoveAction:List[(Int,List[Int])]
+                                          tankMoveAction:List[(Int,Option[List[Byte]])]
                                         )
 
   case class GameContainerState(
                                  f:Long,
-                                 tanks:Option[List[TankState]]
+                                 tanks:Option[List[TankState]],
+                                 tankMoveAction:Option[List[(Int,Option[List[Byte]])]]
                                )
 
   /**前端建立WebSocket*/
