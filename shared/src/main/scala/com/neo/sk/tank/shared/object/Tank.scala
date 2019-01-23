@@ -176,7 +176,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
 
 
   // 根据方向和地图边界以及地图所有的障碍物和坦克（不包括子弹）进行碰撞检测和移动
-  def move(boundary: Point,quadTree: QuadTree)(implicit tankGameConfig: TankGameConfig):Unit = {
+  def move(boundary: Point,quadTree: QuadTree,frame:Long)(implicit tankGameConfig: TankGameConfig):Unit = {
     if(isMove) {
       val moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
       val horizontalDistance = moveDistance.copy(y = 0)
@@ -192,6 +192,7 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
           } else {
             this.position = originPosition
           }
+          println(frame+"position"+this.position)
         }
       }
     }

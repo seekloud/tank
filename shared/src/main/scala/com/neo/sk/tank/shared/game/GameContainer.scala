@@ -156,10 +156,12 @@ trait GameContainer extends KillInformation{
             case a:UserPressKeyDown =>
               tankMoveSet.add(a.keyCodeDown)
               tankMoveAction.put(a.tankId,tankMoveSet)
+              println(systemFrame+"=======start move"+tankMoveSet)
               tank.setTankDirection(tankMoveSet.toSet)
             case a:UserPressKeyUp =>
               tankMoveSet.remove(a.keyCodeUp)
               tankMoveAction.put(a.tankId,tankMoveSet)
+              println(systemFrame+"=======start move"+tankMoveSet)
               tank.setTankDirection(tankMoveSet.toSet)
             case a:UserKeyboardMove => tank.setTankKeyBoardDirection(a.angle)
             case a:UserPressKeyMedical => tank.addBlood()
@@ -392,7 +394,7 @@ trait GameContainer extends KillInformation{
       * 坦克移动过程中检测是否吃道具
       * */
     tankMap.toList.sortBy(_._1).map(_._2).foreach{ tank =>
-      tank.move(boundary,quadTree)
+      tank.move(boundary,quadTree,systemFrame)
       //tank 进行检测是否吃到道具
       val tankMaybeEatProps = quadTree.retrieveFilter(tank).filter(_.isInstanceOf[Prop]).map(_.asInstanceOf[Prop])
       tankMaybeEatProps.foreach(tank.checkEatProp(_,tankEatPropCallback(tank)))
@@ -499,9 +501,10 @@ trait GameContainer extends KillInformation{
   //更新本桢的操作
   def update():Unit = {
     handleUserLeftRoomNow()
-    objectMove()
 
     handleUserActionEventNow()
+
+    objectMove()
 
     handleTankAttackedNow()
     handleObstacleAttackedNow()

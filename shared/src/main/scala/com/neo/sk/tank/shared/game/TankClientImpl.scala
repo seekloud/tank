@@ -58,7 +58,6 @@ case class TankClientImpl(
   }
 
   final def setFakeTankDirection(actionSet:Set[Byte],frame:Long) = {
-    fakePosition=position
     val targetDirectionOpt = getDirection(actionSet)
     if(targetDirectionOpt.nonEmpty) {
       isFakeMove = true
@@ -215,12 +214,13 @@ case class TankClientImpl(
 
   }
 
+  var poslast=Point(0f,0f)
   def getPosition4Animation(boundary: Point, quadTree: QuadTree, offSetTime: Long,frame:Long): Point = {
     if(isFakeMove&&fakeStartFrame+2<frame){
       isFakeMove=false
     }
     val logicMoveDistanceOpt = this.canMove(boundary, quadTree)(config)
-    if (logicMoveDistanceOpt.nonEmpty) {
+    val pos=if (logicMoveDistanceOpt.nonEmpty) {
       if(isFakeMove){
         this.fakePosition=this.position+logicMoveDistanceOpt.get*(frame-fakeStartFrame)
         this.fakePosition + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
@@ -228,6 +228,11 @@ case class TankClientImpl(
         this.position + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
       }
     } else position
+    if(pos!=poslast){
+      println(frame+s"canvas $isFakeMove position"+ pos)
+      poslast=pos
+    }
+    pos
   }
 
   def getGunPositions4Animation(): List[Point] = {
