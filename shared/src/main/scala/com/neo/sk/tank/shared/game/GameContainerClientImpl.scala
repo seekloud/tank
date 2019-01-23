@@ -211,6 +211,8 @@ case class GameContainerClientImpl(
         actions.sortBy(t => t.serialNum).foreach {
           case a: UserPressKeyDown =>
             tankMoveSet.add(a.keyCodeDown)
+          case a: UserPressKeyDown=>
+            tankMoveSet.remove(a.keyCodeDown)
           case _ =>
         }
         if(tankMoveSet.nonEmpty && !tank.getMoveState() && !tank.getFakeMoveState()){

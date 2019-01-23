@@ -73,21 +73,25 @@ case class TankClientImpl(
 
   def canMove(boundary:Point, quadTree:QuadTree)(implicit tankGameConfig: TankGameConfig):Option[Point] = {
     if(isFakeMove){
-      val moveDistance = (tankGameConfig.getMoveDistanceByFrame(this.speedLevel)/3).rotate(direction)
+      var moveDistance = (tankGameConfig.getMoveDistanceByFrame(this.speedLevel)/3).rotate(direction)
       val horizontalDistance = moveDistance.copy(y = 0)
       val verticalDistance = moveDistance.copy(x = 0)
+      val originPosition = this.fakePosition
       List(horizontalDistance, verticalDistance).foreach { d =>
         if (d.x != 0 || d.y != 0) {
-          var pos = this.fakePosition
-          pos+= d
-          val movedRec = Rectangle(pos - Point(radius, radius), pos + Point(radius, radius))
+          val pos = this.fakePosition
+          this.fakePosition = this.fakePosition + d
+          val movedRec = Rectangle(this.fakePosition-Point(radius,radius),this.position+Point(radius,radius))
           val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
-          if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
-          } else {
-            isFakeMove=false
+          if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
+
+          }else{
+            this.fakePosition = pos
+            moveDistance -= d
           }
         }
       }
+      this.fakePosition = originPosition
       Some(moveDistance)
     }else{
       if(isMove){
@@ -214,7 +218,6 @@ case class TankClientImpl(
   def getPosition4Animation(boundary: Point, quadTree: QuadTree, offSetTime: Long,frame:Long): Point = {
     if(isFakeMove&&fakeStartFrame+2<frame){
       isFakeMove=false
-    }else{
     }
     val logicMoveDistanceOpt = this.canMove(boundary, quadTree)(config)
     if (logicMoveDistanceOpt.nonEmpty) {
