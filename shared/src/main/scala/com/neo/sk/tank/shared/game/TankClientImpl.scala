@@ -57,11 +57,6 @@ case class TankClientImpl(
     fillBulletCallBack(tankId)
   }
 
-  override def setTankDirection(actionSet:Set[Byte])= {
-    isFakeMove = false
-    super.setTankDirection(actionSet)
-  }
-
   final def setFakeTankDirection(actionSet:Set[Byte],frame:Long) = {
     fakePosition=position
     val targetDirectionOpt = getDirection(actionSet)
