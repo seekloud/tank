@@ -19,7 +19,9 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   private val emptyBulletImg = drawFrame.createImage("/img/子弹消失重构.png")
   private val fillMedicalImg = drawFrame.createImage("/img/yiliao.png")
   private val emptyMedicalImg = drawFrame.createImage("/img/huiyiliao.png")
+//  private val sunImg = drawFrame.createImage("/img/sun.png")
   private val tankStarImg = drawFrame.createImage("/img/star.png")
+
 
   private val Pi = 3.14f
 
@@ -164,8 +166,18 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   def drawTankStar(tankPosition:Point, tank:TankClientImpl) = {
     val firstStarPos = Point(tank.getRadius+TankStar.interval, -(tank.getRadius+TankStar.interval))
     val endStarNum = math.min(TankStar.maxNum ,tank.killTankNum)
+//    val endStarDigits = endStarNum / 10
+//    val endStarUnits = endStarNum - (endStarDigits * 10)
+
+//    (0 until endStarDigits).foreach{idx =>
+//      val starPos = Point(tankPosition.x-1.1f,tankPosition.y-1.1f) + firstStarPos.rotate(idx * Pi/10)
+//      val img = tankSunImg
+//      ctx.drawImage(img, starPos.x * canvasUnit,
+//        starPos.y * canvasUnit,
+//        Some(TankStar.width * canvasUnit, TankStar.height * canvasUnit))
+//    }
     (0 until endStarNum).foreach{idx =>
-      val starPos = tankPosition + firstStarPos.rotate(idx * Pi/10)
+      val starPos = Point(tankPosition.x-1.1f,tankPosition.y-1.1f) + firstStarPos.rotate(idx * Pi/10)
       val img = tankStarImg
       ctx.drawImage(img, starPos.x * canvasUnit,
         starPos.y * canvasUnit,
@@ -189,7 +201,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
   protected def drawMyTankInfo(tank:TankClientImpl,supportLiveLimit:Boolean) = {
     val cache = myTankInfoCacheMap.getOrElseUpdate((tank.getBloodLevel,tank.getSpeedLevel,tank.getBulletLevel),generateMyTankInfoCanvas(tank,supportLiveLimit))
-    ctx.drawImage(cache,0,(canvasBoundary.y - 20) * canvasUnit)
+    ctx.drawImage(cache,0,2 * canvasUnit)
   }
 
   def drawLevel(level:Byte,maxLevel:Byte,name:String,start:Point,length:Float,color:String, context:MiddleContext) = {
@@ -243,13 +255,13 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     ctx.setTextAlign("left")
     ctx.setFont("隶书", "bold", 1.8 * canvasUnit)
     ctx.setLineWidth(1)
-    ctx.fillText(s"血包${("                       ").take(30)}(按E键使用)", 4.5*canvasUnit,(canvasBoundary.y - 22.5)  * canvasUnit , 30 * canvasUnit)
+    ctx.fillText(s"血包${("                       ").take(30)}(按E键使用)", 4.5*canvasUnit,5.5  * canvasUnit , 30 * canvasUnit)
     val medicalNum = tank.medicalNumOpt match{
       case Some(num) =>num
       case None =>0
     }
     (1 to medicalNum).foreach{ index =>
-      val smallMedicalPosition = (Point(8,(canvasBoundary.y - 21)) + Point(index * config.propRadius * 3 / 2,0))
+      val smallMedicalPosition = (Point(8,6) + Point(index * config.propRadius * 3 / 2,0))
       val img = fillMedicalImg
       ctx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
         (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
@@ -258,7 +270,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     ctx.setGlobalAlpha(0.5)
 
     (medicalNum + 1 to config.getTankMedicalLimit).foreach{ index =>
-      val smallMedicalPosition = (Point(8,(canvasBoundary.y - 21)) + Point(index * config.propRadius * 3 / 2,0))
+      val smallMedicalPosition = (Point(8,6) + Point(index * config.propRadius * 3 / 2,0))
       val img = emptyMedicalImg
       ctx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
         (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,

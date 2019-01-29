@@ -136,7 +136,7 @@ class PlayScreenController(
     }
   }
 
-  def getActionSerialNum: Int = actionSerialNumGenerator.getAndIncrement()
+  def getActionSerialNum: Byte = actionSerialNumGenerator.getAndIncrement().toByte
 
   def start = {
     if(firstCome){
@@ -238,7 +238,7 @@ class PlayScreenController(
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
           myKeySet.add(keyCode)
           println(s"key down: [${e.getCode.getName}]")
-          val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode2Int(keyCode), getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode2Int(keyCode).toByte, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction)
           if (com.neo.sk.tank.shared.model.Constants.fakeRender) {
@@ -292,7 +292,7 @@ class PlayScreenController(
         if (watchKeys.contains(keyCode)) {
           myKeySet.remove(keyCode)
           println(s"key up: [${e.getCode}]")
-          val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode2Int(keyCode), getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode2Int(keyCode).toByte, getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction)
           if (com.neo.sk.tank.shared.model.Constants.fakeRender) {
@@ -334,6 +334,7 @@ class PlayScreenController(
             case e:Exception=>
               closeHolder
               println(e.getMessage)
+              println(e.printStackTrace())
               println("client is stop!!!")
           }
 

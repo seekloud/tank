@@ -87,7 +87,7 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
     ctx.fillText(s"KillCount：",0.4 * canvasSize.x * canvasUnit, 0.12 * canvasSize.y * canvasUnit)
     ctx.fillText(s"Damage：", 0.4 * canvasSize.x * canvasUnit, 0.2 * canvasSize.y * canvasUnit)
     ctx.fillText(s"Killer：",0.4 * canvasSize.x * canvasUnit, 0.26 * canvasSize.y * canvasUnit)
-    ctx.fillText(s"Press Enter To Comeback!!!",0.4 * canvasSize.x * canvasUnit, 0.32 * canvasSize.y * canvasUnit)
+    ctx.fillText(s"Press Space To Comeback!!!",0.4 * canvasSize.x * canvasUnit, 0.32 * canvasSize.y * canvasUnit)
     ctx.setFill("rgb(255,0,0)")
     ctx.fillText(s"${this.killNum}", 0.5 * canvasSize.x * canvasUnit, 0.12 * canvasSize.y * canvasUnit)
     ctx.fillText(s"${this.damageNum}",0.5 * canvasSize.x * canvasUnit, 0.2 * canvasSize.y * canvasUnit)
