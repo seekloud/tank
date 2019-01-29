@@ -156,12 +156,10 @@ trait GameContainer extends KillInformation{
             case a:UserPressKeyDown =>
               tankMoveSet.add(a.keyCodeDown)
               tankMoveAction.put(a.tankId,tankMoveSet)
-              println(systemFrame+"=======start move"+tankMoveSet)
               tank.setTankDirection(tankMoveSet.toSet)
             case a:UserPressKeyUp =>
               tankMoveSet.remove(a.keyCodeUp)
               tankMoveAction.put(a.tankId,tankMoveSet)
-              println(systemFrame+"=======start move"+tankMoveSet)
               tank.setTankDirection(tankMoveSet.toSet)
             case a:UserKeyboardMove => tank.setTankKeyBoardDirection(a.angle)
             case a:UserPressKeyMedical => tank.addBlood()
@@ -502,10 +500,9 @@ trait GameContainer extends KillInformation{
   def update():Unit = {
     handleUserLeftRoomNow()
 
-    handleUserActionEventNow()
-
     objectMove()
 
+    handleUserActionEventNow()
     handleTankAttackedNow()
     handleObstacleAttackedNow()
 

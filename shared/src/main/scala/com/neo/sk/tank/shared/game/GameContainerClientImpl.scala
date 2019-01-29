@@ -215,8 +215,7 @@ case class GameContainerClientImpl(
             tankMoveSet.remove(a.keyCodeUp)
           case _ =>
         }
-        if(tankMoveSet.nonEmpty && !tank.getMoveState()){
-          println(systemFrame+"=======start fake move"+tankMoveSet)
+        if(tankMoveSet.nonEmpty && !tank.getTankIsMove()){
           tank.setFakeTankDirection(tankMoveSet.toSet,systemFrame)
         }
       }

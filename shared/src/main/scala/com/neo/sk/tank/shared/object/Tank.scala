@@ -75,8 +75,6 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   }
 
 
-  def getMoveState() = isMove
-
   def setTankKeyBoardDirection(angle:Float) ={
     gunDirection += angle
 
@@ -192,7 +190,6 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
           } else {
             this.position = originPosition
           }
-          println(frame+"position"+this.position)
         }
       }
     }
