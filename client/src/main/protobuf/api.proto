@@ -18,7 +18,7 @@ syntax = "proto3";
 import "actions.proto";
 import "observations.proto";
 
-package com.neo.sk.pb;
+package org.seekloud.pb;
 
 
 
