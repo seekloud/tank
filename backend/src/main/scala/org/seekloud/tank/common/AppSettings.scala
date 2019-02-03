@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 seekloud (https://github.com/seekloud)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.seekloud.tank.common
 
 import java.util.concurrent.TimeUnit
@@ -95,14 +111,7 @@ object AppSettings {
   val slickMaxLifetime = slickConfig.getInt("maxLifetime")
 
 
-  private val ramblerConfig = appConfig.getConfig("rambler")
-  val ramblerAppId = ramblerConfig.getString("appId")
-  val ramblerSecureKey = ramblerConfig.getString("secureKey")
-  val ramblerProtocol = ramblerConfig.getString("protocol")
-  val ramblerHost = ramblerConfig.getString("host")
-  val ramblerPort = ramblerConfig.getInt("port")
-  val ramblerDomain = ramblerConfig.getString("domain")
-  val ramblerRootUrl = ramblerConfig.getString("rootUrl")
+
 
   private val esheepConfig = appConfig.getConfig("esheep")
   val esheepAppId = esheepConfig.getString("appId")
@@ -133,56 +142,7 @@ object AppSettings {
     )
   }
 
-  object MpAuthorConfig {
-    private val conf = dependence.getConfig("mpAuthor")
-    val protocol = conf.getString("protocol")
-    val host = conf.getString("host")
-    val port = conf.getString("port")
-    val appId = conf.getString("appId")
-    val secureKey = conf.getString("secureKey")
-    val componentAppId = conf.getString("componentAppId")
-    val mpAppId = conf.getString("mpAppId")
-  }
 
-  private val upperRainbowConfig = appConfig.getConfig("upperRainbowConf")
-  val upperRainbowAppId = upperRainbowConfig.getString("appId")
-  val upperRainbowSecureKey = upperRainbowConfig.getString("secureKey")
-  //  val upperRainbowProtocol = upperRainbowConfig.getString("protocol")
-  val upperRainbowHost = upperRainbowConfig.getString("host")
-  val upperRainbowPort = upperRainbowConfig.getInt("port")
-
-  object UpperRainbowConfig{
-    val isWorkConfig = upperRainbowConfig.getBoolean("isWork")
-    val appIdConfig = upperRainbowConfig.getString("appId")
-    val secureKeyConfig = upperRainbowConfig.getString("secureKey")
-    val hostConfig = upperRainbowConfig.getString("host")
-    val portConfig = upperRainbowConfig.getString("port")
-    object EventConfig{
-      val eventFetcherConfig = upperRainbowConfig.getConfig("eventFetcher")
-      val eachFetchNum = eventFetcherConfig.getInt("eachFetchNum")
-      val idleIntervalTime = eventFetcherConfig.getLong("idleIntervalTime")
-      val busyIntervalTime = eventFetcherConfig.getLong("busyIntervalTime")
-    }
-
-    object UserInfoConfig{
-      val userInfoFetcherConfig = upperRainbowConfig.getConfig("userInfoFetcher")
-      val eachFetchNum = userInfoFetcherConfig.getInt("eachFetchNum")
-      val idleIntervalTime = userInfoFetcherConfig.getLong("idleIntervalTime")
-      val busyIntervalTime = userInfoFetcherConfig.getLong("busyIntervalTime")
-    }
-
-  }
-
-  val adminAccount = {
-    import collection.JavaConverters._
-    val list = appConfig.getStringList("adminAccount").asScala
-    val admins = new ListBuffer[(Long,String,String)]
-    for(i <- list.indices){
-      val (account,pwd) = (list(i).split(":")(0),list(i).split(":")(1))
-      admins.append((i+1,account,pwd))
-    }
-    admins.toList
-  }
 
   val essfMapKeyName = "essfMap"
 

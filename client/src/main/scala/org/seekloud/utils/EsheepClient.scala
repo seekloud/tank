@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 seekloud (https://github.com/seekloud)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.seekloud.utils
 
 import org.seekloud.tank.model._
@@ -6,6 +22,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
 import org.seekloud.tank.App._
+import org.seekloud.tank.common.AppSettings
 
 /**
   * Created by hongruying on 2018/10/16
@@ -17,14 +34,11 @@ object EsheepClient extends HttpUtil {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
-//  private val baseUrl = s"${AppSettings.esheepProtocol}://${AppSettings.esheepHost}:${AppSettings.esheepPort}"
-  private val baseUrl = s"http://flowdev.neoap.com"
-  //  private val appId = AppSettings.esheepAppId
-//  private val secureKey = AppSettings.esheepSecureKey
+  private val baseUrl = s"${AppSettings.esheepProtocol}://${AppSettings.esheepHost}:${AppSettings.esheepPort}"
 
-//  private val gameId = AppSettings.esheepGameId
-  private val gameId = 1000000002
-//  private val gameServerKey = AppSettings.esheepGameKey
+  private val gameId = AppSettings.esheepGameId
+
+  private val gameServerKey = AppSettings.esheepGameKey
 
   def getLoginInfo(): Future[Either[ErrorRsp,LoginInfo]] = {
     val methodName = s"login"
