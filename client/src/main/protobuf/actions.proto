@@ -17,7 +17,7 @@
 
 syntax = "proto3";
 
-package com.neo.sk.pb;
+package org.seekloud.pb;
 
 
 
