@@ -505,6 +505,7 @@ case class GameContainerServerImpl(
       obstacleMap.put(obstacle.oId, obstacle)
       quadTree.insert(obstacle)
     }
+    //fixme 此处brickNum?
     (1 to config.airDropNum).foreach { _ =>
       val obstacle = generateBrick()
       val event = TankGameEvent.GenerateObstacle(systemFrame, obstacle.getObstacleState())
