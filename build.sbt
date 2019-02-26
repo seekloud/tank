@@ -7,7 +7,7 @@ val scalaV = "2.12.6"
 //val scalaV = "2.11.8"
 
 val projectName = "tank"
-val projectVersion = "2019.01.22"
+val projectVersion = "2019.02.26"
 
 resolvers += Resolver.sonatypeRepo("snapshots")
 
@@ -110,25 +110,26 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
   .settings(
     libraryDependencies ++= Dependencies.backendDependencies
   )
-  .settings {
+//  .settings {
+//    (resourceGenerators in Compile) += Def.task {
+//      val fastJsOut = (fastOptJS in Compile in frontend).value.data
+//      val fastJsSourceMap = fastJsOut.getParentFile / (fastJsOut.getName + ".map")
+//      Seq(
+//        fastJsOut,
+//        fastJsSourceMap
+//      )
+//    }.taskValue
+//  }
+  .settings(
     (resourceGenerators in Compile) += Def.task {
-      val fastJsOut = (fastOptJS in Compile in frontend).value.data
-      val fastJsSourceMap = fastJsOut.getParentFile / (fastJsOut.getName + ".map")
+      val fullJsOut = (fullOptJS in Compile in frontend).value.data
+      val fullJsSourceMap = fullJsOut.getParentFile / (fullJsOut.getName + ".map")
       Seq(
-        fastJsOut,
-        fastJsSourceMap
+        fullJsOut,
+        fullJsSourceMap
       )
     }.taskValue
-  }
-//  .settings(
-//    (resourceGenerators in Compile) += Def.task {
-//      val fullJsOut = (fullOptJS in Compile in frontend).value.data
-//      val fullJsSourceMap = fullJsOut.getParentFile / (fullJsOut.getName + ".map")
-//      Seq(
-//        fullJsOut,
-//        fullJsSourceMap
-//      )
-//    }.taskValue)
+  )
   .settings((resourceGenerators in Compile) += Def.task {
     Seq(
       (packageJSDependencies in Compile in frontend).value
