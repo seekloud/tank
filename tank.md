@@ -11,7 +11,7 @@
 
 ### 二、系统流程
 
-<img src="http://github.com/unicorn.png">
+![](http://github.com/unicorn.png)
 
 ### 三、功能模块
 
