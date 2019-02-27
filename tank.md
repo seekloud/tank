@@ -1,0 +1,122 @@
+## tank(坦克强化学习模拟器)
+
+### 一、功能描述
+
+* 实现坦克模拟器游戏逻辑
+* 实现坦克模拟器前端页面和游戏渲染
+* 实现坦克模拟器客户端界面和游戏渲染
+* 实现游玩、观战、录像
+* 对接esheep平台
+
+
+### 二、系统流程
+
+<img src="http://github.com/unicorn.png">
+
+### 三、功能模块
+
+#### backend
+  - http
+     - AuthService
+        - 用户鉴权
+     - GameRecService
+        - 获得录像列表
+        - 根据用户获取录像
+        - 根据房间获取录像
+        - 获取录像ID获取录像
+     - RecordApiService
+        - 获得录像列表
+        - 根据用户获取录像
+        - 录像下载code
+     - PlayService
+        - esheep用户进入游戏
+     - RoomInfoService
+        - 获取用户对应房间
+        - 获取房间列表
+        - 获取房间观战者列表
+        - 获取房间游玩者列表
+  - core
+     - game
+        - TankGameConfigServerImpl
+            - 读取配置文件，初始化配置参数
+        - GameContainerServerImpl
+            - 游戏后台逻辑
+     - UserManager
+        - 管理用户
+        - UserActor
+            - WebSocket连接
+            - 游戏
+                - 上传战绩
+            - 观战
+            - 回放
+            - GamePlayer
+                - 定时分发录像数据
+     - RoomManager
+        - 管理房间
+        - RoomActor
+            - 游戏控制
+            - 数据分发
+            - GameRecorder
+                - 定时保存游戏数据
+     - BotManager
+        - 对接RoomActor控制机器人数量
+        - BotActor
+            - 控制机器人操作
+     - EsheepSyncClient
+        - esheep平台鉴权
+  - dao
+     - 数据库操作
+     
+#### frontend
+  - page
+     - 页码匹配
+     - 主页面
+     - 游戏页面
+  - client 
+     - GameHolder
+        - 游戏逻辑，定时控制
+        - GamePlayHolderImpl
+            - 参与游戏逻辑实例+消息解析
+        - GameReplayHolderImpl
+            - 回放游戏逻辑实例+消息解析
+        - GameObserverHolderImpl
+            - 观战游戏逻辑实例+消息解析
+        - GameTestHolderImpl
+            - 测试游戏逻辑实例+随机动作+消息解析
+     - WebSocketClient
+        - webSocket连接
+        
+#### client
+  - view
+     - 主页面
+     - 游戏页面
+  - controller
+     - PlayScreenController
+        - 游戏逻辑，定时控制,使用AnimalTime来绘制屏幕，使用TimeLine来做gameLoop的更新
+  - actor
+     - LoginActor
+        - 扫码登录
+     - TokenActor
+        - esheep鉴权，token更新
+     - PlayGameActor
+        - 与游戏服务器建立webSocket连接
+        - 游戏数据交互
+     
+#### shared
+  - config
+    - 游戏配置
+  - game
+    - view
+        - 游戏各部分渲染
+        - 游戏渲染使用Html(html-canvas)和客户端(JavaFx-canvas)，使用[中间件]()整合，从而统一
+    - GameContainer
+        - 游戏逻辑基类
+    - EsRecover
+        - 回溯机制
+    - GameContainerClientImpl
+        - 游戏前端逻辑实例，在frontend和client中使用
+  - object
+    - 该目录下文件为游戏中各物体基类和物体类实现
+  - protocol
+    - 游戏消息定义
+    - 接口消息定义
