@@ -7,7 +7,7 @@ val scalaV = "2.12.6"
 //val scalaV = "2.11.8"
 
 val projectName = "tank"
-val projectVersion = "2019.01.22"
+val projectVersion = "2019.03.04"
 
 resolvers += Resolver.sonatypeRepo("snapshots")
 
@@ -103,7 +103,7 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
     //packSettings,
     // [Optional] Creating `hello` command that calls org.mydomain.Hello#main(Array[String])
     packMain := Map("tank" -> projectMainClass),
-    packJvmOpts := Map("tank" -> Seq("-Xmx512m", "-Xms128m")),
+    packJvmOpts := Map("tank" -> Seq("-Xmx512m", "-Xms128m", "-XX:+HeapDumpOnOutOfMemoryError")),
     packExtraClasspath := Map("tank" -> Seq("."))
   )
   .settings(
@@ -127,7 +127,8 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
 //        fullJsOut,
 //        fullJsSourceMap
 //      )
-//    }.taskValue)
+//    }.taskValue
+//  )
   .settings((resourceGenerators in Compile) += Def.task {
     Seq(
       (packageJSDependencies in Compile in frontend).value

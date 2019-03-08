@@ -1,27 +1,11 @@
-/*
- * Copyright 2018 seekloud (https://github.com/seekloud)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package com.neo.sk.tank.shared.game
 
-package org.seekloud.tank.shared.game
-
-import org.seekloud.tank.shared.`object`.{Prop, Tank, TankState}
-import org.seekloud.tank.shared.config.TankGameConfig
-import org.seekloud.tank.shared.model
-import org.seekloud.tank.shared.model.Constants.TankColor
-import org.seekloud.tank.shared.model.Point
-import org.seekloud.tank.shared.util.QuadTree
+import com.neo.sk.tank.shared.`object`.{ObstacleTank, Prop, Tank, TankState}
+import com.neo.sk.tank.shared.config.TankGameConfig
+import com.neo.sk.tank.shared.model
+import com.neo.sk.tank.shared.model.Constants.TankColor
+import com.neo.sk.tank.shared.model.{Point, Rectangle}
+import com.neo.sk.tank.shared.util.QuadTree
 
 /**
   * Created by sky
@@ -64,21 +48,87 @@ case class TankClientImpl(
   val bulletMaxCapacity: Int = config.maxBulletCapacity
   override val radius: Float = config.tankRadius
 
+  protected var isFakeMove = false
+  protected var fakeStartFrame=0l
+
+  protected var fakePosition=Point(0f,0f)
+
   override def startFillBullet(): Unit = {
     fillBulletCallBack(tankId)
   }
 
+  final def setFakeTankDirection(actionSet:Set[Byte],frame:Long) = {
+    val targetDirectionOpt = getDirection(actionSet)
+    if(targetDirectionOpt.nonEmpty) {
+      isFakeMove = true
+      fakeStartFrame=frame
+      this.direction = targetDirectionOpt.get
+    } else isFakeMove = false
+  }
+
+  def getFakeMoveState() = isFakeMove
+
   final def getInvincibleState = invincibleState
 
+  def canMove(boundary:Point, quadTree:QuadTree)(implicit tankGameConfig: TankGameConfig):Option[Point] = {
+    if(isFakeMove){
+      var moveDistance = (tankGameConfig.getMoveDistanceByFrame(this.speedLevel)/3).rotate(direction)
+      val horizontalDistance = moveDistance.copy(y = 0)
+      val verticalDistance = moveDistance.copy(x = 0)
+      val originPosition = this.fakePosition
+      List(horizontalDistance, verticalDistance).foreach { d =>
+        if (d.x != 0 || d.y != 0) {
+          this.fakePosition = this.fakePosition + d
+          val movedRec = Rectangle(this.fakePosition-Point(radius,radius),this.position+Point(radius,radius))
+          val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+          if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
 
-  def getPosition4Animation(boundary: Point, quadTree: QuadTree, offSetTime: Long): Point = {
-    val canvasFrameLeft = if (fakeFrame < 3) 4 else 5
-    val logicMoveDistanceOpt = this.canMove(boundary, quadTree, canvasFrameLeft)(config)
+          }else{
+            moveDistance -= d
+          }
+        }
+      }
+      this.fakePosition = originPosition
+      Some(moveDistance)
+    }else{
+      if(isMove){
+        var moveDistance = tankGameConfig.getMoveDistanceByFrame(this.speedLevel).rotate(direction)
+        val horizontalDistance = moveDistance.copy(y = 0)
+        val verticalDistance = moveDistance.copy(x = 0)
+        val originPosition = this.position
+        List(horizontalDistance,verticalDistance).foreach{ d =>
+          if(d.x != 0 || d.y != 0){
+            val pos = this.position
+            this.position = this.position + d
+            val movedRec = Rectangle(this.position-Point(radius,radius),this.position+Point(radius,radius))
+            val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleTank])
+            if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
+
+            }else{
+              this.position = pos
+              moveDistance -= d
+            }
+          }
+        }
+        this.position = originPosition
+        Some(moveDistance)
+      }else{
+        None
+      }
+    }
+  }
+
+  def getPosition4Animation(boundary: Point, quadTree: QuadTree, offSetTime: Long,frame:Long): Point = {
+    if(isFakeMove&&fakeStartFrame+3<frame){
+      isFakeMove=false
+    }
+    val logicMoveDistanceOpt = this.canMove(boundary, quadTree)(config)
     if (logicMoveDistanceOpt.nonEmpty) {
-      if (!isFakeMove && (canvasFrame <= 0 || canvasFrame >= canvasFrameLeft)) {
-        this.position + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
-      } else {
+      if(isFakeMove){
+        this.fakePosition=this.position+logicMoveDistanceOpt.get*(frame-fakeStartFrame)
         this.fakePosition + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
+      }else{
+        this.position + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
       }
     } else position
   }

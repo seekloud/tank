@@ -152,7 +152,7 @@ case class GameContainerServerImpl(
     def changeInt2P(index:Int)={
       index match {
         case 1=>(0f,0f)
-        case 1.8=>(1.8f,0f)
+        case 2=>(1.8f,0f)
         case 3=>(1.8f,-1.8f)
         case 4=>(0f,-1.8f)
         case 5=>(-1.8f,-1.8f)
@@ -519,6 +519,7 @@ case class GameContainerServerImpl(
       obstacleMap.put(obstacle.oId, obstacle)
       quadTree.insert(obstacle)
     }
+    //fixme 此处brickNum?
     (1 to config.airDropNum).foreach { _ =>
       val obstacle = generateBrick()
       val event = TankGameEvent.GenerateObstacle(systemFrame, obstacle.getObstacleState())

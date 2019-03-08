@@ -40,18 +40,9 @@ object TankDemo extends Page{
   private val modal = Var(emptyHTML)
 
   def init() = {
-    print("------1-111")
     val gameHolder = new GamePlayHolderImpl("GameView")
     val startGameModal = gameHolder.getStartGameModal()
     modal := startGameModal
-    //    val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
-//    val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-//    println("ssssssssssss")
-////    ctx = can.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
-//    canvas.width = 100
-//    canvas.height = 100
-//    ctx.fillStyle = Color.Green.toString()
-//    ctx.fillRect(0,0,20,20)
   }
 
 

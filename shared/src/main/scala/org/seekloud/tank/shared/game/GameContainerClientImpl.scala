@@ -217,40 +217,22 @@ case class GameContainerClientImpl(
   }
 
 
-  protected final def handleMyAction(actions:List[UserActionEvent]) = { //处理出现错误动作的帧
-    var fakeFrameStart = 0l
-    def isHaveReal(id: Int) = {
-      var isHave = false
-      actionEventMap.get(systemFrame).foreach {
-        list =>
-          list.foreach {
-            a =>
-              if (a.tankId == id) isHave = true
-          }
-      }
-      isHave
-    }
+  //todo 处理出现错误动作的帧
+  protected final def handleMyAction(actions:List[UserActionEvent]) = {
     if (tankMap.contains(tankId)) {
-      val tank = tankMap(tankId)
-      if (!isHaveReal(tankId)) {
-        if (!tank.getMoveState()) {
-          tank.isFakeMove = true
-          tank.fakePosition = tank.getPosition
-          fakeFrameStart = systemFrame
-          val tankMoveSet = mutable.Set[Byte]()
-          actions.sortBy(t => t.serialNum).foreach {
-            case a: UserPressKeyDown =>
-              tankMoveSet.add(a.keyCodeDown)
-            case _ =>
-          }
-          tank.setTankDirection(tankMoveSet.toSet)
+      val tank = tankMap(tankId).asInstanceOf[TankClientImpl]
+      if(actions.nonEmpty){
+        val tankMoveSet = mutable.Set[Byte]()
+        actions.sortBy(t => t.serialNum).foreach {
+          case a: UserPressKeyDown =>
+            tankMoveSet.add(a.keyCodeDown)
+          case a: UserPressKeyUp=>
+            tankMoveSet.remove(a.keyCodeUp)
+          case _ =>
         }
-      }else{
-        if(tank.isFakeMove) {
-          tank.canvasFrame = 1
-          tank.fakeFrame = systemFrame - fakeFrameStart
+        if(tankMoveSet.nonEmpty && !tank.getTankIsMove()){
+          tank.setFakeTankDirection(tankMoveSet.toSet,systemFrame)
         }
-        tank.isFakeMove = false
       }
     }
   }
@@ -477,7 +459,7 @@ case class GameContainerClientImpl(
       ctx.setLineJoin("round")
       tankMap.get(tankId) match {
         case Some(tank) =>
-          val offset = canvasSize / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime)
+          val offset = canvasSize / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime,systemFrame)
           drawBackground(offset)
           drawObstacles(offset, Point(w, h))
           drawEnvironment(offset, Point(w, h))
@@ -492,10 +474,6 @@ case class GameContainerClientImpl(
           drawKillInformation()
           drawRoomNumber()
           drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
-
-          if (tank.canvasFrame >= 1) {
-            tank.canvasFrame += 1
-          }
           val endTime = System.currentTimeMillis()
         //          renderTimes += 1
         //          renderTime += endTime - startTime

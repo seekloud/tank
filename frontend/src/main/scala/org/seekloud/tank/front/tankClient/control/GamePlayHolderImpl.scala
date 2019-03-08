@@ -92,7 +92,6 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
       setGameState(GameState.loadingPlay)
       webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, playerInfoOpt, roomIdOpt))
       //      webSocketClient.sendMsg(TankGameEvent.StartGame(roomIdOpt,None))
-
       gameLoop()
 
     } else if (webSocketClient.getWsState) {
