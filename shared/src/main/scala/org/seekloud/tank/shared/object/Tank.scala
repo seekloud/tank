@@ -1,12 +1,12 @@
-package com.neo.sk.tank.shared.`object`
+package org.seekloud.tank.shared.`object`
 
 import java.awt.event.KeyEvent
 
-import com.neo.sk.tank.shared.config.TankGameConfig
-import com.neo.sk.tank.shared.model
-import com.neo.sk.tank.shared.model.Constants.{DirectionType, TankColor}
-import com.neo.sk.tank.shared.model.{Point, Rectangle}
-import com.neo.sk.tank.shared.util.QuadTree
+import org.seekloud.tank.shared.config.TankGameConfig
+import org.seekloud.tank.shared.model
+import org.seekloud.tank.shared.model.Constants.{DirectionType, TankColor}
+import org.seekloud.tank.shared.model.{Point, Rectangle}
+import org.seekloud.tank.shared.util.QuadTree
 
 
 /**

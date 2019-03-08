@@ -1,11 +1,11 @@
-package com.neo.sk.tank.shared.game
+package org.seekloud.tank.shared.game
 
-import com.neo.sk.tank.shared.`object`.{ObstacleTank, Prop, Tank, TankState}
-import com.neo.sk.tank.shared.config.TankGameConfig
-import com.neo.sk.tank.shared.model
-import com.neo.sk.tank.shared.model.Constants.TankColor
-import com.neo.sk.tank.shared.model.{Point, Rectangle}
-import com.neo.sk.tank.shared.util.QuadTree
+import org.seekloud.tank.shared.`object`.{ObstacleTank, Prop, Tank, TankState}
+import org.seekloud.tank.shared.config.TankGameConfig
+import org.seekloud.tank.shared.model
+import org.seekloud.tank.shared.model.Constants.TankColor
+import org.seekloud.tank.shared.model.{Point, Rectangle}
+import org.seekloud.tank.shared.util.QuadTree
 
 /**
   * Created by sky
