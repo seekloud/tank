@@ -63,3 +63,4 @@ shared/.js/
 shared/.jvm/
 nohup.out
 gameDataDirectoryPath/
+backend/src/main/resources/product.conf
