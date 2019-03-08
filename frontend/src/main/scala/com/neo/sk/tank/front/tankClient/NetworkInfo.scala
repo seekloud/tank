@@ -48,7 +48,7 @@ trait NetworkInfo {
 
   protected def getNetworkLatency = latency
 
-  Shortcut.schedule(() => {
+  /*Shortcut.schedule(() => {
     println("allDataSize---" + (dataSizeMap.values.sum/1000).formatted("%.2f") + "kb/s")
     dataSizeList = dataSizeMap.toList.sortBy(_._1).map { r =>
       val s = r._1 + ":" + {
@@ -58,7 +58,7 @@ trait NetworkInfo {
       s
     }
     dataSizeMap.foreach(r => dataSizeMap.update(r._1, 0))
-  }, 1000)
+  }, 1000)*/
 
   protected def setDateSize(d: String, s: Double) = {
     dataSizeMap.get(d) match {
