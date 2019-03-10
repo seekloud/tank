@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.seekloud.tank.actor
+package org.seekloud.tank.core
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors

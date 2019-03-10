@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.seekloud.tank.actor
+package org.seekloud.tank.core
 
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.actor.typed.{ActorRef, Behavior}
@@ -27,7 +27,6 @@ import akka.stream.typed.scaladsl.ActorSource
 import akka.util.{ByteString, ByteStringBuilder}
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.tank.common.Route
-import org.seekloud.tank.controller.PlayScreenController
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo}
 import org.seekloud.tank.shared.protocol.TankGameEvent
 import org.slf4j.LoggerFactory
@@ -39,7 +38,8 @@ import io.circe.parser.decode
 import io.circe.syntax._
 import io.circe._
 import io.circe.generic.auto._
-import org.seekloud.tank.game.GameController
+import org.seekloud.tank.game.control.PlayScreenController
+import org.seekloud.tank.game.control.GameController
 
 /**
   * Created by hongruying on 2018/10/23

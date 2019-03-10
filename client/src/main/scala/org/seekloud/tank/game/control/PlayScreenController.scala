@@ -14,34 +14,27 @@
  * limitations under the License.
  */
 
-package org.seekloud.tank.controller
-
-import java.util.concurrent.atomic.AtomicInteger
+package org.seekloud.tank.game.control
 
 import akka.actor.typed.scaladsl.AskPattern._
-import akka.actor.typed.scaladsl.adapter._
-import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
+import javafx.animation.{Animation, KeyFrame, Timeline}
 import javafx.scene.control.{Alert, ButtonBar, ButtonType}
 import javafx.scene.input.KeyCode
 import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 import javafx.util.Duration
 import org.seekloud.tank.App
-import org.seekloud.tank.App.{executor, scheduler, system, timeout, tokenActor}
-import org.seekloud.tank.actor.PlayGameActor.DispatchMsg
-import org.seekloud.tank.actor.{PlayGameActor, TokenActor}
-import org.seekloud.tank.common.{Constants, Context}
-import org.seekloud.tank.game.{GameController, NetworkInfo}
+import org.seekloud.tank.App.{executor, scheduler, timeout, tokenActor}
+import org.seekloud.tank.core.PlayGameActor.DispatchMsg
+import org.seekloud.tank.core.{PlayGameActor, TokenActor}
+import org.seekloud.tank.common.Context
+import org.seekloud.tank.controller.HallScreenController
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo, TokenAndAcessCode, UserInfo}
-import org.seekloud.tank.shared.`object`.Tank
-import org.seekloud.tank.shared.game.GameContainerClientImpl
 import org.seekloud.tank.shared.model.Constants.GameState
 import org.seekloud.tank.shared.model.Point
 import org.seekloud.tank.shared.protocol.TankGameEvent
 import org.seekloud.tank.view.{GameHallScreen, PlayGameScreen}
 import org.seekloud.utils.JavaFxUtil.{changeKeys, getCanvasUnit, keyCode2Int}
-import org.slf4j.LoggerFactory
 
-import scala.collection.mutable
 import scala.concurrent.Future
 
 
@@ -148,19 +141,22 @@ class PlayScreenController(
     /**
       * 增加鼠标移动操作
       **/
+
     canvas.getCanvas.setOnMouseMoved{ e =>
-      val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24,24)
-      val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
-      val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
-      val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
-      gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
-      if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
-        if (lastMouseMoveAngle!=angle) {
-          lastMouseMoveAngle = angle
-          lastMoveFrame = gameContainerOpt.get.systemFrame
-          val preMMBAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, angle, getActionSerialNum)
-          playGameActor ! DispatchMsg(preMMBAction) //发送鼠标位置
-          println(preMMBAction)
+      if(gameContainerOpt.nonEmpty){
+        val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24,24)
+        val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+        val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
+        val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+        gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
+        if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
+          if (lastMouseMoveAngle!=angle) {
+            lastMouseMoveAngle = angle
+            lastMoveFrame = gameContainerOpt.get.systemFrame
+            val preMMBAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, angle, getActionSerialNum)
+            playGameActor ! DispatchMsg(preMMBAction) //发送鼠标位置
+            println(preMMBAction)
+          }
         }
       }
     }

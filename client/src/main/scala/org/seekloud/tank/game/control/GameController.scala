@@ -14,36 +14,29 @@
  *  limitations under the License.
  */
 
-package org.seekloud.tank.game
+package org.seekloud.tank.game.control
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import akka.actor.typed.scaladsl.AskPattern._
 import akka.actor.typed.scaladsl.adapter._
-import javafx.animation.{Animation, AnimationTimer, KeyFrame, Timeline}
-import javafx.scene.control.{Alert, ButtonBar, ButtonType}
+import javafx.animation.AnimationTimer
 import javafx.scene.input.KeyCode
-import javafx.scene.media.{AudioClip, Media, MediaPlayer}
-import javafx.util.Duration
 import org.seekloud.tank.App
-import org.seekloud.tank.App.{executor, scheduler, system, timeout, tokenActor}
-import org.seekloud.tank.actor.PlayGameActor.DispatchMsg
-import org.seekloud.tank.actor.{PlayGameActor, TokenActor}
-import org.seekloud.tank.common.{Constants, Context}
+import org.seekloud.tank.App.system
+import org.seekloud.tank.core.PlayGameActor
+import org.seekloud.tank.core.PlayGameActor.DispatchMsg
+import org.seekloud.tank.common.Constants
 import org.seekloud.tank.game.NetworkInfo
-import org.seekloud.tank.model.{GameServerInfo, PlayerInfo, TokenAndAcessCode, UserInfo}
 import org.seekloud.tank.shared.`object`.Tank
 import org.seekloud.tank.shared.game.GameContainerClientImpl
 import org.seekloud.tank.shared.model.Constants.GameState
 import org.seekloud.tank.shared.model.Point
 import org.seekloud.tank.shared.protocol.TankGameEvent
-import org.seekloud.tank.view.{GameHallScreen, PlayGameScreen}
-import org.seekloud.utils.JavaFxUtil.{changeKeys, getCanvasUnit, keyCode2Int}
+import org.seekloud.utils.JavaFxUtil.getCanvasUnit
 import org.seekloud.utils.canvas.MiddleFrameInFx
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
-import scala.concurrent.Future
 
 /**
   * Created by sky
@@ -148,7 +141,6 @@ class GameController(
 
 
   private def drawGame(offsetTime: Long) = {
-    //    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency,Constants.supportLiveLimit))
     gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency, Nil, Constants.supportLiveLimit))
   }
 

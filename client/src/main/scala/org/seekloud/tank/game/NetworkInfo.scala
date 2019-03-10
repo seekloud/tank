@@ -16,8 +16,8 @@
 
 package org.seekloud.tank.game
 
-import org.seekloud.tank.actor.PlayGameActor
-import org.seekloud.tank.controller.PlayScreenController
+import org.seekloud.tank.core.PlayGameActor
+import org.seekloud.tank.game.control.GameController
 import org.seekloud.tank.shared.protocol.TankGameEvent
 
 /**

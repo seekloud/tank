@@ -23,6 +23,7 @@ import io.circe.syntax._
 import javafx.scene.control._
 import org.seekloud.tank.App.{executor, scheduler}
 import org.seekloud.tank.common.Context
+import org.seekloud.tank.game.control.PlayScreenController
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo}
 import org.seekloud.tank.view.{GameHallListener, GameHallScreen, PlayGameScreen}
 import org.seekloud.tank.{App, model}
@@ -45,7 +46,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
 
   private def getRoomListInit() = {
     //需要起一个定时器，定时刷新请求
-    val url = s"http://${gameServerInfo.domain}/tank/getRoomList"
+    val url = s"https://${gameServerInfo.domain}/tank/getRoomList"
 //    val url = s"http://localhost:30369/tank/getRoomList"
     val jsonData = genPostEnvelope("esheep",System.nanoTime().toString,{}.asJson.noSpaces,"").asJson.noSpaces
     postJsonRequestSend("post",url,List(),jsonData,timeOut = 60 * 1000,needLogRsp = false).map{

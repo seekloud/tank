@@ -26,7 +26,7 @@ import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import javafx.application.{Application, Platform}
 import javafx.stage.Stage
-import org.seekloud.tank.actor.TokenActor
+import org.seekloud.tank.core.TokenActor
 import org.seekloud.tank.common.Context
 import org.seekloud.tank.controller.EnterScreenController
 import org.seekloud.tank.view.EnterScreen

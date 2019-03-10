@@ -19,7 +19,7 @@ package org.seekloud.tank.controller
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.adapter._
 import org.seekloud.tank.App
-import org.seekloud.tank.actor.LoginActor
+import org.seekloud.tank.core.LoginActor
 import org.seekloud.tank.common.Context
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo}
 import org.seekloud.tank.view.{GameHallScreen, LoginScene, LoginScreen}
