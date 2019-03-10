@@ -43,13 +43,15 @@ import scala.collection.mutable
   * Date on 2019/3/10
   * Time at 下午5:28
   * 游戏控制基类
-  * 基类中实现游戏控制+bot逻辑控制
+  * 连接gameServer的websocket
+  * 然后使用AnimalTime来绘制屏幕，使用actor定时来做gameLoop的更新
   */
 abstract class GameController(
-                      var canvasWidth: Float,
-                      var canvasHeight: Float,
-                      roomPwd: Option[String]
-                    ) extends NetworkInfo {
+                               var canvasWidth: Float,
+                               var canvasHeight: Float,
+                               isBot:Boolean,
+                               roomPwd: Option[String]
+                             ) extends NetworkInfo {
   protected val log = LoggerFactory.getLogger(this.getClass)
 
   val playGameActor = system.spawn(PlayGameActor.create(this), "PlayGameActor")
@@ -106,7 +108,11 @@ abstract class GameController(
     }
   }
 
-  protected def checkScreenSize: Unit = {}
+  protected def checkScreenSize: Unit
+
+  //fixme 考虑与killCallBack合并
+  @deprecated
+  protected def gameStopCallBack: Unit
 
   def logicLoop() = {
     App.pushStack2AppThread {
@@ -130,7 +136,7 @@ abstract class GameController(
         case GameState.stop =>
           closeHolder
           gameContainerOpt.foreach(_.drawCombatGains())
-
+          gameStopCallBack
 
         case _ => log.info(s"state=${gameState} failed")
       }
@@ -145,44 +151,45 @@ abstract class GameController(
   }
 
 
-  protected def handleWsSuccess(e:TankGameEvent.WsSuccess)={
-    playGameActor ! DispatchMsg(TankGameEvent.StartGame(e.roomId,roomPwd))
+  protected def handleWsSuccess(e: TankGameEvent.WsSuccess) = {
+    playGameActor ! DispatchMsg(TankGameEvent.StartGame(e.roomId, roomPwd))
   }
 
-  protected def handleWsMsgErrorRsp(e:TankGameEvent.WsMsgErrorRsp)={
-    if(e.errCode == 10001){
+  protected def handleWsMsgErrorRsp(e: TankGameEvent.WsMsgErrorRsp) = {
+    if (e.errCode == 10001) {
       closeHolder
     }
   }
 
   /**
     * 此处处理消息*/
-  final def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
+  final def wsMessageHandler(data: TankGameEvent.WsMsgServer): Unit = {
     //    println(data.getClass)
-    App.pushStack2AppThread{
+    App.pushStack2AppThread {
       data match {
-        case e:TankGameEvent.WsSuccess =>
+        case e: TankGameEvent.WsSuccess =>
           handleWsSuccess(e)
 
         case e: TankGameEvent.YourInfo =>
+
           /**
             * 更新游戏数据
             **/
           println("start------------")
           try {
-            gameContainerOpt = Some(GameContainerClientImpl(drawFrame,canvas,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setKillCallback))
+            gameContainerOpt = Some(GameContainerClientImpl(drawFrame, canvas, e.config, e.userId, e.tankId, e.name, canvasBoundary, canvasUnit, setKillCallback, isBot = isBot))
             gameContainerOpt.get.changeTankId(e.tankId)
             recvYourInfo = true
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))
-          }catch {
-            case e:Exception=>
+          } catch {
+            case e: Exception =>
               closeHolder
               println(e.getMessage)
               println(e.printStackTrace())
               println("client is stop!!!")
           }
 
-        case e:TankGameEvent.TankFollowEventSnap =>
+        case e: TankGameEvent.TankFollowEventSnap =>
           gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
 
         case e: TankGameEvent.YouAreKilled =>
@@ -191,16 +198,16 @@ abstract class GameController(
             * 死亡重玩
             **/
           println(s"you are killed")
-          gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum,e.name,e.damageStatistics))
+          gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum, e.name, e.damageStatistics))
           //          killNum = e.killTankNum
           //          damageNum = e.damageStatistics
           //          killerList = killerList :+ e.name
           //          killerName = e.name
           //          animationTimer.stop()
           gameContainerOpt.foreach(_.drawGameStop())
-          if(!e.hasLife || !Constants.supportLiveLimit){
+          if (!e.hasLife || !Constants.supportLiveLimit) {
             setGameState(GameState.stop)
-          }else animationTimer.stop()
+          } else animationTimer.stop()
 
         //        case e:TankGameEvent.TankReliveInfo =>
         //          animationTimer.start()
@@ -209,14 +216,14 @@ abstract class GameController(
           gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
 
         case e: TankGameEvent.SyncGameAllState =>
-          if(!recvYourInfo){
+          if (!recvYourInfo) {
             println("----发生预料事件")
             recvSyncGameAllState = Some(e)
           } else {
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             logicFrameTime = System.currentTimeMillis()
             animationTimer.start()
-            gameContainerOpt.foreach(t=> playGameActor ! PlayGameActor.StartGameLoop(t.config.frameDuration))
+            gameContainerOpt.foreach(t => playGameActor ! PlayGameActor.StartGameLoop(t.config.frameDuration))
             setGameState(GameState.play)
           }
 
@@ -224,17 +231,16 @@ abstract class GameController(
           gameContainerOpt.foreach(_.receiveUserEvent(e))
 
 
-
         case e: TankGameEvent.GameEvent =>
           e match {
-            case e:TankGameEvent.UserRelive =>
+            case e: TankGameEvent.UserRelive =>
               gameContainerOpt.foreach(_.receiveGameEvent(e))
-              if(e.userId == gameContainerOpt.get.myId){
+              if (e.userId == gameContainerOpt.get.myId) {
                 animationTimer.start()
                 //                dom.window.cancelAnimationFrame(nextFrame)
                 //                nextFrame = dom.window.requestAnimationFrame(gameRender())
               }
-            case ee:TankGameEvent.GenerateBullet =>
+            case ee: TankGameEvent.GenerateBullet =>
               gameContainerOpt.foreach(_.receiveGameEvent(e))
             case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
           }
@@ -247,10 +253,10 @@ abstract class GameController(
           gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
           closeHolder
 
-        case _:TankGameEvent.DecodeError=>
+        case _: TankGameEvent.DecodeError =>
           log.info("hahahha")
 
-        case e:TankGameEvent.WsMsgErrorRsp =>
+        case e: TankGameEvent.WsMsgErrorRsp =>
           handleWsMsgErrorRsp(e)
         case _ =>
           log.info(s"unknow msg={sss}")

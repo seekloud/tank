@@ -20,6 +20,7 @@ import io.grpc.{Server, ServerBuilder}
 import org.seekloud.pb.api._
 import org.seekloud.pb.service.EsheepAgentGrpc
 import org.seekloud.pb.service.EsheepAgentGrpc.EsheepAgent
+import org.seekloud.tank.core.GrpcStreamActor
 import org.seekloud.tank.game.control.GameController
 import org.slf4j.LoggerFactory
 
@@ -30,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 object BotServer {
   val log = LoggerFactory.getLogger(this.getClass)
-
+  var streamSender: Option[ActorRef[GrpcStreamActor.Command]] = None
   def build(
              port: Int,
              executionContext: ExecutionContext,

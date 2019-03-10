@@ -39,10 +39,7 @@ import scala.concurrent.Future
 
 
 /**
-  * Created by hongruying on 2018/10/23
-  * 1.PlayScreenController 一实例化后启动PlayScreenController 连接gameServer的websocket
-  * 然后使用AnimalTime来绘制屏幕，使用TimeLine来做gameLoop的更新
-  *
+  * 用户游玩控制
   * @author sky
   */
 class UserPlayController(
@@ -53,7 +50,7 @@ class UserPlayController(
                             roomInfo:Option[String] = None,
                             roomPwd:Option[String] = None,
                             isCreated:Boolean
-                          ) extends GameController(playGameScreen.screen.getMaxX.toFloat,playGameScreen.screen.getMaxY.toFloat,roomPwd) {
+                          ) extends GameController(playGameScreen.screen.getMaxX.toFloat,playGameScreen.screen.getMaxY.toFloat,false,roomPwd) {
 
   playGameScreen.group.getChildren.add(canvas.getCanvas)
 
@@ -135,6 +132,8 @@ class UserPlayController(
       }
     }
   }
+
+  override protected def gameStopCallBack: Unit = timeline.play()
 
   private def addUserActionListenEvent: Unit = {
     canvas.getCanvas.requestFocus()
