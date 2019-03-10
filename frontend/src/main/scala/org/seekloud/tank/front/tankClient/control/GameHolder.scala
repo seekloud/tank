@@ -47,7 +47,6 @@ abstract class GameHolder(name: String) extends NetworkInfo {
   protected var canvasHeight = dom.window.innerHeight.toFloat
 
   protected val canvas = drawFrame.createCanvas(name, canvasWidth, canvasHeight)
-  protected val ctx = canvas.getCtx
 
 
   protected var canvasUnit = getCanvasUnit(canvasWidth)

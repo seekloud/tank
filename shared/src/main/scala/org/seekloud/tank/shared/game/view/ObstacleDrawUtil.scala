@@ -49,7 +49,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
     cacheCanvas.change2Image()
   }
 
-  private def drawObstacle(centerPosition:Point, width:Float, height:Float, bloodPercent:Float, color:String, context:MiddleContext = ctx):Unit = {
+  private def drawObstacle(centerPosition:Point, width:Float, height:Float, bloodPercent:Float, color:String, context:MiddleContext = viewCtx):Unit = {
     context.setFill(color)
     context.setStrokeStyle(color)
     context.setLineWidth(2)
@@ -89,19 +89,19 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
         if(obstacle.obstacleType == ObstacleType.airDropBox){
           val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
           if (isAttacked){
-            ctx.setGlobalAlpha(0.5)
-            ctx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
+            viewCtx.setGlobalAlpha(0.5)
+            viewCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
               Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
-            ctx.setGlobalAlpha(1)
+            viewCtx.setGlobalAlpha(1)
           } else {
-            ctx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
+            viewCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
               Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
           }
         }else{
           if (obstacle.bloodPercent() > 0.9999999) {
             val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
             val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false), generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
-            ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
+            viewCtx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
           } else {
             drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color)
           }
@@ -125,16 +125,16 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
 
   //画血量条
   private def drawLine(startX: Float, startY: Float, lineWidth:Float, lineLen:Float, color:String) = {
-    ctx.save()
-    ctx.setLineWidth(lineWidth)
-    ctx.setLineCap("round")
-    ctx.setStrokeStyle(color)
-    ctx.beginPath()
-    ctx.moveTo(startX, startY)
-    ctx.lineTo(startX + lineLen, startY)
-    ctx.stroke()
-    ctx.closePath()
-    ctx.restore()
+    viewCtx.save()
+    viewCtx.setLineWidth(lineWidth)
+    viewCtx.setLineCap("round")
+    viewCtx.setStrokeStyle(color)
+    viewCtx.beginPath()
+    viewCtx.moveTo(startX, startY)
+    viewCtx.lineTo(startX + lineLen, startY)
+    viewCtx.stroke()
+    viewCtx.closePath()
+    viewCtx.restore()
   }
 
 
@@ -170,14 +170,14 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
           val isAttacked = obstacle.obstacleType == ObstacleType.steel && obstacleAttackedAnimationMap.contains(obstacle.oId)
           val cacheCanvas = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, isAttacked),
             generateEnvironmentCacheCanvas(obstacle.obstacleType, obstacle.getWidth, obstacle.getHeight, isAttacked))
-          ctx.drawImage(cacheCanvas, p.x * canvasUnit, p.y * canvasUnit)
+          viewCtx.drawImage(cacheCanvas, p.x * canvasUnit, p.y * canvasUnit)
         } else {
-          ctx.beginPath()
-          ctx.drawImage(img, p.x * canvasUnit, p.y * canvasUnit,
+          viewCtx.beginPath()
+          viewCtx.drawImage(img, p.x * canvasUnit, p.y * canvasUnit,
             Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
-          ctx.fill()
-          ctx.stroke()
-          ctx.closePath()
+          viewCtx.fill()
+          viewCtx.stroke()
+          viewCtx.closePath()
         }
         if (obstacle.obstacleType == ObstacleType.steel && obstacleAttackedAnimationMap.contains(obstacle.oId)) {
           if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)

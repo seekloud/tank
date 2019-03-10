@@ -26,7 +26,7 @@ import org.seekloud.tank.shared.protocol.TankGameEvent
   */
 final case class NetworkLatency(latency: Long)
 
-trait NetworkInfo { this:PlayScreenController =>
+trait NetworkInfo { this:GameController =>
 
   private var lastPingTime = System.currentTimeMillis()
   private val PingTimes = 10

@@ -106,7 +106,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
   }*/
 
   protected def drawBackground(offset:Point) = {
-    clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, ctx)
+    clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, viewCtx)
     val boundStart = Point(canvasBoundary.x/2, canvasBoundary.y/2)
     val boundEnd = Point(canvasBoundary.x/2 + boundary.x, canvasBoundary.y/2 + boundary.y)
     val canvasStart = Point(-offset.x + canvasBoundary.x/2, -offset.y + canvasBoundary.y/2)
@@ -116,25 +116,25 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     val width = end.x - start.x
     val height = end.y - start.y
     if(canvasStart.x < boundStart.x && canvasStart.y > boundStart.y){
-      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, 0))
+      clearScreen("#E8E8E8", 1, width, height, viewCtx, Point(canvasBoundary.x - width, 0))
     }
     else if(canvasStart.x > boundStart.x && canvasStart.y < boundStart.y){
-      clearScreen("#E8E8E8", 1, width, height, ctx, Point(0, canvasBoundary.y - height))
+      clearScreen("#E8E8E8", 1, width, height, viewCtx, Point(0, canvasBoundary.y - height))
     }
     else if(canvasStart.x < boundStart.x && canvasStart.y < boundStart.y){
-      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, canvasBoundary.y - height))
+      clearScreen("#E8E8E8", 1, width, height, viewCtx, Point(canvasBoundary.x - width, canvasBoundary.y - height))
     }
     else{
-      clearScreen("#E8E8E8", 1, width, height, ctx)
+      clearScreen("#E8E8E8", 1, width, height, viewCtx)
     }
-    ctx.setLineWidth(3)
-    ctx.setStrokeStyle("rgba(0,0,0,0.05)")
+    viewCtx.setLineWidth(3)
+    viewCtx.setStrokeStyle("rgba(0,0,0,0.05)")
 
     for(i <- (64 - canvasStart.x % 64) to canvasBoundary.x by 64f){
-      drawLine(Point(i,0), Point(i, canvasBoundary.y), ctx)
+      drawLine(Point(i,0), Point(i, canvasBoundary.y), viewCtx)
     }
     for(i <- (64 - canvasStart.y % 64) to canvasBoundary.y by 64f){
-      drawLine(Point(0, i), Point(canvasBoundary.x, i), ctx)
+      drawLine(Point(0, i), Point(canvasBoundary.x, i), viewCtx)
     }
 
   }
@@ -228,12 +228,12 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
       refresh()
       rankUpdated = false
     }
-    ctx.setGlobalAlpha(0.8)
-    ctx.drawImage(currentRankCanvas.change2Image(),canvasBoundary.x * canvasUnit - rankWidth*10,0)
+    viewCtx.setGlobalAlpha(0.8)
+    viewCtx.drawImage(currentRankCanvas.change2Image(),canvasBoundary.x * canvasUnit - rankWidth*10,0)
     if(Constants.drawHistory){
-      ctx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,canvasBoundary.y * canvasUnit - rankHeight * 10)
+      viewCtx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,canvasBoundary.y * canvasUnit - rankHeight * 10)
     }
-    ctx.setGlobalAlpha(1)
+    viewCtx.setGlobalAlpha(1)
   }
 
 
@@ -276,7 +276,9 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
       minimapRenderFrame = systemFrame
     }
 
-    ctx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
+    viewCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
+
+
 
   }
 
@@ -285,37 +287,37 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     val killInfoList = getDisplayKillInfo()
     if(killInfoList.nonEmpty){
       var offsetY = canvasBoundary.y - 30
-      ctx.beginPath()
-      ctx.setStrokeStyle("rgb(0,0,0)")
-      ctx.setTextAlign("left")
-      ctx.setFont("微软雅黑","bold",2.5*canvasUnit)
-      ctx.setLineWidth(1)
+      viewCtx.beginPath()
+      viewCtx.setStrokeStyle("rgb(0,0,0)")
+      viewCtx.setTextAlign("left")
+      viewCtx.setFont("微软雅黑","bold",2.5*canvasUnit)
+      viewCtx.setLineWidth(1)
 
       killInfoList.foreach{
         case (killerName,killedName,_) =>
-          ctx.strokeText(s"$killerName 击杀了 $killedName",3 * canvasUnit, offsetY * canvasUnit, 40 * canvasUnit)
+          viewCtx.strokeText(s"$killerName 击杀了 $killedName",3 * canvasUnit, offsetY * canvasUnit, 40 * canvasUnit)
           offsetY -= 3
       }
-      ctx.closePath()
+      viewCtx.closePath()
     }
 
   }
 
   protected def drawRoomNumber():Unit = {
 
-    ctx.beginPath()
-    ctx.setStrokeStyle("rgb(0,0,0)")
-    ctx.setTextAlign("left")
-    ctx.setFont("Arial","normal",3*canvasUnit)
-    ctx.setLineWidth(1)
+    viewCtx.beginPath()
+    viewCtx.setStrokeStyle("rgb(0,0,0)")
+    viewCtx.setTextAlign("left")
+    viewCtx.setFont("Arial","normal",3*canvasUnit)
+    viewCtx.setLineWidth(1)
     val offsetX = canvasBoundary.x - 20
-    ctx.strokeText(s"当前在线人数： ${tankMap.size}", 0,(canvasBoundary.y - LittleMap.h -6) * canvasUnit , 20 * canvasUnit)
+    viewCtx.strokeText(s"当前在线人数： ${tankMap.size}", 0,(canvasBoundary.y - LittleMap.h -6) * canvasUnit , 20 * canvasUnit)
 
-    ctx.beginPath()
-    ctx.setFont("Helvetica", "normal",2 * canvasUnit)
+    viewCtx.beginPath()
+    viewCtx.setFont("Helvetica", "normal",2 * canvasUnit)
     //      ctx.setTextAlign(TextAlignment.JUSTIFY)
-    ctx.setFill("rgb(0,0,0)")
-    versionInfo.foreach(r=>ctx.strokeText(s"Version： $r", offsetX*canvasUnit,(canvasBoundary.y -16) * canvasUnit , 20 * canvasUnit))
+    viewCtx.setFill("rgb(0,0,0)")
+    versionInfo.foreach(r=>viewCtx.strokeText(s"Version： $r", offsetX*canvasUnit,(canvasBoundary.y -16) * canvasUnit , 20 * canvasUnit))
 
 
   }

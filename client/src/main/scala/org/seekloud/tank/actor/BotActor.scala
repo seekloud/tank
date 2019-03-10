@@ -16,11 +16,14 @@
 
 package org.seekloud.tank.actor
 
+import org.seekloud.pb.api.Credit
+
 /**
-  * Created by hongruying on 2018/11/29
-  * 1.获取用户的accessCode和server信息
-  *
+  * Created by sky
+  * Date on 2019/3/10
+  * Time at 下午4:47
+  * 处理botAPI相关操作
   */
-object EsheepSyncActor {
+object BotActor {
 
 }

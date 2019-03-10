@@ -46,29 +46,29 @@ trait PropDrawUtil { this: GameContainerClientImpl =>
         if(prop.getDisappearTime < PropAnimation.DisAniFrame2){
           val mod = prop.getDisappearTime % (PropAnimation.DisappearF2 + PropAnimation.DisplayF2) + 1
           if(mod <= PropAnimation.DisplayF2){
-            ctx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
+            viewCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
               Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
           }
         } else if(prop.getDisappearTime < PropAnimation.DisAniFrame1){
           val mod = prop.getDisappearTime % (PropAnimation.DisappearF1 + PropAnimation.DisplayF1) + 1
           if(mod <= PropAnimation.DisplayF1){
-            ctx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
+            viewCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
               Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
           }
         }else{
-          ctx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
+          viewCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
             Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
         }
 
         if (tankDestroyAnimationMap.contains(prop.pId)) {
           if (tankDestroyAnimationMap(prop.pId) > GameAnimation.tankDestroyAnimationFrame * 2 / 3) {
-            ctx.drawImage(boomImg, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit, Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
+            viewCtx.drawImage(boomImg, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit, Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
           } else if (tankDestroyAnimationMap(prop.pId) > GameAnimation.tankDestroyAnimationFrame / 3) {
-            ctx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit))
+            viewCtx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit))
           } else if (tankDestroyAnimationMap(prop.pId) > 0) {
-            ctx.setGlobalAlpha(0.5)
-            ctx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit))
-            ctx.setGlobalAlpha(1)
+            viewCtx.setGlobalAlpha(0.5)
+            viewCtx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit))
+            viewCtx.setGlobalAlpha(1)
 
           }
 

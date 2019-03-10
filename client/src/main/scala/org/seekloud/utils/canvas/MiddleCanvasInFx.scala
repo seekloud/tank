@@ -16,12 +16,15 @@
 
 package org.seekloud.utils.canvas
 
+import java.nio.ByteBuffer
+
 import org.seekloud.tank.shared.util.canvas.MiddleCanvas
 import javafx.scene.SnapshotParameters
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.paint.Color
-import javafx.scene.image.Image
+import javafx.scene.image.{Image, WritableImage}
+import org.seekloud.tank.common.AppSettings
 
 /**
   * Created by sky
@@ -29,10 +32,14 @@ import javafx.scene.image.Image
   * Time at 下午2:54
   */
 object MiddleCanvasInFx {
+  val emptyArray = new Array[Byte](0)
+
   def apply(width: Float, height: Float): MiddleCanvasInFx = new MiddleCanvasInFx(width, height)
 }
 
 class MiddleCanvasInFx private() extends MiddleCanvas {
+
+  import MiddleCanvasInFx.emptyArray
 
   private[this] var canvas: Canvas = _
 
@@ -65,5 +72,42 @@ class MiddleCanvasInFx private() extends MiddleCanvas {
     val params = new SnapshotParameters
     params.setFill(Color.TRANSPARENT)
     canvas.snapshot(params, null)
+  }
+
+  /**
+    * copy from medusa
+    * @author sky
+    * */
+  def canvas2byteArray: Array[Byte] = {
+    try {
+      val params = new SnapshotParameters
+      val w = canvas.getWidth.toInt
+      val h = canvas.getHeight.toInt
+      val wi = new WritableImage(w, h)
+      params.setFill(Color.TRANSPARENT)
+      canvas.snapshot(params, wi) //从画布中复制绘图并复制到writableImage
+      val reader = wi.getPixelReader
+      if (!AppSettings.isGray) {
+        val byteBuffer = ByteBuffer.allocate(4 * w * h)
+        for (y <- 0 until h; x <- 0 until w) {
+          val color = reader.getArgb(x, y)
+          byteBuffer.putInt(color)
+        }
+        byteBuffer.flip()
+        byteBuffer.array().take(byteBuffer.limit)
+      } else {
+        //获取灰度图，每个像素点1Byte
+        val byteArray = new Array[Byte](1 * w * h)
+        for (y <- 0 until h; x <- 0 until w) {
+          val color = reader.getColor(x, y).grayscale()
+          val gray = (color.getRed * 255).toByte
+          byteArray(y * h + x) = gray
+        }
+        byteArray
+      }
+    } catch {
+      case e: Exception =>
+        emptyArray
+    }
   }
 }

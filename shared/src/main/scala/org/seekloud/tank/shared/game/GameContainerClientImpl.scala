@@ -23,7 +23,7 @@ import org.seekloud.tank.shared.model.Constants.{GameAnimation, PropGenerateType
 import org.seekloud.tank.shared.model.Point
 import org.seekloud.tank.shared.protocol.TankGameEvent
 import org.seekloud.tank.shared.protocol.TankGameEvent._
-import org.seekloud.tank.shared.util.canvas.{MiddleContext, MiddleFrame}
+import org.seekloud.tank.shared.util.canvas.{MiddleCanvas, MiddleContext, MiddleFrame}
 
 import scala.collection.mutable
 
@@ -33,7 +33,7 @@ import scala.collection.mutable
   */
 case class GameContainerClientImpl(
                                     drawFrame: MiddleFrame,
-                                    ctx: MiddleContext,
+                                    viewCanvas: MiddleCanvas,
                                     override val config: TankGameConfig,
                                     myId: String,
                                     myTankId: Int,
@@ -41,11 +41,36 @@ case class GameContainerClientImpl(
                                     var canvasSize: Point,
                                     var canvasUnit: Int,
                                     setKillCallback: Tank => Unit,
-                                    versionInfo: Option[String] = None
+                                    versionInfo: Option[String] = None,
+                                    isBot: Boolean = false
                                   ) extends GameContainer with EsRecover
   with BackgroundDrawUtil with BulletDrawUtil with FpsComponentsDrawUtil with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil with InfoDrawUtil {
 
   import scala.language.implicitConversions
+
+  val viewCtx = viewCanvas.getCtx
+
+  /**
+    * 分层图层
+    * 此处修改时考虑 canvasSize canvasBoundary 重构
+    * 目前 canvasSize=canvasBoundary 修改为 canvasBoundary=canvasSize/canvasUnit 减少计算量
+    * 根据isBot 选择是否渲染以下图层
+    * location: 视野范围
+    * map: 小地图
+    * mutable: 所有物品：钢铁、河流、子弹、道具
+    * bodies: 所有坦克
+    * state: 自身坦克状态，左上角信息
+    **/
+  val locationCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
+  val locationCtx = locationCanvas.getCtx
+  val mapCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
+  val mapCtx = mapCanvas.getCtx
+  val mutableCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
+  val mutableCtx = mutableCanvas.getCtx
+  val bodiesCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
+  val bodiesCtx = bodiesCanvas.getCtx
+  val statusCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
+  val statusCtx = statusCanvas.getCtx
 
   protected val obstacleAttackedAnimationMap = mutable.HashMap[Int, Int]()
   protected val tankAttackedAnimationMap = mutable.HashMap[Int, Int]()
@@ -57,7 +82,7 @@ case class GameContainerClientImpl(
   protected var killerName: String = ""
 
   var tankId: Int = myTankId
-  protected val myTankMoveAction = mutable.HashMap[Long,List[UserActionEvent]]()
+  protected val myTankMoveAction = mutable.HashMap[Long, List[UserActionEvent]]()
 
   def changeTankId(id: Int) = tankId = id
 
@@ -68,16 +93,16 @@ case class GameContainerClientImpl(
     damageNum = myDamageNum
   }
 
-  def getCurTankId:Int = tankId
+  def getCurTankId: Int = tankId
 
-  def change2OtherTank:Int = {
+  def change2OtherTank: Int = {
     val keys = tankMap.keys.toArray
     val idx = (new util.Random).nextInt(keys.length)
     keys(idx)
   }
 
-  def isKillerAlive(killerId:Int):Boolean = {
-    if(tankMap.contains(killerId)) true else false
+  def isKillerAlive(killerId: Int): Boolean = {
+    if (tankMap.contains(killerId)) true else false
   }
 
   override def debug(msg: String): Unit = {}
@@ -112,13 +137,13 @@ case class GameContainerClientImpl(
     }
   }
 
-  override protected def handleGenerateBullet(e:GenerateBullet) = {
-    tankMap.get(e.bullet.tankId) match{
+  override protected def handleGenerateBullet(e: GenerateBullet) = {
+    tankMap.get(e.bullet.tankId) match {
       case Some(tank) =>
         //todo
-        if(e.s){
+        if (e.s) {
           tank.setTankGunDirection(math.atan2(e.bullet.momentum.y, e.bullet.momentum.x).toFloat)
-          tankExecuteLaunchBulletAction(tank.tankId,tank)
+          tankExecuteLaunchBulletAction(tank.tankId, tank)
         }
       case None =>
         println(s"--------------------该子弹没有对应的tank")
@@ -218,28 +243,28 @@ case class GameContainerClientImpl(
 
 
   //todo 处理出现错误动作的帧
-  protected final def handleMyAction(actions:List[UserActionEvent]) = {
+  protected final def handleMyAction(actions: List[UserActionEvent]) = {
     if (tankMap.contains(tankId)) {
       val tank = tankMap(tankId).asInstanceOf[TankClientImpl]
-      if(actions.nonEmpty){
+      if (actions.nonEmpty) {
         val tankMoveSet = mutable.Set[Byte]()
         actions.sortBy(t => t.serialNum).foreach {
           case a: UserPressKeyDown =>
             tankMoveSet.add(a.keyCodeDown)
-          case a: UserPressKeyUp=>
+          case a: UserPressKeyUp =>
             tankMoveSet.remove(a.keyCodeUp)
           case _ =>
         }
-        if(tankMoveSet.nonEmpty && !tank.getTankIsMove()){
-          tank.setFakeTankDirection(tankMoveSet.toSet,systemFrame)
+        if (tankMoveSet.nonEmpty && !tank.getTankIsMove()) {
+          tank.setFakeTankDirection(tankMoveSet.toSet, systemFrame)
         }
       }
     }
   }
 
-  protected def handleFakeActionNow():Unit = {
-    if(org.seekloud.tank.shared.model.Constants.fakeRender) {
-      handleMyAction(myTankMoveAction.getOrElse(systemFrame,Nil).reverse)
+  protected def handleFakeActionNow(): Unit = {
+    if (org.seekloud.tank.shared.model.Constants.fakeRender) {
+      handleMyAction(myTankMoveAction.getOrElse(systemFrame, Nil).reverse)
       myTankMoveAction.remove(systemFrame - 10)
     }
   }
@@ -276,7 +301,7 @@ case class GameContainerClientImpl(
       val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
       quadTree.insert(tank)
       tankMap.put(t.tankId, tank)
-      tankHistoryMap.put(t.tankId,tank.name)
+      tankHistoryMap.put(t.tankId, tank.name)
     }
     gameContainerAllState.obstacle.foreach { o =>
       val obstacle = Obstacle(config, o)
@@ -290,7 +315,7 @@ case class GameContainerClientImpl(
     }
     gameContainerAllState.tankMoveAction.foreach { t =>
       val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Byte]())
-      t._2.foreach(l=>l.foreach(set.add))
+      t._2.foreach(l => l.foreach(set.add))
       tankMoveAction.put(t._1, set)
     }
     gameContainerAllState.bullet.foreach { t =>
@@ -318,33 +343,33 @@ case class GameContainerClientImpl(
       println(s"handleGameContainerState update to now use Time=${endTime - startTime} and systemFrame=${systemFrame} sysFrame=${gameContainerState.f}")
     }
 
-    if(!judge(gameContainerState)||systemFrame!=gameContainerState.f){
+    if (!judge(gameContainerState) || systemFrame != gameContainerState.f) {
       systemFrame = gameContainerState.f
       quadTree.clear()
       tankMap.clear()
       tankMoveAction.clear()
-      gameContainerState.tanks match{
+      gameContainerState.tanks match {
         case Some(tanks) =>
           tanks.foreach { t =>
             val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
             quadTree.insert(tank)
             tankMap.put(t.tankId, tank)
-            tankHistoryMap.put(t.tankId,tank.name)
+            tankHistoryMap.put(t.tankId, tank.name)
           }
         case None =>
           println(s"handle game container client--no tanks")
       }
       gameContainerState.tankMoveAction match {
-        case Some(as)=>
+        case Some(as) =>
           as.foreach { t =>
             val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Byte]())
-            t._2.foreach(l=>l.foreach(set.add))
+            t._2.foreach(l => l.foreach(set.add))
             tankMoveAction.put(t._1, set)
           }
-        case None=>
+        case None =>
       }
-      obstacleMap.values.foreach(o=>quadTree.insert(o))
-      propMap.values.foreach(o=>quadTree.insert(o))
+      obstacleMap.values.foreach(o => quadTree.insert(o))
+      propMap.values.foreach(o => quadTree.insert(o))
 
       environmentMap.values.foreach(quadTree.insert)
       bulletMap.values.foreach { bullet =>
@@ -354,7 +379,7 @@ case class GameContainerClientImpl(
   }
 
   private def judge(gameContainerState: GameContainerState) = {
-    gameContainerState.tanks match{
+    gameContainerState.tanks match {
       case Some(tanks) =>
         tanks.forall { tankState =>
           tankMap.get(tankState.tankId) match {
@@ -378,7 +403,7 @@ case class GameContainerClientImpl(
 
   def receiveGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
     gameContainerAllStateOpt = Some(gameContainerAllState)
- }
+  }
 
   def receiveGameContainerState(gameContainerState: GameContainerState) = {
     if (gameContainerState.f > systemFrame) {
@@ -386,14 +411,14 @@ case class GameContainerClientImpl(
         case Some(tank) =>
           gameContainerStateOpt = Some(gameContainerState)
         case None =>
-          gameContainerStateOpt match{
+          gameContainerStateOpt match {
             case Some(state) =>
-              gameContainerStateOpt = Some(TankGameEvent.GameContainerState(gameContainerState.f,state.tanks,state.tankMoveAction))
+              gameContainerStateOpt = Some(TankGameEvent.GameContainerState(gameContainerState.f, state.tanks, state.tankMoveAction))
             case None =>
           }
       }
     } else if (gameContainerState.f == systemFrame) {
-      gameContainerState.tanks match{
+      gameContainerState.tanks match {
         case Some(tanks) =>
           info(s"收到同步数据，立即同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
           gameContainerStateOpt = None
@@ -455,11 +480,11 @@ case class GameContainerClientImpl(
     val w = canvasSize.x
     //    val startTime = System.currentTimeMillis()
     if (!waitSyncData) {
-      ctx.setLineCap("round")
-      ctx.setLineJoin("round")
+      viewCtx.setLineCap("round")
+      viewCtx.setLineJoin("round")
       tankMap.get(tankId) match {
         case Some(tank) =>
-          val offset = canvasSize / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime,systemFrame)
+          val offset = canvasSize / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
           drawBackground(offset)
           drawObstacles(offset, Point(w, h))
           drawEnvironment(offset, Point(w, h))
@@ -469,7 +494,7 @@ case class GameContainerClientImpl(
           drawObstacleBloodSlider(offset)
           drawMyTankInfo(tank.asInstanceOf[TankClientImpl], supportLiveLimit)
           drawMinimap(tank)
-          drawRank(supportLiveLimit,tank.tankId,tank.name)
+          drawRank(supportLiveLimit, tank.tankId, tank.name)
           renderFps(networkLatency, dataSizeList)
           drawKillInformation()
           drawRoomNumber()

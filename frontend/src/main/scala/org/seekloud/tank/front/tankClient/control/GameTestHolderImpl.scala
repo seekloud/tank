@@ -247,7 +247,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
         /**
           * 更新游戏数据
           * */
-        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setKillCallback,versionInfoOpt))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,canvas,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setKillCallback,versionInfoOpt))
         gameContainerOpt.get.changeTankId(e.tankId)
         thisTankId = e.tankId
 

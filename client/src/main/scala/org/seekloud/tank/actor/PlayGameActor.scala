@@ -1,17 +1,17 @@
 /*
- * Copyright 2018 seekloud (https://github.com/seekloud)
+ *  Copyright 2018 seekloud (https://github.com/seekloud)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package org.seekloud.tank.actor
@@ -35,11 +35,11 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import org.seekloud.tank.App._
-
 import io.circe.parser.decode
 import io.circe.syntax._
 import io.circe._
 import io.circe.generic.auto._
+import org.seekloud.tank.game.GameController
 
 /**
   * Created by hongruying on 2018/10/23
@@ -91,7 +91,7 @@ object PlayGameActor {
   }
 
   /** 进入游戏连接参数 */
-  def create(control: PlayScreenController) = {
+  def create(control: GameController) = {
     Behaviors.setup[Command] { ctx =>
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       Behaviors.withTimers[Command] { implicit timer =>
@@ -100,7 +100,7 @@ object PlayGameActor {
     }
   }
 
-  def init(control: PlayScreenController)(
+  def init(control: GameController)(
     implicit stashBuffer: StashBuffer[Command],
     timer: TimerScheduler[Command]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
@@ -142,7 +142,7 @@ object PlayGameActor {
   }
 
   def play(frontActor: ActorRef[TankGameEvent.WsMsgFront],
-           control: PlayScreenController)(implicit stashBuffer: StashBuffer[Command],
+           control: GameController)(implicit stashBuffer: StashBuffer[Command],
                                                            timer: TimerScheduler[Command]) = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
@@ -192,7 +192,7 @@ object PlayGameActor {
 
   import org.seekloud.byteobject.ByteObject._
 
-  def getSink(control: PlayScreenController) = {
+  def getSink(control: GameController) = {
     import scala.language.implicitConversions
 
     implicit def parseJsonString2WsMsgFront(s: String): TankGameEvent.WsMsgServer = {

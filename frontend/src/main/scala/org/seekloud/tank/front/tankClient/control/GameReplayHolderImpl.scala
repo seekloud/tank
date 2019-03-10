@@ -108,7 +108,7 @@ class GameReplayHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None
           firstCome = true
         }
         //        timer = Shortcut.schedule(gameLoop, e.config.frameDuration)
-        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,ctx,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit, setKillCallback,versionInfoOpt))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,canvas,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit, setKillCallback,versionInfoOpt))
         gameContainerOpt.get.changeTankId(e.tankId)
 
       case e:TankGameEvent.TankFollowEventSnap =>

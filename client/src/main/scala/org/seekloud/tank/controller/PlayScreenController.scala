@@ -30,7 +30,7 @@ import org.seekloud.tank.App.{executor, scheduler, system, timeout, tokenActor}
 import org.seekloud.tank.actor.PlayGameActor.DispatchMsg
 import org.seekloud.tank.actor.{PlayGameActor, TokenActor}
 import org.seekloud.tank.common.{Constants, Context}
-import org.seekloud.tank.game.NetworkInfo
+import org.seekloud.tank.game.{GameController, NetworkInfo}
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo, TokenAndAcessCode, UserInfo}
 import org.seekloud.tank.shared.`object`.Tank
 import org.seekloud.tank.shared.game.GameContainerClientImpl
@@ -38,7 +38,7 @@ import org.seekloud.tank.shared.model.Constants.GameState
 import org.seekloud.tank.shared.model.Point
 import org.seekloud.tank.shared.protocol.TankGameEvent
 import org.seekloud.tank.view.{GameHallScreen, PlayGameScreen}
-import org.seekloud.utils.JavaFxUtil.{changeKeys, keyCode2Int}
+import org.seekloud.utils.JavaFxUtil.{changeKeys, getCanvasUnit, keyCode2Int}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
@@ -60,18 +60,11 @@ class PlayScreenController(
                             roomInfo:Option[String] = None,
                             roomPwd:Option[String] = None,
                             isCreated:Boolean
-                          ) extends NetworkInfo {
-  private val log = LoggerFactory.getLogger(this.getClass)
-  val playGameActor = system.spawn(PlayGameActor.create(this), "PlayGameActor")
+                          ) extends GameController(playGameScreen.screen.getMaxX.toFloat,playGameScreen.screen.getMaxY.toFloat,roomPwd) {
 
-  protected var firstCome = true
-//  protected var killerName:String = ""
-//  protected var killNum:Int = 0
-//  protected var damageNum:Int = 0
-//  protected var killerList = List.empty[String]
+  playGameScreen.group.getChildren.add(canvas.getCanvas)
 
 
-  private val actionSerialNumGenerator = new AtomicInteger(0)
   private var spaceKeyUpState = true
   private var lastMouseMoveAngle: Byte = 0
   private val perMouseMoveFrame = 2
@@ -80,10 +73,6 @@ class PlayScreenController(
   private val neKeyBoardMoveTheta = -2 * math.Pi / 72 //炮筒逆时针转
   private var poKeyBoardFrame = 0L
   private var eKeyBoardState4AddBlood = true
-  private val preExecuteFrameOffset = org.seekloud.tank.shared.model.Constants.PreExecuteFrameOffset
-
-  private var recvYourInfo: Boolean = false
-  private var recvSyncGameAllState: Option[TankGameEvent.SyncGameAllState] = None
 
   private val gameMusic = new Media(getClass.getResource("/music/bgm.mp3").toString)
   private val gameMusicPlayer = new MediaPlayer(gameMusic)
@@ -91,13 +80,6 @@ class PlayScreenController(
   private val bulletMusic = new AudioClip(getClass.getResource("/music/bullet.mp3").toString)
   private val deadMusic = new AudioClip(getClass.getResource("/music/fail.mp3").toString)
   private var needBgm = true
-
-  protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
-  private var gameState = GameState.loadingPlay
-  private var logicFrameTime = System.currentTimeMillis()
-
-  private var tickCount = 1//更新排行榜信息计时器
-  private val rankCycle = 20
 
   /**阻塞时间*/
   private val timeline = new Timeline()
@@ -121,38 +103,6 @@ class PlayScreenController(
   })
   timeline.getKeyFrames.add(keyFrame)
 
-  private val animationTimer = new AnimationTimer() {
-    override def handle(now: Long): Unit = {
-      drawGame(System.currentTimeMillis() - logicFrameTime)
-    }
-  }
-
-  private val watchKeys = Set(
-    KeyCode.LEFT,
-    KeyCode.DOWN,
-    KeyCode.RIGHT,
-    KeyCode.UP
-  )
-
-  private val gunAngleAdjust = Set(
-    KeyCode.K,
-    KeyCode.L
-  )
-
-  private val myKeySet = mutable.HashSet[KeyCode]()
-
-  protected def setGameState(s:Int):Unit = {
-    gameState = s
-  }
-
-  protected def setKillCallback(tank: Tank) = {
-    if (gameContainerOpt.nonEmpty&&tank.tankId ==gameContainerOpt.get.tankId) {
-      if (tank.lives <= 1) setGameState(GameState.stop)
-    }
-  }
-
-  def getActionSerialNum: Byte = actionSerialNumGenerator.getAndIncrement().toByte
-
   def start = {
     if(firstCome){
       firstCome=false
@@ -169,56 +119,39 @@ class PlayScreenController(
     }
   }
 
-  private def drawGame(offsetTime: Long) = {
-//    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency,Constants.supportLiveLimit))
-    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency, Nil,Constants.supportLiveLimit))
+  private def getScreenSize() = {
+    val newCanvasWidth = context.getStageWidth.toFloat
+    val newCanvasHeight = if (context.isFullScreen) context.getStageHeight.toFloat else context.getStageHeight.toFloat - 20
+    if (canvasWidth != newCanvasWidth || canvasHeight != newCanvasHeight) {
+      println("the screen size has changed")
+      canvasWidth = newCanvasWidth
+      canvasHeight = newCanvasHeight
+      canvasUnit = getCanvasUnit(newCanvasWidth)
+      canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+      canvas.setWidth(newCanvasWidth)
+      canvas.setHeight(newCanvasHeight)
+      (canvasBoundary, canvasUnit)
+    } else (Point(0, 0), 0)
   }
 
-  def logicLoop() = {
-    App.pushStack2AppThread{
-      val (bounDary, unit) = playGameScreen.checkScreenSize()
-      if(unit != 0){
-        gameContainerOpt.foreach{r =>
-          r.updateClientSize(bounDary, unit)
-        }
-      }
-      gameState match {
-        case GameState.loadingPlay =>
-          //        println(s"等待同步数据")
-          gameContainerOpt.foreach(_.drawGameLoading())
-        case GameState.play =>
-          /** */
-          if(tickCount % rankCycle == 1){
-            gameContainerOpt.foreach(_.updateRanks())
-            gameContainerOpt.foreach(t => t.rankUpdated = true)
-          }
-          gameContainerOpt.foreach(_.update())
-          logicFrameTime = System.currentTimeMillis()
-          ping()
-          tickCount += 1
-
-        case GameState.stop =>
-          closeHolder
-          gameContainerOpt.foreach(_.drawCombatGains())
-          timeline.play()
-
-
-        case _ => log.info(s"state=${gameState} failed")
+  override protected def checkScreenSize: Unit = {
+    val (boundary, unit) = getScreenSize()
+    if(unit != 0){
+      gameContainerOpt.foreach{r =>
+        r.updateClientSize(boundary, unit)
       }
     }
   }
 
   private def addUserActionListenEvent: Unit = {
-    playGameScreen.canvas.getCanvas.requestFocus()
+    canvas.getCanvas.requestFocus()
     /**
       * 增加鼠标移动操作
       **/
-    playGameScreen.canvas.getCanvas.setOnMouseMoved{ e =>
+    canvas.getCanvas.setOnMouseMoved{ e =>
       val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24,24)
-      val theta = point.getTheta(playGameScreen.canvasBoundary * playGameScreen.canvasUnit / 2).toFloat
-      val angle = point.getAngle(playGameScreen.canvasBoundary * playGameScreen.canvasUnit / 2)
-      //remind tank自身流畅显示
-      //fixme 此处序列号是否存疑
+      val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+      val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
       val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
       if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
@@ -234,10 +167,10 @@ class PlayScreenController(
     /**
       * 增加鼠标点击操作
       **/
-    playGameScreen.canvas.getCanvas.setOnMouseClicked{ e=>
+    canvas.getCanvas.setOnMouseClicked{ e=>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24,24)
-        val theta = point.getTheta(playGameScreen.canvasBoundary * playGameScreen.canvasUnit / 2).toFloat
+        val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
         bulletMusic.play()
         val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
@@ -247,7 +180,7 @@ class PlayScreenController(
     /**
       * 增加按下按键操作
       **/
-    playGameScreen.canvas.getCanvas.setOnKeyPressed{ e =>
+    canvas.getCanvas.setOnKeyPressed{ e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
@@ -301,7 +234,7 @@ class PlayScreenController(
     /**
       * 增加松开按键操作
       **/
-    playGameScreen.canvas.getCanvas.setOnKeyReleased { e =>
+    canvas.getCanvas.setOnKeyReleased { e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode)) {
@@ -323,129 +256,22 @@ class PlayScreenController(
     }
   }
 
-  /**
-    * 此处处理消息*/
-  def wsMessageHandler(data: TankGameEvent.WsMsgServer):Unit = {
-//    println(data.getClass)
-    App.pushStack2AppThread{
-      data match {
+  override protected def handleWsSuccess(e: TankGameEvent.WsSuccess): Unit = {
+    if(isCreated) playGameActor ! DispatchMsg(TankGameEvent.CreateRoom(e.roomId,roomPwd))
+    else playGameActor ! DispatchMsg(TankGameEvent.StartGame(e.roomId,roomPwd))
+  }
 
-        case e:TankGameEvent.WsSuccess =>
-          if(isCreated) playGameActor ! DispatchMsg(TankGameEvent.CreateRoom(e.roomId,roomPwd))
-          else playGameActor ! DispatchMsg(TankGameEvent.StartGame(e.roomId,roomPwd))
-
-        case e: TankGameEvent.YourInfo =>
-          /**
-            * 更新游戏数据
-            **/
-          println("start------------")
-          gameMusicPlayer.play()
-          try {
-            gameContainerOpt = Some(GameContainerClientImpl(playGameScreen.drawFrame,playGameScreen.getCanvasContext,e.config,e.userId,e.tankId,e.name, playGameScreen.canvasBoundary, playGameScreen.canvasUnit,setKillCallback))
-            gameContainerOpt.get.changeTankId(e.tankId)
-            recvYourInfo = true
-            recvSyncGameAllState.foreach(t => wsMessageHandler(t))
-          }catch {
-            case e:Exception=>
-              closeHolder
-              println(e.getMessage)
-              println(e.printStackTrace())
-              println("client is stop!!!")
-          }
-
-        case e:TankGameEvent.TankFollowEventSnap =>
-          gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
-
-        case e: TankGameEvent.YouAreKilled =>
-
-          /**
-            * 死亡重玩
-            **/
-          println(s"you are killed")
-          gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum,e.name,e.damageStatistics))
-//          killNum = e.killTankNum
-//          damageNum = e.damageStatistics
-//          killerList = killerList :+ e.name
-//          killerName = e.name
-//          animationTimer.stop()
-          gameContainerOpt.foreach(_.drawGameStop())
-          if(!e.hasLife || !Constants.supportLiveLimit){
-            setGameState(GameState.stop)
-            gameMusicPlayer.pause()
-            deadMusic.play()
-          }else animationTimer.stop()
-
-//        case e:TankGameEvent.TankReliveInfo =>
-//          animationTimer.start()
-
-        case e: TankGameEvent.SyncGameState =>
-          gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
-
-        case e: TankGameEvent.SyncGameAllState =>
-          if(!recvYourInfo){
-            println("----发生预料事件")
-            recvSyncGameAllState = Some(e)
-          } else {
-            gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
-            logicFrameTime = System.currentTimeMillis()
-            animationTimer.start()
-            playGameActor ! PlayGameActor.StartGameLoop
-            setGameState(GameState.play)
-          }
-
-        case e: TankGameEvent.UserActionEvent =>
-          gameContainerOpt.foreach(_.receiveUserEvent(e))
-
-
-
-        case e: TankGameEvent.GameEvent =>
-          e match {
-            case e:TankGameEvent.UserRelive =>
-              gameContainerOpt.foreach(_.receiveGameEvent(e))
-              if(e.userId == gameContainerOpt.get.myId){
-                animationTimer.start()
-//                dom.window.cancelAnimationFrame(nextFrame)
-//                nextFrame = dom.window.requestAnimationFrame(gameRender())
-              }
-            case ee:TankGameEvent.GenerateBullet =>
-              gameContainerOpt.foreach(_.receiveGameEvent(e))
-            case _ => gameContainerOpt.foreach(_.receiveGameEvent(e))
-          }
-
-        case e: TankGameEvent.PingPackage =>
-          receivePingPackage(e)
-
-
-        case TankGameEvent.RebuildWebSocket =>
-          gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
-          closeHolder
-
-        case _:TankGameEvent.DecodeError=>
-          log.info("hahahha")
-
-        case e:TankGameEvent.WsMsgErrorRsp =>
-          if(e.errCode == 10001){
-            val warn = new Alert(Alert.AlertType.WARNING,"您输入的房间密码错误",new ButtonType("确定",ButtonBar.ButtonData.YES))
-            warn.setTitle("警示")
-            val buttonType = warn.showAndWait()
-            if(buttonType.get().getButtonData.equals(ButtonBar.ButtonData.YES)) warn.close()
-            val gameHallScreen = new GameHallScreen(context, playerInfo)
-            context.switchScene(gameHallScreen.getScene,resize = true)
-            new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)
-            closeHolder
-          }
-        case _ =>
-          log.info(s"unknow msg={sss}")
-      }
+  override protected def handleWsMsgErrorRsp(e: TankGameEvent.WsMsgErrorRsp): Unit = {
+    if(e.errCode == 10001){
+      val warn = new Alert(Alert.AlertType.WARNING,"您输入的房间密码错误",new ButtonType("确定",ButtonBar.ButtonData.YES))
+      warn.setTitle("警示")
+      val buttonType = warn.showAndWait()
+      if(buttonType.get().getButtonData.equals(ButtonBar.ButtonData.YES)) warn.close()
+      val gameHallScreen = new GameHallScreen(context, playerInfo)
+      context.switchScene(gameHallScreen.getScene,resize = true)
+      new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)
+      closeHolder
     }
   }
-
-  private def closeHolder={
-    animationTimer.stop()
-    //remind 此处关闭WebSocket
-    playGameActor ! PlayGameActor.StopGameActor
-  }
-
-
 
 }

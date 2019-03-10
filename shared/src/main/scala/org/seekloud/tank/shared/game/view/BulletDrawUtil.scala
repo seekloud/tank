@@ -49,7 +49,6 @@ trait BulletDrawUtil { this:GameContainerClientImpl =>
     ctxCache.setStrokeStyle("#474747")
     ctxCache.setLineWidth(radius * canvasUnit / 5)
     ctxCache.stroke()
-    ctx.closePath()
     canvasCache.change2Image()
   }
 
@@ -65,7 +64,7 @@ trait BulletDrawUtil { this:GameContainerClientImpl =>
       if(p.in(view,Point(bullet.getRadius * 4 ,bullet.getRadius *4))) {
         val cacheCanvas = canvasCacheMap.getOrElseUpdate(bullet.getBulletLevel(), generateCanvas(bullet))
         val radius = bullet.getRadius
-        ctx.drawImage(cacheCanvas, (p.x - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5, (p.y - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5)
+        viewCtx.drawImage(cacheCanvas, (p.x - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5, (p.y - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5)
       }
     }
   }

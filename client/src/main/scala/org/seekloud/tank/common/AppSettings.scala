@@ -55,6 +55,6 @@ object AppSettings {
   val esheepGameKey = esheepConfig.getString("gsKey")
   val esheepAuthToken = esheepConfig.getBoolean("authToken")
 
-
+  val isGray = appConfig.getBoolean("isGray")
 
 }
