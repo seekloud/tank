@@ -45,7 +45,7 @@ import scala.collection.mutable
   * 游戏控制基类
   * 基类中实现游戏控制+bot逻辑控制
   */
-class GameController(
+abstract class GameController(
                       var canvasWidth: Float,
                       var canvasHeight: Float,
                       roomPwd: Option[String]
@@ -216,7 +216,7 @@ class GameController(
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             logicFrameTime = System.currentTimeMillis()
             animationTimer.start()
-            playGameActor ! PlayGameActor.StartGameLoop
+            gameContainerOpt.foreach(t=> playGameActor ! PlayGameActor.StartGameLoop(t.config.frameDuration))
             setGameState(GameState.play)
           }
 

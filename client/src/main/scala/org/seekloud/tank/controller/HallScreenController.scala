@@ -23,7 +23,7 @@ import io.circe.syntax._
 import javafx.scene.control._
 import org.seekloud.tank.App.{executor, scheduler}
 import org.seekloud.tank.common.Context
-import org.seekloud.tank.game.control.PlayScreenController
+import org.seekloud.tank.game.control.UserPlayController
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo}
 import org.seekloud.tank.view.{GameHallListener, GameHallScreen, PlayGameScreen}
 import org.seekloud.tank.{App, model}
@@ -96,7 +96,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
       App.pushStack2AppThread{
         val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
         context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-        new PlayScreenController(playerInfo,gameServerInfo,context,playGameScreen,None,None,false).start
+        new UserPlayController(playerInfo,gameServerInfo,context,playGameScreen,None,None,false).start
         playGameScreen.setCursor
         close()
       }
@@ -108,7 +108,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
           if(!roomMap(roomIdTextField.toLong)){
             val playGameScreen: PlayGameScreen = new PlayGameScreen(context)
             context.switchScene(playGameScreen.getScene(), resize = true, fullScreen = true)
-            new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdTextField), None, false).start
+            new UserPlayController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdTextField), None, false).start
             playGameScreen.setCursor
             close()
           }
@@ -119,7 +119,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
             if(pwdResult.isPresent){
               val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
               context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-              new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdTextField), Some(pwdResult.get()),false).start
+              new UserPlayController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdTextField), Some(pwdResult.get()),false).start
               playGameScreen.setCursor
               close()
             }
@@ -128,7 +128,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
           if(!roomMap(roomIdListView.toLong)){
             val playGameScreen: PlayGameScreen = new PlayGameScreen(context)
             context.switchScene(playGameScreen.getScene(), resize = true, fullScreen = true)
-            new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdListView), None, false).start
+            new UserPlayController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdListView), None, false).start
             playGameScreen.setCursor
             close()
           }
@@ -139,7 +139,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
             if(pwdResult.isPresent){
               val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
               context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-              new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdListView), Some(pwdResult.get()),false).start
+              new UserPlayController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdListView), Some(pwdResult.get()),false).start
               playGameScreen.setCursor
               close()
             }
@@ -163,7 +163,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
         if(!roomMap.contains(if(roomId == null) -1L else roomId.toLong)){
           val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
           context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-          new PlayScreenController(playerInfo, gameServerInfo, context, playGameScreen, Option(roomId), pwd, true).start
+          new UserPlayController(playerInfo, gameServerInfo, context, playGameScreen, Option(roomId), pwd, true).start
           playGameScreen.setCursor
           close()
         }

@@ -38,13 +38,13 @@ import io.circe.parser.decode
 import io.circe.syntax._
 import io.circe._
 import io.circe.generic.auto._
-import org.seekloud.tank.game.control.PlayScreenController
+import org.seekloud.tank.game.control.UserPlayController
 import org.seekloud.tank.game.control.GameController
 
 /**
   * Created by hongruying on 2018/10/23
   * 连接游戏服务器的websocket Actor
-  *
+  * 控制游戏逻辑
   * @author sky
   */
 object PlayGameActor {
@@ -72,7 +72,7 @@ object PlayGameActor {
 
   case object StopGameActor extends Command
 
-  case object StartGameLoop extends Command
+  case class  StartGameLoop(f:Long) extends Command
 
   case object StopGameLoop extends Command
 
@@ -150,8 +150,8 @@ object PlayGameActor {
           frontActor ! msg.msg
           Behaviors.same
 
-        case StartGameLoop=>
-          timer.startPeriodicTimer(GameLoopKey,GameLoopTimeOut,100.millis)
+        case m:StartGameLoop=>
+          timer.startPeriodicTimer(GameLoopKey,GameLoopTimeOut,m.f.millis)
           Behaviors.same
 
         case StopGameLoop=>

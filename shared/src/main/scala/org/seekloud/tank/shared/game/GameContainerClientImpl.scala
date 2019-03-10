@@ -53,7 +53,7 @@ case class GameContainerClientImpl(
   /**
     * 分层图层
     * 此处修改时考虑 canvasSize canvasBoundary 重构
-    * 目前 canvasSize=canvasBoundary 修改为 canvasBoundary=canvasSize/canvasUnit 减少计算量
+    * 目前 canvasSize=canvasBoundary 修改为 canvasBoundary=canvasSize/canvasUnit 减少计算量 将修改后canvasSize替代下方数值
     * 根据isBot 选择是否渲染以下图层
     * location: 视野范围
     * map: 小地图

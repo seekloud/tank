@@ -20,6 +20,7 @@ import io.grpc.{Server, ServerBuilder}
 import org.seekloud.pb.api._
 import org.seekloud.pb.service.EsheepAgentGrpc
 import org.seekloud.pb.service.EsheepAgentGrpc.EsheepAgent
+import org.seekloud.tank.game.control.GameController
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -30,25 +31,22 @@ import scala.concurrent.{ExecutionContext, Future}
 object BotServer {
   val log = LoggerFactory.getLogger(this.getClass)
 
-/*  def build(
+  def build(
              port: Int,
              executionContext: ExecutionContext,
-             wsClient: ActorRef[WSClient.WsCommand],
-             gameController: GameController,
-             gameMessageReceiver: ActorRef[WsMsgSource],
-             stageCtx: StageContext
+             gameController: GameController
            ): Server = {
-    log.info("Medusa gRPC Sever is building..")
-    val service = new BotServer(wsClient, gameController, gameMessageReceiver, stageCtx)
+    log.info("tank gRPC Sever is building..")
+    val service = new BotServer( gameController)
     ServerBuilder.forPort(port).addService(
       EsheepAgentGrpc.bindService(service, executionContext)
     ).build
-  }*/
+  }
 }
 
 
 class BotServer(
-
+                 gameController: GameController
                ) extends EsheepAgent {
   override def createRoom(request: Credit): Future[CreateRoomRsp] = {
     println(s"createRoom Called by [$request")

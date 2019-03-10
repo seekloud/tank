@@ -45,7 +45,7 @@ import scala.concurrent.Future
   *
   * @author sky
   */
-class PlayScreenController(
+class UserPlayController(
                             playerInfo: PlayerInfo,
                             gameServerInfo: GameServerInfo,
                             context: Context,
@@ -107,7 +107,7 @@ class PlayScreenController(
       gameContainerOpt.foreach{r=>
         playGameActor ! DispatchMsg(TankGameEvent.RestartGame(Some(r.myTankId),r.myName))
         setGameState(GameState.loadingPlay)
-        playGameActor ! PlayGameActor.StartGameLoop
+        playGameActor ! PlayGameActor.StartGameLoop(r.config.frameDuration)
       }
     }
   }
