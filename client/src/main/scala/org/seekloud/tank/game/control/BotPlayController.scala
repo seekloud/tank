@@ -20,6 +20,7 @@ import akka.actor.typed.scaladsl.adapter._
 import org.seekloud.tank.App.system
 import org.seekloud.tank.core.BotViewActor
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo}
+import org.seekloud.utils.canvas.MiddleCanvasInFx
 
 /**
   * Created by sky
@@ -38,5 +39,10 @@ class BotPlayController(
   override protected def checkScreenSize: Unit = {}
 
   override protected def gameStopCallBack: Unit = {}
+
+  //remind canvas2Byte示例
+  protected def getView={
+    gameContainerOpt.foreach(r=>r.mapCanvas.asInstanceOf[MiddleCanvasInFx].canvas2byteArray)
+  }
 
 }
