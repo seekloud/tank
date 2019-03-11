@@ -40,6 +40,8 @@ class BotPlayController(
 
   override protected def gameStopCallBack: Unit = {}
 
+  override protected def initGameContainerCallBack: Unit = {}
+
   //remind canvas2Byte示例
   protected def getView={
     gameContainerOpt.foreach(r=>r.mapCanvas.asInstanceOf[MiddleCanvasInFx].canvas2byteArray)

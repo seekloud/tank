@@ -34,27 +34,25 @@ import org.seekloud.tank.shared.model.Point
 import org.seekloud.tank.shared.protocol.TankGameEvent
 import org.seekloud.tank.view.{GameHallScreen, PlayGameScreen}
 import org.seekloud.utils.JavaFxUtil.{changeKeys, getCanvasUnit, keyCode2Int}
+import org.seekloud.utils.canvas.MiddleCanvasInFx
 
 import scala.concurrent.Future
 
 
 /**
   * 用户游玩控制
+  *
   * @author sky
   */
 class UserPlayController(
-                            playerInfo: PlayerInfo,
-                            gameServerInfo: GameServerInfo,
-                            context: Context,
-                            playGameScreen: PlayGameScreen,
-                            roomInfo:Option[String] = None,
-                            roomPwd:Option[String] = None,
-                            isCreated:Boolean
-                          ) extends GameController(playGameScreen.screen.getMaxX.toFloat,playGameScreen.screen.getMaxY.toFloat,false,roomPwd) {
-
-  playGameScreen.group.getChildren.add(canvas.getCanvas)
-
-
+                          playerInfo: PlayerInfo,
+                          gameServerInfo: GameServerInfo,
+                          context: Context,
+                          playGameScreen: PlayGameScreen,
+                          roomInfo: Option[String] = None,
+                          roomPwd: Option[String] = None,
+                          isCreated: Boolean
+                        ) extends GameController(800, 400, true, roomPwd) {
   private var spaceKeyUpState = true
   private var lastMouseMoveAngle: Byte = 0
   private val perMouseMoveFrame = 2
@@ -71,20 +69,20 @@ class UserPlayController(
   private val deadMusic = new AudioClip(getClass.getResource("/music/fail.mp3").toString)
   private var needBgm = true
 
-  /**阻塞时间*/
+  /** 阻塞时间 */
   private val timeline = new Timeline()
   timeline.setCycleCount(Animation.INDEFINITE)
   val keyFrame = new KeyFrame(Duration.millis(5000), { _ =>
-    App.pushStack2AppThread{
-//      killerList = List.empty[String]
+    App.pushStack2AppThread {
+      //      killerList = List.empty[String]
       val gameHallScreen = new GameHallScreen(context, playerInfo)
-      context.switchScene(gameHallScreen.getScene,resize = true)
+      context.switchScene(gameHallScreen.getScene, resize = true)
       val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
-      accessCodeInfo.map{
+      accessCodeInfo.map {
         info =>
-          if(info.token != ""){
-            val newUserInfo = UserInfo(playerInfo.userInfo.userId,playerInfo.userInfo.nickname,info.token, info.expireTime)
-            val newPlayerInfo = PlayerInfo(newUserInfo,playerInfo.playerId, playerInfo.nickName, info.accessCode)
+          if (info.token != "") {
+            val newUserInfo = UserInfo(playerInfo.userInfo.userId, playerInfo.userInfo.nickname, info.token, info.expireTime)
+            val newPlayerInfo = PlayerInfo(newUserInfo, playerInfo.playerId, playerInfo.nickName, info.accessCode)
             new HallScreenController(context, gameHallScreen, gameServerInfo, newPlayerInfo)
           }
       }
@@ -94,15 +92,14 @@ class UserPlayController(
   timeline.getKeyFrames.add(keyFrame)
 
   def start = {
-    if(firstCome){
-      firstCome=false
+    if (firstCome) {
+      firstCome = false
       println("start!!!!!!!")
-      playGameActor ! PlayGameActor.ConnectGame(playerInfo,gameServerInfo,roomInfo)
-      addUserActionListenEvent
+      playGameActor ! PlayGameActor.ConnectGame(playerInfo, gameServerInfo, roomInfo)
       logicFrameTime = System.currentTimeMillis()
-    }else{
-      gameContainerOpt.foreach{r=>
-        playGameActor ! DispatchMsg(TankGameEvent.RestartGame(Some(r.myTankId),r.myName))
+    } else {
+      gameContainerOpt.foreach { r =>
+        playGameActor ! DispatchMsg(TankGameEvent.RestartGame(Some(r.myTankId), r.myName))
         setGameState(GameState.loadingPlay)
         playGameActor ! PlayGameActor.StartGameLoop(r.config.frameDuration)
       }
@@ -125,31 +122,32 @@ class UserPlayController(
   }
 
   override protected def checkScreenSize: Unit = {
-    val (boundary, unit) = getScreenSize()
+    /*val (boundary, unit) = getScreenSize()
     if(unit != 0){
       gameContainerOpt.foreach{r =>
         r.updateClientSize(boundary, unit)
       }
-    }
+    }*/
   }
 
   override protected def gameStopCallBack: Unit = timeline.play()
 
   private def addUserActionListenEvent: Unit = {
     canvas.getCanvas.requestFocus()
+
     /**
       * 增加鼠标移动操作
       **/
 
-    canvas.getCanvas.setOnMouseMoved{ e =>
-      if(gameContainerOpt.nonEmpty){
-        val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24,24)
+    canvas.getCanvas.setOnMouseMoved { e =>
+      if (gameContainerOpt.nonEmpty) {
+        val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24, 24)
         val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
         val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
         val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
         if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
-          if (lastMouseMoveAngle!=angle) {
+          if (lastMouseMoveAngle != angle) {
             lastMouseMoveAngle = angle
             lastMoveFrame = gameContainerOpt.get.systemFrame
             val preMMBAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, angle, getActionSerialNum)
@@ -159,12 +157,13 @@ class UserPlayController(
         }
       }
     }
+
     /**
       * 增加鼠标点击操作
       **/
-    canvas.getCanvas.setOnMouseClicked{ e=>
+    canvas.getCanvas.setOnMouseClicked { e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
-        val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24,24)
+        val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24, 24)
         val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
         bulletMusic.play()
         val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
@@ -172,10 +171,11 @@ class UserPlayController(
         playGameActor ! DispatchMsg(preExecuteAction)
       }
     }
+
     /**
       * 增加按下按键操作
       **/
-    canvas.getCanvas.setOnKeyPressed{ e =>
+    canvas.getCanvas.setOnKeyPressed { e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
@@ -214,11 +214,11 @@ class UserPlayController(
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction)
         }
-        else if(keyCode == KeyCode.M){
-          if(needBgm){
+        else if (keyCode == KeyCode.M) {
+          if (needBgm) {
             gameMusicPlayer.pause()
             needBgm = false
-          }else{
+          } else {
             gameMusicPlayer.play()
             needBgm = true
           }
@@ -253,20 +253,34 @@ class UserPlayController(
 
   //fixme 后台操作分离createRoom joinRoom
   override protected def handleWsSuccess(e: TankGameEvent.WsSuccess): Unit = {
-    if(isCreated) playGameActor ! DispatchMsg(TankGameEvent.CreateRoom(e.roomId,roomPwd))
-    else playGameActor ! DispatchMsg(TankGameEvent.StartGame(e.roomId,roomPwd))
+    if (isCreated) playGameActor ! DispatchMsg(TankGameEvent.CreateRoom(e.roomId, roomPwd))
+    else playGameActor ! DispatchMsg(TankGameEvent.StartGame(e.roomId, roomPwd))
   }
 
   override protected def handleWsMsgErrorRsp(e: TankGameEvent.WsMsgErrorRsp): Unit = {
-    if(e.errCode == 10001){
-      val warn = new Alert(Alert.AlertType.WARNING,"您输入的房间密码错误",new ButtonType("确定",ButtonBar.ButtonData.YES))
+    if (e.errCode == 10001) {
+      val warn = new Alert(Alert.AlertType.WARNING, "您输入的房间密码错误", new ButtonType("确定", ButtonBar.ButtonData.YES))
       warn.setTitle("警示")
       val buttonType = warn.showAndWait()
-      if(buttonType.get().getButtonData.equals(ButtonBar.ButtonData.YES)) warn.close()
+      if (buttonType.get().getButtonData.equals(ButtonBar.ButtonData.YES)) warn.close()
       val gameHallScreen = new GameHallScreen(context, playerInfo)
-      context.switchScene(gameHallScreen.getScene,resize = true)
+      context.switchScene(gameHallScreen.getScene, resize = true)
       new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)
       closeHolder
+    }
+  }
+
+  override protected def initGameContainerCallBack: Unit = {
+    gameContainerOpt.foreach { r =>
+      App.pushStack2AppThread {
+        canvas.getCanvas.setLayoutX(0)
+        canvas.getCanvas.setLayoutY(0)
+        r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
+        r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+        playGameScreen.group.getChildren.add(canvas.getCanvas)
+        addUserActionListenEvent
+        playGameScreen.group.getChildren.add(r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+      }
     }
   }
 
