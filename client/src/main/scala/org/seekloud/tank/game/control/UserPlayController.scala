@@ -251,6 +251,7 @@ class UserPlayController(
     }
   }
 
+  //fixme 后台操作分离createRoom joinRoom
   override protected def handleWsSuccess(e: TankGameEvent.WsSuccess): Unit = {
     if(isCreated) playGameActor ! DispatchMsg(TankGameEvent.CreateRoom(e.roomId,roomPwd))
     else playGameActor ! DispatchMsg(TankGameEvent.StartGame(e.roomId,roomPwd))

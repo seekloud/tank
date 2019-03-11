@@ -57,7 +57,8 @@ case class GameContainerClientImpl(
     * 根据isBot 选择是否渲染以下图层
     * location: 视野范围
     * map: 小地图
-    * mutable: 所有物品：钢铁、河流、子弹、道具
+    * immutable: 所有物品：钢铁、河流
+    * mutable: 所有物品：子弹、道具
     * bodies: 所有坦克
     * state: 自身坦克状态，左上角信息
     **/
@@ -65,6 +66,8 @@ case class GameContainerClientImpl(
   val locationCtx = locationCanvas.getCtx
   val mapCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
   val mapCtx = mapCanvas.getCtx
+  val immutableCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
+  val immutableCtx = immutableCanvas.getCtx
   val mutableCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
   val mutableCtx = mutableCanvas.getCtx
   val bodiesCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas

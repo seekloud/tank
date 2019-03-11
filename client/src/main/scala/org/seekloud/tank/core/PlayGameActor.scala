@@ -141,6 +141,7 @@ object PlayGameActor {
     }
   }
 
+
   def play(frontActor: ActorRef[TankGameEvent.WsMsgFront],
            control: GameController)(implicit stashBuffer: StashBuffer[Command],
                                                            timer: TimerScheduler[Command]) = {

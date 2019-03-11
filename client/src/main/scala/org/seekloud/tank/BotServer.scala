@@ -15,39 +15,99 @@
  */
 
 package org.seekloud.tank
-import akka.actor.typed.ActorRef
+
+import akka.actor.typed.{ActorRef, Behavior}
+import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
 import io.grpc.{Server, ServerBuilder}
 import org.seekloud.pb.api._
 import org.seekloud.pb.service.EsheepAgentGrpc
 import org.seekloud.pb.service.EsheepAgentGrpc.EsheepAgent
 import org.seekloud.tank.core.GrpcStreamActor
-import org.seekloud.tank.game.control.GameController
+import org.seekloud.tank.game.control.{BotPlayController, GameController}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Created by hongruying on 2018/11/29
+  *
+  * @author sky
+  *         管理server服务
+  *         对接grpcAPI
   */
 object BotServer {
   val log = LoggerFactory.getLogger(this.getClass)
+
+  trait Command
+
+  case class BuildServer(port: Int,
+                         executionContext: ExecutionContext,
+                         gameController: BotPlayController) extends Command
+
+  case object Shutdown extends Command
+
   var streamSender: Option[ActorRef[GrpcStreamActor.Command]] = None
-  def build(
+
+  private def build(
              port: Int,
              executionContext: ExecutionContext,
-             gameController: GameController
+             gameController: BotPlayController
            ): Server = {
     log.info("tank gRPC Sever is building..")
-    val service = new BotServer( gameController)
+    val service = new BotServer(gameController)
     ServerBuilder.forPort(port).addService(
       EsheepAgentGrpc.bindService(service, executionContext)
     ).build
   }
+
+  def create(): Behavior[Command] = {
+    Behaviors.setup[Command] { ctx =>
+      Behaviors.withTimers[Command] { implicit timer =>
+        implicit val stashBuffer: StashBuffer[Command] = StashBuffer[Command](Int.MaxValue)
+        idle()
+      }
+    }
+  }
+
+  private def idle()
+                  (implicit stashBuffer: StashBuffer[Command],
+                   timer: TimerScheduler[Command]
+                  ): Behavior[Command] = {
+    Behaviors.receive { (ctx, msg) =>
+      msg match {
+        case BuildServer(port, executor, gController) =>
+          val server = build(port, executor, gController)
+          server.start()
+          log.info(s"Server started at $port")
+          sys.addShutdownHook {
+            log.info("JVM SHUT DOWN.")
+            server.shutdown()
+            log.info("SHUT DOWN.")
+          }
+          working(server)
+      }
+    }
+  }
+
+  private def working(server: Server)
+                     (implicit stashBuffer: StashBuffer[Command],
+                      timer: TimerScheduler[Command]
+                     ): Behavior[Command] = {
+    Behaviors.receive { (ctx, msg) =>
+      msg match {
+        case Shutdown =>
+          server.shutdown()
+          Behaviors.stopped
+      }
+    }
+  }
+
+
 }
 
 
 class BotServer(
-                 gameController: GameController
+                 gameController: BotPlayController
                ) extends EsheepAgent {
   override def createRoom(request: Credit): Future[CreateRoomRsp] = {
     println(s"createRoom Called by [$request")

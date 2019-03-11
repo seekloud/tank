@@ -16,6 +16,9 @@
 
 package org.seekloud.tank.game.control
 
+import akka.actor.typed.scaladsl.adapter._
+import org.seekloud.tank.App.system
+import org.seekloud.tank.core.BotViewActor
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo}
 
 /**
@@ -29,6 +32,9 @@ class BotPlayController(
                          gameServerInfo: GameServerInfo,
                          roomPwd: Option[String] = None
                        ) extends GameController(800, 800, true, roomPwd) {
+
+  val botViewActor= system.spawn(BotViewActor.create(), "BotViewActor")
+
   override protected def checkScreenSize: Unit = {}
 
   override protected def gameStopCallBack: Unit = {}
