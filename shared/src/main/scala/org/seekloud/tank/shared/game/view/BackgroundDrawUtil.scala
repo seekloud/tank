@@ -278,7 +278,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
     viewCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
     if(isBot){
-      mapCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
+      mapCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit*0.4 - 6)
     }
 
 
