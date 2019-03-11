@@ -218,6 +218,9 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
   protected def drawMyTankInfo(tank:TankClientImpl,supportLiveLimit:Boolean) = {
     val cache = myTankInfoCacheMap.getOrElseUpdate((tank.getBloodLevel,tank.getSpeedLevel,tank.getBulletLevel),generateMyTankInfoCanvas(tank,supportLiveLimit))
     viewCtx.drawImage(cache,0,2 * canvasUnit)
+    if(isBot){
+      statusCtx.drawImage(cache,0,2 * canvasUnit)
+    }
   }
 
   def drawLevel(level:Byte,maxLevel:Byte,name:String,start:Point,length:Float,color:String, context:MiddleContext) = {
@@ -282,6 +285,11 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
       viewCtx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
         (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
         Some(1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit))
+      if(isBot){
+        statusCtx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
+          (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
+          Some(1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit))
+      }
     }
     viewCtx.setGlobalAlpha(0.5)
 
@@ -291,6 +299,11 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
       viewCtx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
         (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
         Some(1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit))
+      if(isBot){
+        statusCtx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
+          (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
+          Some(1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit))
+      }
     }
     viewCtx.setGlobalAlpha(1)
 

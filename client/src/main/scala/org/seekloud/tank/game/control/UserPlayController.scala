@@ -277,9 +277,12 @@ class UserPlayController(
         canvas.getCanvas.setLayoutY(0)
         r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
         r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1610)
+        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
         playGameScreen.group.getChildren.add(canvas.getCanvas)
         addUserActionListenEvent
         playGameScreen.group.getChildren.add(r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreen.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
       }
     }
   }
