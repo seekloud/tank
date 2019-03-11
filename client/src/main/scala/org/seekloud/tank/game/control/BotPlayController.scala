@@ -31,7 +31,7 @@ class BotPlayController(
                          playerInfo: PlayerInfo,
                          gameServerInfo: GameServerInfo,
                          roomPwd: Option[String] = None
-                       ) extends GameController(800, 800, true, roomPwd) {
+                       ) extends GameController(800, 400, true, roomPwd) {
 
   val botViewActor= system.spawn(BotViewActor.create(), "BotViewActor")
 
