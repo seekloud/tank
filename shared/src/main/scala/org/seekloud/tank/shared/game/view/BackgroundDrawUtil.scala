@@ -107,6 +107,9 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
   protected def drawBackground(offset:Point) = {
     clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, viewCtx)
+    if(isBot){
+      clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, immutableCtx)
+    }
     val boundStart = Point(canvasBoundary.x/2, canvasBoundary.y/2)
     val boundEnd = Point(canvasBoundary.x/2 + boundary.x, canvasBoundary.y/2 + boundary.y)
     val canvasStart = Point(-offset.x + canvasBoundary.x/2, -offset.y + canvasBoundary.y/2)
@@ -117,15 +120,27 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     val height = end.y - start.y
     if(canvasStart.x < boundStart.x && canvasStart.y > boundStart.y){
       clearScreen("#E8E8E8", 1, width, height, viewCtx, Point(canvasBoundary.x - width, 0))
+      if(isBot){
+        clearScreen("#E8E8E8", 1, width, height, immutableCtx, Point(canvasBoundary.x - width, 0))
+      }
     }
     else if(canvasStart.x > boundStart.x && canvasStart.y < boundStart.y){
       clearScreen("#E8E8E8", 1, width, height, viewCtx, Point(0, canvasBoundary.y - height))
+      if(isBot){
+        clearScreen("#E8E8E8", 1, width, height, immutableCtx, Point(0, canvasBoundary.y - height))
+      }
     }
     else if(canvasStart.x < boundStart.x && canvasStart.y < boundStart.y){
       clearScreen("#E8E8E8", 1, width, height, viewCtx, Point(canvasBoundary.x - width, canvasBoundary.y - height))
+      if(isBot){
+        clearScreen("#E8E8E8", 1, width, height, immutableCtx,  Point(canvasBoundary.x - width, canvasBoundary.y - height))
+      }
     }
     else{
       clearScreen("#E8E8E8", 1, width, height, viewCtx)
+      if(isBot){
+        clearScreen("#E8E8E8", 1, width, height, immutableCtx)
+      }
     }
     viewCtx.setLineWidth(3)
     viewCtx.setStrokeStyle("rgba(0,0,0,0.05)")
@@ -278,7 +293,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
     viewCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
     if(isBot){
-      mapCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
+      mapCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit*0.4 - 6)
     }
 
 

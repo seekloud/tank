@@ -275,6 +275,15 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     viewCtx.setFont("隶书", "bold", 1.8 * canvasUnit)
     viewCtx.setLineWidth(1)
     viewCtx.fillText(s"血包${("                       ").take(30)}(按E键使用)", 4.5*canvasUnit,5.5  * canvasUnit , 30 * canvasUnit)
+
+    if(isBot){
+      statusCtx.setStrokeStyle("rgb(0,0,0)")
+      statusCtx.setTextAlign("left")
+      statusCtx.setFont("隶书", "bold", 1.8 * canvasUnit)
+      statusCtx.setLineWidth(1)
+      statusCtx.fillText(s"血包${("                       ").take(30)}(按E键使用)", 4.5*canvasUnit,5.5  * canvasUnit , 30 * canvasUnit)
+    }
+
     val medicalNum = tank.medicalNumOpt match{
       case Some(num) =>num
       case None =>0
