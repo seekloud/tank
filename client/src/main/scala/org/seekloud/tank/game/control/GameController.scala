@@ -114,6 +114,8 @@ abstract class GameController(
   @deprecated
   protected def gameStopCallBack: Unit
 
+  protected def canvas2Byte4Bot:Unit
+
   def logicLoop() = {
     App.pushStack2AppThread {
       checkScreenSize
@@ -129,6 +131,7 @@ abstract class GameController(
             gameContainerOpt.foreach(t => t.rankUpdated = true)
           }
           gameContainerOpt.foreach(_.update())
+          canvas2Byte4Bot
           logicFrameTime = System.currentTimeMillis()
           ping()
           tickCount += 1
