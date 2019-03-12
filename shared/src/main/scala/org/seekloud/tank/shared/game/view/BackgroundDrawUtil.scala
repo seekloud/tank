@@ -111,6 +111,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
       clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, immutableCtx)
       clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, mutableCtx)
       clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, bodiesCtx)
+      clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, locationCtx)
     }
     val boundStart = Point(canvasBoundary.x/2, canvasBoundary.y/2)
     val boundEnd = Point(canvasBoundary.x/2 + boundary.x, canvasBoundary.y/2 + boundary.y)
@@ -126,6 +127,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
         clearScreen("#E8E8E8", 1, width, height, immutableCtx, Point(canvasBoundary.x - width, 0))
         clearScreen("#E8E8E8", 1, width, height, mutableCtx, Point(canvasBoundary.x - width, 0))
         clearScreen("#E8E8E8", 1, width, height, bodiesCtx, Point(canvasBoundary.x - width, 0))
+        clearScreen("#E8E8E8", 1, width, height, locationCtx, Point(canvasBoundary.x - width, 0))
       }
     }
     else if(canvasStart.x > boundStart.x && canvasStart.y < boundStart.y){
@@ -134,6 +136,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
         clearScreen("#E8E8E8", 1, width, height, immutableCtx, Point(0, canvasBoundary.y - height))
         clearScreen("#E8E8E8", 1, width, height, mutableCtx, Point(0, canvasBoundary.y - height))
         clearScreen("#E8E8E8", 1, width, height, bodiesCtx, Point(0, canvasBoundary.y - height))
+        clearScreen("#E8E8E8", 1, width, height, locationCtx, Point(0, canvasBoundary.y - height))
       }
     }
     else if(canvasStart.x < boundStart.x && canvasStart.y < boundStart.y){
@@ -142,7 +145,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
         clearScreen("#E8E8E8", 1, width, height, immutableCtx,  Point(canvasBoundary.x - width, canvasBoundary.y - height))
         clearScreen("#E8E8E8", 1, width, height, mutableCtx,  Point(canvasBoundary.x - width, canvasBoundary.y - height))
         clearScreen("#E8E8E8", 1, width, height, bodiesCtx,  Point(canvasBoundary.x - width, canvasBoundary.y - height))
-
+        clearScreen("#E8E8E8", 1, width, height, locationCtx,  Point(canvasBoundary.x - width, canvasBoundary.y - height))
       }
     }
     else{
@@ -151,6 +154,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
         clearScreen("#E8E8E8", 1, width, height, immutableCtx)
         clearScreen("#E8E8E8", 1, width, height, mutableCtx)
         clearScreen("#E8E8E8", 1, width, height, bodiesCtx)
+        clearScreen("#E8E8E8", 1, width, height, locationCtx)
       }
     }
     viewCtx.setLineWidth(3)
@@ -256,8 +260,14 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     }
     viewCtx.setGlobalAlpha(0.8)
     viewCtx.drawImage(currentRankCanvas.change2Image(),canvasBoundary.x * canvasUnit - rankWidth*10,0)
+    if(isBot){
+      locationCtx.drawImage(currentRankCanvas.change2Image(),canvasBoundary.x * canvasUnit - rankWidth*10,0)
+    }
     if(Constants.drawHistory){
       viewCtx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,canvasBoundary.y * canvasUnit - rankHeight * 10)
+      if(isBot){
+        locationCtx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,canvasBoundary.y * canvasUnit - rankHeight * 10)
+      }
     }
     viewCtx.setGlobalAlpha(1)
   }
@@ -305,6 +315,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     viewCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
     if(isBot){
       mapCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit*0.2 - 6)
+      locationCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
     }
 
 
@@ -346,7 +357,19 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     //      ctx.setTextAlign(TextAlignment.JUSTIFY)
     viewCtx.setFill("rgb(0,0,0)")
     versionInfo.foreach(r=>viewCtx.strokeText(s"Version： $r", offsetX*canvasUnit,(canvasBoundary.y -16) * canvasUnit , 20 * canvasUnit))
+    if(isBot){
+      locationCtx.beginPath()
+      locationCtx.setStrokeStyle("rgb(0,0,0)")
+      locationCtx.setTextAlign("left")
+      locationCtx.setFont("Arial","normal",3*canvasUnit)
+      locationCtx.setLineWidth(1)
+      locationCtx.strokeText(s"当前在线人数： ${tankMap.size}", 0,(canvasBoundary.y - LittleMap.h -6) * canvasUnit , 20 * canvasUnit)
+      locationCtx.beginPath()
+      locationCtx.setFont("Helvetica", "normal",2 * canvasUnit)
+      locationCtx.setFill("rgb(0,0,0)")
+      versionInfo.foreach(r=>locationCtx.strokeText(s"Version： $r", offsetX*canvasUnit,(canvasBoundary.y -16) * canvasUnit , 20 * canvasUnit))
 
+    }
 
   }
 

@@ -51,6 +51,8 @@ trait PropDrawUtil { this: GameContainerClientImpl =>
             if(isBot){
               mutableCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
                 Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
+              locationCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
+                Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
             }
           }
         } else if(prop.getDisappearTime < PropAnimation.DisAniFrame1){
@@ -61,6 +63,8 @@ trait PropDrawUtil { this: GameContainerClientImpl =>
             if(isBot){
               mutableCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
                 Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
+              locationCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
+                Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
             }
           }
         }else{
@@ -68,6 +72,8 @@ trait PropDrawUtil { this: GameContainerClientImpl =>
             Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
           if(isBot){
             mutableCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
+              Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
+            locationCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
               Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
           }
         }
@@ -77,11 +83,13 @@ trait PropDrawUtil { this: GameContainerClientImpl =>
             viewCtx.drawImage(boomImg, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit, Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
             if(isBot){
               mutableCtx.drawImage(boomImg, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit, Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
+              locationCtx.drawImage(boomImg, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit, Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
             }
           } else if (tankDestroyAnimationMap(prop.pId) > GameAnimation.tankDestroyAnimationFrame / 3) {
             viewCtx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit))
             if(isBot){
               mutableCtx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit))
+              locationCtx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit))
             }
           } else if (tankDestroyAnimationMap(prop.pId) > 0) {
             viewCtx.setGlobalAlpha(0.5)
@@ -91,6 +99,9 @@ trait PropDrawUtil { this: GameContainerClientImpl =>
               mutableCtx.setGlobalAlpha(0.5)
               mutableCtx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit))
               mutableCtx.setGlobalAlpha(1)
+              locationCtx.setGlobalAlpha(0.5)
+              locationCtx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit))
+              locationCtx.setGlobalAlpha(1)
             }
           }
 
