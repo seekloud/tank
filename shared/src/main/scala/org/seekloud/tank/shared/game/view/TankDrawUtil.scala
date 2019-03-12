@@ -70,6 +70,17 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         viewCtx.setLineWidth(0.4 * canvasUnit)
         viewCtx.stroke()
         viewCtx.closePath()
+        if(isBot){
+          bodiesCtx.beginPath()
+          bodiesCtx.moveTo(gunPositionList.last.x, gunPositionList.last.y)
+          gunPositionList.foreach(t => bodiesCtx.lineTo(t.x, t.y))
+          bodiesCtx.setFill("#7A7A7A")
+          bodiesCtx.setStrokeStyle("#636363")
+          bodiesCtx.fill()
+          bodiesCtx.setLineWidth(0.4 * canvasUnit)
+          bodiesCtx.stroke()
+          bodiesCtx.closePath()
+        }
         //----------------------------绘制坦克---------------------#
         if (tank.getInvincibleState) {
           viewCtx.beginPath()
@@ -82,6 +93,13 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
           viewCtx.arc(centerX.toFloat, centerY.toFloat, radius, startAngle.toFloat, lengthAngle.toFloat)
           viewCtx.fill()
           viewCtx.closePath()
+          if(isBot){
+            bodiesCtx.beginPath()
+            bodiesCtx.setFill("rgba(128, 100, 162, 0.2)")
+            bodiesCtx.arc(centerX.toFloat, centerY.toFloat, radius, startAngle.toFloat, lengthAngle.toFloat)
+            bodiesCtx.fill()
+            bodiesCtx.closePath()
+          }
         }
         viewCtx.beginPath()
         viewCtx.setLineWidth( 0.4 * canvasUnit)
@@ -98,6 +116,17 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         viewCtx.stroke()
         viewCtx.closePath()
         viewCtx.setGlobalAlpha(1)
+        if(isBot){
+          bodiesCtx.beginPath()
+          bodiesCtx.setLineWidth(0.4*canvasUnit)
+          bodiesCtx.setStrokeStyle("#636363")
+          bodiesCtx.arc(centerX.toFloat, centerY.toFloat, radius, startAngle.toFloat, lengthAngle.toFloat)
+          bodiesCtx.setFill(tankColor)
+          bodiesCtx.fill()
+          bodiesCtx.stroke()
+          bodiesCtx.closePath()
+          bodiesCtx.setGlobalAlpha(1)
+        }
 
 
         drawBloodSlider(p, tank)
@@ -110,6 +139,15 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         viewCtx.setLineWidth(2)
         viewCtx.fillText(s"${tank.name}", namePosition.x, namePosition.y, 20 * canvasUnit)
         viewCtx.closePath()
+        if(isBot){
+          bodiesCtx.beginPath()
+          bodiesCtx.setFill("#006699")
+          bodiesCtx.setTextAlign("center")
+          bodiesCtx.setFont("楷体", "normal", 2 * canvasUnit)
+          bodiesCtx.setLineWidth(2)
+          bodiesCtx.fillText(s"${tank.name}", namePosition.x, namePosition.y, 20 * canvasUnit)
+          bodiesCtx.closePath()
+        }
 
         drawTankBullet(p, tank)
         drawTankStar(p, tank)
@@ -161,7 +199,11 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
       viewCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
         (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
         Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
-
+      if(isBot){
+        bodiesCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
+          (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
+          Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
+      }
       left = left + SmallBullet.width
     }
     viewCtx.setGlobalAlpha(0.5)
@@ -172,6 +214,11 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
       viewCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
         (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
         Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
+      if(isBot){
+        bodiesCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
+          (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
+          Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
+      }
       left = left + SmallBullet.width
 
     }
@@ -220,6 +267,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     viewCtx.drawImage(cache,0,2 * canvasUnit)
     if(isBot){
       statusCtx.drawImage(cache,0,2 * canvasUnit)
+//      bodiesCtx.drawImage(cache,0,2 * canvasUnit)
     }
   }
 

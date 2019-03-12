@@ -64,7 +64,7 @@ case class GameContainerClientImpl(
     **/
   val locationCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
   val locationCtx = locationCanvas.getCtx
-  val mapCanvas = if (isBot) drawFrame.createCanvas(300, 250) else viewCanvas
+  val mapCanvas = if (isBot) drawFrame.createCanvas(200, 250) else viewCanvas
   val mapCtx = mapCanvas.getCtx
   val immutableCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
   val immutableCtx = immutableCanvas.getCtx
@@ -72,7 +72,7 @@ case class GameContainerClientImpl(
   val mutableCtx = mutableCanvas.getCtx
   val bodiesCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
   val bodiesCtx = bodiesCanvas.getCtx
-  val statusCanvas = if (isBot) drawFrame.createCanvas(400, 200) else viewCanvas
+  val statusCanvas = if (isBot) drawFrame.createCanvas(200, 200) else viewCanvas
   val statusCtx = statusCanvas.getCtx
 
   protected val obstacleAttackedAnimationMap = mutable.HashMap[Int, Int]()
