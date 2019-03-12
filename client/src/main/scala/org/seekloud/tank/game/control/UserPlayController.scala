@@ -277,8 +277,10 @@ class UserPlayController(
         canvas.getCanvas.setLayoutY(0)
         r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
         r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
-        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1110)
-        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
+        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(260)
+        r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1020)
+        r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
         r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(0)
         r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
         r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
@@ -289,6 +291,7 @@ class UserPlayController(
         playGameScreen.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
         playGameScreen.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
         playGameScreen.group.getChildren.add(r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreen.group.getChildren.add(r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
       }
     }
   }
