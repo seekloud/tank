@@ -21,6 +21,7 @@ import org.seekloud.tank.App.system
 import org.seekloud.tank.core.BotViewActor
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo}
 import org.seekloud.utils.canvas.MiddleCanvasInFx
+import org.seekloud.tank.shared.model
 
 /**
   * Created by sky
@@ -34,7 +35,7 @@ class BotPlayController(
                          roomPwd: Option[String] = None
                        ) extends GameController(800, 400, true, roomPwd) {
 
-  val botViewActor= system.spawn(BotViewActor.create(), "BotViewActor")
+  val botViewActor = system.spawn(BotViewActor.create(), "BotViewActor")
 
   override protected def checkScreenSize: Unit = {}
 
@@ -42,9 +43,15 @@ class BotPlayController(
 
   override protected def initGameContainerCallBack: Unit = {}
 
+  def getBotScore = gameContainerOpt.map { r =>
+    r.currentRank.find(_.id == r.myTankId).getOrElse(model.Score(r.myTankId, "", 0, 0, 0))
+  }.getOrElse(model.Score(0, "", 0, 0, 0))
+
+  def getCurFrame=gameContainerOpt.map(_.systemFrame).getOrElse(0l)
+
   //remind canvas2Byte示例
-  protected def getView={
-    gameContainerOpt.foreach(r=>r.mapCanvas.asInstanceOf[MiddleCanvasInFx].canvas2byteArray)
+  protected def getView = {
+    gameContainerOpt.foreach(r => r.mapCanvas.asInstanceOf[MiddleCanvasInFx].canvas2byteArray)
   }
 
 }

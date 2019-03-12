@@ -26,7 +26,8 @@ import org.seekloud.pb.service.EsheepAgentGrpc.EsheepAgent
 import org.seekloud.tank.core.GrpcStreamActor
 import org.seekloud.tank.game.control.{BotPlayController, GameController}
 import org.slf4j.LoggerFactory
-
+import akka.actor.typed.scaladsl.adapter._
+import org.seekloud.tank.App.{system,executor}
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -48,12 +49,15 @@ object BotServer {
   case object Shutdown extends Command
 
   var streamSender: Option[ActorRef[GrpcStreamActor.Command]] = None
+  var state: State = State.unknown
+  var isObservationConnect = false
+  var isFrameConnect = false
 
   private def build(
-             port: Int,
-             executionContext: ExecutionContext,
-             gameController: BotPlayController
-           ): Server = {
+                     port: Int,
+                     executionContext: ExecutionContext,
+                     gameController: BotPlayController
+                   ): Server = {
     log.info("tank gRPC Sever is building..")
     val service = new BotServer(gameController)
     ServerBuilder.forPort(port).addService(
@@ -110,62 +114,122 @@ object BotServer {
 class BotServer(
                  gameController: BotPlayController
                ) extends EsheepAgent {
+
+  import BotServer._
+  import org.seekloud.utils.SecureUtil.botAuth
+
   override def createRoom(request: CreateRoomReq): Future[CreateRoomRsp] = {
-    println(s"createRoom Called by [$request")
-    val state = State.init_game
-    Future.successful(CreateRoomRsp(errCode = 101, state = state, msg = "ok"))
+    if (request.credit.nonEmpty && botAuth(request.credit.get.apiToken)) {
+      println(s"createRoom Called by [$request")
+      state = State.init_game
+      Future.successful(CreateRoomRsp(errCode = 101, state = state, msg = "ok"))
+    } else {
+      Future.successful(CreateRoomRsp(errCode = 101, state = State.unknown, msg = "auth error"))
+    }
   }
 
   override def joinRoom(request: JoinRoomReq): Future[SimpleRsp] = {
-    println(s"joinRoom Called by [$request")
-    val state = State.in_game
-    Future.successful(SimpleRsp(errCode = 102, state = state, msg = "ok"))
+    if (request.credit.nonEmpty && botAuth(request.credit.get.apiToken)) {
+      println(s"joinRoom Called by [$request")
+      state = State.in_game
+      Future.successful(SimpleRsp(errCode = 102, state = state, msg = "ok"))
+    } else {
+      Future.successful(SimpleRsp(errCode = 101, state = State.unknown, msg = "auth error"))
+    }
   }
 
   override def leaveRoom(request: Credit): Future[SimpleRsp] = {
-    println(s"leaveRoom Called by [$request")
-    val state = State.ended
-    Future.successful(SimpleRsp(errCode = 103, state = state, msg = "ok"))
+    if (botAuth(request.apiToken)) {
+      println(s"leaveRoom Called by [$request")
+      state = State.ended
+      Future.successful(SimpleRsp(errCode = 103, state = state, msg = "ok"))
+    } else {
+      Future.successful(SimpleRsp(errCode = 101, state = State.unknown, msg = "auth error"))
+    }
   }
 
   override def actionSpace(request: Credit): Future[ActionSpaceRsp] = {
-    println(s"actionSpace Called by [$request")
-    val rsp = ActionSpaceRsp()
-    Future.successful(rsp)
+    if (botAuth(request.apiToken)) {
+      println(s"actionSpace Called by [$request")
+      val rsp = ActionSpaceRsp()
+      Future.successful(rsp)
+    } else {
+      Future.successful(ActionSpaceRsp(errCode = 101, state = State.unknown, msg = "auth error"))
+    }
   }
 
   override def action(request: ActionReq): Future[ActionRsp] = {
-    println(s"action Called by [$request")
-    val rsp = ActionRsp()
-    Future.successful(rsp)
+    if (request.credit.nonEmpty && botAuth(request.credit.get.apiToken)) {
+      println(s"action Called by [$request")
+      val rsp = ActionRsp()
+      Future.successful(rsp)
+    } else {
+      Future.successful(ActionRsp(errCode = 101, state = State.unknown, msg = "auth error"))
+    }
   }
 
   override def observation(request: Credit): Future[ObservationRsp] = {
-    println(s"action Called by [$request")
-    val rsp = ObservationRsp()
-    Future.successful(rsp)
+    if (botAuth(request.apiToken)) {
+      println(s"action Called by [$request")
+      val rsp = ObservationRsp()
+      Future.successful(rsp)
+    } else {
+      Future.successful(ObservationRsp(errCode = 101, state = State.unknown, msg = "auth error"))
+    }
   }
 
   override def inform(request: Credit): Future[InformRsp] = {
-    println(s"action Called by [$request")
-    val rsp = InformRsp()
-    Future.successful(rsp)
+    if (botAuth(request.apiToken)) {
+      println(s"action Called by [$request")
+      val rsp = InformRsp()
+      Future.successful(rsp)
+    } else {
+      Future.successful(InformRsp(errCode = 101, state = State.unknown, msg = "auth error"))
+    }
   }
 
   override def reincarnation(request: Credit): Future[SimpleRsp] = {
-    Future.successful(SimpleRsp())
+    if (botAuth(request.apiToken)) {
+      Future.successful(SimpleRsp())
+    } else {
+      Future.successful(SimpleRsp(errCode = 101, state = State.unknown, msg = "auth error"))
+    }
   }
 
   override def systemInfo(request: Credit): Future[SystemInfoRsp] = {
-    Future.successful(SystemInfoRsp())
+    if (botAuth(request.apiToken)) {
+      Future.successful(SystemInfoRsp())
+    } else {
+      Future.successful(SystemInfoRsp(errCode = 101, state = State.unknown, msg = "auth error"))
+    }
   }
 
 
   override def currentFrame(request: Credit, responseObserver: StreamObserver[CurrentFrameRsp]): Unit = {
-
+    if (botAuth(request.apiToken)) {
+      isFrameConnect=true
+      if (streamSender.isDefined) {
+        streamSender.get ! GrpcStreamActor.FrameObserver(responseObserver)
+      } else {
+        streamSender = Some(system.spawn(GrpcStreamActor.create(gameController), "GrpcStreamActor"))
+        streamSender.get ! GrpcStreamActor.FrameObserver(responseObserver)
+      }
+    } else {
+      responseObserver.onCompleted()
+    }
   }
 
   override def observationWithInfo(request: Credit, responseObserver: StreamObserver[ObservationWithInfoRsp]): Unit = {
-
+    if (botAuth(request.apiToken)) {
+      isObservationConnect=true
+      if(streamSender.isDefined){
+        streamSender.get ! GrpcStreamActor.ObservationObserver(responseObserver)
+      }else{
+        streamSender = Some(system.spawn(GrpcStreamActor.create(gameController), "GrpcStreamActor"))
+        streamSender.get ! GrpcStreamActor.ObservationObserver(responseObserver)
+      }
+    } else {
+      responseObserver.onCompleted()
+    }
   }
 }
