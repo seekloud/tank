@@ -30,11 +30,11 @@ package org.seekloud.pb;
 message LayeredObservation {
 
   ImgData location_in_map = 1;
-  ImgData background = 2;
-  ImgData things = 3;
-  ImgData players = 4;
-  ImgData self_player = 5;
-  ImgData states = 6;
+  ImgData map = 2;
+  ImgData immutable = 3;
+  ImgData mutable = 4;
+  ImgData bodies = 5;
+  ImgData state = 6;
 
 
 }
