@@ -18,6 +18,7 @@ package org.seekloud.tank
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
+import io.grpc.stub.StreamObserver
 import io.grpc.{Server, ServerBuilder}
 import org.seekloud.pb.api._
 import org.seekloud.pb.service.EsheepAgentGrpc
@@ -109,7 +110,7 @@ object BotServer {
 class BotServer(
                  gameController: BotPlayController
                ) extends EsheepAgent {
-  override def createRoom(request: Credit): Future[CreateRoomRsp] = {
+  override def createRoom(request: CreateRoomReq): Future[CreateRoomRsp] = {
     println(s"createRoom Called by [$request")
     val state = State.init_game
     Future.successful(CreateRoomRsp(errCode = 101, state = state, msg = "ok"))
@@ -149,5 +150,22 @@ class BotServer(
     println(s"action Called by [$request")
     val rsp = InformRsp()
     Future.successful(rsp)
+  }
+
+  override def reincarnation(request: Credit): Future[SimpleRsp] = {
+    Future.successful(SimpleRsp())
+  }
+
+  override def systemInfo(request: Credit): Future[SystemInfoRsp] = {
+    Future.successful(SystemInfoRsp())
+  }
+
+
+  override def currentFrame(request: Credit, responseObserver: StreamObserver[CurrentFrameRsp]): Unit = {
+
+  }
+
+  override def observationWithInfo(request: Credit, responseObserver: StreamObserver[ObservationWithInfoRsp]): Unit = {
+
   }
 }

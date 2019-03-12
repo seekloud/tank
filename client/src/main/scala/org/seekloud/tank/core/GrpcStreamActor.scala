@@ -16,7 +16,10 @@
 
 package org.seekloud.tank.core
 
-import org.seekloud.pb.api.Credit
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.Behaviors
+import io.grpc.stub.StreamObserver
+import org.seekloud.pb.api.{Credit, CurrentFrameRsp, ObservationRsp, ObservationWithInfoRsp}
 import org.slf4j.LoggerFactory
 
 /**
@@ -29,4 +32,31 @@ object GrpcStreamActor {
   private[this] val log = LoggerFactory.getLogger(this.getClass)
 
   sealed trait Command
+
+  case class NewFrame(frame: Long) extends Command
+
+  case class FrameObserver(frameObserver: StreamObserver[CurrentFrameRsp]) extends Command
+
+  case class ObservationObserver(observationObserver: StreamObserver[ObservationWithInfoRsp]) extends Command
+
+  case class NewObservation(observation: ObservationRsp) extends Command
+
+  case object LeaveRoom extends Command
+
+  def create(): Behavior[Command] = {
+    Behaviors.setup[Command] { ctx =>
+      val fStream = new StreamObserver[CurrentFrameRsp] {
+        override def onNext(value: CurrentFrameRsp): Unit = {}
+        override def onCompleted(): Unit = {}
+        override def onError(t: Throwable): Unit = {}
+      }
+      val oStream = new StreamObserver[ObservationWithInfoRsp] {
+        override def onNext(value: ObservationWithInfoRsp): Unit = {}
+        override def onCompleted(): Unit = {}
+        override def onError(t: Throwable): Unit = {}
+      }
+//      working(gameController,fStream, oStream)
+      Behaviors.same
+    }
+  }
 }
