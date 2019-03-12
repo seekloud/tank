@@ -19,7 +19,10 @@ package org.seekloud.tank.core
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import io.grpc.stub.StreamObserver
-import org.seekloud.pb.api.{Credit, CurrentFrameRsp, ObservationRsp, ObservationWithInfoRsp}
+import org.seekloud.pb.api.{Credit, CurrentFrameRsp, ObservationRsp, ObservationWithInfoRsp, State}
+import org.seekloud.tank.BotServer
+import org.seekloud.tank.game.control.BotPlayController
+import org.seekloud.tank.shared.model.Constants.GameState
 import org.slf4j.LoggerFactory
 
 /**
@@ -43,7 +46,7 @@ object GrpcStreamActor {
 
   case object LeaveRoom extends Command
 
-  def create(): Behavior[Command] = {
+  def create(gameControl:BotPlayController): Behavior[Command] = {
     Behaviors.setup[Command] { ctx =>
       val fStream = new StreamObserver[CurrentFrameRsp] {
         override def onNext(value: CurrentFrameRsp): Unit = {}
@@ -55,8 +58,51 @@ object GrpcStreamActor {
         override def onCompleted(): Unit = {}
         override def onError(t: Throwable): Unit = {}
       }
-//      working(gameController,fStream, oStream)
-      Behaviors.same
+      working(gameControl,fStream, oStream)
+    }
+  }
+
+  def working(gameControl:BotPlayController,frameObserver: StreamObserver[CurrentFrameRsp], oObserver: StreamObserver[ObservationWithInfoRsp] ): Behavior[Command] = {
+    Behaviors.receive[Command] { (ctx, msg) =>
+      msg match {
+
+        case ObservationObserver(observationObserver) =>
+          working(gameControl,frameObserver, observationObserver)
+
+        case FrameObserver(fObserver) =>
+          working(gameControl,fObserver, oObserver)
+
+        case NewFrame(frame) =>
+          val rsp = CurrentFrameRsp(frame)
+          try {
+            frameObserver.onNext(rsp)
+            Behavior.same
+          } catch {
+            case e: Exception =>
+              log.warn(s"frameObserver error: ${e.getMessage}")
+              Behavior.stopped
+          }
+
+        case NewObservation(observation) =>
+          BotServer.state = if (gameControl.gameState==GameState.play) State.in_game else State.killed
+          val rsp = ObservationWithInfoRsp(observation.layeredObservation, observation.humanObservation,
+            gameControl.getBotScore.d, gameControl.getBotScore.k,
+            if (gameControl.gameState==GameState.play) 1 else 0, gameControl.getCurFrame,
+            0, BotServer.state, "ok")
+          try {
+            oObserver.onNext(rsp)
+            Behavior.same
+          } catch {
+            case e: Exception =>
+              log.warn(s"ooObserver error: ${e.getMessage}")
+              Behavior.stopped
+          }
+
+        case LeaveRoom =>
+          oObserver.onCompleted()
+          frameObserver.onCompleted()
+          Behaviors.stopped
+      }
     }
   }
 }

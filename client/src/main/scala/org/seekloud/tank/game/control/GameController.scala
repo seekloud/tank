@@ -71,7 +71,7 @@ abstract class GameController(
   protected var recvSyncGameAllState: Option[TankGameEvent.SyncGameAllState] = None
 
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
-  protected var gameState = GameState.loadingPlay
+  var gameState = GameState.loadingPlay
   protected var logicFrameTime = System.currentTimeMillis()
 
   private var tickCount = 1
@@ -220,7 +220,7 @@ abstract class GameController(
 
         case e: TankGameEvent.SyncGameAllState =>
           if (!recvYourInfo) {
-            println("----发生预料事件")
+            log.info("----发生预料事件")
             recvSyncGameAllState = Some(e)
           } else {
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
@@ -261,6 +261,7 @@ abstract class GameController(
 
         case e: TankGameEvent.WsMsgErrorRsp =>
           handleWsMsgErrorRsp(e)
+
         case _ =>
           log.info(s"unknow msg={sss}")
       }
