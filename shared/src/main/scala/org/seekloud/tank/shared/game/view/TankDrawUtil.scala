@@ -188,6 +188,37 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
       viewCtx.closePath()
     }
+
+    if(isBot){
+      bodiesCtx.beginPath()
+      bodiesCtx.setLineCap("butt")
+      bodiesCtx.setLineJoin("miter")
+      bodiesCtx.setLineWidth(0.5 * canvasUnit)
+      bodiesCtx.setStrokeStyle("#BEBEBE")
+      bodiesCtx.moveTo(sliderPositions.last.x,sliderPositions.last.y)
+      bodiesCtx.lineTo(sliderPositions.head.x,sliderPositions.head.y)
+      bodiesCtx.stroke()
+      bodiesCtx.closePath()
+      for(i <- Range(1 ,sliderPositions.length,2)){
+        bodiesCtx.beginPath()
+        bodiesCtx.setLineWidth(0.5 * canvasUnit)
+        if((i+1) / 2 <= 1f * tank.getCurBlood / 20){
+          bodiesCtx.setStrokeStyle("rgb(255,0,0)")
+          bodiesCtx.moveTo(sliderPositions(i-1).x,sliderPositions(i-1).y)
+          bodiesCtx.lineTo(sliderPositions(i).x,sliderPositions(i).y)
+          bodiesCtx.stroke()
+        }
+        if(tank.getCurBlood / 20 < 1f * tank.getCurBlood / 20 && (i+1) / 2 == tank.getCurBlood / 20 + 1){
+          bodiesCtx.setStrokeStyle("rgb(255,0,0)")
+          bodiesCtx.moveTo(sliderPositions(i-1).x,sliderPositions(i-1).y)
+          bodiesCtx.lineTo(sliderPositions(i-1).x + 1f * (tank.getCurBlood - tank.getCurBlood / 20 * 20) / 20 * width * canvasUnit,sliderPositions(i-1).y)
+          bodiesCtx.stroke()
+        }
+
+        bodiesCtx.closePath()
+      }
+    }
+
   }
 
   def drawTankBullet(tankPosition:Point, tank:TankClientImpl) = {
@@ -245,6 +276,11 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
       viewCtx.drawImage(img, starPos.x * canvasUnit,
         starPos.y * canvasUnit,
         Some(TankStar.width * canvasUnit, TankStar.height * canvasUnit))
+      if(isBot){
+        bodiesCtx.drawImage(img, starPos.x * canvasUnit,
+          starPos.y * canvasUnit,
+          Some(TankStar.width * canvasUnit, TankStar.height * canvasUnit))
+      }
     }
 
   }
