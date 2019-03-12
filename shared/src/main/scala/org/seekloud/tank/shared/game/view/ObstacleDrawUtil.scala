@@ -149,6 +149,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
     if (!isAttacked){
       ctxCache.drawImage(img, 0, 0,
         Some(obstacleWidth * canvasUnit,obstacleHeight * canvasUnit))
+
     } else{
       ctxCache.setGlobalAlpha(0.5)
       ctxCache.drawImage(img, 0, 0,
@@ -171,6 +172,9 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
           val cacheCanvas = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, isAttacked),
             generateEnvironmentCacheCanvas(obstacle.obstacleType, obstacle.getWidth, obstacle.getHeight, isAttacked))
           viewCtx.drawImage(cacheCanvas, p.x * canvasUnit, p.y * canvasUnit)
+          if(isBot){
+            immutableCtx.drawImage(cacheCanvas, p.x * canvasUnit, p.y * canvasUnit)
+          }
         } else {
           viewCtx.beginPath()
           viewCtx.drawImage(img, p.x * canvasUnit, p.y * canvasUnit,
@@ -178,6 +182,15 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
           viewCtx.fill()
           viewCtx.stroke()
           viewCtx.closePath()
+          if(isBot){
+            immutableCtx.beginPath()
+            immutableCtx.drawImage(img, p.x * canvasUnit, p.y * canvasUnit,
+              Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
+            immutableCtx.fill()
+            immutableCtx.stroke()
+            immutableCtx.closePath()
+          }
+
         }
         if (obstacle.obstacleType == ObstacleType.steel && obstacleAttackedAnimationMap.contains(obstacle.oId)) {
           if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
