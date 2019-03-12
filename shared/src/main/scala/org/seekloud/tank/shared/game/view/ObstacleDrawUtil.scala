@@ -93,9 +93,19 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
             viewCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
               Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
             viewCtx.setGlobalAlpha(1)
+            if(isBot){
+              mutableCtx.setGlobalAlpha(0.5)
+              mutableCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
+                Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
+              mutableCtx.setGlobalAlpha(1)
+            }
           } else {
             viewCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
               Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
+            if(isBot){
+              mutableCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
+                Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
+            }
           }
         }else{
           if (obstacle.bloodPercent() > 0.9999999) {
