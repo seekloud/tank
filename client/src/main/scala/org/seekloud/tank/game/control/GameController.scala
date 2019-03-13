@@ -21,12 +21,14 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.typed.scaladsl.adapter._
 import javafx.animation.AnimationTimer
 import javafx.scene.input.KeyCode
+
 import org.seekloud.tank.App
 import org.seekloud.tank.App.system
 import org.seekloud.tank.core.PlayGameActor
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.common.Constants
 import org.seekloud.tank.game.NetworkInfo
+import org.seekloud.tank.model.JoinRoomRsp
 import org.seekloud.tank.shared.`object`.Tank
 import org.seekloud.tank.shared.game.GameContainerClientImpl
 import org.seekloud.tank.shared.model.Constants.GameState
@@ -160,6 +162,9 @@ abstract class GameController(
 
   protected def handleWsMsgErrorRsp(e: TankGameEvent.WsMsgErrorRsp) = {
     if (e.errCode == 10001) {
+      if(BotPlayController.SDKReplyTo != null){
+        BotPlayController.SDKReplyTo ! JoinRoomRsp(-1,e.errCode,e.msg)
+      }
       closeHolder
     }
   }
@@ -187,6 +192,9 @@ abstract class GameController(
             gameContainerOpt.get.changeTankId(e.tankId)
             recvYourInfo = true
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))
+            if(BotPlayController.SDKReplyTo != null){
+              BotPlayController.SDKReplyTo ! JoinRoomRsp(e.roomId)
+            }
           } catch {
             case e: Exception =>
               closeHolder

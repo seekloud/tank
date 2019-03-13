@@ -18,29 +18,28 @@ package org.seekloud.tank.game.control
 
 import akka.actor.typed.scaladsl.adapter._
 import javafx.animation.{AnimationTimer, KeyFrame}
+
 import akka.actor.typed.{ActorRef, Behavior}
 import org.seekloud.tank.App.system
 import org.seekloud.tank.core.{BotViewActor, PlayGameActor}
 import org.seekloud.tank.model._
 import org.seekloud.utils.canvas.MiddleCanvasInFx
 import javafx.scene.input.KeyCode
+
 import org.seekloud.pb.actions._
 
 import scala.concurrent.duration._
 import java.awt.event.KeyEvent
 import java.nio.ByteBuffer
-
 import javafx.scene.SnapshotParameters
 import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.image.WritableImage
 import javafx.scene.media.AudioClip
-import javafx.scene.paint.Color
 import org.seekloud.pb.api.ActionReq
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.shared.model.Constants.GameState
 import org.seekloud.tank.shared.model.Point
 import org.seekloud.tank.shared.protocol.TankGameEvent
-import org.slf4j.{Logger, LoggerFactory}
 import org.seekloud.tank.shared.model
 import org.seekloud.tank.shared.util.canvas.MiddleCanvas
 
@@ -109,6 +108,9 @@ class BotPlayController(
 
   def gameActionReceiver(key: ActionReq) = {
     if(key.swing.nonEmpty && gameContainerOpt.nonEmpty && gameState == GameState.play){
+      /**
+        * 鼠标移动
+        **/
       val d = key.swing.get.distance
       val r = key.swing.get.radian
       mousePlace  += Point(d * math.cos(r).toFloat,d * math.sin(r).toFloat)

@@ -112,7 +112,7 @@ object RoomActor {
             val subscribersMap = mutable.HashMap[String, ActorRef[UserActor.Command]]()
             val observersMap = mutable.HashMap[String, ActorRef[UserActor.Command]]()
             implicit val sendBuffer = new MiddleBufferInJvm(81920)
-            val gameContainer = game.GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer, log,
+            val gameContainer = game.GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer, log, roomId,
               dispatch(subscribersMap, observersMap),
               dispatchTo(subscribersMap, observersMap)
             )
