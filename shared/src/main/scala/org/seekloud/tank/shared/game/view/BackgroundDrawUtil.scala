@@ -260,14 +260,10 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     }
     viewCtx.setGlobalAlpha(0.8)
     viewCtx.drawImage(currentRankCanvas.change2Image(),canvasBoundary.x * canvasUnit - rankWidth*10,0)
-    if(isBot){
-      locationCtx.drawImage(currentRankCanvas.change2Image(),canvasBoundary.x * canvasUnit - rankWidth*10,0)
-    }
+
     if(Constants.drawHistory){
       viewCtx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,canvasBoundary.y * canvasUnit - rankHeight * 10)
-      if(isBot){
-        locationCtx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,canvasBoundary.y * canvasUnit - rankHeight * 10)
-      }
+
     }
     viewCtx.setGlobalAlpha(1)
   }
@@ -315,7 +311,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     viewCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
     if(isBot){
       mapCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit*0.2 - 6)
-      locationCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
+
     }
 
 
@@ -357,20 +353,6 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     //      ctx.setTextAlign(TextAlignment.JUSTIFY)
     viewCtx.setFill("rgb(0,0,0)")
     versionInfo.foreach(r=>viewCtx.strokeText(s"Version： $r", offsetX*canvasUnit,(canvasBoundary.y -16) * canvasUnit , 20 * canvasUnit))
-    if(isBot){
-      locationCtx.beginPath()
-      locationCtx.setStrokeStyle("rgb(0,0,0)")
-      locationCtx.setTextAlign("left")
-      locationCtx.setFont("Arial","normal",3*canvasUnit)
-      locationCtx.setLineWidth(1)
-      locationCtx.strokeText(s"当前在线人数： ${tankMap.size}", 0,(canvasBoundary.y - LittleMap.h -6) * canvasUnit , 20 * canvasUnit)
-      locationCtx.beginPath()
-      locationCtx.setFont("Helvetica", "normal",2 * canvasUnit)
-      locationCtx.setFill("rgb(0,0,0)")
-      versionInfo.foreach(r=>locationCtx.strokeText(s"Version： $r", offsetX*canvasUnit,(canvasBoundary.y -16) * canvasUnit , 20 * canvasUnit))
-
-    }
-
   }
 
 
