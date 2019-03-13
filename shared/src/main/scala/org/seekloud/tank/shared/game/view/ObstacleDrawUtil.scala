@@ -98,18 +98,12 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
               mutableCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
                 Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
               mutableCtx.setGlobalAlpha(1)
-              locationCtx.setGlobalAlpha(0.5)
-              locationCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
-                Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
-              locationCtx.setGlobalAlpha(1)
             }
           } else {
             viewCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
               Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
             if(isBot){
               mutableCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
-                Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
-              locationCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
                 Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
             }
           }
@@ -120,13 +114,11 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
             viewCtx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
             if(isBot){
               mutableCtx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
-              locationCtx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
             }
           } else {
             drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color)
             if(isBot){
               drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color,mutableCtx)
-              drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color,locationCtx)
             }
           }
         }
@@ -171,16 +163,6 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
       mutableCtx.closePath()
       mutableCtx.restore()
 
-      locationCtx.save()
-      locationCtx.setLineWidth(lineWidth)
-      locationCtx.setLineCap("round")
-      locationCtx.setStrokeStyle(color)
-      locationCtx.beginPath()
-      locationCtx.moveTo(startX, startY)
-      locationCtx.lineTo(startX + lineLen, startY)
-      locationCtx.stroke()
-      locationCtx.closePath()
-      locationCtx.restore()
     }
   }
 
@@ -221,7 +203,6 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
           viewCtx.drawImage(cacheCanvas, p.x * canvasUnit, p.y * canvasUnit)
           if(isBot){
             immutableCtx.drawImage(cacheCanvas, p.x * canvasUnit, p.y * canvasUnit)
-            locationCtx.drawImage(cacheCanvas, p.x * canvasUnit, p.y * canvasUnit)
           }
         } else {
           viewCtx.beginPath()
@@ -237,13 +218,6 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
             immutableCtx.fill()
             immutableCtx.stroke()
             immutableCtx.closePath()
-
-            locationCtx.beginPath()
-            locationCtx.drawImage(img, p.x * canvasUnit, p.y * canvasUnit,
-              Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
-            locationCtx.fill()
-            locationCtx.stroke()
-            locationCtx.closePath()
           }
 
         }
