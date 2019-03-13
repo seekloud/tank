@@ -66,15 +66,11 @@ class BotPlayController(
 
   val botViewActor= system.spawn(BotViewActor.create(), "BotViewActor")
   serverActors = Some(playGameActor)
-  var mousePlace = Point(canvasWidth/2,canvasHeight/2)
-
-  val watchKeys4Bot = Set(Move.up, Move.down, Move.left, Move.right)
+  var mousePlace = Point(400,200)
 
   private var lastMoveFrame = -1L
   private var lastMouseMoveAngle: Byte = 0
   private val bulletMusic = new AudioClip(getClass.getResource("/music/bullet.mp3").toString)
-
-
 
   override protected def checkScreenSize: Unit = {}
 
