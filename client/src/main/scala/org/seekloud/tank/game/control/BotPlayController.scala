@@ -95,11 +95,7 @@ class BotPlayController(
   }.getOrElse(model.Score(0, "", 0, 0, 0))
 
   def getCurFrame=gameContainerOpt.map(_.systemFrame).getOrElse(0l)
-  //remind canvas2Byte示例
 
-  protected def getView={
-    gameContainerOpt.foreach(r=>r.mapCanvas.asInstanceOf[MiddleCanvasInFx].canvas2byteArray)
-  }
   def getGameState = gameState
 
   def getInform = {

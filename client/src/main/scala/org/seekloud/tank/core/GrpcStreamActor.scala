@@ -84,10 +84,10 @@ object GrpcStreamActor {
           }
 
         case NewObservation(observation) =>
-          BotServer.state = if (gameControl.gameState==GameState.play) State.in_game else State.killed
+          BotServer.state = if (gameControl.getGameState==GameState.play) State.in_game else State.killed
           val rsp = ObservationWithInfoRsp(observation.layeredObservation, observation.humanObservation,
             gameControl.getBotScore.d, gameControl.getBotScore.k,
-            if (gameControl.gameState==GameState.play) 1 else 0, gameControl.getCurFrame,
+            if (gameControl.getGameState==GameState.play) 1 else 0, gameControl.getCurFrame,
             0, BotServer.state, "ok")
           try {
             oObserver.onNext(rsp)

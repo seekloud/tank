@@ -71,7 +71,7 @@ abstract class GameController(
   protected var recvSyncGameAllState: Option[TankGameEvent.SyncGameAllState] = None
 
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
-  var gameState = GameState.loadingPlay
+  protected var gameState = GameState.loadingPlay
   protected var logicFrameTime = System.currentTimeMillis()
 
   private var tickCount = 1
