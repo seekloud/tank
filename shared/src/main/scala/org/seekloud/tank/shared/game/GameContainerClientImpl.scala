@@ -62,7 +62,7 @@ case class GameContainerClientImpl(
     * bodies: 所有坦克
     * state: 自身坦克状态，左上角信息
     **/
-  val locationCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
+  val locationCanvas = if (isBot) drawFrame.createCanvas(450, 420) else viewCanvas
   val locationCtx = locationCanvas.getCtx
   val mapCanvas = if (isBot) drawFrame.createCanvas(200, 250) else viewCanvas
   val mapCtx = mapCanvas.getCtx
@@ -497,6 +497,7 @@ case class GameContainerClientImpl(
           drawObstacleBloodSlider(offset)
           drawMyTankInfo(tank.asInstanceOf[TankClientImpl], supportLiveLimit)
           drawMinimap(tank)
+          drawLocationMap(tank)
           drawRank(supportLiveLimit, tank.tankId, tank.name)
           renderFps(networkLatency, dataSizeList)
           drawKillInformation()
