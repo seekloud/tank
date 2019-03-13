@@ -54,6 +54,7 @@ message CreateRoomRsp {
 
 message JoinRoomReq {
   string room_id = 1;
+  string password = 2;
   Credit credit = 15;
 }
 

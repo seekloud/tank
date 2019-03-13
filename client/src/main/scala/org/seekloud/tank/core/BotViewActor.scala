@@ -19,12 +19,15 @@ package org.seekloud.tank.core
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import com.google.protobuf.ByteString
+import org.seekloud.tank.BotServer
+import org.slf4j.LoggerFactory
 import org.seekloud.pb.api.ObservationRsp
 import org.seekloud.pb.observations.{ImgData, LayeredObservation}
-import org.seekloud.tank.BotServer
 import org.seekloud.tank.common.AppSettings
-import org.slf4j.LoggerFactory
-
+import org.seekloud.tank.core.PlayGameActor.DispatchMsg
+import org.seekloud.tank.model.JoinRoomRsp
+import org.seekloud.tank.game.control.BotPlayController
+import org.seekloud.tank.shared.protocol.TankGameEvent
 /**
   * Created by sky
   * Date on 2019/3/11
@@ -38,7 +41,15 @@ object BotViewActor {
   sealed trait Command
 
   case class GetByte(locationByte: Array[Byte], mapByte: Array[Byte], immutableByte: Array[Byte], mutableByte: Array[Byte], bodiesByte: Array[Byte], stateByte: Array[Byte], viewByte: Option[Array[Byte]]) extends Command
+
   case class GetObservation(sender:ActorRef[ObservationRsp]) extends Command
+
+  case class GetViewByte(viewByte: Array[Byte]) extends Command
+
+  case class CreateRoomReq(password:String,sender:ActorRef[JoinRoomRsp]) extends Command
+
+  case class JoinRoomReq(roomId:Long,password:String,sender:ActorRef[JoinRoomRsp]) extends Command
+
 
   def create(): Behavior[Command] = {
     Behaviors.setup[Command] {
@@ -81,9 +92,24 @@ object BotViewActor {
             t.sender ! observation
             Behaviors.same
 
+          case t: CreateRoomReq =>
+            BotPlayController.SDKReplyTo = t.sender
+            BotPlayController.serverActors.foreach(
+              a =>
+                a ! DispatchMsg(TankGameEvent.CreateRoom(None, Some(t.password)))
+            )
+            Behaviors.same
+          case t: JoinRoomReq =>
+            BotPlayController.SDKReplyTo = t.sender
+            BotPlayController.serverActors.foreach(
+              a =>
+                a ! DispatchMsg(TankGameEvent.StartGame(Some(t.roomId),Some(t.password)))
+            )
+            Behaviors.same
           case x =>
             println(s"get unKnow msg $x")
             Behaviors.unhandled
+
         }
     }
   }
