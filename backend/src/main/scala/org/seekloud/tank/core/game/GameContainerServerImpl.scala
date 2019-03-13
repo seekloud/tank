@@ -46,6 +46,7 @@ case class GameContainerServerImpl(
                                     roomActorRef: ActorRef[RoomActor.Command],
                                     timer: TimerScheduler[RoomActor.Command],
                                     log: Logger,
+                                    roomId:Long,
                                     dispatch: TankGameEvent.WsMsgServer => Unit,
                                     dispatchTo: (String, TankGameEvent.WsMsgServer, Option[mutable.HashMap[String, ActorRef[UserActor.Command]]]) => Unit
                                   ) extends GameContainer {
@@ -327,7 +328,7 @@ case class GameContainerServerImpl(
         dispatch(event)
         addGameEvent(event)
         println(s"the path is $ref")
-        ref ! UserActor.JoinRoomSuccess(tank, config.getTankGameConfigImpl(), userId, roomActor = roomActorRef)
+        ref ! UserActor.JoinRoomSuccess(tank, config.getTankGameConfigImpl(), userId,roomId,roomActor = roomActorRef)
         userMapObserver.get(userId) match {
           case Some(maps) =>
             maps.foreach { p =>

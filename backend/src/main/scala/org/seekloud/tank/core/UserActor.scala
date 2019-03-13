@@ -68,7 +68,7 @@ object UserActor {
   case class StartGame(roomId:Option[Long], password:Option[String]) extends Command
 
   case class JoinRoom(uid:String,tankIdOpt:Option[Int],name:String,startTime:Long,userActor:ActorRef[UserActor.Command], roomIdOpt:Option[Long] = None, passwordOpt:Option[String] = None) extends Command with RoomManager.Command
-  case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:String,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
+  case class JoinRoomSuccess(tank:TankServerImpl,config:TankGameConfigImpl,uId:String,roomId:Long,roomActor: ActorRef[RoomActor.Command]) extends Command with RoomManager.Command
   case class JoinRoomFail(msg:String) extends Command
   case class TankRelive4UserActor(tank:TankServerImpl,userId:String,name:String,roomActor:ActorRef[RoomActor.Command], config:TankGameConfigImpl) extends Command with UserManager.Command
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
@@ -236,12 +236,12 @@ object UserActor {
           switchBehavior(ctx, "replay", replay(uid,rid,userInfo, startTime, frontActor))
 //          Behaviors.same
 
-        case JoinRoomSuccess(tank,config, `uId`,roomActor) =>
+        case JoinRoomSuccess(tank,config, `uId`,roomId,roomActor) =>
           //获取坦克数据和当前游戏桢数据
           //给前端Actor同步当前桢数据，然后进入游戏Actor
 //          println("渲染数据")'
           val cig = config.copy(obstacleParameters = config.obstacleParameters.copy(riverParameters = RiverParameters(Nil, Nil), steelParameters = SteelParameters(Nil, Nil)))
-          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, userInfo.name, cig).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, userInfo.name,roomId,cig).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId, userInfo,tank,startTime,frontActor,roomActor))
 
 
@@ -359,7 +359,7 @@ object UserActor {
 
         case JoinRoomSuccess4Watch(tank, config, roomActor, state) =>
           log.debug(s"${ctx.self.path} first sync gameContainerState")
-          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, tank.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,tank.tankId, tank.name, roomId,config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           frontActor ! TankGameEvent.Wrap(state.asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx, "observe", observe(uId, userInfo, roomId,tank, frontActor, roomActor))
 
@@ -583,8 +583,8 @@ object UserActor {
           roomManager ! RoomManager.LeftRoom(uId,tank.tankId,userInfo.name,Some(uId))
           switchBehavior(ctx,"init",init(uId, userInfo),InitTime,TimeOut("init"))
 
-        case JoinRoomSuccess(t,config, `uId`,roomActor) =>
-          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,t.tankId, userInfo.name, config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
+        case JoinRoomSuccess(t,config, `uId`,roomId,roomActor) =>
+          frontActor ! TankGameEvent.Wrap(TankGameEvent.YourInfo(uId,t.tankId, userInfo.name,roomId ,config).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           switchBehavior(ctx,"play",play(uId, userInfo,t,startTime,frontActor,roomActor))
 
 

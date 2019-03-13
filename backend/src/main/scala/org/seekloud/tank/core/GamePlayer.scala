@@ -128,7 +128,7 @@ object GamePlayer {
               val replayRate = AppSettings.tankGameConfig.getTankGameConfigImpl().replayRate
               val tankConfig = metaData.tankConfig.copy(playRate = replayRate)
               //dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,metaData.tankConfig))
-              dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,tankConfig))
+              dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,-1l,tankConfig))
 
               log.info(s" set replay from frame=${msg.f}")
               fileReader.gotoSnapshot(msg.f)
