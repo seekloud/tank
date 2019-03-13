@@ -159,8 +159,8 @@ abstract class GameController(
 
   protected def handleWsMsgErrorRsp(e: TankGameEvent.WsMsgErrorRsp) = {
     if (e.errCode == 10001) {
-      if(BotPlayController.SDKReplyTo != null){
-        BotPlayController.SDKReplyTo ! JoinRoomRsp(-1,e.errCode,e.msg)
+      if(BotViewController.SDKReplyTo != null){
+        BotViewController.SDKReplyTo ! JoinRoomRsp(-1,e.errCode,e.msg)
       }
       closeHolder
     }
@@ -189,8 +189,8 @@ abstract class GameController(
             gameContainerOpt.get.changeTankId(e.tankId)
             recvYourInfo = true
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))
-            if(BotPlayController.SDKReplyTo != null){
-              BotPlayController.SDKReplyTo ! JoinRoomRsp(e.roomId)
+            if(BotViewController.SDKReplyTo != null){
+              BotViewController.SDKReplyTo ! JoinRoomRsp(e.roomId)
             }
           } catch {
             case e: Exception =>

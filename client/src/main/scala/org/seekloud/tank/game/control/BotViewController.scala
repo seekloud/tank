@@ -51,7 +51,6 @@ import org.seekloud.tank.shared.util.canvas.MiddleCanvas
   */
 object BotViewController{
   var botViewController:BotViewController = _
-  //todo joinRoom success need feedback
   var SDKReplyTo:ActorRef[JoinRoomRsp] = _
 }
 

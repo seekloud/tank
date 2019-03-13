@@ -489,6 +489,7 @@ case class GameContainerClientImpl(
         case Some(tank) =>
           val offset = canvasSize / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
           drawBackground(offset)
+          drawLocationMap(tank)
           drawObstacles(offset, Point(w, h))
           drawEnvironment(offset, Point(w, h))
           drawProps(offset, Point(w, h))
@@ -497,7 +498,6 @@ case class GameContainerClientImpl(
           drawObstacleBloodSlider(offset)
           drawMyTankInfo(tank.asInstanceOf[TankClientImpl], supportLiveLimit)
           drawMinimap(tank)
-          drawLocationMap(tank)
           drawRank(supportLiveLimit, tank.tankId, tank.name)
           renderFps(networkLatency, dataSizeList)
           drawKillInformation()

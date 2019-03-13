@@ -39,7 +39,7 @@ import scala.concurrent.Future
 /**
   * Created by hongruying on 2018/10/22
   */
-/*class  App extends Application{
+class  App extends Application{
 
   override def start(primaryStage: Stage): Unit = {
     val context = new Context(primaryStage)
@@ -48,7 +48,7 @@ import scala.concurrent.Future
     new EnterScreenController(context, enterScreen)
   }
 
-}*/
+}
 
 object App{
 
@@ -78,10 +78,9 @@ object App{
     Platform.runLater(() => fun)
   }
 
-  import scala.util.{Failure, Success}
+  /*import scala.util.{Failure, Success}
 
   def main(args: Array[String]): Unit = {
-    loginActor ! LoginActor.Login
     val rspFuture: Future[(PlayerInfo, GameServerInfo)] = loginActor ? (LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey), _))
     rspFuture.onComplete {
       case Success(rsp) =>
@@ -91,7 +90,7 @@ object App{
       case Failure(exception) =>
         log.debug(exception.getMessage)
     }
-  }
+  }*/
 
 
 }

@@ -260,7 +260,7 @@ class UserViewController(
 
   override protected def handleWsSuccess(e: TankGameEvent.WsSuccess): Unit = {
     if (isCreated) playGameActor ! DispatchMsg(TankGameEvent.CreateRoom(e.roomId, roomPwd))
-    else playGameActor ! DispatchMsg(TankGameEvent.StartGame(e.roomId, roomPwd))
+    else playGameActor ! DispatchMsg(TankGameEvent.JoinRoom(e.roomId, roomPwd))
   }
 
   override protected def handleWsMsgErrorRsp(e: TankGameEvent.WsMsgErrorRsp): Unit = {
