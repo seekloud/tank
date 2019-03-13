@@ -19,20 +19,15 @@ package org.seekloud.tank.core
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import com.google.protobuf.ByteString
-import org.seekloud.pb.api.ObservationRsp
-import org.seekloud.pb.observations.{ImgData, LayeredObservation}
 import org.seekloud.tank.BotServer
-import org.seekloud.tank.common.AppSettings
 import org.slf4j.LoggerFactory
 import org.seekloud.pb.api.ObservationRsp
 import org.seekloud.pb.observations.{ImgData, LayeredObservation}
 import org.seekloud.tank.common.AppSettings
-import org.seekloud.tank.common.Constants
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.model.JoinRoomRsp
 import org.seekloud.tank.game.control.BotPlayController
 import org.seekloud.tank.shared.protocol.TankGameEvent
-import org.seekloud.tank.shared.protocol.TankGameEvent.CreateRoom
 /**
   * Created by sky
   * Date on 2019/3/11
@@ -46,6 +41,7 @@ object BotViewActor {
   sealed trait Command
 
   case class GetByte(locationByte: Array[Byte], mapByte: Array[Byte], immutableByte: Array[Byte], mutableByte: Array[Byte], bodiesByte: Array[Byte], stateByte: Array[Byte], viewByte: Option[Array[Byte]]) extends Command
+
   case class GetObservation(sender:ActorRef[ObservationRsp]) extends Command
 
   case class GetViewByte(viewByte: Array[Byte]) extends Command

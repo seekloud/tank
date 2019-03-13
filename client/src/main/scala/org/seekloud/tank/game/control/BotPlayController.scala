@@ -107,13 +107,13 @@ class BotPlayController(
   protected def getView={
     gameContainerOpt.foreach(r=>r.mapCanvas.asInstanceOf[MiddleCanvasInFx].canvas2byteArray)
   }
-  def getFrameCount = gameContainerOpt.map(_.systemFrame).getOrElse(-1l).toInt
   def getGameState = gameState
+
   def getInform = {
     val gameContainer = gameContainerOpt.get
     val myTankId = gameContainer.myTankId
     val myTankInfo = gameContainer.tankMap(myTankId)
-    (myTankInfo.damageStatistics,myTankInfo.killTankNum,myTankInfo.blood)
+    (myTankInfo.damageStatistics,myTankInfo.killTankNum,myTankInfo.lives)
   }
 
 
@@ -146,14 +146,6 @@ class BotPlayController(
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
       playGameActor ! DispatchMsg(preExecuteAction)
     }
-    if(watchKeys4Bot.contains(key.move) && gameContainerOpt.nonEmpty && gameState == GameState.play) {
-      grid.addActionWithFrame(grid.myId, key4Bot2Int(key), grid.frameCount + operateDelay)
-      val msg: Protocol.UserAction = Key(grid.myId, key4Bot2Int(key), grid.frameCount + operateDelay + advanceFrame)
-      serverActor ! msg
-    }
-    val map = layerCanvas.botActionMap.getOrElse(grid.frameCount + operateDelay, Map.empty)
-    val tmp = map + (grid.myId -> key4Bot2Int(key))
-    layerCanvas.botActionMap += (grid.frameCount + operateDelay -> tmp)
   }
   def receiveReincarnation ={
     val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, gameContainerOpt.get.tankMap(gameContainerOpt.get.myTankId).getGunDirection(), getActionSerialNum)

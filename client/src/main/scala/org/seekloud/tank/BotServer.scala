@@ -27,13 +27,10 @@ import org.seekloud.pb.api._
 import org.seekloud.pb.service.EsheepAgentGrpc
 import org.seekloud.pb.service.EsheepAgentGrpc.EsheepAgent
 import org.seekloud.tank.common.AppSettings
-import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.core.{BotViewActor, GrpcStreamActor}
-import org.seekloud.tank.game.control.{BotPlayController, GameController}
+import org.seekloud.tank.game.control.BotPlayController
 import org.seekloud.tank.model.JoinRoomRsp
 import org.seekloud.tank.shared.model.Constants.GameState
-import org.seekloud.tank.shared.protocol.TankGameEvent
-import org.seekloud.tank.view.LoginScene
 import org.slf4j.LoggerFactory
 import org.seekloud.tank.App.{system,executor}
 import scala.concurrent.{ExecutionContext, Future}
@@ -132,13 +129,13 @@ class BotServer(
 
   override def createRoom(request: CreateRoomReq): Future[CreateRoomRsp] = {
     if (request.credit.nonEmpty && botAuth(request.credit.get.apiToken)) {
-      og.info(s"createRoom Called by [$request]")
-      BotServer.state = State.in_game
+      log.info(s"createRoom Called by [$request]")
+      state = State.in_game
       val getRoomIdRsp: Future[JoinRoomRsp] = botViewActor ? (BotViewActor.CreateRoomReq(request.password, _))
       getRoomIdRsp.map {
         rsp =>
-          if (rsp.errCode == 0) CreateRoomRsp(rsp.roomId.toString, 0, BotServer.state, "ok")
-          else CreateRoomRsp(rsp.roomId.toString, rsp.errCode, BotServer.state, rsp.msg)
+          if (rsp.errCode == 0) CreateRoomRsp(rsp.roomId.toString, 0, state, "ok")
+          else CreateRoomRsp(rsp.roomId.toString, rsp.errCode, state, rsp.msg)
       }
     } else {
       Future.successful(CreateRoomRsp(errCode = 101, state = State.unknown, msg = "auth error"))
@@ -147,12 +144,12 @@ class BotServer(
 
   override def joinRoom(request: JoinRoomReq): Future[SimpleRsp] = {
     if (request.credit.nonEmpty && botAuth(request.credit.get.apiToken)) {
-      BotServer.state = State.in_game
+      state = State.in_game
       val joinRoomRsp: Future[JoinRoomRsp] = botViewActor ? (BotViewActor.JoinRoomReq(request.roomId.toLong,request.password, _))
       joinRoomRsp.map {
         rsp =>
-          if (rsp.errCode == 0) SimpleRsp(0, BotServer.state, "ok")
-          else SimpleRsp(rsp.errCode, BotServer.state, rsp.msg)
+          if (rsp.errCode == 0) SimpleRsp(0, state, "ok")
+          else SimpleRsp(rsp.errCode, state, rsp.msg)
       }
     } else {
       Future.successful(SimpleRsp(errCode = 101, state = State.unknown, msg = "auth error"))
@@ -162,12 +159,12 @@ class BotServer(
 
   override def leaveRoom(request: Credit): Future[SimpleRsp] = {
     if (botAuth(request.apiToken)) {
-      BotServer.isFrameConnect = false
-      BotServer.isObservationConnect = false
-      BotServer.streamSender.foreach(s=> s ! GrpcStreamActor.LeaveRoom)
-      BotServer.state = State.ended
+      isFrameConnect = false
+      isObservationConnect = false
+      streamSender.foreach(s=> s ! GrpcStreamActor.LeaveRoom)
+      state = State.ended
       Future.successful {
-        SimpleRsp(state = BotServer.state, msg = "ok")
+        SimpleRsp(state = state, msg = "ok")
       }
     } else {
       Future.successful(SimpleRsp(errCode = 101, state = State.unknown, msg = "auth error"))
@@ -189,7 +186,7 @@ class BotServer(
   override def action(request: ActionReq): Future[ActionRsp] = {
     if (request.credit.nonEmpty && botAuth(request.credit.get.apiToken)) {
       gameController.gameActionReceiver(request)
-      val rsp = ActionRsp(frameIndex = gameController.getFrameCount, state = BotServer.state, msg = "ok")
+      val rsp = ActionRsp(frameIndex = gameController.getCurFrame.toInt, state = state, msg = "ok")
       Future.successful(rsp)
     } else {
       Future.successful(ActionRsp(errCode = 101, state = State.unknown, msg = "auth error"))
@@ -198,11 +195,11 @@ class BotServer(
 
   override def observation(request: Credit): Future[ObservationRsp] = {
     if (botAuth(request.apiToken)) {
-      BotServer.state = if (gameController.getGameState == GameState.play) State.in_game else State.killed
+      state = if (gameController.getGameState == GameState.play) State.in_game else State.killed
       val observationRsp: Future[ObservationRsp] = botViewActor ? BotViewActor.GetObservation
       observationRsp.map {
         observation =>
-          ObservationRsp(observation.layeredObservation, observation.humanObservation, gameController.getFrameCount, 0, BotServer.state, "ok")
+          ObservationRsp(observation.layeredObservation, observation.humanObservation, gameController.getCurFrame.toInt, 0, BotServer.state, "ok")
       }
     } else {
       Future.successful(ObservationRsp(errCode = 101, state = State.unknown, msg = "auth error"))
@@ -210,12 +207,9 @@ class BotServer(
   }
 
   override def inform(request: Credit): Future[InformRsp] = {
-//    println(s"action Called by [$request")
-//    val rsp = InformRsp()
-//    Future.successful(rsp)
     if (botAuth(request.apiToken)) {
-      BotServer.state = if (gameController.getGameState == GameState.play) State.in_game else State.killed
-      val rsp = InformRsp(gameController.getInform._1, gameController.getInform._2, gameController.getInform._3, gameController.getFrameCount, 0, BotServer.state, "ok")
+      state = if (gameController.getGameState == GameState.play) State.in_game else State.killed
+      val rsp = InformRsp(gameController.getInform._1, gameController.getInform._2, gameController.getInform._3, gameController.getCurFrame.toInt, 0, BotServer.state, "ok")
       Future.successful(rsp)
     } else {
       Future.successful(InformRsp(errCode = 101, state = State.unknown, msg = "auth error"))
