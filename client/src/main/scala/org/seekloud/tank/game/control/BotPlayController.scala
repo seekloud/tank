@@ -17,10 +17,32 @@
 package org.seekloud.tank.game.control
 
 import akka.actor.typed.scaladsl.adapter._
+import javafx.animation.{AnimationTimer, KeyFrame}
+
+import akka.actor.typed.{ActorRef, Behavior}
 import org.seekloud.tank.App.system
-import org.seekloud.tank.core.BotViewActor
-import org.seekloud.tank.model.{GameServerInfo, PlayerInfo}
+import org.seekloud.tank.core.{BotViewActor, PlayGameActor}
+import org.seekloud.tank.model.{GameServerInfo, JoinRoomRsp, PlayerInfo, WsSendMsg}
 import org.seekloud.utils.canvas.MiddleCanvasInFx
+import javafx.scene.input.KeyCode
+
+import org.seekloud.pb.actions._
+
+import scala.concurrent.duration._
+import java.awt.event.KeyEvent
+import java.nio.ByteBuffer
+import javafx.scene.SnapshotParameters
+import javafx.scene.canvas.{Canvas, GraphicsContext}
+import javafx.scene.image.WritableImage
+import javafx.scene.media.AudioClip
+import javafx.scene.paint.Color
+
+import org.seekloud.pb.api.ActionReq
+import org.seekloud.tank.core.PlayGameActor.DispatchMsg
+import org.seekloud.tank.shared.model.Constants.GameState
+import org.seekloud.tank.shared.model.Point
+import org.seekloud.tank.shared.protocol.TankGameEvent
+import org.slf4j.{Logger, LoggerFactory}
 
 /**
   * Created by sky
@@ -28,13 +50,29 @@ import org.seekloud.utils.canvas.MiddleCanvasInFx
   * Time at 上午12:09
   * bot游玩控制
   */
+object BotPlayController{
+  var SDKReplyTo:ActorRef[JoinRoomRsp] = _
+  var serverActors: Option[ActorRef[PlayGameActor.Command]] = None
+}
+
 class BotPlayController(
                          playerInfo: PlayerInfo,
                          gameServerInfo: GameServerInfo,
                          roomPwd: Option[String] = None
                        ) extends GameController(800, 400, true, roomPwd) {
+  import BotPlayController._
 
   val botViewActor= system.spawn(BotViewActor.create(), "BotViewActor")
+  serverActors = Some(playGameActor)
+  var mousePlace = Point(canvasWidth/2,canvasHeight/2)
+
+  val watchKeys4Bot = Set(Move.up, Move.down, Move.left, Move.right)
+
+  private var lastMoveFrame = -1L
+  private var lastMouseMoveAngle: Byte = 0
+  private val bulletMusic = new AudioClip(getClass.getResource("/music/bullet.mp3").toString)
+
+
 
   override protected def checkScreenSize: Unit = {}
 
@@ -45,6 +83,59 @@ class BotPlayController(
   //remind canvas2Byte示例
   protected def getView={
     gameContainerOpt.foreach(r=>r.mapCanvas.asInstanceOf[MiddleCanvasInFx].canvas2byteArray)
+  }
+  def getFrameCount = gameContainerOpt.map(_.systemFrame).getOrElse(-1l).toInt
+  def getGameState = gameState
+  def getInform = {
+    val gameContainer = gameContainerOpt.get
+    val myTankId = gameContainer.myTankId
+    val myTankInfo = gameContainer.tankMap(myTankId)
+    (myTankInfo.damageStatistics,myTankInfo.killTankNum,myTankInfo.blood)
+  }
+
+
+
+  def gameActionReceiver(key: ActionReq) = {
+    if(key.swing.nonEmpty && gameContainerOpt.nonEmpty){
+      val d = key.swing.get.distance
+      val r = key.swing.get.radian
+      mousePlace  += Point(d * math.cos(r).toFloat,d * math.sin(r).toFloat)
+      val point = mousePlace  + Point(24, 24)
+      val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+      val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
+      val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+      gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
+      if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
+        if (lastMouseMoveAngle != angle) {
+          lastMouseMoveAngle = angle
+          lastMoveFrame = gameContainerOpt.get.systemFrame
+          val preMMBAction = TankGameEvent.UM(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, angle, getActionSerialNum)
+          playGameActor ! DispatchMsg(preMMBAction) //发送鼠标位置
+          println(preMMBAction)
+        }
+      }
+    }
+    if(key.fire == 1 && gameContainerOpt.nonEmpty && gameState == GameState.play){
+      val point = mousePlace + Point(24, 24)
+      val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+      bulletMusic.play()
+      val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+      gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+      playGameActor ! DispatchMsg(preExecuteAction)
+    }
+    if(watchKeys4Bot.contains(key.move) && gameContainerOpt.nonEmpty && gameState == GameState.play) {
+      grid.addActionWithFrame(grid.myId, key4Bot2Int(key), grid.frameCount + operateDelay)
+      val msg: Protocol.UserAction = Key(grid.myId, key4Bot2Int(key), grid.frameCount + operateDelay + advanceFrame)
+      serverActor ! msg
+    }
+    val map = layerCanvas.botActionMap.getOrElse(grid.frameCount + operateDelay, Map.empty)
+    val tmp = map + (grid.myId -> key4Bot2Int(key))
+    layerCanvas.botActionMap += (grid.frameCount + operateDelay -> tmp)
+  }
+  def receiveReincarnation ={
+    val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, gameContainerOpt.get.tankMap(gameContainerOpt.get.myTankId).getGunDirection(), getActionSerialNum)
+    gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+    playGameActor ! DispatchMsg(preExecuteAction) //发送鼠标位置
   }
 
 }

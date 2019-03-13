@@ -56,5 +56,7 @@ object AppSettings {
   val esheepAuthToken = esheepConfig.getBoolean("authToken")
 
   val isGray = appConfig.getBoolean("isGray")
+  val framePeriod = appConfig.getInt("framePeriod")
+
 
 }

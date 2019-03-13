@@ -126,5 +126,12 @@ package object model {
                          errCode:Int = 0,
                          msg:String = "ok")
 
+  //bot api 相关 protocol
+  case class JoinRoomRsp(
+                          roomId: Long,
+                          errCode:Int =0,
+                          msg:String="ok"
+                        )
+
 
 }
