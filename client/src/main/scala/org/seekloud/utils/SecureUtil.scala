@@ -98,6 +98,7 @@ object SecureUtil {
     DigestUtils.sha1Hex(secureKey + str)
   }
 
+  def botAuth(botToken:String)= true
 
   def main(args: Array[String]) {
     println(nonceStr(20))

@@ -16,11 +16,13 @@
 
 package org.seekloud.tank.core
 
-import akka.actor.ActorSystem
 import akka.actor.typed.{ActorRef, Behavior}
-import com.google.protobuf.ByteString
-import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
+import com.google.protobuf.ByteString
+import org.seekloud.pb.api.ObservationRsp
+import org.seekloud.pb.observations.{ImgData, LayeredObservation}
+import org.seekloud.tank.BotServer
+import org.seekloud.tank.common.AppSettings
 import org.slf4j.LoggerFactory
 import org.seekloud.pb.api.ObservationRsp
 import org.seekloud.pb.observations.{ImgData, LayeredObservation}
@@ -39,14 +41,14 @@ import org.seekloud.tank.shared.protocol.TankGameEvent.CreateRoom
   */
 object BotViewActor {
   private val log = LoggerFactory.getLogger(this.getClass)
-
+  private val windowWidth = 800
+  private val windowHeight = 400
   sealed trait Command
 
   case class GetByte(locationByte: Array[Byte], mapByte: Array[Byte], immutableByte: Array[Byte], mutableByte: Array[Byte], bodiesByte: Array[Byte], stateByte: Array[Byte], viewByte: Option[Array[Byte]]) extends Command
+  case class GetObservation(sender:ActorRef[ObservationRsp]) extends Command
 
   case class GetViewByte(viewByte: Array[Byte]) extends Command
-
-  case class GetObservation(sender:ActorRef[ObservationRsp]) extends Command
 
   case class CreateRoomReq(password:String,sender:ActorRef[JoinRoomRsp]) extends Command
 
@@ -64,9 +66,36 @@ object BotViewActor {
     Behaviors.receive[Command] {
       (ctx, msg) =>
         msg match {
-          case x =>
-            println(s"get unKnow msg $x")
-            Behaviors.unhandled
+          case m:GetByte=>
+            val pixel = if (AppSettings.isGray) 1 else 4
+            val layer = LayeredObservation(
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(locationByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(mapByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(immutableByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(mutableByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(bodiesByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(stateByte)))
+            )
+            val observation = ObservationRsp(Some(layer), if(viewByte.isDefined) Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(viewByte.get))) else None)
+            if(BotServer.isObservationConnect) {
+              BotServer.streamSender.get ! GrpcStreamActor.NewObservation(observation)
+            }
+            idle(m.locationByte,m.mapByte,m.immutableByte,m.mutableByte,m.bodiesByte,m.stateByte,m.viewByte)
+
+          case t: GetObservation =>
+            val pixel = if (mapByte.isEmpty) 0 else if (AppSettings.isGray) 1 else 4
+            val layer = LayeredObservation(
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(locationByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(mapByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(immutableByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(mutableByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(bodiesByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(stateByte)))
+            )
+            val observation = ObservationRsp(Some(layer), if(viewByte.isDefined) Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(viewByte.get))) else None)
+            t.sender ! observation
+            Behaviors.same
+
           case t: CreateRoomReq =>
             BotPlayController.SDKReplyTo = t.sender
             BotPlayController.serverActors.foreach(
@@ -81,21 +110,9 @@ object BotViewActor {
                 a ! DispatchMsg(TankGameEvent.StartGame(Some(t.roomId),Some(t.password)))
             )
             Behaviors.same
-          case t: GetObservation =>
-            val pixel = if (mapByte.isEmpty) 0 else if (AppSettings.isGray) 1 else 4
-            val layer = LayeredObservation(
-              Some(ImgData(400,200, pixel, ByteString.copyFrom(locationByte))),
-              Some(ImgData(400,200, pixel, ByteString.copyFrom(mapByte))),
-              Some(ImgData(400,200, pixel, ByteString.copyFrom(immutableByte))),
-              Some(ImgData(400,200, pixel, ByteString.copyFrom(mutableByte))),
-              Some(ImgData(400,200, pixel, ByteString.copyFrom(bodiesByte))),
-              Some(ImgData(400,200, pixel, ByteString.copyFrom(stateByte)))
-            )
-            val observation = ObservationRsp(Some(layer), Some(ImgData(400, 200, pixel, ByteString.copyFrom(viewByte.get))))
-
-            t.sender ! observation
-            Behaviors.same
-
+          case x =>
+            println(s"get unKnow msg $x")
+            Behaviors.unhandled
 
         }
     }

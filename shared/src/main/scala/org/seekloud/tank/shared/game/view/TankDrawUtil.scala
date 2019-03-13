@@ -70,6 +70,27 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         viewCtx.setLineWidth(0.4 * canvasUnit)
         viewCtx.stroke()
         viewCtx.closePath()
+        if(isBot){
+          bodiesCtx.beginPath()
+          bodiesCtx.moveTo(gunPositionList.last.x, gunPositionList.last.y)
+          gunPositionList.foreach(t => bodiesCtx.lineTo(t.x, t.y))
+          bodiesCtx.setFill("#7A7A7A")
+          bodiesCtx.setStrokeStyle("#636363")
+          bodiesCtx.fill()
+          bodiesCtx.setLineWidth(0.4 * canvasUnit)
+          bodiesCtx.stroke()
+          bodiesCtx.closePath()
+
+          locationCtx.beginPath()
+          locationCtx.moveTo(gunPositionList.last.x, gunPositionList.last.y)
+          gunPositionList.foreach(t => locationCtx.lineTo(t.x, t.y))
+          locationCtx.setFill("#7A7A7A")
+          locationCtx.setStrokeStyle("#636363")
+          locationCtx.fill()
+          locationCtx.setLineWidth(0.4 * canvasUnit)
+          locationCtx.stroke()
+          locationCtx.closePath()
+        }
         //----------------------------绘制坦克---------------------#
         if (tank.getInvincibleState) {
           viewCtx.beginPath()
@@ -82,6 +103,19 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
           viewCtx.arc(centerX.toFloat, centerY.toFloat, radius, startAngle.toFloat, lengthAngle.toFloat)
           viewCtx.fill()
           viewCtx.closePath()
+          if(isBot){
+            bodiesCtx.beginPath()
+            bodiesCtx.setFill("rgba(128, 100, 162, 0.2)")
+            bodiesCtx.arc(centerX.toFloat, centerY.toFloat, radius, startAngle.toFloat, lengthAngle.toFloat)
+            bodiesCtx.fill()
+            bodiesCtx.closePath()
+
+            locationCtx.beginPath()
+            locationCtx.setFill("rgba(128, 100, 162, 0.2)")
+            locationCtx.arc(centerX.toFloat, centerY.toFloat, radius, startAngle.toFloat, lengthAngle.toFloat)
+            locationCtx.fill()
+            locationCtx.closePath()
+          }
         }
         viewCtx.beginPath()
         viewCtx.setLineWidth( 0.4 * canvasUnit)
@@ -98,6 +132,27 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         viewCtx.stroke()
         viewCtx.closePath()
         viewCtx.setGlobalAlpha(1)
+        if(isBot){
+          bodiesCtx.beginPath()
+          bodiesCtx.setLineWidth(0.4*canvasUnit)
+          bodiesCtx.setStrokeStyle("#636363")
+          bodiesCtx.arc(centerX.toFloat, centerY.toFloat, radius, startAngle.toFloat, lengthAngle.toFloat)
+          bodiesCtx.setFill(tankColor)
+          bodiesCtx.fill()
+          bodiesCtx.stroke()
+          bodiesCtx.closePath()
+          bodiesCtx.setGlobalAlpha(1)
+
+          locationCtx.beginPath()
+          locationCtx.setLineWidth(0.4*canvasUnit)
+          locationCtx.setStrokeStyle("#636363")
+          locationCtx.arc(centerX.toFloat, centerY.toFloat, radius, startAngle.toFloat, lengthAngle.toFloat)
+          locationCtx.setFill(tankColor)
+          locationCtx.fill()
+          locationCtx.stroke()
+          locationCtx.closePath()
+          locationCtx.setGlobalAlpha(1)
+        }
 
 
         drawBloodSlider(p, tank)
@@ -110,6 +165,23 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         viewCtx.setLineWidth(2)
         viewCtx.fillText(s"${tank.name}", namePosition.x, namePosition.y, 20 * canvasUnit)
         viewCtx.closePath()
+        if(isBot){
+          bodiesCtx.beginPath()
+          bodiesCtx.setFill("#006699")
+          bodiesCtx.setTextAlign("center")
+          bodiesCtx.setFont("楷体", "normal", 2 * canvasUnit)
+          bodiesCtx.setLineWidth(2)
+          bodiesCtx.fillText(s"${tank.name}", namePosition.x, namePosition.y, 20 * canvasUnit)
+          bodiesCtx.closePath()
+
+          locationCtx.beginPath()
+          locationCtx.setFill("#006699")
+          locationCtx.setTextAlign("center")
+          locationCtx.setFont("楷体", "normal", 2 * canvasUnit)
+          locationCtx.setLineWidth(2)
+          locationCtx.fillText(s"${tank.name}", namePosition.x, namePosition.y, 20 * canvasUnit)
+          locationCtx.closePath()
+        }
 
         drawTankBullet(p, tank)
         drawTankStar(p, tank)
@@ -150,6 +222,61 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
 
       viewCtx.closePath()
     }
+
+    if(isBot){
+      bodiesCtx.beginPath()
+      bodiesCtx.setLineCap("butt")
+      bodiesCtx.setLineJoin("miter")
+      bodiesCtx.setLineWidth(0.5 * canvasUnit)
+      bodiesCtx.setStrokeStyle("#BEBEBE")
+      bodiesCtx.moveTo(sliderPositions.last.x,sliderPositions.last.y)
+      bodiesCtx.lineTo(sliderPositions.head.x,sliderPositions.head.y)
+      bodiesCtx.stroke()
+      bodiesCtx.closePath()
+
+      locationCtx.beginPath()
+      locationCtx.setLineCap("butt")
+      locationCtx.setLineJoin("miter")
+      locationCtx.setLineWidth(0.5 * canvasUnit)
+      locationCtx.setStrokeStyle("#BEBEBE")
+      locationCtx.moveTo(sliderPositions.last.x,sliderPositions.last.y)
+      locationCtx.lineTo(sliderPositions.head.x,sliderPositions.head.y)
+      locationCtx.stroke()
+      locationCtx.closePath()
+      for(i <- Range(1 ,sliderPositions.length,2)){
+        bodiesCtx.beginPath()
+        bodiesCtx.setLineWidth(0.5 * canvasUnit)
+
+        locationCtx.beginPath()
+        locationCtx.setLineWidth(0.5 * canvasUnit)
+        if((i+1) / 2 <= 1f * tank.getCurBlood / 20){
+          bodiesCtx.setStrokeStyle("rgb(255,0,0)")
+          bodiesCtx.moveTo(sliderPositions(i-1).x,sliderPositions(i-1).y)
+          bodiesCtx.lineTo(sliderPositions(i).x,sliderPositions(i).y)
+          bodiesCtx.stroke()
+
+          locationCtx.setStrokeStyle("rgb(255,0,0)")
+          locationCtx.moveTo(sliderPositions(i-1).x,sliderPositions(i-1).y)
+          locationCtx.lineTo(sliderPositions(i).x,sliderPositions(i).y)
+          locationCtx.stroke()
+        }
+        if(tank.getCurBlood / 20 < 1f * tank.getCurBlood / 20 && (i+1) / 2 == tank.getCurBlood / 20 + 1){
+          bodiesCtx.setStrokeStyle("rgb(255,0,0)")
+          bodiesCtx.moveTo(sliderPositions(i-1).x,sliderPositions(i-1).y)
+          bodiesCtx.lineTo(sliderPositions(i-1).x + 1f * (tank.getCurBlood - tank.getCurBlood / 20 * 20) / 20 * width * canvasUnit,sliderPositions(i-1).y)
+          bodiesCtx.stroke()
+
+          locationCtx.setStrokeStyle("rgb(255,0,0)")
+          locationCtx.moveTo(sliderPositions(i-1).x,sliderPositions(i-1).y)
+          locationCtx.lineTo(sliderPositions(i-1).x + 1f * (tank.getCurBlood - tank.getCurBlood / 20 * 20) / 20 * width * canvasUnit,sliderPositions(i-1).y)
+          locationCtx.stroke()
+        }
+
+        bodiesCtx.closePath()
+        locationCtx.closePath()
+      }
+    }
+
   }
 
   def drawTankBullet(tankPosition:Point, tank:TankClientImpl) = {
@@ -161,7 +288,14 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
       viewCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
         (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
         Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
-
+      if(isBot){
+        bodiesCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
+          (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
+          Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
+        locationCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
+          (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
+          Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
+      }
       left = left + SmallBullet.width
     }
     viewCtx.setGlobalAlpha(0.5)
@@ -172,6 +306,14 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
       viewCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
         (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
         Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
+      if(isBot){
+        bodiesCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
+          (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
+          Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
+        locationCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
+          (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
+          Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
+      }
       left = left + SmallBullet.width
 
     }
@@ -198,6 +340,14 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
       viewCtx.drawImage(img, starPos.x * canvasUnit,
         starPos.y * canvasUnit,
         Some(TankStar.width * canvasUnit, TankStar.height * canvasUnit))
+      if(isBot){
+        bodiesCtx.drawImage(img, starPos.x * canvasUnit,
+          starPos.y * canvasUnit,
+          Some(TankStar.width * canvasUnit, TankStar.height * canvasUnit))
+        locationCtx.drawImage(img, starPos.x * canvasUnit,
+          starPos.y * canvasUnit,
+          Some(TankStar.width * canvasUnit, TankStar.height * canvasUnit))
+      }
     }
 
   }
@@ -220,6 +370,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     viewCtx.drawImage(cache,0,2 * canvasUnit)
     if(isBot){
       statusCtx.drawImage(cache,0,2 * canvasUnit)
+      locationCtx.drawImage(cache,0,2 * canvasUnit)
     }
   }
 
@@ -275,6 +426,21 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
     viewCtx.setFont("隶书", "bold", 1.8 * canvasUnit)
     viewCtx.setLineWidth(1)
     viewCtx.fillText(s"血包${("                       ").take(30)}(按E键使用)", 4.5*canvasUnit,5.5  * canvasUnit , 30 * canvasUnit)
+
+    if(isBot){
+      statusCtx.setStrokeStyle("rgb(0,0,0)")
+      statusCtx.setTextAlign("left")
+      statusCtx.setFont("隶书", "bold", 1.8 * canvasUnit)
+      statusCtx.setLineWidth(1)
+      statusCtx.fillText(s"血包${("                       ").take(30)}(按E键使用)", 4.5*canvasUnit,5.5  * canvasUnit , 30 * canvasUnit)
+      locationCtx.setStrokeStyle("rgb(0,0,0)")
+      locationCtx.setTextAlign("left")
+      locationCtx.setFont("隶书", "bold", 1.8 * canvasUnit)
+      locationCtx.setLineWidth(1)
+      locationCtx.fillText(s"血包${("                       ").take(30)}(按E键使用)", 4.5*canvasUnit,5.5  * canvasUnit , 30 * canvasUnit)
+
+    }
+
     val medicalNum = tank.medicalNumOpt match{
       case Some(num) =>num
       case None =>0
@@ -289,6 +455,9 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         statusCtx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
           (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
           Some(1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit))
+        locationCtx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
+          (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
+          Some(1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit))
       }
     }
     viewCtx.setGlobalAlpha(0.5)
@@ -301,6 +470,9 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         Some(1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit))
       if(isBot){
         statusCtx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
+          (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
+          Some(1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit))
+        locationCtx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
           (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
           Some(1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit))
       }

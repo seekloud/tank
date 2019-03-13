@@ -43,6 +43,8 @@ import org.seekloud.tank.shared.model.Constants.GameState
 import org.seekloud.tank.shared.model.Point
 import org.seekloud.tank.shared.protocol.TankGameEvent
 import org.slf4j.{Logger, LoggerFactory}
+import org.seekloud.tank.shared.model
+import org.seekloud.tank.shared.util.canvas.MiddleCanvas
 
 /**
   * Created by sky
@@ -78,9 +80,30 @@ class BotPlayController(
 
   override protected def gameStopCallBack: Unit = {}
 
+  override protected def canvas2Byte4Bot: Unit = {
+    implicit def canvas2Fx(m:MiddleCanvas):MiddleCanvasInFx=m.asInstanceOf[MiddleCanvasInFx]
+    gameContainerOpt.foreach(r =>
+      botViewActor ! BotViewActor.GetByte(
+        r.locationCanvas.canvas2byteArray,
+        r.mapCanvas.canvas2byteArray,
+        r.immutableCanvas.canvas2byteArray,
+        r.mutableCanvas.canvas2byteArray,
+        r.bodiesCanvas.canvas2byteArray,
+        r.statusCanvas.canvas2byteArray,
+        Some(canvas.canvas2byteArray)
+      )
+    )
+  }
+
   override protected def initGameContainerCallBack: Unit = {}
 
+  def getBotScore = gameContainerOpt.map { r =>
+    r.currentRank.find(_.id == r.myTankId).getOrElse(model.Score(r.myTankId, "", 0, 0, 0))
+  }.getOrElse(model.Score(0, "", 0, 0, 0))
+
+  def getCurFrame=gameContainerOpt.map(_.systemFrame).getOrElse(0l)
   //remind canvas2Byte示例
+
   protected def getView={
     gameContainerOpt.foreach(r=>r.mapCanvas.asInstanceOf[MiddleCanvasInFx].canvas2byteArray)
   }
