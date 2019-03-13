@@ -20,16 +20,22 @@ package org.seekloud.tank
 import akka.actor.ActorSystem
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.adapter._
+
+import akka.actor.typed.scaladsl.AskPattern._
 import akka.dispatch.MessageDispatcher
 import akka.event.{Logging, LoggingAdapter}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import javafx.application.{Application, Platform}
 import javafx.stage.Stage
-import org.seekloud.tank.core.TokenActor
-import org.seekloud.tank.common.Context
+import org.seekloud.tank.core.{LoginActor, TokenActor}
+import org.seekloud.tank.common.{AppSettings, Context}
 import org.seekloud.tank.controller.EnterScreenController
+import org.seekloud.tank.game.control.BotViewController
+import org.seekloud.tank.model.{BotKeyReq, GameServerInfo, PlayerInfo}
 import org.seekloud.tank.view.EnterScreen
+
+import scala.concurrent.Future
 /**
   * Created by hongruying on 2018/10/22
   */
@@ -58,7 +64,11 @@ object App{
 
   implicit val scheduler = system.scheduler
 
-  val tokenActor:ActorRef[TokenActor.Command] = system.spawn(TokenActor.create,"esheepSyncClient")
+  val tokenActor:ActorRef[TokenActor.Command] = system.spawn(TokenActor.create(),"esheepSyncClient")
+
+  val loginActor: ActorRef[LoginActor.Command] = system.spawn(LoginActor.create(),"LoginActor")
+
+  val botServer: ActorRef[BotServer.Command] = system.spawn(BotServer.create(), "botServer")
 
   implicit val timeout:Timeout = Timeout(20 seconds) // for actor asks
 
@@ -68,6 +78,20 @@ object App{
     Platform.runLater(() => fun)
   }
 
+  import scala.util.{Failure, Success}
+
+  def main(args: Array[String]): Unit = {
+    loginActor ! LoginActor.Login
+    val rspFuture: Future[(PlayerInfo, GameServerInfo)] = loginActor ? (LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey), _))
+    rspFuture.onComplete {
+      case Success(rsp) =>
+        val c = new BotViewController(rsp._1, rsp._2)
+        c.startGame
+        botServer ! BotServer.BuildServer(AppSettings.botServerPort, executor, c)
+      case Failure(exception) =>
+        log.debug(exception.getMessage)
+    }
+  }
 
 
 }

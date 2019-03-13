@@ -49,8 +49,7 @@ import scala.collection.mutable
 abstract class GameController(
                                var canvasWidth: Float,
                                var canvasHeight: Float,
-                               isBot:Boolean,
-                               roomPwd: Option[String]
+                               isBot:Boolean
                              ) extends NetworkInfo {
   protected val log = LoggerFactory.getLogger(this.getClass)
 
@@ -154,9 +153,7 @@ abstract class GameController(
   }
 
 
-  protected def handleWsSuccess(e: TankGameEvent.WsSuccess) = {
-    playGameActor ! DispatchMsg(TankGameEvent.JoinRoom(e.roomId, roomPwd))
-  }
+  protected def handleWsSuccess(e: TankGameEvent.WsSuccess) = {}
 
   protected def handleWsMsgErrorRsp(e: TankGameEvent.WsMsgErrorRsp) = {
     if (e.errCode == 10001) {

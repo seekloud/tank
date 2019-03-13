@@ -26,9 +26,9 @@ import org.seekloud.tank.model.PlayerInfo
   * Time at 上午11:25
   */
 object Route {
-  def getUserJoinGameWebSocketUri(name:String, domain:String, playerInfo:PlayerInfo, roomIdOpt:Option[String]): String = {
+  def getUserJoinGameWebSocketUri(domain:String, playerInfo:PlayerInfo, roomIdOpt:Option[String]): String = {
     val wsProtocol = if (AppSettings.esheepProtocol == "https") "wss" else "ws"
-    s"$wsProtocol://${domain}/tank${wsUserJoinGameUrl(URLEncoder.encode(name, "utf-8"),playerInfo.playerId, URLEncoder.encode(playerInfo.nickName, "utf-8"), playerInfo.accessCode, roomIdOpt)}"
+    s"$wsProtocol://${domain}/tank${wsUserJoinGameUrl(URLEncoder.encode(playerInfo.nickName, "utf-8"),playerInfo.playerId, URLEncoder.encode(playerInfo.nickName, "utf-8"), playerInfo.accessCode, roomIdOpt)}"
 //        s"$wsProtocol://$domain/tank${wsUserJoinGameUrl(name,playerInfo.playerId, playerInfo.nickName, playerInfo.accessCode, roomIdOpt)}"
   }
 

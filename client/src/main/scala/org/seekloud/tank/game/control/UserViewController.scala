@@ -44,15 +44,16 @@ import scala.concurrent.Future
   *
   * @author sky
   */
-class UserPlayController(
+class UserViewController(
                           playerInfo: PlayerInfo,
                           gameServerInfo: GameServerInfo,
                           context: Context,
                           playGameScreen: PlayGameScreen,
                           roomInfo: Option[String] = None,
                           roomPwd: Option[String] = None,
-                          isCreated: Boolean
-                        ) extends GameController(800, 400, true, roomPwd) {
+                          isCreated: Boolean,
+                          isBot:Boolean=false
+                        ) extends GameController(if(isBot) 800 else context.getStageWidth.toFloat, if(isBot) 400 else context.getStageHeight.toFloat, isBot) {
   private var spaceKeyUpState = true
   private var lastMouseMoveAngle: Byte = 0
   private val perMouseMoveFrame = 2
@@ -91,7 +92,7 @@ class UserPlayController(
   })
   timeline.getKeyFrames.add(keyFrame)
 
-  def start = {
+  def startGame = {
     if (firstCome) {
       firstCome = false
       println("start!!!!!!!")
@@ -122,12 +123,14 @@ class UserPlayController(
   }
 
   override protected def checkScreenSize: Unit = {
-    /*val (boundary, unit) = getScreenSize()
-    if(unit != 0){
-      gameContainerOpt.foreach{r =>
-        r.updateClientSize(boundary, unit)
+    if(!isBot){
+      val (boundary, unit) = getScreenSize()
+      if (unit != 0) {
+        gameContainerOpt.foreach { r =>
+          r.updateClientSize(boundary, unit)
+        }
       }
-    }*/
+    }
   }
 
   override protected def gameStopCallBack: Unit = timeline.play()
@@ -255,10 +258,9 @@ class UserPlayController(
     }
   }
 
-  //fixme 后台操作分离createRoom joinRoom
   override protected def handleWsSuccess(e: TankGameEvent.WsSuccess): Unit = {
     if (isCreated) playGameActor ! DispatchMsg(TankGameEvent.CreateRoom(e.roomId, roomPwd))
-    else playGameActor ! DispatchMsg(TankGameEvent.JoinRoom(e.roomId, roomPwd))
+    else playGameActor ! DispatchMsg(TankGameEvent.StartGame(e.roomId, roomPwd))
   }
 
   override protected def handleWsMsgErrorRsp(e: TankGameEvent.WsMsgErrorRsp): Unit = {
@@ -277,28 +279,32 @@ class UserPlayController(
   override protected def initGameContainerCallBack: Unit = {
     gameContainerOpt.foreach { r =>
       App.pushStack2AppThread {
-        canvas.getCanvas.setLayoutX(0)
-        canvas.getCanvas.setLayoutY(0)
-        r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(0)
-        r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
-        r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
-        r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
-        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
-        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(260)
-        r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1020)
-        r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
-//        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(0)
-//        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
-        r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
-        r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
-        playGameScreen.group.getChildren.add(canvas.getCanvas)
-        addUserActionListenEvent
-        playGameScreen.group.getChildren.add(r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreen.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-//        playGameScreen.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreen.group.getChildren.add(r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreen.group.getChildren.add(r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreen.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        if(!isBot){
+          playGameScreen.group.getChildren.add(canvas.getCanvas)
+          addUserActionListenEvent
+        }else{
+          canvas.getCanvas.setLayoutX(0)
+          canvas.getCanvas.setLayoutY(0)
+          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(0)
+          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
+          r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
+          r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+          r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
+          r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(260)
+          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1020)
+          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+          //        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(0)
+          //        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
+          r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
+          r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
+          playGameScreen.group.getChildren.add(canvas.getCanvas)
+          playGameScreen.group.getChildren.add(r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          //        playGameScreen.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        }
       }
     }
   }

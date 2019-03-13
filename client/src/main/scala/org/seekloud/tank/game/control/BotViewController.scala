@@ -50,16 +50,17 @@ import org.seekloud.tank.shared.util.canvas.MiddleCanvas
   * Time at 上午12:09
   * bot游玩控制
   */
-object BotPlayController{
+object BotViewController{
+  var botViewController:BotViewController = _
   //todo joinRoom success need feedback
   var SDKReplyTo:ActorRef[JoinRoomRsp] = _
 }
 
-class BotPlayController(
-                         playerInfo: BotInfo,
-                         roomPwd: Option[String] = None
-                       ) extends GameController(800, 400, true, roomPwd) {
-  import BotPlayController._
+class BotViewController(
+                         playerInfo: PlayerInfo,
+                         gameServerInfo: GameServerInfo
+                       ) extends GameController(800, 400, true) {
+  import BotViewController._
 
   val botViewActor= system.spawn(BotViewActor.create(), "BotViewActor")
   var mousePlace = Point(400,200)
@@ -68,6 +69,10 @@ class BotPlayController(
   private var lastMouseMoveAngle: Byte = 0
   private val bulletMusic = new AudioClip(getClass.getResource("/music/bullet.mp3").toString)
 
+  def startGame: Unit = {
+    playGameActor ! PlayGameActor.ConnectGame(playerInfo, gameServerInfo, None)
+    logicFrameTime = System.currentTimeMillis()
+  }
 
   override protected def checkScreenSize: Unit = {}
 
@@ -104,8 +109,6 @@ class BotPlayController(
     val myTankInfo = gameContainer.tankMap(myTankId)
     (myTankInfo.damageStatistics,myTankInfo.killTankNum,myTankInfo.lives)
   }
-
-
 
   def gameActionReceiver(key: ActionReq) = {
     if(key.swing.nonEmpty && gameContainerOpt.nonEmpty && gameState == GameState.play){

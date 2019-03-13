@@ -38,7 +38,7 @@ import io.circe.parser.decode
 import io.circe.syntax._
 import io.circe._
 import io.circe.generic.auto._
-import org.seekloud.tank.game.control.{BotPlayController, GameController, UserPlayController}
+import org.seekloud.tank.game.control.{BotViewController, GameController, UserViewController}
 
 /**
   * Created by hongruying on 2018/10/23
@@ -87,7 +87,7 @@ object PlayGameActor {
                                    behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None, timeOut: TimeOut = TimeOut("busy time error"))
                                   (implicit stashBuffer: StashBuffer[Command],
                                    timer: TimerScheduler[Command]) = {
-    println(s"${ctx.self.path} becomes $behaviorName behavior.")
+    log.info(s"${ctx.self.path} becomes $behaviorName behavior.")
     timer.cancel(BehaviorChangeKey)
     durationOpt.foreach(timer.startSingleTimer(BehaviorChangeKey, timeOut, _))
     stashBuffer.unstashAll(ctx, behavior)
@@ -110,7 +110,7 @@ object PlayGameActor {
       msg match {
         case msg: ConnectGame =>
           val url = getWebSocketUri(msg)
-          println(s"url---$url")
+          log.info(s"url---$url")
           val webSocketFlow = Http().webSocketClientFlow(WebSocketRequest(url))
           val source = getSource
           val sink = getSink(control)
@@ -130,7 +130,7 @@ object PlayGameActor {
           } //链接建立时
           connected.onComplete { i => println(i.toString) }
           closed.onComplete { i =>
-            println(s"${ctx.self.path} connect closed! try again 1 minutes later")
+            log.info(s"${ctx.self.path} connect closed! try again 1 minutes later")
             //remind 此处存在失败重试
             ctx.self ! SwitchBehavior("init", init(control), InitTime)
             timer.startSingleTimer(ConnectTimerKey, msg, 1.minutes)
@@ -138,7 +138,7 @@ object PlayGameActor {
           switchBehavior(ctx, "busy", busy(), InitTime)
 
         case x =>
-          println(s"get unKnow msg $x")
+          log.info(s"get unKnow msg $x")
           Behaviors.unhandled
       }
     }
@@ -151,13 +151,13 @@ object PlayGameActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case m:CreateRoomReq=>
-          BotPlayController.SDKReplyTo = m.sender
+          BotViewController.SDKReplyTo = m.sender
           frontActor ! TankGameEvent.CreateRoom(None, Some(m.password))
           Behaviors.same
 
         case t:JoinRoomReq=>
-          BotPlayController.SDKReplyTo = t.sender
-          frontActor ! TankGameEvent.JoinRoom(Some(t.roomId),Some(t.password))
+          BotViewController.SDKReplyTo = t.sender
+          frontActor ! TankGameEvent.StartGame(Some(t.roomId),Some(t.password))
           Behaviors.same
 
         case msg:DispatchMsg=>
@@ -195,7 +195,7 @@ object PlayGameActor {
           switchBehavior(ctx, name, behavior, durationOpt, timeOut)
 
         case TimeOut(m) =>
-          println(s"${ctx.self.path} is time out when busy,msg=${m}")
+          log.info(s"${ctx.self.path} is time out when busy,msg=${m}")
           Behaviors.stopped
 
         case unknowMsg =>
@@ -232,13 +232,13 @@ object PlayGameActor {
           case Right(req) =>
             control.wsMessageHandler(req)
           case Left(e) =>
-            println(s"decode binaryMessage failed,error:${e.message}")
+            log.info(s"decode binaryMessage failed,error:${e.message}")
             control.wsMessageHandler(TankGameEvent.DecodeError())
         }
 
         //akka http 分片流
       case msg: BinaryMessage.Streamed =>
-        println(s"ssssssssssss${msg}")
+        log.info(s"ssssssssssss${msg}")
         val f = msg.dataStream.runFold(new ByteStringBuilder().result()) {
           case (s, str) => s.++(str)
         }
@@ -248,7 +248,7 @@ object PlayGameActor {
             case Right(req) =>
               control.wsMessageHandler(req)
             case Left(e) =>
-              println(s"decode binaryMessage failed,error:${e.message}")
+              log.info(s"decode binaryMessage failed,error:${e.message}")
               control.wsMessageHandler(TankGameEvent.DecodeError())
           }
         }
@@ -280,7 +280,7 @@ object PlayGameActor {
   def getWebSocketUri(info:ConnectGame): String = {
     //todo 更改为目标端口
     val host = info.gameInfo.domain
-    Route.getUserJoinGameWebSocketUri(info.playInfo.nickName,host,info.playInfo,info.roomInfo)
+    Route.getUserJoinGameWebSocketUri(host,info.playInfo,info.roomInfo)
 
 //    Route.getJoinGameWebSocketUri(info.playInfo.nickName,host,info.roomInfo)
   }

@@ -24,11 +24,6 @@ import scala.collection.mutable
   * Created by hongruying on 2019/2/1
   */
 package object model {
-  case class BotInfo(
-                    botId:String,
-                    botKey:String
-                    )
-
   case class PlayerInfo(
                        userInfo:UserInfo,
                        playerId:String,
@@ -74,6 +69,24 @@ package object model {
   sealed trait WsSendMsg
   case object WsSendComplete extends WsSendMsg
   case class WsSendFailed(ex: Throwable) extends WsSendMsg
+
+  //botKey登录
+  case class BotKeyReq(
+                        botId:String,
+                        botKey: String
+                      )
+
+  case class BotKeyRes(
+                        data: BotInfo,
+                        errCode:Int=0,
+                        msg:String="ok"
+                      )
+
+  case class BotInfo(
+                      botName:String,
+                      token:String,
+                      expireTime:Long
+                    )
 
   //esheep邮箱登录
   final case class LoginReq(

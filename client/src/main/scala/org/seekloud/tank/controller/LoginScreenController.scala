@@ -27,11 +27,13 @@ import org.seekloud.tank.view.{GameHallScreen, LoginScene, LoginScreen}
 /**
   * Created by hongruying on 2018/10/23
   */
+object LoginScreenController{
+  var loginScreenController:LoginScreenController=_
+}
 class LoginScreenController(val context: Context, val loginScreen: LoginScreen) {
 
   import org.seekloud.tank.App._
 
-  val loginActor: ActorRef[LoginActor.Command] = system.spawn(LoginActor.create(this),"LoginManager")
   loginActor ! LoginActor.Login
 
   def start={}

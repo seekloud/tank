@@ -256,7 +256,7 @@ object UserActor {
               val newStartTime = System.currentTimeMillis()
               roomManager ! JoinRoom(uId,t.tankIdOpt,t.name,newStartTime,ctx.self)
               idle(uId,userInfo.copy(name = t.name),newStartTime,frontActor)
-            case Some(t:TankGameEvent.JoinRoom) =>
+            case Some(t:TankGameEvent.StartGame) =>
               log.info("get ws msg startGame")
               ctx.self ! JoinGame(t.roomId,t.password)
               idle(uId,userInfo,startTime,frontActor)
