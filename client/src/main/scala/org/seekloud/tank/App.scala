@@ -33,7 +33,7 @@ import org.seekloud.tank.view.EnterScreen
 /**
   * Created by hongruying on 2018/10/22
   */
-class  App extends Application{
+/*class  App extends Application{
 
   override def start(primaryStage: Stage): Unit = {
     val context = new Context(primaryStage)
@@ -42,7 +42,7 @@ class  App extends Application{
     new EnterScreenController(context, enterScreen)
   }
 
-}
+}*/
 
 object App{
 

@@ -215,9 +215,6 @@ abstract class GameController(
             setGameState(GameState.stop)
           } else animationTimer.stop()
 
-        //        case e:TankGameEvent.TankReliveInfo =>
-        //          animationTimer.start()
-
         case e: TankGameEvent.SyncGameState =>
           gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
 
@@ -243,8 +240,6 @@ abstract class GameController(
               gameContainerOpt.foreach(_.receiveGameEvent(e))
               if (e.userId == gameContainerOpt.get.myId) {
                 animationTimer.start()
-                //                dom.window.cancelAnimationFrame(nextFrame)
-                //                nextFrame = dom.window.requestAnimationFrame(gameRender())
               }
             case ee: TankGameEvent.GenerateBullet =>
               gameContainerOpt.foreach(_.receiveGameEvent(e))

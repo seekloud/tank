@@ -24,7 +24,10 @@ import scala.collection.mutable
   * Created by hongruying on 2019/2/1
   */
 package object model {
-
+  case class BotInfo(
+                    botId:String,
+                    botKey:String
+                    )
 
   case class PlayerInfo(
                        userInfo:UserInfo,

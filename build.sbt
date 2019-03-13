@@ -13,7 +13,7 @@ resolvers += Resolver.sonatypeRepo("snapshots")
 
 
 val projectMainClass = "org.seekloud.tank.Boot"
-val clientMainClass = "org.seekloud.tank.App"
+val clientMainClass = "org.seekloud.tank.BotServer"
 
 def commonSettings = Seq(
   version := projectVersion,

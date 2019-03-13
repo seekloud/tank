@@ -107,6 +107,12 @@ object BotServer {
     }
   }
 
+  def main(args: Array[String]): Unit = {
+
+    val botServer: ActorRef[Command] = system.spawn(create(),"botServer")
+//    botServer ! BuildServer(2013,executor,new BotPlayController())
+  }
+
 
 }
 

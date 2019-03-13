@@ -68,7 +68,7 @@ object BotViewActor {
             idle(m.locationByte,m.mapByte,m.immutableByte,m.mutableByte,m.bodiesByte,m.stateByte,m.viewByte)
 
           case t: GetObservation =>
-            val pixel = if (mapByte.isEmpty) 0 else if (AppSettings.isGray) 1 else 4
+            val pixel = if (AppSettings.isGray) 1 else 4
             val layer = LayeredObservation(
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(locationByte))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(mapByte))),

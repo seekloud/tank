@@ -31,8 +31,7 @@ import org.seekloud.tank.shared.util.canvas.MiddleCanvas
   * bot游玩控制
   */
 class BotPlayController(
-                         playerInfo: PlayerInfo,
-                         gameServerInfo: GameServerInfo,
+                         playerInfo:
                          roomPwd: Option[String] = None
                        ) extends GameController(800, 400, true, roomPwd) {
 

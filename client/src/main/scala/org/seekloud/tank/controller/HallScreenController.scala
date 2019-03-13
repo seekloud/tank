@@ -82,7 +82,9 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
         res match {
           case Right(roomListRsp) =>
             roomMap = roomListRsp.data.roomList
-            gameHall.updateRoomList(roomMap.keys.toList)
+            App.pushStack2AppThread(
+              gameHall.updateRoomList(roomMap.keys.toList)
+            )
           case Left(e) =>
             log.error(s"获取房间列表失败，error：${e}")
         }
