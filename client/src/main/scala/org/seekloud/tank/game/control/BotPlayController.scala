@@ -72,6 +72,7 @@ class BotPlayController(
   private var lastMouseMoveAngle: Byte = 0
   private val bulletMusic = new AudioClip(getClass.getResource("/music/bullet.mp3").toString)
 
+
   override protected def checkScreenSize: Unit = {}
 
   override protected def gameStopCallBack: Unit = {}
@@ -115,7 +116,7 @@ class BotPlayController(
 
 
   def gameActionReceiver(key: ActionReq) = {
-    if(key.swing.nonEmpty && gameContainerOpt.nonEmpty){
+    if(key.swing.nonEmpty && gameContainerOpt.nonEmpty && gameState == GameState.play){
       val d = key.swing.get.distance
       val r = key.swing.get.radian
       mousePlace  += Point(d * math.cos(r).toFloat,d * math.sin(r).toFloat)
@@ -135,10 +136,21 @@ class BotPlayController(
       }
     }
     if(key.fire == 1 && gameContainerOpt.nonEmpty && gameState == GameState.play){
+      /**
+        * 鼠标点击，开火
+        **/
       val point = mousePlace + Point(24, 24)
       val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
       bulletMusic.play()
       val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
+      gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+      playGameActor ! DispatchMsg(preExecuteAction)
+    }
+    if(key.apply == 1 && gameContainerOpt.nonEmpty && gameState == GameState.play){
+      /**
+        * 吃道具
+        **/
+      val preExecuteAction = TankGameEvent.UserPressKeyMedical(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, serialNum = getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
       playGameActor ! DispatchMsg(preExecuteAction)
     }
