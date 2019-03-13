@@ -59,17 +59,6 @@ trait FpsComponentsDrawUtil{ this:GameContainerClientImpl =>
         viewCtx.fillText(r,canvasBoundary.x*canvasUnit,(canvasBoundary.y - i) * canvasUnit)
         i+=2
       }
-      if(isBot){
-        locationCtx.setFont("Helvetica", "normal",2 * canvasUnit)
-        locationCtx.setFill("rgb(0,0,0)")
-        locationCtx.setTextAlign("left")
-        locationCtx.fillText(fpsString,0,(canvasBoundary.y - LittleMap.h - 2) * canvasUnit)
-        locationCtx.setTextAlign("right")
-        dataSizeList.foreach{ r=>
-          locationCtx.fillText(r,canvasBoundary.x*canvasUnit,(canvasBoundary.y - i) * canvasUnit)
-          i+=2
-        }
-      }
       }
 
   }
