@@ -27,12 +27,13 @@ import org.seekloud.pb.api._
 import org.seekloud.pb.service.EsheepAgentGrpc
 import org.seekloud.pb.service.EsheepAgentGrpc.EsheepAgent
 import org.seekloud.tank.common.AppSettings
-import org.seekloud.tank.core.{BotViewActor, GrpcStreamActor}
+import org.seekloud.tank.core.{BotViewActor, GrpcStreamActor, PlayGameActor}
 import org.seekloud.tank.game.control.BotPlayController
 import org.seekloud.tank.model.JoinRoomRsp
 import org.seekloud.tank.shared.model.Constants.GameState
 import org.slf4j.LoggerFactory
-import org.seekloud.tank.App.{system,executor}
+import org.seekloud.tank.App.{executor, scheduler, system, timeout}
+
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -137,7 +138,7 @@ class BotServer(
     if (request.credit.nonEmpty && botAuth(request.credit.get.apiToken)) {
       log.info(s"createRoom Called by [$request]")
       state = State.in_game
-      val getRoomIdRsp: Future[JoinRoomRsp] = botViewActor ? (BotViewActor.CreateRoomReq(request.password, _))
+      val getRoomIdRsp: Future[JoinRoomRsp] = gameController.playGameActor ? (PlayGameActor.CreateRoomReq(request.password, _))
       getRoomIdRsp.map {
         rsp =>
           if (rsp.errCode == 0) CreateRoomRsp(rsp.roomId.toString, 0, state, "ok")
@@ -151,7 +152,7 @@ class BotServer(
   override def joinRoom(request: JoinRoomReq): Future[SimpleRsp] = {
     if (request.credit.nonEmpty && botAuth(request.credit.get.apiToken)) {
       state = State.in_game
-      val joinRoomRsp: Future[JoinRoomRsp] = botViewActor ? (BotViewActor.JoinRoomReq(request.roomId.toLong,request.password, _))
+      val joinRoomRsp: Future[JoinRoomRsp] = gameController.playGameActor ? (PlayGameActor.JoinRoomReq(request.roomId.toLong,request.password, _))
       joinRoomRsp.map {
         rsp =>
           if (rsp.errCode == 0) SimpleRsp(0, state, "ok")

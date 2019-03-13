@@ -18,25 +18,23 @@ package org.seekloud.tank.game.control
 
 import akka.actor.typed.scaladsl.adapter._
 import javafx.animation.{AnimationTimer, KeyFrame}
-
 import akka.actor.typed.{ActorRef, Behavior}
 import org.seekloud.tank.App.system
 import org.seekloud.tank.core.{BotViewActor, PlayGameActor}
-import org.seekloud.tank.model.{GameServerInfo, JoinRoomRsp, PlayerInfo, WsSendMsg}
+import org.seekloud.tank.model._
 import org.seekloud.utils.canvas.MiddleCanvasInFx
 import javafx.scene.input.KeyCode
-
 import org.seekloud.pb.actions._
 
 import scala.concurrent.duration._
 import java.awt.event.KeyEvent
 import java.nio.ByteBuffer
+
 import javafx.scene.SnapshotParameters
 import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.image.WritableImage
 import javafx.scene.media.AudioClip
 import javafx.scene.paint.Color
-
 import org.seekloud.pb.api.ActionReq
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.shared.model.Constants.GameState
@@ -53,18 +51,17 @@ import org.seekloud.tank.shared.util.canvas.MiddleCanvas
   * bot游玩控制
   */
 object BotPlayController{
+  //todo joinRoom success need feedback
   var SDKReplyTo:ActorRef[JoinRoomRsp] = _
-  var serverActors: Option[ActorRef[PlayGameActor.Command]] = None
 }
 
 class BotPlayController(
-                         playerInfo:
+                         playerInfo: BotInfo,
                          roomPwd: Option[String] = None
                        ) extends GameController(800, 400, true, roomPwd) {
   import BotPlayController._
 
   val botViewActor= system.spawn(BotViewActor.create(), "BotViewActor")
-  serverActors = Some(playGameActor)
   var mousePlace = Point(400,200)
 
   private var lastMoveFrame = -1L

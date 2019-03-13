@@ -155,7 +155,7 @@ abstract class GameController(
 
 
   protected def handleWsSuccess(e: TankGameEvent.WsSuccess) = {
-    playGameActor ! DispatchMsg(TankGameEvent.StartGame(e.roomId, roomPwd))
+    playGameActor ! DispatchMsg(TankGameEvent.JoinRoom(e.roomId, roomPwd))
   }
 
   protected def handleWsMsgErrorRsp(e: TankGameEvent.WsMsgErrorRsp) = {

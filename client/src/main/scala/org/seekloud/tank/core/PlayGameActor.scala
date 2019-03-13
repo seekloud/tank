@@ -27,7 +27,7 @@ import akka.stream.typed.scaladsl.ActorSource
 import akka.util.{ByteString, ByteStringBuilder}
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.tank.common.Route
-import org.seekloud.tank.model.{GameServerInfo, PlayerInfo}
+import org.seekloud.tank.model.{GameServerInfo, JoinRoomRsp, PlayerInfo}
 import org.seekloud.tank.shared.protocol.TankGameEvent
 import org.slf4j.LoggerFactory
 
@@ -38,8 +38,7 @@ import io.circe.parser.decode
 import io.circe.syntax._
 import io.circe._
 import io.circe.generic.auto._
-import org.seekloud.tank.game.control.UserPlayController
-import org.seekloud.tank.game.control.GameController
+import org.seekloud.tank.game.control.{BotPlayController, GameController, UserPlayController}
 
 /**
   * Created by hongruying on 2018/10/23
@@ -79,6 +78,10 @@ object PlayGameActor {
   case object GameLoopKey
 
   case object GameLoopTimeOut extends Command
+
+  case class CreateRoomReq(password:String,sender:ActorRef[JoinRoomRsp]) extends Command
+
+  case class JoinRoomReq(roomId:Long,password:String,sender:ActorRef[JoinRoomRsp]) extends Command
 
   private[this] def switchBehavior(ctx: ActorContext[Command],
                                    behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None, timeOut: TimeOut = TimeOut("busy time error"))
@@ -147,6 +150,16 @@ object PlayGameActor {
                                                            timer: TimerScheduler[Command]) = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
+        case m:CreateRoomReq=>
+          BotPlayController.SDKReplyTo = m.sender
+          frontActor ! TankGameEvent.CreateRoom(None, Some(m.password))
+          Behaviors.same
+
+        case t:JoinRoomReq=>
+          BotPlayController.SDKReplyTo = t.sender
+          frontActor ! TankGameEvent.JoinRoom(Some(t.roomId),Some(t.password))
+          Behaviors.same
+
         case msg:DispatchMsg=>
           frontActor ! msg.msg
           Behaviors.same

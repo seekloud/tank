@@ -46,11 +46,6 @@ object BotViewActor {
 
   case class GetViewByte(viewByte: Array[Byte]) extends Command
 
-  case class CreateRoomReq(password:String,sender:ActorRef[JoinRoomRsp]) extends Command
-
-  case class JoinRoomReq(roomId:Long,password:String,sender:ActorRef[JoinRoomRsp]) extends Command
-
-
   def create(): Behavior[Command] = {
     Behaviors.setup[Command] {
       _ =>
@@ -92,20 +87,6 @@ object BotViewActor {
             t.sender ! observation
             Behaviors.same
 
-          case t: CreateRoomReq =>
-            BotPlayController.SDKReplyTo = t.sender
-            BotPlayController.serverActors.foreach(
-              a =>
-                a ! DispatchMsg(TankGameEvent.CreateRoom(None, Some(t.password)))
-            )
-            Behaviors.same
-          case t: JoinRoomReq =>
-            BotPlayController.SDKReplyTo = t.sender
-            BotPlayController.serverActors.foreach(
-              a =>
-                a ! DispatchMsg(TankGameEvent.StartGame(Some(t.roomId),Some(t.password)))
-            )
-            Behaviors.same
           case x =>
             println(s"get unKnow msg $x")
             Behaviors.unhandled
