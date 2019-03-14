@@ -16,8 +16,6 @@
 
 package org.seekloud.utils
 
-import java.awt.event.KeyEvent
-
 import javafx.scene.input.KeyCode
 import org.seekloud.tank.shared.model.Constants
 
@@ -38,17 +36,24 @@ object JavaFxUtil {
     case origin => origin
   }
 
-  def keyCode2Int(c: KeyCode) = {
-    c match {
-      case KeyCode.SPACE => KeyEvent.VK_SPACE
-      case KeyCode.LEFT => KeyEvent.VK_LEFT
-      case KeyCode.UP => KeyEvent.VK_UP
-      case KeyCode.RIGHT => KeyEvent.VK_RIGHT
-      case KeyCode.DOWN => KeyEvent.VK_DOWN
-      case KeyCode.K => KeyEvent.VK_K
-      case KeyCode.L => KeyEvent.VK_L
-      case KeyCode.E => KeyEvent.VK_E
-      case _ => KeyEvent.VK_F2
-    }
+  def getMoveStateByKeySet(actionSet:Set[KeyCode]):Byte = {
+    if(actionSet.contains(KeyCode.LEFT) && actionSet.contains(KeyCode.UP)){
+      5
+    }else if(actionSet.contains(KeyCode.RIGHT) && actionSet.contains(KeyCode.UP)){
+      7
+    }else if(actionSet.contains(KeyCode.LEFT) && actionSet.contains(KeyCode.DOWN)){
+      3
+    }else if(actionSet.contains(KeyCode.RIGHT) && actionSet.contains(KeyCode.DOWN)){
+      1
+    }else if(actionSet.contains(KeyCode.RIGHT)){
+      0
+    }else if(actionSet.contains(KeyCode.LEFT)){
+      4
+    }else if(actionSet.contains(KeyCode.UP) ){
+      6
+    }else if(actionSet.contains(KeyCode.DOWN)){
+      2
+    }else 8
   }
+
 }

@@ -76,6 +76,26 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
     case origin => origin
   }
 
+  private def getMoveStateByKeySet(actionSet:Set[Int]):Byte = {
+    if(actionSet.contains(KeyCode.Left) && actionSet.contains(KeyCode.Up)){
+      5
+    }else if(actionSet.contains(KeyCode.Right) && actionSet.contains(KeyCode.Up)){
+      7
+    }else if(actionSet.contains(KeyCode.Left) && actionSet.contains(KeyCode.Down)){
+      3
+    }else if(actionSet.contains(KeyCode.Right) && actionSet.contains(KeyCode.Down)){
+      1
+    }else if(actionSet.contains(KeyCode.Right)){
+      0
+    }else if(actionSet.contains(KeyCode.Left)){
+      4
+    }else if(actionSet.contains(KeyCode.Up) ){
+      6
+    }else if(actionSet.contains(KeyCode.Down)){
+      2
+    }else 8
+  }
+
   def getActionSerialNum: Byte = (actionSerialNumGenerator.getAndIncrement()%127).toByte
 
   def getStartGameModal(): Elem = {
@@ -158,7 +178,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
           myKeySet.add(keyCode)
           //          println(s"key down: [${e.keyCode}]")
-          val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode.toByte, getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UserMoveState(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, getMoveStateByKeySet(myKeySet.toSet), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
           if (org.seekloud.tank.shared.model.Constants.fakeRender) {
@@ -206,7 +226,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
         if (watchKeys.contains(keyCode)) {
           myKeySet.remove(keyCode)
           //          println(s"key up: [${e.keyCode}]")
-          val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode.toByte, getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UserMoveState(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, getMoveStateByKeySet(myKeySet.toSet), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
           if (org.seekloud.tank.shared.model.Constants.fakeRender) {

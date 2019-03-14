@@ -17,23 +17,14 @@
 package org.seekloud.tank.game.control
 
 import akka.actor.typed.scaladsl.adapter._
-import javafx.animation.{AnimationTimer, KeyFrame}
 
 import akka.actor.typed.{ActorRef, Behavior}
 import org.seekloud.tank.App.system
 import org.seekloud.tank.core.{BotViewActor, PlayGameActor}
 import org.seekloud.tank.model._
 import org.seekloud.utils.canvas.MiddleCanvasInFx
-import javafx.scene.input.KeyCode
-
 import org.seekloud.pb.actions._
 
-import scala.concurrent.duration._
-import java.awt.event.KeyEvent
-import java.nio.ByteBuffer
-import javafx.scene.SnapshotParameters
-import javafx.scene.canvas.{Canvas, GraphicsContext}
-import javafx.scene.image.WritableImage
 import javafx.scene.media.AudioClip
 import org.seekloud.pb.api.ActionReq
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
@@ -63,9 +54,26 @@ class BotPlayController(
   val botViewActor= system.spawn(BotViewActor.create(), "BotViewActor")
   var mousePlace = Point(400,200)
 
+
   private var lastMoveFrame = -1L
   private var lastMouseMoveAngle: Byte = 0
   private val bulletMusic = new AudioClip(getClass.getResource("/music/bullet.mp3").toString)
+
+  private var moveStateNow:Byte = 8
+
+  private def move2Byte(move: Move) :Byte = {
+    move match {
+      case Move.right => 0
+      case Move.r_down => 1
+      case Move.down => 2
+      case Move.l_down => 3
+      case Move.left => 4
+      case Move.l_up => 5
+      case Move.up => 6
+      case Move.r_up => 7
+      case Move.noop => 8
+    }
+  }
 
 
   override protected def checkScreenSize: Unit = {}
@@ -147,6 +155,17 @@ class BotPlayController(
       val preExecuteAction = TankGameEvent.UserPressKeyMedical(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, serialNum = getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
       playGameActor ! DispatchMsg(preExecuteAction)
+    }
+    val moveStateReceive = move2Byte(key.move)
+    if (moveStateReceive != moveStateNow) {
+      println(s"move state change to: [$moveStateReceive]")
+      val preExecuteAction = TankGameEvent.UserMoveState(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, moveStateReceive, getActionSerialNum)
+      gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+      playGameActor ! DispatchMsg(preExecuteAction)
+      if (org.seekloud.tank.shared.model.Constants.fakeRender) {
+        gameContainerOpt.get.addMyAction(preExecuteAction)
+      }
+      moveStateNow = moveStateReceive
     }
   }
   def receiveReincarnation ={

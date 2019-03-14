@@ -123,8 +123,11 @@ object TankGameEvent {
 
   type UserMouseClick = UC
 
-  final case class UserPressKeyDown(tankId:Int,override val frame:Long,keyCodeDown:Byte,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
-  final case class UserPressKeyUp(tankId:Int,override val frame:Long,keyCodeUp:Byte,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
+//  final case class UserPressKeyDown(tankId:Int,override val frame:Long,keyCodeDown:Byte,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
+//  final case class UserPressKeyUp(tankId:Int,override val frame:Long,keyCodeUp:Byte,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
+
+  final case class UserMoveState(tankId:Int,override val frame:Long,moveState:Byte,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
+
   /**使用医疗包*/
   final case class UserPressKeyMedical(tankId:Int,override val frame:Long, override val serialNum: Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
   /**tank吃道具*/

@@ -74,6 +74,8 @@ trait GameContainer extends KillInformation{
 
   val tankMoveAction = mutable.HashMap[Int,mutable.HashSet[Byte]]() //tankId -> pressed direction key code
 
+  val tankMoveState = mutable.HashMap[Int,Byte]()
+
   val quadTree : QuadTree = new QuadTree(Rectangle(Point(0,0),boundary))
 
   protected val tankHistoryMap = mutable.HashMap[Int,String]()
@@ -135,6 +137,8 @@ trait GameContainer extends KillInformation{
 
   protected final def handleUserLeftRoom(e:UserLeftRoom) :Unit = {
     tankMoveAction.remove(e.tankId)
+    tankMoveState.remove(e.tankId)
+
     tankMap.get(e.tankId).foreach(quadTree.remove)
     tankMap.remove(e.tankId)
     removeTankHistoryMap.get(systemFrame+1000) match {
@@ -158,7 +162,10 @@ trait GameContainer extends KillInformation{
       * 用户行为事件
       * */
     actions.sortBy(t => (t.tankId,t.serialNum)).foreach{ action =>
-      val tankMoveSet = tankMoveAction.getOrElse(action.tankId,mutable.HashSet[Byte]())
+//      val tankMoveSet = tankMoveAction.getOrElse(action.tankId,mutable.HashSet[Byte]())
+
+      var tankMove = tankMoveState.getOrElse(action.tankId,-1)
+
       tankMap.get(action.tankId) match {
         case Some(tank) =>
           action match {
@@ -169,14 +176,12 @@ trait GameContainer extends KillInformation{
               tank.setTankGunDirection(a.d)
               tankExecuteLaunchBulletAction(a.tankId,tank)
             }
-            case a:UserPressKeyDown =>
-              tankMoveSet.add(a.keyCodeDown)
-              tankMoveAction.put(a.tankId,tankMoveSet)
-              tank.setTankDirection(tankMoveSet.toSet)
-            case a:UserPressKeyUp =>
-              tankMoveSet.remove(a.keyCodeUp)
-              tankMoveAction.put(a.tankId,tankMoveSet)
-              tank.setTankDirection(tankMoveSet.toSet)
+
+            case a:UserMoveState =>
+              tankMove = a.moveState
+              tankMoveState.put(a.tankId,tankMove)
+              tank.setTankDirection(tankMove)
+
             case a:UserKeyboardMove => tank.setTankKeyBoardDirection(a.angle)
             case a:UserPressKeyMedical => tank.addBlood()
           }

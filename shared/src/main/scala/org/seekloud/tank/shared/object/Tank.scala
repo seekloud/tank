@@ -1,7 +1,5 @@
 package org.seekloud.tank.shared.`object`
 
-import java.awt.event.KeyEvent
-
 import org.seekloud.tank.shared.config.TankGameConfig
 import org.seekloud.tank.shared.model
 import org.seekloud.tank.shared.model.Constants.{DirectionType, TankColor}
@@ -249,34 +247,44 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
   /**
     * 根据坦克的按键修改坦克的方向状态
     * */
-  def setTankDirection(actionSet:Set[Byte]) = {
-    val targetDirectionOpt = getDirection(actionSet)
+//  def setTankDirection(actionSet:Set[Byte]) = {
+//    val targetDirectionOpt = getDirection(actionSet)
+//    if(targetDirectionOpt.nonEmpty) {
+//      isMove = true
+//      this.direction = targetDirectionOpt.get
+//    } else isMove = false
+//  }
+
+  def setTankDirection(moveState:Byte) = {
+    val targetDirectionOpt = moveState match {
+      case 0 => Some(DirectionType.right.toFloat)
+      case 1 => Some(DirectionType.downRight.toFloat)
+      case 2 => Some(DirectionType.down.toFloat)
+      case 3 => Some(DirectionType.downLeft.toFloat)
+      case 4 => Some(DirectionType.left.toFloat)
+      case 5 => Some(DirectionType.upLeft.toFloat)
+      case 6 => Some(DirectionType.up.toFloat)
+      case 7 => Some(DirectionType.upRight.toFloat)
+      case _ => None
+    }
     if(targetDirectionOpt.nonEmpty) {
       isMove = true
       this.direction = targetDirectionOpt.get
     } else isMove = false
   }
 
-  import scala.language.implicitConversions
-  protected final def getDirection(actionSet:Set[Byte]):Option[Float] = {
-    implicit def changeInt2Byte(i:Int):Byte=i.toByte
-    if(actionSet.contains(KeyEvent.VK_LEFT) && actionSet.contains(KeyEvent.VK_UP)){
-      Some(DirectionType.upLeft.toFloat)
-    }else if(actionSet.contains(KeyEvent.VK_RIGHT) && actionSet.contains(KeyEvent.VK_UP)){
-      Some(DirectionType.upRight.toFloat)
-    }else if(actionSet.contains(KeyEvent.VK_LEFT) && actionSet.contains(KeyEvent.VK_DOWN)){
-      Some(DirectionType.downLeft.toFloat)
-    }else if(actionSet.contains(KeyEvent.VK_RIGHT) && actionSet.contains(KeyEvent.VK_DOWN)){
-      Some(DirectionType.downRight.toFloat)
-    }else if(actionSet.contains(KeyEvent.VK_RIGHT)){
-      Some(DirectionType.right.toFloat)
-    }else if(actionSet.contains(KeyEvent.VK_LEFT)){
-      Some(DirectionType.left.toFloat)
-    }else if(actionSet.contains(KeyEvent.VK_UP) ){
-      Some(DirectionType.up.toFloat)
-    }else if(actionSet.contains(KeyEvent.VK_DOWN)){
-      Some(DirectionType.down.toFloat)
-    }else None
+  protected final def getDirection(moveState:Byte):Option[Float] = {
+    moveState match {
+      case 0 => Some(DirectionType.right.toFloat)
+      case 1 => Some(DirectionType.downRight.toFloat)
+      case 2 => Some(DirectionType.down.toFloat)
+      case 3 => Some(DirectionType.downLeft.toFloat)
+      case 4 => Some(DirectionType.left.toFloat)
+      case 5 => Some(DirectionType.upLeft.toFloat)
+      case 6 => Some(DirectionType.up.toFloat)
+      case 7 => Some(DirectionType.upRight.toFloat)
+      case _ => None
+    }
   }
 
 }

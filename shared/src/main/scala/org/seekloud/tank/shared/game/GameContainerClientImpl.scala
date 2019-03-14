@@ -250,16 +250,22 @@ case class GameContainerClientImpl(
     if (tankMap.contains(tankId)) {
       val tank = tankMap(tankId).asInstanceOf[TankClientImpl]
       if (actions.nonEmpty) {
-        val tankMoveSet = mutable.Set[Byte]()
+//        val tankMoveSet = mutable.Set[Byte]()
+        var tankMoveState:Byte = 8
         actions.sortBy(t => t.serialNum).foreach {
-          case a: UserPressKeyDown =>
-            tankMoveSet.add(a.keyCodeDown)
-          case a: UserPressKeyUp =>
-            tankMoveSet.remove(a.keyCodeUp)
+//          case a: UserPressKeyDown =>
+//            tankMoveSet.add(a.keyCodeDown)
+//          case a: UserPressKeyUp =>
+//            tankMoveSet.remove(a.keyCodeUp)
+          case a: UserMoveState =>
+            tankMoveState = a.moveState
           case _ =>
         }
-        if (tankMoveSet.nonEmpty && !tank.getTankIsMove()) {
-          tank.setFakeTankDirection(tankMoveSet.toSet, systemFrame)
+//        if (tankMoveSet.nonEmpty && !tank.getTankIsMove()) {
+//          tank.setFakeTankDirection(tankMoveSet.toSet, systemFrame)
+//        }
+        if (tankMoveState < 8 && !tank.getTankIsMove()) {
+          tank.setFakeTankDirection(tankMoveState, systemFrame)
         }
       }
     }

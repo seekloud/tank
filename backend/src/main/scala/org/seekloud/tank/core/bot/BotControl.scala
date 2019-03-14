@@ -29,6 +29,8 @@ import org.seekloud.tank.Boot.executor
 import org.seekloud.tank.shared.`object`.{Obstacle, Prop, Tank}
 import org.seekloud.tank.shared.model.Point
 import org.seekloud.tank.shared.protocol.TankGameEvent
+
+import scala.collection.mutable
 /**
   * @author wmy
   * @edit sky
@@ -44,10 +46,12 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
   private val clickRatio = 2
   private val eatRatio = 2
   private var isEatProp = false
-  private var turnMsg = 0
+  private var turnMsg:Byte = 0
 
   private val preExecuteFrameOffset = org.seekloud.tank.shared.model.Constants.PreExecuteFrameOffset
   private val actionSerialNumGenerator = new AtomicInteger(0)
+
+  protected val myKeySet = mutable.HashSet[Int]()
 
   def getActionSerialNum: Byte = actionSerialNumGenerator.getAndIncrement().toByte
 
@@ -68,34 +72,33 @@ case class BotControl(bid: String, tankId: Int, name: String, roomId:Long,roomAc
       else if (isHaveTarget && isEatProp && eat > eatRatio) {
         if (turnMsg > 0) {
           //          log.debug(s"${userActor.path} begin to do to eat the prop ${turnMsg}")
-          roomActor ! RoomActor.WebSocketMsg(bid, tankId, userKeyDown(turnMsg))
-          roomActor ! RoomActor.WebSocketMsg(bid, tankId, userKeyDown(turnMsg))
+          roomActor ! RoomActor.WebSocketMsg(bid, tankId, userMoveState(turnMsg))
+          roomActor ! RoomActor.WebSocketMsg(bid, tankId, userMoveStateDelay(8))
         }
       }
       else {
-        val randomKeyCode = (new util.Random).nextInt(4) + 37
-        roomActor ! RoomActor.WebSocketMsg(bid, tankId, userKeyDown(randomKeyCode))
-        roomActor ! RoomActor.WebSocketMsg(bid, tankId, userKeyUp(randomKeyCode))
+        val randomKeyCode = ((new util.Random).nextInt(4) * 2).toByte
+        roomActor ! RoomActor.WebSocketMsg(bid, tankId, userMoveState(randomKeyCode))
+        roomActor ! RoomActor.WebSocketMsg(bid, tankId, userMoveStateDelay(8))
       }
     }
   }
 
-  private def chooseTheDirection(p: Point, q: Point) = {
+  private def chooseTheDirection(p: Point, q: Point) :Byte = {
     val x_dis = p.x - q.x
     val y_dis = p.y - q.y
-    if (x_dis < -2.5) 39
-    else if (x_dis > 2.5) 37
-    else if (y_dis < -2.5) 40
-    else if (y_dis > 2.5) 38
-    else 0
+    if (x_dis < -2.5) 0
+    else if (x_dis > 2.5) 4
+    else if (y_dis < -2.5) 2
+    else if (y_dis > 2.5) 6
+    else 8
   }
 
-  private def userKeyDown(keyCode: Int) = {
-    TankGameEvent.UserPressKeyDown(tankId, gameContainer.systemFrame + preExecuteFrameOffset, keyCode.toByte, getActionSerialNum)
+  def userMoveState(moveState:Byte) = {
+    TankGameEvent.UserMoveState(tankId, gameContainer.systemFrame + preExecuteFrameOffset, moveState, getActionSerialNum)
   }
-
-  def userKeyUp(keyCode: Int) = {
-    TankGameEvent.UserPressKeyUp(tankId, gameContainer.systemFrame + 10 + preExecuteFrameOffset, keyCode.toByte, getActionSerialNum)
+  def userMoveStateDelay(moveState:Byte) = {
+    TankGameEvent.UserMoveState(tankId, gameContainer.systemFrame + 10 + preExecuteFrameOffset, moveState, getActionSerialNum)
   }
 
   private def userMouseClick(d:Float) = {
