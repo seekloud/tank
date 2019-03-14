@@ -108,9 +108,9 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
   protected def drawBackground(offset:Point) = {
     clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, viewCtx)
     if(isBot){
-      clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, immutableCtx)
-      clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, mutableCtx)
-      clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, bodiesCtx)
+      clearScreen("#000000",1, canvasBoundary.x /layerCanvasSize, canvasBoundary.y /layerCanvasSize, immutableCtx)
+      clearScreen("#000000",1, canvasBoundary.x /layerCanvasSize, canvasBoundary.y /layerCanvasSize, mutableCtx)
+      clearScreen("#000000",1, canvasBoundary.x /layerCanvasSize, canvasBoundary.y /layerCanvasSize, bodiesCtx)
     }
     val boundStart = Point(canvasBoundary.x/2, canvasBoundary.y/2)
     val boundEnd = Point(canvasBoundary.x/2 + boundary.x, canvasBoundary.y/2 + boundary.y)
@@ -123,33 +123,33 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     if(canvasStart.x < boundStart.x && canvasStart.y > boundStart.y){
       clearScreen("#E8E8E8", 1, width, height, viewCtx, Point(canvasBoundary.x - width, 0))
       if(isBot){
-        clearScreen("#E8E8E8", 1, width, height, immutableCtx, Point(canvasBoundary.x - width, 0))
-        clearScreen("#E8E8E8", 1, width, height, mutableCtx, Point(canvasBoundary.x - width, 0))
-        clearScreen("#E8E8E8", 1, width, height, bodiesCtx, Point(canvasBoundary.x - width, 0))
+        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, immutableCtx, Point(canvasBoundary.x /layerCanvasSize- width /layerCanvasSize, 0))
+        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, mutableCtx, Point(canvasBoundary.x /layerCanvasSize - width /layerCanvasSize, 0))
+        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, bodiesCtx, Point(canvasBoundary.x /layerCanvasSize - width /layerCanvasSize, 0))
       }
     }
     else if(canvasStart.x > boundStart.x && canvasStart.y < boundStart.y){
       clearScreen("#E8E8E8", 1, width, height, viewCtx, Point(0, canvasBoundary.y - height))
       if(isBot){
-        clearScreen("#E8E8E8", 1, width, height, immutableCtx, Point(0, canvasBoundary.y - height))
-        clearScreen("#E8E8E8", 1, width, height, mutableCtx, Point(0, canvasBoundary.y - height))
-        clearScreen("#E8E8E8", 1, width, height, bodiesCtx, Point(0, canvasBoundary.y - height))
+        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, immutableCtx, Point(0, canvasBoundary.y /layerCanvasSize - height /layerCanvasSize))
+        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, mutableCtx, Point(0, canvasBoundary.y /layerCanvasSize - height /layerCanvasSize))
+        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, bodiesCtx, Point(0, canvasBoundary.y /layerCanvasSize - height /layerCanvasSize))
       }
     }
     else if(canvasStart.x < boundStart.x && canvasStart.y < boundStart.y){
       clearScreen("#E8E8E8", 1, width, height, viewCtx, Point(canvasBoundary.x - width, canvasBoundary.y - height))
       if(isBot){
-        clearScreen("#E8E8E8", 1, width, height, immutableCtx,  Point(canvasBoundary.x - width, canvasBoundary.y - height))
-        clearScreen("#E8E8E8", 1, width, height, mutableCtx,  Point(canvasBoundary.x - width, canvasBoundary.y - height))
-        clearScreen("#E8E8E8", 1, width, height, bodiesCtx,  Point(canvasBoundary.x - width, canvasBoundary.y - height))
+        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, immutableCtx,  Point(canvasBoundary.x - width, canvasBoundary.y /layerCanvasSize - height /layerCanvasSize))
+        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, mutableCtx,  Point(canvasBoundary.x - width, canvasBoundary.y /layerCanvasSize - height /layerCanvasSize))
+        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, bodiesCtx,  Point(canvasBoundary.x - width, canvasBoundary.y /layerCanvasSize - height /layerCanvasSize))
       }
     }
     else{
       clearScreen("#E8E8E8", 1, width, height, viewCtx)
       if(isBot){
-        clearScreen("#E8E8E8", 1, width, height, immutableCtx)
-        clearScreen("#E8E8E8", 1, width, height, mutableCtx)
-        clearScreen("#E8E8E8", 1, width, height, bodiesCtx)
+        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, immutableCtx)
+        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, mutableCtx)
+        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, bodiesCtx)
       }
     }
     viewCtx.setLineWidth(3)
@@ -305,8 +305,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
     viewCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
     if(isBot){
-      mapCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit*0.2 - 6)
-
+      mapCtx.drawImage(minimapCanvas.change2Image(), 0,  canvasUnit * 2)
     }
 
 
@@ -315,13 +314,13 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
   protected def drawLocationMap(tank:Tank):Unit={
     if(isBot){
       locationCtx.setFill("black")
-      locationCtx.fillRec(0,0,450,420)
+      locationCtx.fillRec(0,0,220,200)
       locationCtx.beginPath()
       locationCtx.setStrokeStyle("white")
-      val x = tank.getPosition.x - 96
-      val y = tank.getPosition.y - 54
-      val w = 192
-      val h = 108
+      val x = tank.getPosition.x * 0.5 - 48
+      val y = tank.getPosition.y * 0.5 - 27
+      val w = 96
+      val h = 54
       locationCtx.setFill("white")
       locationCtx.fillRec(x,y,w,h)
       locationCtx.moveTo(x,y)

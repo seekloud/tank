@@ -42,7 +42,8 @@ case class GameContainerClientImpl(
                                     var canvasUnit: Int,
                                     setKillCallback: Tank => Unit,
                                     versionInfo: Option[String] = None,
-                                    isBot: Boolean = false
+                                    isBot: Boolean = false,
+                                    layerCanvasSize: Int = 2
                                   ) extends GameContainer with EsRecover
   with BackgroundDrawUtil with BulletDrawUtil with FpsComponentsDrawUtil with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil with InfoDrawUtil {
 
@@ -62,17 +63,20 @@ case class GameContainerClientImpl(
     * bodies: 所有坦克
     * state: 自身坦克状态，左上角信息
     **/
-  val locationCanvas = if (isBot) drawFrame.createCanvas(450, 420) else viewCanvas
+
+  val layerWidth = config.layerCanvasWidth
+  val layerHeight = config.layerCanvasHeight
+  val locationCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
   val locationCtx = locationCanvas.getCtx
-  val mapCanvas = if (isBot) drawFrame.createCanvas(200, 250) else viewCanvas
+  val mapCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
   val mapCtx = mapCanvas.getCtx
-  val immutableCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
+  val immutableCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
   val immutableCtx = immutableCanvas.getCtx
-  val mutableCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
+  val mutableCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
   val mutableCtx = mutableCanvas.getCtx
-  val bodiesCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
+  val bodiesCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
   val bodiesCtx = bodiesCanvas.getCtx
-  val statusCanvas = if (isBot) drawFrame.createCanvas(200, 200) else viewCanvas
+  val statusCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
   val statusCtx = statusCanvas.getCtx
 
   protected val obstacleAttackedAnimationMap = mutable.HashMap[Int, Int]()
