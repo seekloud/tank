@@ -18,7 +18,7 @@ package org.seekloud.tank.controller
 
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.adapter._
-import org.seekloud.tank.App
+import org.seekloud.tank.ClientApp
 import org.seekloud.tank.core.LoginActor
 import org.seekloud.tank.common.Context
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo}
@@ -32,7 +32,7 @@ object LoginScreenController{
 }
 class LoginScreenController(val context: Context, val loginScreen: LoginScreen) {
 
-  import org.seekloud.tank.App._
+  import org.seekloud.tank.ClientApp._
 
   loginActor ! LoginActor.Login
 
@@ -60,21 +60,21 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
     * 显示扫码图片
     * */
   def showScanUrl(scanUrl:String):Unit = {
-    App.pushStack2AppThread(loginScreen.showScanUrl(scanUrl))
+    ClientApp.pushStack2AppThread(loginScreen.showScanUrl(scanUrl))
   }
 
   def showSuccess()={
-    App.pushStack2AppThread(loginScreen.loginSuccess())
+    ClientApp.pushStack2AppThread(loginScreen.loginSuccess())
   }
 
 
   def showLoginError(error: String)={
-    App.pushStack2AppThread(loginScreen.getImgError(error))
+    ClientApp.pushStack2AppThread(loginScreen.getImgError(error))
   }
 
   //显示邮箱登录
   def showEmailLogin() = {
-    App.pushStack2AppThread(loginScreen.emailLogin())
+    ClientApp.pushStack2AppThread(loginScreen.emailLogin())
   }
 
 
@@ -85,7 +85,7 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
   def joinGame(playerInfo:PlayerInfo, gameServerInfo: GameServerInfo) = {
     println("joinGame----------")
     loginActor ! LoginActor.StopWs
-    App.pushStack2AppThread{
+    ClientApp.pushStack2AppThread{
       val gameHallScreen = new GameHallScreen(context, playerInfo)
       context.switchScene(gameHallScreen.getScene,resize = true)
       new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)

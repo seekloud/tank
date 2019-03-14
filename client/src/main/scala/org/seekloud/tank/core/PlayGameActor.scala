@@ -33,11 +33,12 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import org.seekloud.tank.App._
+import org.seekloud.tank.ClientApp._
 import io.circe.parser.decode
 import io.circe.syntax._
 import io.circe._
 import io.circe.generic.auto._
+import org.seekloud.tank.BotSdkTest
 import org.seekloud.tank.game.control.{BotViewController, GameController, UserViewController}
 
 /**
@@ -128,7 +129,7 @@ object PlayGameActor {
               throw new RuntimeException(s"${ctx.self.path} connection failed: ${upgrade.response.status}")
             }
           } //链接建立时
-          connected.onComplete { i => println(i.toString) }
+          connected.onComplete { i => log.info(i.toString) }
           closed.onComplete { i =>
             log.info(s"${ctx.self.path} connect closed! try again 1 minutes later")
             //remind 此处存在失败重试
@@ -151,6 +152,7 @@ object PlayGameActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case m:CreateRoomReq=>
+          log.info("createRoomReq")
           BotViewController.SDKReplyTo = m.sender
           frontActor ! TankGameEvent.CreateRoom(None, Some(m.password))
           Behaviors.same

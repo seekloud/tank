@@ -150,7 +150,7 @@ case class GameContainerClientImpl(
           tankExecuteLaunchBulletAction(tank.tankId, tank)
         }
       case None =>
-        println(s"--------------------该子弹没有对应的tank")
+        info(s"--------------------该子弹没有对应的tank")
     }
     super.handleGenerateBullet(e)
   }
@@ -187,7 +187,7 @@ case class GameContainerClientImpl(
     if (e.frame >= systemFrame) {
       addGameEvent(e)
     } else if (esRecoverSupport) {
-      println(s"rollback-frame=${e.frame},curFrame=${this.systemFrame},e=${e}")
+      info(s"rollback-frame=${e.frame},curFrame=${this.systemFrame},e=${e}")
       rollback4GameEvent(e)
     }
   }
@@ -198,7 +198,7 @@ case class GameContainerClientImpl(
       uncheckedActionMap.get(e.serialNum) match {
         case Some(preFrame) =>
           if (e.frame != preFrame) {
-            println(s"preFrame=${preFrame} eventFrame=${e.frame} curFrame=${systemFrame}")
+            info(s"preFrame=${preFrame} eventFrame=${e.frame} curFrame=${systemFrame}")
             //          require(preFrame <= e.frame)
             if (preFrame < e.frame && esRecoverSupport) {
               if (preFrame >= systemFrame) {
@@ -344,7 +344,7 @@ case class GameContainerClientImpl(
     }
     val endTime = System.currentTimeMillis()
     if (curFrame < gameContainerState.f) {
-      println(s"handleGameContainerState update to now use Time=${endTime - startTime} and systemFrame=${systemFrame} sysFrame=${gameContainerState.f}")
+      info(s"handleGameContainerState update to now use Time=${endTime - startTime} and systemFrame=${systemFrame} sysFrame=${gameContainerState.f}")
     }
 
     if (!judge(gameContainerState) || systemFrame != gameContainerState.f) {
@@ -361,7 +361,7 @@ case class GameContainerClientImpl(
             tankHistoryMap.put(t.tankId, tank.name)
           }
         case None =>
-          println(s"handle game container client--no tanks")
+          info(s"handle game container client--no tanks")
       }
       gameContainerState.tankMoveAction match {
         case Some(as) =>
@@ -390,17 +390,17 @@ case class GameContainerClientImpl(
             case Some(t) =>
               //fixme 此处排除炮筒方向
               if (t.getTankState().copy(gunDirection = 0f) != tankState.copy(gunDirection = 0f)) {
-                println(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
+                info(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
                 false
               } else true
             case None => {
-              println(s"judge failed,because tank=${tankState.tankId} not exists....")
+              info(s"judge failed,because tank=${tankState.tankId} not exists....")
               true
             }
           }
         }
       case None =>
-        println(s"game container client judge function no tanks---")
+        info(s"game container client judge function no tanks---")
         true
     }
   }

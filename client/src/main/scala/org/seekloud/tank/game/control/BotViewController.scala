@@ -18,24 +18,24 @@ package org.seekloud.tank.game.control
 
 import akka.actor.typed.scaladsl.adapter._
 import javafx.animation.{AnimationTimer, KeyFrame}
-
 import akka.actor.typed.{ActorRef, Behavior}
-import org.seekloud.tank.App.system
+import org.seekloud.tank.ClientApp.system
 import org.seekloud.tank.core.{BotViewActor, PlayGameActor}
 import org.seekloud.tank.model._
 import org.seekloud.utils.canvas.MiddleCanvasInFx
 import javafx.scene.input.KeyCode
-
 import org.seekloud.pb.actions._
 
 import scala.concurrent.duration._
 import java.awt.event.KeyEvent
 import java.nio.ByteBuffer
+
 import javafx.scene.SnapshotParameters
 import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.image.WritableImage
 import javafx.scene.media.AudioClip
 import org.seekloud.pb.api.ActionReq
+import org.seekloud.tank.BotSdkTest
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.shared.model.Constants.GameState
 import org.seekloud.tank.shared.model.Point
@@ -89,6 +89,11 @@ class BotViewController(
         Some(canvas.canvas2byteArray)
       )
     )
+  }
+
+  override protected def handleWsSuccess(e: TankGameEvent.WsSuccess): Unit = {
+    //fixme 此处测试需要
+    BotSdkTest.test
   }
 
   override protected def initGameContainerCallBack: Unit = {}

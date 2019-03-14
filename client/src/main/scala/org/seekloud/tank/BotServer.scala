@@ -32,7 +32,7 @@ import org.seekloud.tank.game.control.BotViewController
 import org.seekloud.tank.model.{BotKeyReq, GameServerInfo, JoinRoomRsp, PlayerInfo}
 import org.seekloud.tank.shared.model.Constants.GameState
 import org.slf4j.LoggerFactory
-import org.seekloud.tank.App.{executor, scheduler, system, timeout}
+import org.seekloud.tank.ClientApp.{executor, scheduler, system, timeout}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -133,7 +133,10 @@ class BotServer(
       val getRoomIdRsp: Future[JoinRoomRsp] = gameController.playGameActor ? (PlayGameActor.CreateRoomReq(request.password, _))
       getRoomIdRsp.map {
         rsp =>
-          if (rsp.errCode == 0) CreateRoomRsp(rsp.roomId.toString, 0, state, "ok")
+          if (rsp.errCode == 0) {
+            log.info("createRoomSuccess")
+            CreateRoomRsp(rsp.roomId.toString, 0, state, "ok")
+          }
           else CreateRoomRsp(rsp.roomId.toString, rsp.errCode, state, rsp.msg)
       }
     } else {

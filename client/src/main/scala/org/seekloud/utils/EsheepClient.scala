@@ -21,7 +21,7 @@ import org.seekloud.tank.shared.ptcl.ErrorRsp
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
-import org.seekloud.tank.App._
+import org.seekloud.tank.ClientApp._
 import org.seekloud.tank.common.AppSettings
 
 /**

@@ -21,12 +21,12 @@ import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
 import javafx.scene.control._
-import org.seekloud.tank.App.{executor, scheduler}
+import org.seekloud.tank.ClientApp.{executor, scheduler}
 import org.seekloud.tank.common.Context
 import org.seekloud.tank.game.control.UserViewController
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo}
 import org.seekloud.tank.view.{GameHallListener, GameHallScreen, PlayGameScreen}
-import org.seekloud.tank.{App, model}
+import org.seekloud.tank.{ClientApp, model}
 import org.seekloud.utils.HttpUtil.Imports.postJsonRequestSend
 import org.seekloud.utils.SecureUtil._
 import org.slf4j.LoggerFactory
@@ -70,7 +70,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
     }
   }
 
-  App.pushStack2AppThread{
+  ClientApp.pushStack2AppThread{
     timer = scheduler.schedule(1.millis,1.minutes){
       updateRoomList()
     }
@@ -82,7 +82,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
         res match {
           case Right(roomListRsp) =>
             roomMap = roomListRsp.data.roomList
-            App.pushStack2AppThread(
+            ClientApp.pushStack2AppThread(
               gameHall.updateRoomList(roomMap.keys.toList)
             )
           case Left(e) =>
@@ -95,7 +95,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
 
   gameHall.setListener(new GameHallListener{
     override def randomBtnListener(): Unit = {
-      App.pushStack2AppThread{
+      ClientApp.pushStack2AppThread{
         val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
         context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
         new UserViewController(playerInfo,gameServerInfo,context,playGameScreen,None,None,false).startGame
@@ -105,7 +105,7 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
     }
 
     override def confirmBtnListener(roomIdListView:String, roomIdTextField:String): Unit = {
-      App.pushStack2AppThread{
+      ClientApp.pushStack2AppThread{
         if(roomIdTextField != "" && roomMap.contains(roomIdTextField.toLong)){
           if(!roomMap(roomIdTextField.toLong)){
             val playGameScreen: PlayGameScreen = new PlayGameScreen(context)
@@ -157,11 +157,11 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
     }
 
     override def addSelfDefinedRoom(): Unit = {
-      App.pushStack2AppThread(gameHall.plainScreen)
+      ClientApp.pushStack2AppThread(gameHall.plainScreen)
     }
 
     override def createRoom(roomId: String, pwd: Option[String]): Unit = {
-      App.pushStack2AppThread{
+      ClientApp.pushStack2AppThread{
         if(!roomMap.contains(if(roomId == null) -1L else roomId.toLong)){
           val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
           context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
@@ -179,15 +179,15 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
     }
 
     override def change2Encrypt(): Unit = {
-      App.pushStack2AppThread(gameHall.encryptScreen)
+      ClientApp.pushStack2AppThread(gameHall.encryptScreen)
     }
 
     override def change2Plain(): Unit = {
-      App.pushStack2AppThread(gameHall.plainScreen)
+      ClientApp.pushStack2AppThread(gameHall.plainScreen)
     }
 
     override def backToRoomList(): Unit = {
-      App.pushStack2AppThread{
+      ClientApp.pushStack2AppThread{
         val gameHallScreen = new GameHallScreen(context, playerInfo)
         context.switchScene(gameHallScreen.getScene,resize = true)
         new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)

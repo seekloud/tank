@@ -39,6 +39,7 @@ import scala.concurrent.Future
 /**
   * Created by hongruying on 2018/10/22
   */
+/*
 class  App extends Application{
 
   override def start(primaryStage: Stage): Unit = {
@@ -49,8 +50,9 @@ class  App extends Application{
   }
 
 }
+*/
 
-object App{
+object ClientApp extends App{
 
   import concurrent.duration._
   import scala.language.postfixOps
@@ -78,19 +80,8 @@ object App{
     Platform.runLater(() => fun)
   }
 
-  /*import scala.util.{Failure, Success}
-
-  def main(args: Array[String]): Unit = {
-    val rspFuture: Future[(PlayerInfo, GameServerInfo)] = loginActor ? (LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey), _))
-    rspFuture.onComplete {
-      case Success(rsp) =>
-        val c = new BotViewController(rsp._1, rsp._2)
-        c.startGame
-        botServer ! BotServer.BuildServer(AppSettings.botServerPort, executor, c)
-      case Failure(exception) =>
-        log.debug(exception.getMessage)
-    }
-  }*/
-
+  override def main(args: Array[String]): Unit = {
+    loginActor ! LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey))
+  }
 
 }

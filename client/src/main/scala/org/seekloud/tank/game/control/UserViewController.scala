@@ -22,8 +22,8 @@ import javafx.scene.control.{Alert, ButtonBar, ButtonType}
 import javafx.scene.input.KeyCode
 import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 import javafx.util.Duration
-import org.seekloud.tank.App
-import org.seekloud.tank.App.{executor, scheduler, timeout, tokenActor}
+import org.seekloud.tank.ClientApp
+import org.seekloud.tank.ClientApp.{executor, scheduler, timeout, tokenActor}
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.core.{PlayGameActor, TokenActor}
 import org.seekloud.tank.common.Context
@@ -74,7 +74,7 @@ class UserViewController(
   private val timeline = new Timeline()
   timeline.setCycleCount(Animation.INDEFINITE)
   val keyFrame = new KeyFrame(Duration.millis(5000), { _ =>
-    App.pushStack2AppThread {
+    ClientApp.pushStack2AppThread {
       //      killerList = List.empty[String]
       val gameHallScreen = new GameHallScreen(context, playerInfo)
       context.switchScene(gameHallScreen.getScene, resize = true)
@@ -257,8 +257,8 @@ class UserViewController(
   }
 
   override protected def handleWsSuccess(e: TankGameEvent.WsSuccess): Unit = {
-    if (isCreated) playGameActor ! DispatchMsg(TankGameEvent.CreateRoom(e.roomId, roomPwd))
-    else playGameActor ! DispatchMsg(TankGameEvent.JoinRoom(e.roomId, roomPwd))
+//    if (isCreated) playGameActor ! DispatchMsg(TankGameEvent.CreateRoom(e.roomId, roomPwd))
+//    else playGameActor ! DispatchMsg(TankGameEvent.JoinRoom(e.roomId, roomPwd))
   }
 
   override protected def handleWsMsgErrorRsp(e: TankGameEvent.WsMsgErrorRsp): Unit = {
@@ -276,7 +276,7 @@ class UserViewController(
 
   override protected def initGameContainerCallBack: Unit = {
     gameContainerOpt.foreach { r =>
-      App.pushStack2AppThread {
+      ClientApp.pushStack2AppThread {
         if(!isBot){
           playGameScreen.group.getChildren.add(canvas.getCanvas)
           addUserActionListenEvent

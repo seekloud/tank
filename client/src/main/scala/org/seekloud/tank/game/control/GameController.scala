@@ -22,8 +22,8 @@ import akka.actor.typed.scaladsl.adapter._
 import javafx.animation.AnimationTimer
 import javafx.scene.input.KeyCode
 
-import org.seekloud.tank.App
-import org.seekloud.tank.App.system
+import org.seekloud.tank.ClientApp
+import org.seekloud.tank.ClientApp.system
 import org.seekloud.tank.core.PlayGameActor
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.common.Constants
@@ -118,7 +118,7 @@ abstract class GameController(
   protected def canvas2Byte4Bot:Unit
 
   def logicLoop() = {
-    App.pushStack2AppThread {
+    ClientApp.pushStack2AppThread {
       checkScreenSize
       gameState match {
         case GameState.loadingPlay =>
@@ -155,7 +155,7 @@ abstract class GameController(
   }
 
 
-  protected def handleWsSuccess(e: TankGameEvent.WsSuccess) = {}
+  protected def handleWsSuccess(e: TankGameEvent.WsSuccess)
 
   protected def handleWsMsgErrorRsp(e: TankGameEvent.WsMsgErrorRsp) = {
     if (e.errCode == 10001) {
@@ -171,8 +171,7 @@ abstract class GameController(
   /**
     * 此处处理消息*/
   final def wsMessageHandler(data: TankGameEvent.WsMsgServer): Unit = {
-    //    println(data.getClass)
-    App.pushStack2AppThread {
+    ClientApp.pushStack2AppThread {
       data match {
         case e: TankGameEvent.WsSuccess =>
           handleWsSuccess(e)

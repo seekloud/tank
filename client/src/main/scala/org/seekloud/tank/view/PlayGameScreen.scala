@@ -18,7 +18,7 @@ package org.seekloud.tank.view
 
 import javafx.scene.image.Image
 import javafx.scene.{Group, ImageCursor, Scene}
-import org.seekloud.tank.App
+import org.seekloud.tank.ClientApp
 import org.seekloud.tank.common.Context
 import org.seekloud.tank.shared.model.Point
 import org.seekloud.utils.JavaFxUtil.getCanvasUnit
@@ -40,7 +40,7 @@ class PlayGameScreen(context: Context) {
   val scene = new Scene(group)
 
   def setCursor = {
-    val image = new Image(App.getClass.getResourceAsStream("/img/瞄准_2.png"))
+    val image = new Image(ClientApp.getClass.getResourceAsStream("/img/瞄准_2.png"))
     scene.setCursor(new ImageCursor(image, image.getWidth / 10, image.getHeight / 10))
   }
 

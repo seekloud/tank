@@ -23,7 +23,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Keep, Sink, Source}
-import org.seekloud.tank.App.tokenActor
+import org.seekloud.tank.ClientApp.tokenActor
 import org.seekloud.tank.controller.LoginScreenController
 import org.seekloud.tank.model._
 import org.seekloud.utils.EsheepClient
@@ -32,11 +32,13 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import concurrent.duration._
-import org.seekloud.tank.App._
+import org.seekloud.tank.ClientApp._
 import io.circe.parser.decode
 import io.circe.syntax._
 import io.circe._
 import io.circe.generic.auto._
+import org.seekloud.tank.BotServer
+import org.seekloud.tank.common.AppSettings
 import org.seekloud.tank.game.control.BotViewController
 
 
@@ -52,7 +54,7 @@ object LoginActor {
   final case object QrLogin extends Command
   final case object EmailLogin extends Command
   final case class EmailLogin(mail:String, pwd:String) extends Command
-  final case class BotLogin(req:BotKeyReq,replyTo:ActorRef[(PlayerInfo,GameServerInfo)]) extends Command
+  final case class BotLogin(req:BotKeyReq) extends Command
   final case class Request(m: String) extends Command
   final case object StopWs extends Command
 
@@ -61,9 +63,7 @@ object LoginActor {
   private final val refreshTime = 1.hour
 
   def create(): Behavior[Command] = {
-    Behaviors.receive[Command]{ (ctx, msg) =>
-      idle()
-    }
+    idle()
   }
 
 
@@ -116,21 +116,22 @@ object LoginActor {
           }
           Behaviors.same
 
-        case BotLogin(req,replyTo)=>
-          log.info(req.botId+"==="+req.botKey)
+        case BotLogin(req)=>
           EsheepClient.getBotToken(req.botId, req.botKey).map{
             case Right(validateRst) =>
-              EsheepClient.linkGameAgent(validateRst.token,"bot-" + req.botId).map{
+              EsheepClient.linkGameAgent(validateRst.token,s"bot${req.botId}").map{
                 case Right(linkRst) =>
-                  val userInfo = UserInfo(1000l,validateRst.botName, validateRst.token, 7200)
-                  val playerInfo= PlayerInfo(userInfo,"bot-" + req.botId, validateRst.botName, linkRst.accessCode)
+                  val userInfo = UserInfo(1000l,"bot" + validateRst.botName, validateRst.token, 7200)
+                  val playerInfo= PlayerInfo(userInfo,"bot" + validateRst.botName, validateRst.botName, linkRst.accessCode)
                   val gameServerInfo = GameServerInfo(linkRst.gsPrimaryInfo.ip, linkRst.gsPrimaryInfo.port, linkRst.gsPrimaryInfo.domain)
-                  replyTo ! (playerInfo,gameServerInfo)
+                  val c = new BotViewController(playerInfo, gameServerInfo)
+                  c.startGame
+                  botServer ! BotServer.BuildServer(AppSettings.botServerPort, executor, c)
                 case Left(e) =>
                   log.warn(s"${ctx.self.path} VerifyAccessCode failed, error:$e")
               }
             case Left(e) =>
-              log.warn(s"${ctx.self.path} VerifyAccessCode failed, error:$e")
+              log.warn(s"${ctx.self.path} getBotToken failed, error:$e")
           }
           Behaviors.same
 

@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
-import org.seekloud.tank.App._
+import org.seekloud.tank.ClientApp._
 
 /**
   * Created by hongruying on 2019/2/1

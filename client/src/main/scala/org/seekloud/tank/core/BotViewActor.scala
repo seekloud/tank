@@ -36,6 +36,7 @@ import org.seekloud.tank.shared.protocol.TankGameEvent
   */
 object BotViewActor {
   private val log = LoggerFactory.getLogger(this.getClass)
+  //fixme 此处需要放到配置文件
   private val windowWidth = 800
   private val windowHeight = 400
   sealed trait Command

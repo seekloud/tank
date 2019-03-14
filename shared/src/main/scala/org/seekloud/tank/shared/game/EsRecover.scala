@@ -64,19 +64,19 @@ trait EsRecover { this:GameContainerClientImpl =>
           this.rollbackUpdate()
         }
         val endTime = System.currentTimeMillis()
-        println(s"roll back to frame=${frame},nowFrame=${curFrame} use Time:${endTime - startTime}")
-      case None => println(s"there are not snapshot frame=${frame}")
+        this.info(s"roll back to frame=${frame},nowFrame=${curFrame} use Time:${endTime - startTime}")
+      case None => this.info(s"there are not snapshot frame=${frame}")
     }
   }
 
   def rollback4GameEvent(e:GameEvent) = {
-    println(s"roll back4GameEvent to frame=${e.frame},nowFrame=${systemFrame} because event:${e}")
+    this.info(s"roll back4GameEvent to frame=${e.frame},nowFrame=${systemFrame} because event:${e}")
     gameEventHistoryMap.put(e.frame, e :: gameEventHistoryMap.getOrElse(e.frame, Nil))
     rollback(e.frame)
   }
 
   def rollback4UserActionEvent(e:UserActionEvent) = {
-    println(s"roll back4UserAction to frame=${e.frame},nowFrame=${systemFrame} because event:${e}")
+    this.info(s"roll back4UserAction to frame=${e.frame},nowFrame=${systemFrame} because event:${e}")
     actionEventHistoryMap.put(e.frame, e :: actionEventHistoryMap.getOrElse(e.frame, Nil))
     rollback(e.frame)
   }
