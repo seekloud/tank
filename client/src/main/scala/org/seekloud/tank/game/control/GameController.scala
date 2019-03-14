@@ -183,7 +183,7 @@ abstract class GameController(
             **/
           println("start------------")
           try {
-            gameContainerOpt = Some(GameContainerClientImpl(drawFrame, canvas, e.config, e.userId, e.tankId, e.name, canvasBoundary, canvasUnit, setKillCallback, isBot = isBot, logInfo = log.info,layerCanvasSize = 2))
+            gameContainerOpt = Some(GameContainerClientImpl(drawFrame, canvas, e.config, e.userId, e.tankId, e.name, canvasBoundary, canvasUnit, setKillCallback, isBot = isBot, logInfo = log.info))
             initGameContainerCallBack
             gameContainerOpt.get.changeTankId(e.tankId)
             recvYourInfo = true
@@ -259,7 +259,7 @@ abstract class GameController(
           closeHolder
 
         case _: TankGameEvent.DecodeError =>
-          log.info("hahahha")
+          log.info("receive decodeError")
 
         case e: TankGameEvent.WsMsgErrorRsp =>
           handleWsMsgErrorRsp(e)

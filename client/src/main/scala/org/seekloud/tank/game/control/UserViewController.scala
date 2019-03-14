@@ -25,9 +25,6 @@ import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 import javafx.util.Duration
 import org.seekloud.tank.ClientApp
 import org.seekloud.tank.ClientApp.{executor, scheduler, timeout, tokenActor}
-
-import org.seekloud.tank.App
-import org.seekloud.tank.App.{executor, scheduler, timeout, tokenActor}
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.core.{PlayGameActor, TokenActor}
 import org.seekloud.tank.common.Context

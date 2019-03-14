@@ -72,8 +72,6 @@ trait GameContainer extends KillInformation{
   val environmentMap = mutable.HashMap[Int,Obstacle]() //obstacleId -> steel and river  不可打击
   val propMap = mutable.HashMap[Int,Prop]() //propId -> prop 道具信息
 
-//  val tankMoveAction = mutable.HashMap[Int,mutable.HashSet[Byte]]() //tankId -> pressed direction key code
-
   val tankMoveState = mutable.HashMap[Int,Byte]()
 
   val quadTree : QuadTree = new QuadTree(Rectangle(Point(0,0),boundary))
@@ -601,7 +599,6 @@ trait GameContainer extends KillInformation{
       propMap.values.map(_.getPropState).toList,
       obstacleMap.values.map(_.getObstacleState()).toList,
       environmentMap.values.map(_.getObstacleState()).toList,
-//      tankMoveAction.toList.map(t => (t._1,if(t._2.isEmpty) None else Some(t._2.toList))),
       tankMoveState.toList
     )
   }

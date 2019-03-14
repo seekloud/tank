@@ -47,4 +47,8 @@ object BotSdkTest {
     createRoom("test")
 //    joinRoom()
   }
+
+  def main(args: Array[String]): Unit = {
+    createRoom("test")
+  }
 }

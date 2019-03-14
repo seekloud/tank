@@ -20,14 +20,16 @@ package org.seekloud.tank
 import akka.actor.ActorSystem
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.adapter._
-
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.dispatch.MessageDispatcher
 import akka.event.{Logging, LoggingAdapter}
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.server.Directives.{getFromResource, pathPrefix}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import javafx.application.{Application, Platform}
 import javafx.stage.Stage
+import org.seekloud.tank.ClientApp.loginActor
 import org.seekloud.tank.core.{LoginActor, TokenActor}
 import org.seekloud.tank.common.{AppSettings, Context}
 import org.seekloud.tank.controller.EnterScreenController
@@ -36,23 +38,23 @@ import org.seekloud.tank.model.{BotKeyReq, GameServerInfo, PlayerInfo}
 import org.seekloud.tank.view.EnterScreen
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 /**
   * Created by hongruying on 2018/10/22
   */
-/*
-class  App extends Application{
+class  ClientApp extends Application {
 
   override def start(primaryStage: Stage): Unit = {
     val context = new Context(primaryStage)
     val enterScreen = new EnterScreen(context)
     context.switchScene(enterScreen.getScene,resize = true)
     new EnterScreenController(context, enterScreen)
+//    loginActor ! LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey))
   }
 
 }
-*/
 
-object ClientApp extends App{
+object ClientApp {
 
   import concurrent.duration._
   import scala.language.postfixOps
@@ -80,8 +82,7 @@ object ClientApp extends App{
     Platform.runLater(() => fun)
   }
 
-  override def main(args: Array[String]): Unit = {
+ /* def main(args: Array[String]): Unit = {
     loginActor ! LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey))
-  }
-
+  }*/
 }

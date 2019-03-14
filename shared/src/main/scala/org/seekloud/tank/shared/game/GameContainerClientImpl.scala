@@ -44,6 +44,7 @@ case class GameContainerClientImpl(
                                     versionInfo: Option[String] = None,
                                     isBot: Boolean = false,
                                     logInfo: String => Unit = println,
+                                    layerCanvasSize: Int = 2
                                   ) extends GameContainer with EsRecover
   with BackgroundDrawUtil with BulletDrawUtil with FpsComponentsDrawUtil with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil with InfoDrawUtil {
 
