@@ -30,7 +30,7 @@ import scala.collection.mutable
 trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
   private val cacheCanvasMap = mutable.HashMap.empty[String, Any]
-  private var canvasBoundary:Point=canvasSize
+  private var canvasBoundary:Point=canvasSize / canvasUnit
 
   private val rankWidth = 26
   private val rankHeight = 50

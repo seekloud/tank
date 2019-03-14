@@ -60,7 +60,7 @@ abstract class GameController(
   val drawFrame = new MiddleFrameInFx
   val canvas = drawFrame.createCanvas(canvasWidth, canvasHeight)
   var canvasUnit = getCanvasUnit(canvasWidth)
-  var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+  var canvasBoundary = Point(canvasWidth, canvasHeight)
 
   protected var firstCome = true
 

@@ -29,7 +29,7 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
 
   def drawGameLoading():Unit = {
     viewCtx.setFill("rgb(0,0,0)")
-    viewCtx.fillRec(0, 0, canvasSize.x * canvasUnit, canvasSize.y * canvasUnit)
+    viewCtx.fillRec(0, 0, canvasSize.x , canvasSize.y )
     viewCtx.setFill("rgb(250, 250, 250)")
     viewCtx.setTextAlign("left")
     viewCtx.setTextBaseline("top")
@@ -39,7 +39,7 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
 
   def drawGameStop():Unit = {
     viewCtx.setFill("rgb(0,0,0)")
-    viewCtx.fillRec(0, 0, canvasSize.x * canvasUnit, canvasSize.y * canvasUnit)
+    viewCtx.fillRec(0, 0, canvasSize.x , canvasSize.y )
     viewCtx.setFill("rgb(250, 250, 250)")
     viewCtx.setTextAlign("left")
     viewCtx.setTextBaseline("top")
@@ -50,7 +50,7 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
 
   def drawUserLeftGame:Unit = {
     viewCtx.setFill("rgb(0,0,0)")
-    viewCtx.fillRec(0, 0, canvasSize.x * canvasUnit, canvasSize.y * canvasUnit)
+    viewCtx.fillRec(0, 0, canvasSize.x , canvasSize.y )
     viewCtx.setFill("rgb(250, 250, 250)")
     viewCtx.setTextAlign("left")
     viewCtx.setTextBaseline("top")
@@ -61,7 +61,7 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
 
   def drawReplayMsg(m:String):Unit = {
     viewCtx.setFill("rgb(0,0,0)")
-    viewCtx.fillRec(0, 0, canvasSize.x * canvasUnit, canvasSize.y * canvasUnit)
+    viewCtx.fillRec(0, 0, canvasSize.x , canvasSize.y )
     viewCtx.setFill("rgb(250, 250, 250)")
     viewCtx.setTextAlign("left")
     viewCtx.setTextBaseline("top")
@@ -74,7 +74,7 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
     viewCtx.setFill("rgb(0,0,0)")
     viewCtx.setTextAlign("center")
     viewCtx.setFont("楷体", "normal", 5 * canvasUnit)
-    viewCtx.fillRec(0, 0, canvasSize.x * canvasUnit, canvasSize.y * canvasUnit)
+    viewCtx.fillRec(0, 0, canvasSize.x , canvasSize.y )
     viewCtx.setFill("rgb(0,0,0)")
     viewCtx.fillText(s"重新进入房间，倒计时：${countDownTimes}", 300, 100)
     viewCtx.fillText(s"您已经死亡,被玩家=${killerName}所杀", 300, 180)
@@ -82,7 +82,7 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
 
   def drawDeadImg(s:String) = {
     viewCtx.setFill("rgb(0,0,0)")
-    viewCtx.fillRec(0, 0, canvasSize.x * canvasUnit, canvasSize.y * canvasUnit)
+    viewCtx.fillRec(0, 0, canvasSize.x , canvasSize.y )
     viewCtx.setFill("rgb(250, 250, 250)")
     viewCtx.setTextAlign("left")
     viewCtx.setTextBaseline("top")
@@ -95,16 +95,16 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
     viewCtx.setGlobalAlpha(1)
     viewCtx.setTextAlign("left")
     viewCtx.setFill("rgb(0,0,0)")
-    viewCtx.fillText(s"KillCount：",0.4 * canvasSize.x * canvasUnit, 0.12 * canvasSize.y * canvasUnit)
-    viewCtx.fillText(s"Damage：", 0.4 * canvasSize.x * canvasUnit, 0.2 * canvasSize.y * canvasUnit)
-    viewCtx.fillText(s"Killer：",0.4 * canvasSize.x * canvasUnit, 0.26 * canvasSize.y * canvasUnit)
-    viewCtx.fillText(s"Press Space To Comeback!!!",0.4 * canvasSize.x * canvasUnit, 0.32 * canvasSize.y * canvasUnit)
+    viewCtx.fillText(s"KillCount：",0.4 * canvasSize.x , 0.12 * canvasSize.y )
+    viewCtx.fillText(s"Damage：", 0.4 * canvasSize.x , 0.2 * canvasSize.y )
+    viewCtx.fillText(s"Killer：",0.4 * canvasSize.x , 0.26 * canvasSize.y )
+    viewCtx.fillText(s"Press Space To Comeback!!!",0.4 * canvasSize.x , 0.32 * canvasSize.y )
     viewCtx.setFill("rgb(255,0,0)")
-    viewCtx.fillText(s"${this.killNum}", 0.5 * canvasSize.x * canvasUnit, 0.12 * canvasSize.y * canvasUnit)
-    viewCtx.fillText(s"${this.damageNum}",0.5 * canvasSize.x * canvasUnit, 0.2 * canvasSize.y * canvasUnit)
-    var pos = 0.5 * canvasSize.x * canvasUnit
+    viewCtx.fillText(s"${this.killNum}", 0.5 * canvasSize.x , 0.12 * canvasSize.y )
+    viewCtx.fillText(s"${this.damageNum}",0.5 * canvasSize.x , 0.2 * canvasSize.y )
+    var pos = 0.5 * canvasSize.x
     this.killerList.foreach{r =>
-      viewCtx.fillText(s"【${r}】", pos, 0.26 * canvasSize.y * canvasUnit)
+      viewCtx.fillText(s"【${r}】", pos, 0.26 * canvasSize.y / canvasUnit)
       pos = pos + 2 * canvasUnit * s"【${r}】".length + 1 * canvasUnit}
 //    ctx.drawImage(combatImg,0.25 * canvasSize.x * canvasUnit,0.1 * canvasSize.y * canvasUnit,Some(pos - 0.25 * canvasSize.x * canvasUnit + 2 * canvasUnit,0.22 * canvasSize.y * canvasUnit))
     //    ctx.drawImage(combatImg,0.25 * canvasSize.x * canvasUnit,0.1 * canvasSize.y * canvasUnit,Some(0.5* canvasSize.x * canvasUnit,0.22 * canvasSize.y * canvasUnit))

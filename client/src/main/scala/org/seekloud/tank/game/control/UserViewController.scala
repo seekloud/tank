@@ -115,10 +115,10 @@ class UserViewController(
       canvasWidth = newCanvasWidth
       canvasHeight = newCanvasHeight
       canvasUnit = getCanvasUnit(newCanvasWidth)
-      canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+      canvasBoundary = Point(canvasWidth, canvasHeight)
       canvas.setWidth(newCanvasWidth)
       canvas.setHeight(newCanvasHeight)
-      (canvasBoundary, canvasUnit)
+      (canvasBoundary / canvasUnit, canvasUnit)
     } else (Point(0, 0), 0)
   }
 
@@ -149,8 +149,8 @@ class UserViewController(
     canvas.getCanvas.setOnMouseMoved { e =>
       if (gameContainerOpt.nonEmpty) {
         val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24, 24)
-        val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
-        val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
+        val theta = point.getTheta(canvasBoundary  / 2).toFloat
+        val angle = point.getAngle(canvasBoundary  / 2)
         val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
         if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
@@ -171,7 +171,7 @@ class UserViewController(
     canvas.getCanvas.setOnMouseClicked { e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24, 24)
-        val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+        val theta = point.getTheta(canvasBoundary  / 2).toFloat
         bulletMusic.play()
         val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)

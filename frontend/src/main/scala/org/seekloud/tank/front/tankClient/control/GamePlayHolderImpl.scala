@@ -119,8 +119,8 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
     canvas.getCanvas.focus()
     canvas.getCanvas.onmousemove = { e: dom.MouseEvent =>
       val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(24, 24)
-      val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
-      val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
+      val theta = point.getTheta(canvasBoundary  / 2).toFloat
+      val angle = point.getAngle(canvasBoundary  / 2)
       //remind tank自身流畅显示
       //fixme 此处序列号是否存疑
       val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta,-1)
@@ -140,7 +140,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
         val tank=gameContainerOpt.get.tankMap.get(gameContainerOpt.get.myTankId)
         if(tank.nonEmpty&&tank.get.getBulletSize()>0){
           val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(24, 24)
-          val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+          val theta = point.getTheta(canvasBoundary  / 2).toFloat
           val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
           sendMsg2Server(preExecuteAction) //发送鼠标位置
           e.preventDefault()

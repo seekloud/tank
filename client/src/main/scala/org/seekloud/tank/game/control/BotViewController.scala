@@ -117,8 +117,8 @@ class BotViewController(
       val r = key.swing.get.radian
       mousePlace  += Point(d * math.cos(r).toFloat,d * math.sin(r).toFloat)
       val point = mousePlace  + Point(24, 24)
-      val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
-      val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
+      val theta = point.getTheta(canvasBoundary  / 2).toFloat
+      val angle = point.getAngle(canvasBoundary  / 2)
       val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
       if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
@@ -136,7 +136,7 @@ class BotViewController(
         * 鼠标点击，开火
         **/
       val point = mousePlace + Point(24, 24)
-      val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+      val theta = point.getTheta(canvasBoundary  / 2).toFloat
       bulletMusic.play()
       val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
