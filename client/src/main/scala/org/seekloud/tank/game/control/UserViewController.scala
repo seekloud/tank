@@ -299,6 +299,8 @@ class UserViewController(
           r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
           r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(410)
           r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
+          r.kernelCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(820)
+          r.kernelCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
           playGameScreen.group.getChildren.add(canvas.getCanvas)
           addUserActionListenEvent
           playGameScreen.group.getChildren.add(r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
@@ -307,6 +309,7 @@ class UserViewController(
           playGameScreen.group.getChildren.add(r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
           playGameScreen.group.getChildren.add(r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
           playGameScreen.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.kernelCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
         }
       }
     }

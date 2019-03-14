@@ -62,6 +62,7 @@ case class GameContainerClientImpl(
     * mutable: 所有物品：子弹、道具
     * bodies: 所有坦克
     * state: 自身坦克状态，左上角信息
+    * kernel: 操控核心
     **/
 
   val layerWidth = config.layerCanvasWidth
@@ -78,6 +79,8 @@ case class GameContainerClientImpl(
   val bodiesCtx = bodiesCanvas.getCtx
   val statusCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
   val statusCtx = statusCanvas.getCtx
+  val kernelCanvas = if(isBot)drawFrame.createCanvas(layerWidth,layerHeight) else viewCanvas
+  val kernelCtx = kernelCanvas.getCtx
 
   protected val obstacleAttackedAnimationMap = mutable.HashMap[Int, Int]()
   protected val tankAttackedAnimationMap = mutable.HashMap[Int, Int]()
@@ -496,6 +499,7 @@ case class GameContainerClientImpl(
           val offset = canvasSize / canvasUnit / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
           drawBackground(offset)
           drawLocationMap(tank)
+          drawKernelMap(tank)
           drawObstacles(offset, Point(w, h))
           drawEnvironment(offset, Point(w, h))
           drawProps(offset, Point(w, h))

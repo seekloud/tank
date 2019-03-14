@@ -333,6 +333,21 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     }
   }
 
+  protected def drawKernelMap(tank:Tank):Unit={
+    if(isBot){
+      kernelCtx.setFill("black")
+      kernelCtx.fillRec(0,0,220,200)
+      kernelCtx.beginPath()
+      kernelCtx.setStrokeStyle("white")
+      val x = tank.getPosition.x * 0.5
+      val y = tank.getPosition.y * 0.5
+      kernelCtx.setFill("white")
+      kernelCtx.arc(x,y,2.5,0,360)
+      kernelCtx.stroke()
+      kernelCtx.closePath()
+    }
+  }
+
   protected def drawKillInformation():Unit = {
     val killInfoList = getDisplayKillInfo()
     if(killInfoList.nonEmpty){
