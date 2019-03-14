@@ -184,7 +184,7 @@ abstract class GameController(
             **/
           println("start------------")
           try {
-            gameContainerOpt = Some(GameContainerClientImpl(drawFrame, canvas, e.config, e.userId, e.tankId, e.name, canvasBoundary, canvasUnit, setKillCallback, isBot = isBot))
+            gameContainerOpt = Some(GameContainerClientImpl(drawFrame, canvas, e.config, e.userId, e.tankId, e.name, canvasBoundary, canvasUnit, setKillCallback, isBot = isBot, logInfo = log.info))
             initGameContainerCallBack
             gameContainerOpt.get.changeTankId(e.tankId)
             recvYourInfo = true

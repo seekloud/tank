@@ -42,7 +42,8 @@ case class GameContainerClientImpl(
                                     var canvasUnit: Int,
                                     setKillCallback: Tank => Unit,
                                     versionInfo: Option[String] = None,
-                                    isBot: Boolean = false
+                                    isBot: Boolean = false,
+                                    logInfo: String => Unit = println,
                                   ) extends GameContainer with EsRecover
   with BackgroundDrawUtil with BulletDrawUtil with FpsComponentsDrawUtil with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil with InfoDrawUtil {
 
@@ -110,7 +111,7 @@ case class GameContainerClientImpl(
 
   override def debug(msg: String): Unit = {}
 
-  override def info(msg: String): Unit = println(msg)
+  override def info(msg: String): Unit = logInfo(msg)
 
   private val esRecoverSupport: Boolean = true
 

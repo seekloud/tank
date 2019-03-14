@@ -135,9 +135,7 @@ class UserViewController(
 
   override protected def gameStopCallBack: Unit = timeline.play()
 
-  override protected def canvas2Byte4Bot: Unit = {
-    gameContainerOpt.foreach(r=>println(canvas.canvas2byteArray.size))
-  }
+  override protected def canvas2Byte4Bot: Unit = {}
 
   private def addUserActionListenEvent: Unit = {
     canvas.getCanvas.requestFocus()
