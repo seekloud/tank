@@ -485,16 +485,17 @@ case class GameContainerClientImpl(
   //  def drawGame(time: Long, networkLatency: Long, dataSize:String): Unit = {
   def drawGame(time: Long, networkLatency: Long, dataSizeList: List[String], supportLiveLimit: Boolean = false): Unit = {
     val offsetTime = math.min(time, config.frameDuration)
-    val h = canvasSize.y
-    val w = canvasSize.x
+    val h = canvasSize.y / canvasUnit
+    val w = canvasSize.x / canvasUnit
     //    val startTime = System.currentTimeMillis()
     if (!waitSyncData) {
       viewCtx.setLineCap("round")
       viewCtx.setLineJoin("round")
       tankMap.get(tankId) match {
         case Some(tank) =>
-          val offset = canvasSize / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
+          val offset = canvasSize / canvasUnit / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
           drawBackground(offset)
+          drawLocationMap(tank)
           drawObstacles(offset, Point(w, h))
           drawEnvironment(offset, Point(w, h))
           drawProps(offset, Point(w, h))
@@ -503,7 +504,6 @@ case class GameContainerClientImpl(
           drawObstacleBloodSlider(offset)
           drawMyTankInfo(tank.asInstanceOf[TankClientImpl], supportLiveLimit)
           drawMinimap(tank)
-          drawLocationMap(tank)
           drawRank(supportLiveLimit, tank.tankId, tank.name)
           renderFps(networkLatency, dataSizeList)
           drawKillInformation()

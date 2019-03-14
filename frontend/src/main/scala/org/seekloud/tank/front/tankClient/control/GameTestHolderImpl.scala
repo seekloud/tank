@@ -170,24 +170,24 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
       val airDropList = obstacleList.filter(r => r.obstacleType == ObstacleType.airDropBox)
       val brickList = obstacleList.filter(r => r.obstacleType == ObstacleType.brick)
 
-      val offset = canvasBoundary / 2 - thisTank.getTankState().position
+      val offset = canvasBoundary / canvasUnit / 2 - thisTank.getTankState().position
 
       if(tankList.exists(r => r.tankId != thisTankId && jugeTheDistance(r.getTankState().position + offset))){
         val attackTank = tankList.filter(_.tankId != thisTankId).find(r => jugeTheDistance(r.getTankState().position + offset)).get
         val pos = (attackTank.getTankState().position + offset) * canvasUnit
-        currentMouseMOveTheta = pos.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+        currentMouseMOveTheta = pos.getTheta(canvasBoundary  / 2).toFloat
         true
       }
       else if(airDropList.exists(r => jugeTheDistance(r.getObstacleState().p + offset))){
         val attackAir = airDropList.find(r => jugeTheDistance(r.getObstacleState().p + offset)).get
         val pos = (attackAir.getObstacleState().p + offset) * canvasUnit
-        currentMouseMOveTheta = pos.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+        currentMouseMOveTheta = pos.getTheta(canvasBoundary  / 2).toFloat
         true
       }
       else if(brickList.exists(r => jugeTheDistance(r.getObstacleState().p + offset))){
         val attackBrick = brickList.find(r => jugeTheDistance(r.getObstacleState().p + offset)).get
         val pos = (attackBrick.getObstacleState().p + offset) * canvasUnit
-        currentMouseMOveTheta = pos.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+        currentMouseMOveTheta = pos.getTheta(canvasBoundary  / 2).toFloat
         true
       }
       else false
@@ -196,7 +196,7 @@ class GameTestHolderImpl(name:String, playerInfoOpt: Option[PlayerInfo] = None) 
   }
 
   private def jugeTheDistance(p:Point) = {
-    if((p * canvasUnit).distance(canvasBoundary * canvasUnit / 2) <= 70 * canvasUnit)
+    if((p * canvasUnit).distance(canvasBoundary  / 2) <= 70 * canvasUnit)
       true
     else
       false

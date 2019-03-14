@@ -21,7 +21,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import io.grpc.stub.StreamObserver
 import org.seekloud.pb.api.{Credit, CurrentFrameRsp, ObservationRsp, ObservationWithInfoRsp, State}
 import org.seekloud.tank.BotServer
-import org.seekloud.tank.game.control.BotPlayController
+import org.seekloud.tank.game.control.BotViewController
 import org.seekloud.tank.shared.model.Constants.GameState
 import org.slf4j.LoggerFactory
 
@@ -46,7 +46,7 @@ object GrpcStreamActor {
 
   case object LeaveRoom extends Command
 
-  def create(gameControl:BotPlayController): Behavior[Command] = {
+  def create(gameControl:BotViewController): Behavior[Command] = {
     Behaviors.setup[Command] { ctx =>
       val fStream = new StreamObserver[CurrentFrameRsp] {
         override def onNext(value: CurrentFrameRsp): Unit = {}
@@ -62,7 +62,7 @@ object GrpcStreamActor {
     }
   }
 
-  def working(gameControl:BotPlayController,frameObserver: StreamObserver[CurrentFrameRsp], oObserver: StreamObserver[ObservationWithInfoRsp] ): Behavior[Command] = {
+  def working(gameControl:BotViewController, frameObserver: StreamObserver[CurrentFrameRsp], oObserver: StreamObserver[ObservationWithInfoRsp] ): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
 

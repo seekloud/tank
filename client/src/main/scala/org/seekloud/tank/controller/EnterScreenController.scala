@@ -25,8 +25,8 @@ class EnterScreenController(val context:Context, val enter:EnterScreen) {
     override def onBtnForMan(): Unit = {
       App.pushStack2AppThread{
         val loginScreen = new LoginScreen(context)
-        val l = new LoginScreenController(context, loginScreen)
-        l.start
+        LoginScreenController.loginScreenController = new LoginScreenController(context, loginScreen)
+        LoginScreenController.loginScreenController.start
       }
     }
 

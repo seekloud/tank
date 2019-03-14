@@ -30,7 +30,7 @@ import scala.collection.mutable
 trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
   private val cacheCanvasMap = mutable.HashMap.empty[String, Any]
-  private var canvasBoundary:Point=canvasSize
+  private var canvasBoundary:Point=canvasSize / canvasUnit
 
   private val rankWidth = 26
   private val rankHeight = 50
@@ -313,23 +313,25 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
   }
 
   protected def drawLocationMap(tank:Tank):Unit={
-    locationCtx.setFill("black")
-    locationCtx.fillRec(0,0,450,420)
-    locationCtx.beginPath()
-    locationCtx.setStrokeStyle("white")
-    val x = tank.getPosition.x - 96
-    val y = tank.getPosition.y - 54
-    val w = 192
-    val h = 108
-    locationCtx.setFill("white")
-    locationCtx.fillRec(x,y,w,h)
-    locationCtx.moveTo(x,y)
-    locationCtx.lineTo(x,y+h)
-    locationCtx.lineTo(x+w,y+h)
-    locationCtx.lineTo(x+w,y)
-    locationCtx.lineTo(x,y)
-    locationCtx.stroke()
-    locationCtx.closePath()
+    if(isBot){
+      locationCtx.setFill("black")
+      locationCtx.fillRec(0,0,450,420)
+      locationCtx.beginPath()
+      locationCtx.setStrokeStyle("white")
+      val x = tank.getPosition.x - 96
+      val y = tank.getPosition.y - 54
+      val w = 192
+      val h = 108
+      locationCtx.setFill("white")
+      locationCtx.fillRec(x,y,w,h)
+      locationCtx.moveTo(x,y)
+      locationCtx.lineTo(x,y+h)
+      locationCtx.lineTo(x+w,y+h)
+      locationCtx.lineTo(x+w,y)
+      locationCtx.lineTo(x,y)
+      locationCtx.stroke()
+      locationCtx.closePath()
+    }
   }
 
   protected def drawKillInformation():Unit = {

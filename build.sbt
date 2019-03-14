@@ -7,13 +7,13 @@ val scalaV = "2.12.6"
 //val scalaV = "2.11.8"
 
 val projectName = "tank"
-val projectVersion = "2019.03.04"
+val projectVersion = "2019.03.13"
 
 resolvers += Resolver.sonatypeRepo("snapshots")
 
 
 val projectMainClass = "org.seekloud.tank.Boot"
-val clientMainClass = "org.seekloud.tank.BotServer"
+val clientMainClass = "org.seekloud.tank.App"
 
 def commonSettings = Seq(
   version := projectVersion,

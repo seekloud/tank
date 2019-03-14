@@ -29,7 +29,7 @@ import scala.collection.mutable
 trait TankDrawUtil{ this:GameContainerClientImpl =>
 
   private val myTankInfoCacheMap = mutable.HashMap[(Byte,Byte,Byte), Any]()
-  private var canvasBoundary:Point=canvasSize
+  private var canvasBoundary:Point=canvasSize / canvasUnit
 
   private val fillBulletImg = drawFrame.createImage("/img/子弹初始重构.png")
   private val emptyBulletImg = drawFrame.createImage("/img/子弹消失重构.png")

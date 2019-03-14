@@ -40,20 +40,19 @@ import org.seekloud.tank.shared.util.canvas.MiddleCanvas
   * Time at 上午12:09
   * bot游玩控制
   */
-object BotPlayController{
-  //todo joinRoom success need feedback
+object BotViewController{
+  var botViewController:BotViewController = _
   var SDKReplyTo:ActorRef[JoinRoomRsp] = _
 }
 
-class BotPlayController(
-                         playerInfo: BotInfo,
-                         roomPwd: Option[String] = None
-                       ) extends GameController(800, 400, true, roomPwd) {
-  import BotPlayController._
+class BotViewController(
+                         playerInfo: PlayerInfo,
+                         gameServerInfo: GameServerInfo
+                       ) extends GameController(800, 400, true) {
+  import BotViewController._
 
   val botViewActor= system.spawn(BotViewActor.create(), "BotViewActor")
   var mousePlace = Point(400,200)
-
 
   private var lastMoveFrame = -1L
   private var lastMouseMoveAngle: Byte = 0
@@ -75,7 +74,10 @@ class BotPlayController(
     }
   }
 
-
+  def startGame: Unit = {
+    playGameActor ! PlayGameActor.ConnectGame(playerInfo, gameServerInfo, None)
+    logicFrameTime = System.currentTimeMillis()
+  }
   override protected def checkScreenSize: Unit = {}
 
   override protected def gameStopCallBack: Unit = {}
@@ -112,8 +114,6 @@ class BotPlayController(
     (myTankInfo.damageStatistics,myTankInfo.killTankNum,myTankInfo.lives)
   }
 
-
-
   def gameActionReceiver(key: ActionReq) = {
     if(key.swing.nonEmpty && gameContainerOpt.nonEmpty && gameState == GameState.play){
       /**
@@ -123,8 +123,8 @@ class BotPlayController(
       val r = key.swing.get.radian
       mousePlace  += Point(d * math.cos(r).toFloat,d * math.sin(r).toFloat)
       val point = mousePlace  + Point(24, 24)
-      val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
-      val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
+      val theta = point.getTheta(canvasBoundary  / 2).toFloat
+      val angle = point.getAngle(canvasBoundary  / 2)
       val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
       if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
@@ -142,7 +142,7 @@ class BotPlayController(
         * 鼠标点击，开火
         **/
       val point = mousePlace + Point(24, 24)
-      val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+      val theta = point.getTheta(canvasBoundary  / 2).toFloat
       bulletMusic.play()
       val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)

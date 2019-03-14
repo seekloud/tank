@@ -162,7 +162,6 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
       mutableCtx.stroke()
       mutableCtx.closePath()
       mutableCtx.restore()
-
     }
   }
 

@@ -60,7 +60,6 @@ object TankGameEvent {
   sealed trait WsMsgServer extends WsMsgSource
 
   final case class WsMsgErrorRsp(errCode:Int, msg:String) extends WsMsgServer
-  //  final case class GameConfig(config:TankGameConfigImpl) extends WsMsgServer
   final case class WsSuccess(roomId:Option[Long]) extends WsMsgServer
   final case class JoinRoom(roomId:Option[Long], password:Option[String]) extends WsMsgFront
   final case class CreateRoom(roomId:Option[Long],password:Option[String]) extends WsMsgFront
@@ -109,7 +108,6 @@ object TankGameEvent {
   final case class UserLeftRoomByKill(userId:String, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer
   final case class UserLeftRoom(userId:String, name:String, tankId:Int, override val frame:Long) extends UserEvent with WsMsgServer
   final case class PlayerLeftRoom(userId:String,name:String,tankId:Int,override val frame:Long) extends UserEvent with WsMsgServer
-//  final case class UserMouseMove(tankId:Int,override val frame:Long,d:Float,override val serialNum:Int) extends UserActionEvent with WsMsgFront with WsMsgServer
 
   /**用于前端流畅*/
   final case class UserMouseMove(tankId:Int, override val frame:Long, d:Float, override val serialNum:Byte) extends UserActionEvent

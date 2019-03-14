@@ -26,7 +26,7 @@ import org.seekloud.pb.observations.{ImgData, LayeredObservation}
 import org.seekloud.tank.common.AppSettings
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.model.JoinRoomRsp
-import org.seekloud.tank.game.control.BotPlayController
+import org.seekloud.tank.game.control.BotViewController
 import org.seekloud.tank.shared.protocol.TankGameEvent
 /**
   * Created by sky
@@ -88,7 +88,7 @@ object BotViewActor {
             Behaviors.same
 
           case x =>
-            println(s"get unKnow msg $x")
+            log.debug(s"get unKnow msg $x")
             Behaviors.unhandled
 
         }

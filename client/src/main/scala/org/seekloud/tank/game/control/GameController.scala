@@ -51,8 +51,7 @@ import scala.collection.mutable
 abstract class GameController(
                                var canvasWidth: Float,
                                var canvasHeight: Float,
-                               isBot:Boolean,
-                               roomPwd: Option[String]
+                               isBot:Boolean
                              ) extends NetworkInfo {
   protected val log = LoggerFactory.getLogger(this.getClass)
 
@@ -61,7 +60,7 @@ abstract class GameController(
   val drawFrame = new MiddleFrameInFx
   val canvas = drawFrame.createCanvas(canvasWidth, canvasHeight)
   var canvasUnit = getCanvasUnit(canvasWidth)
-  var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+  var canvasBoundary = Point(canvasWidth, canvasHeight)
 
   protected var firstCome = true
 
@@ -156,14 +155,12 @@ abstract class GameController(
   }
 
 
-  protected def handleWsSuccess(e: TankGameEvent.WsSuccess) = {
-    playGameActor ! DispatchMsg(TankGameEvent.JoinRoom(e.roomId, roomPwd))
-  }
+  protected def handleWsSuccess(e: TankGameEvent.WsSuccess) = {}
 
   protected def handleWsMsgErrorRsp(e: TankGameEvent.WsMsgErrorRsp) = {
     if (e.errCode == 10001) {
-      if(BotPlayController.SDKReplyTo != null){
-        BotPlayController.SDKReplyTo ! JoinRoomRsp(-1,e.errCode,e.msg)
+      if(BotViewController.SDKReplyTo != null){
+        BotViewController.SDKReplyTo ! JoinRoomRsp(-1,e.errCode,e.msg)
       }
       closeHolder
     }
@@ -192,8 +189,8 @@ abstract class GameController(
             gameContainerOpt.get.changeTankId(e.tankId)
             recvYourInfo = true
             recvSyncGameAllState.foreach(t => wsMessageHandler(t))
-            if(BotPlayController.SDKReplyTo != null){
-              BotPlayController.SDKReplyTo ! JoinRoomRsp(e.roomId)
+            if(BotViewController.SDKReplyTo != null){
+              BotViewController.SDKReplyTo ! JoinRoomRsp(e.roomId)
             }
           } catch {
             case e: Exception =>
