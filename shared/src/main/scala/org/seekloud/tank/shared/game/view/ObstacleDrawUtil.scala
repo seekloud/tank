@@ -201,7 +201,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
             generateEnvironmentCacheCanvas(obstacle.obstacleType, obstacle.getWidth, obstacle.getHeight, isAttacked))
           viewCtx.drawImage(cacheCanvas, p.x * canvasUnit, p.y * canvasUnit)
           if(isBot){
-            immutableCtx.drawImage(cacheCanvas, p.x * canvasUnit, p.y * canvasUnit)
+            immutableCtx.drawImage(cacheCanvas, p.x * canvasUnit *0.5, p.y * canvasUnit * 0.5)
           }
         } else {
           viewCtx.beginPath()
@@ -212,8 +212,8 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
           viewCtx.closePath()
           if(isBot){
             immutableCtx.beginPath()
-            immutableCtx.drawImage(img, p.x * canvasUnit, p.y * canvasUnit,
-              Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
+            immutableCtx.drawImage(img, p.x * canvasUnit * 0.5, p.y * canvasUnit * 0.5,
+              Some(obstacle.getWidth * canvasUnit * 0.5, obstacle.getHeight * canvasUnit * 0.5))
             immutableCtx.fill()
             immutableCtx.stroke()
             immutableCtx.closePath()

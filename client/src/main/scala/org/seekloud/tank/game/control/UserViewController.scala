@@ -52,7 +52,7 @@ class UserViewController(
                           roomInfo: Option[String] = None,
                           roomPwd: Option[String] = None,
                           isCreated: Boolean,
-                          isBot:Boolean=false
+                          isBot:Boolean=true
                         ) extends GameController(if(isBot) 800 else context.getStageWidth.toFloat, if(isBot) 400 else context.getStageHeight.toFloat, isBot) {
   private var spaceKeyUpState = true
   private var lastMouseMoveAngle: Byte = 0
@@ -285,22 +285,23 @@ class UserViewController(
         }else{
           canvas.getCanvas.setLayoutX(0)
           canvas.getCanvas.setLayoutY(0)
-          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(0)
-          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
-          r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
+          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
+          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+          r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1220)
           r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
           r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
-          r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(260)
-          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1020)
-          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
-          //        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(0)
-          //        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
-          r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
+          r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(210)
+          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1220)
+          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(210)
+          r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(0)
+          r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
+          r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(410)
           r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
           playGameScreen.group.getChildren.add(canvas.getCanvas)
+          addUserActionListenEvent
           playGameScreen.group.getChildren.add(r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
           playGameScreen.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-          //        playGameScreen.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
           playGameScreen.group.getChildren.add(r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
           playGameScreen.group.getChildren.add(r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
           playGameScreen.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
