@@ -50,7 +50,7 @@ abstract class GameHolder(name: String) extends NetworkInfo {
 
 
   protected var canvasUnit = getCanvasUnit(canvasWidth)
-  protected var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+  protected var canvasBoundary = Point(canvasWidth, canvasHeight)
 
   protected var tickCount = 1//更新排行榜信息计时器
   protected val rankCycle = 20
@@ -167,12 +167,12 @@ abstract class GameHolder(name: String) extends NetworkInfo {
       canvasWidth = newWidth
       canvasHeight = newHeight
       canvasUnit = getCanvasUnit(canvasWidth)
-      canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+      canvasBoundary = Point(canvasWidth, canvasHeight)
       println(s"update screen=${canvasUnit},=${(canvasWidth, canvasHeight)}")
       canvas.setWidth(canvasWidth.toInt)
       canvas.setHeight(canvasHeight.toInt)
       gameContainerOpt.foreach { r =>
-        r.updateClientSize(canvasBoundary, canvasUnit)
+        r.updateClientSize(canvasBoundary / canvasUnit, canvasUnit)
       }
     }
   }

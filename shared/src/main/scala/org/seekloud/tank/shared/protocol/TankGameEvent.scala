@@ -31,13 +31,13 @@ object TankGameEvent {
                                           props:List[PropState],
                                           obstacle:List[ObstacleState],
                                           environment:List[ObstacleState],
-                                          tankMoveAction:List[(Int,Option[List[Byte]])]
+                                          tankMoveState:List[(Int,Byte)]
                                         )
 
   case class GameContainerState(
                                  f:Long,
                                  tanks:Option[List[TankState]],
-                                 tankMoveAction:Option[List[(Int,Option[List[Byte]])]]
+                                 tankMoveState:Option[List[(Int,Byte)]]
                                )
 
   /**前端建立WebSocket*/
@@ -121,8 +121,11 @@ object TankGameEvent {
 
   type UserMouseClick = UC
 
-  final case class UserPressKeyDown(tankId:Int,override val frame:Long,keyCodeDown:Byte,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
-  final case class UserPressKeyUp(tankId:Int,override val frame:Long,keyCodeUp:Byte,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
+//  final case class UserPressKeyDown(tankId:Int,override val frame:Long,keyCodeDown:Byte,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
+//  final case class UserPressKeyUp(tankId:Int,override val frame:Long,keyCodeUp:Byte,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
+
+  final case class UserMoveState(tankId:Int,override val frame:Long,moveState:Byte,override val serialNum:Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
+
   /**使用医疗包*/
   final case class UserPressKeyMedical(tankId:Int,override val frame:Long, override val serialNum: Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
   /**tank吃道具*/

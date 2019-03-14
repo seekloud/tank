@@ -16,6 +16,7 @@
 
 package org.seekloud.tank.game.control
 
+
 import akka.actor.typed.scaladsl.AskPattern._
 import javafx.animation.{Animation, KeyFrame, Timeline}
 import javafx.scene.control.{Alert, ButtonBar, ButtonType}
@@ -24,6 +25,9 @@ import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 import javafx.util.Duration
 import org.seekloud.tank.ClientApp
 import org.seekloud.tank.ClientApp.{executor, scheduler, timeout, tokenActor}
+
+import org.seekloud.tank.App
+import org.seekloud.tank.App.{executor, scheduler, timeout, tokenActor}
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.core.{PlayGameActor, TokenActor}
 import org.seekloud.tank.common.Context
@@ -33,7 +37,7 @@ import org.seekloud.tank.shared.model.Constants.GameState
 import org.seekloud.tank.shared.model.Point
 import org.seekloud.tank.shared.protocol.TankGameEvent
 import org.seekloud.tank.view.{GameHallScreen, PlayGameScreen}
-import org.seekloud.utils.JavaFxUtil.{changeKeys, getCanvasUnit, keyCode2Int}
+import org.seekloud.utils.JavaFxUtil.{changeKeys, getCanvasUnit, getMoveStateByKeySet}
 import org.seekloud.utils.canvas.MiddleCanvasInFx
 
 import scala.concurrent.Future
@@ -52,7 +56,7 @@ class UserViewController(
                           roomInfo: Option[String] = None,
                           roomPwd: Option[String] = None,
                           isCreated: Boolean,
-                          isBot:Boolean=false
+                          isBot:Boolean=true
                         ) extends GameController(if(isBot) 800 else context.getStageWidth.toFloat, if(isBot) 400 else context.getStageHeight.toFloat, isBot) {
   private var spaceKeyUpState = true
   private var lastMouseMoveAngle: Byte = 0
@@ -115,10 +119,10 @@ class UserViewController(
       canvasWidth = newCanvasWidth
       canvasHeight = newCanvasHeight
       canvasUnit = getCanvasUnit(newCanvasWidth)
-      canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+      canvasBoundary = Point(canvasWidth, canvasHeight)
       canvas.setWidth(newCanvasWidth)
       canvas.setHeight(newCanvasHeight)
-      (canvasBoundary, canvasUnit)
+      (canvasBoundary / canvasUnit, canvasUnit)
     } else (Point(0, 0), 0)
   }
 
@@ -147,8 +151,8 @@ class UserViewController(
     canvas.getCanvas.setOnMouseMoved { e =>
       if (gameContainerOpt.nonEmpty) {
         val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24, 24)
-        val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
-        val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
+        val theta = point.getTheta(canvasBoundary  / 2).toFloat
+        val angle = point.getAngle(canvasBoundary  / 2)
         val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
         if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
@@ -169,7 +173,7 @@ class UserViewController(
     canvas.getCanvas.setOnMouseClicked { e =>
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24, 24)
-        val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+        val theta = point.getTheta(canvasBoundary  / 2).toFloat
         bulletMusic.play()
         val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
@@ -186,7 +190,7 @@ class UserViewController(
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
           myKeySet.add(keyCode)
           println(s"key down: [${e.getCode.getName}]")
-          val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode2Int(keyCode).toByte, getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UserMoveState(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, getMoveStateByKeySet(myKeySet.toSet), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction)
           if (org.seekloud.tank.shared.model.Constants.fakeRender) {
@@ -240,7 +244,7 @@ class UserViewController(
         if (watchKeys.contains(keyCode)) {
           myKeySet.remove(keyCode)
           println(s"key up: [${e.getCode}]")
-          val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode2Int(keyCode).toByte, getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UserMoveState(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, getMoveStateByKeySet(myKeySet.toSet), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction)
           if (org.seekloud.tank.shared.model.Constants.fakeRender) {
@@ -257,8 +261,8 @@ class UserViewController(
   }
 
   override protected def handleWsSuccess(e: TankGameEvent.WsSuccess): Unit = {
-//    if (isCreated) playGameActor ! DispatchMsg(TankGameEvent.CreateRoom(e.roomId, roomPwd))
-//    else playGameActor ! DispatchMsg(TankGameEvent.JoinRoom(e.roomId, roomPwd))
+    if (isCreated) playGameActor ! DispatchMsg(TankGameEvent.CreateRoom(e.roomId, roomPwd))
+    else playGameActor ! DispatchMsg(TankGameEvent.JoinRoom(e.roomId, roomPwd))
   }
 
   override protected def handleWsMsgErrorRsp(e: TankGameEvent.WsMsgErrorRsp): Unit = {
@@ -283,25 +287,29 @@ class UserViewController(
         }else{
           canvas.getCanvas.setLayoutX(0)
           canvas.getCanvas.setLayoutY(0)
-          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(0)
-          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
-          r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
+          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
+          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+          r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1220)
           r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
           r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
-          r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(260)
-          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1020)
-          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
-          //        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(0)
-          //        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
-          r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
+          r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(210)
+          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1220)
+          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(210)
+          r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(0)
+          r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
+          r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(410)
           r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
+          r.kernelCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(820)
+          r.kernelCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
           playGameScreen.group.getChildren.add(canvas.getCanvas)
+          addUserActionListenEvent
           playGameScreen.group.getChildren.add(r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
           playGameScreen.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-          //        playGameScreen.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
           playGameScreen.group.getChildren.add(r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
           playGameScreen.group.getChildren.add(r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
           playGameScreen.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.kernelCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
         }
       }
     }

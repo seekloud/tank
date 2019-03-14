@@ -76,6 +76,26 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
     case origin => origin
   }
 
+  private def getMoveStateByKeySet(actionSet:Set[Int]):Byte = {
+    if(actionSet.contains(KeyCode.Left) && actionSet.contains(KeyCode.Up)){
+      5
+    }else if(actionSet.contains(KeyCode.Right) && actionSet.contains(KeyCode.Up)){
+      7
+    }else if(actionSet.contains(KeyCode.Left) && actionSet.contains(KeyCode.Down)){
+      3
+    }else if(actionSet.contains(KeyCode.Right) && actionSet.contains(KeyCode.Down)){
+      1
+    }else if(actionSet.contains(KeyCode.Right)){
+      0
+    }else if(actionSet.contains(KeyCode.Left)){
+      4
+    }else if(actionSet.contains(KeyCode.Up) ){
+      6
+    }else if(actionSet.contains(KeyCode.Down)){
+      2
+    }else 8
+  }
+
   def getActionSerialNum: Byte = (actionSerialNumGenerator.getAndIncrement()%127).toByte
 
   def getStartGameModal(): Elem = {
@@ -119,8 +139,8 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
     canvas.getCanvas.focus()
     canvas.getCanvas.onmousemove = { e: dom.MouseEvent =>
       val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(24, 24)
-      val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
-      val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
+      val theta = point.getTheta(canvasBoundary  / 2).toFloat
+      val angle = point.getAngle(canvasBoundary  / 2)
       //remind tank自身流畅显示
       //fixme 此处序列号是否存疑
       val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta,-1)
@@ -140,7 +160,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
         val tank=gameContainerOpt.get.tankMap.get(gameContainerOpt.get.myTankId)
         if(tank.nonEmpty&&tank.get.getBulletSize()>0){
           val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(24, 24)
-          val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+          val theta = point.getTheta(canvasBoundary  / 2).toFloat
           val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
           sendMsg2Server(preExecuteAction) //发送鼠标位置
           e.preventDefault()
@@ -158,7 +178,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
           myKeySet.add(keyCode)
           //          println(s"key down: [${e.keyCode}]")
-          val preExecuteAction = TankGameEvent.UserPressKeyDown(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode.toByte, getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UserMoveState(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, getMoveStateByKeySet(myKeySet.toSet), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
           if (org.seekloud.tank.shared.model.Constants.fakeRender) {
@@ -206,7 +226,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
         if (watchKeys.contains(keyCode)) {
           myKeySet.remove(keyCode)
           //          println(s"key up: [${e.keyCode}]")
-          val preExecuteAction = TankGameEvent.UserPressKeyUp(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, keyCode.toByte, getActionSerialNum)
+          val preExecuteAction = TankGameEvent.UserMoveState(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, getMoveStateByKeySet(myKeySet.toSet), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
           if (org.seekloud.tank.shared.model.Constants.fakeRender) {

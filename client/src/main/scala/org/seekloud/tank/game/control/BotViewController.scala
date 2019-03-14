@@ -67,11 +67,26 @@ class BotViewController(
   private var lastMouseMoveAngle: Byte = 0
   private val bulletMusic = new AudioClip(getClass.getResource("/music/bullet.mp3").toString)
 
+  private var moveStateNow:Byte = 8
+
+  private def move2Byte(move: Move) :Byte = {
+    move match {
+      case Move.right => 0
+      case Move.r_down => 1
+      case Move.down => 2
+      case Move.l_down => 3
+      case Move.left => 4
+      case Move.l_up => 5
+      case Move.up => 6
+      case Move.r_up => 7
+      case Move.noop => 8
+    }
+  }
+
   def startGame: Unit = {
     playGameActor ! PlayGameActor.ConnectGame(playerInfo, gameServerInfo, None)
     logicFrameTime = System.currentTimeMillis()
   }
-
   override protected def checkScreenSize: Unit = {}
 
   override protected def gameStopCallBack: Unit = {}
@@ -122,8 +137,8 @@ class BotViewController(
       val r = key.swing.get.radian
       mousePlace  += Point(d * math.cos(r).toFloat,d * math.sin(r).toFloat)
       val point = mousePlace  + Point(24, 24)
-      val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
-      val angle = point.getAngle(canvasBoundary * canvasUnit / 2)
+      val theta = point.getTheta(canvasBoundary  / 2).toFloat
+      val angle = point.getAngle(canvasBoundary  / 2)
       val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
       if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame < gameContainerOpt.get.systemFrame) {
@@ -141,7 +156,7 @@ class BotViewController(
         * 鼠标点击，开火
         **/
       val point = mousePlace + Point(24, 24)
-      val theta = point.getTheta(canvasBoundary * canvasUnit / 2).toFloat
+      val theta = point.getTheta(canvasBoundary  / 2).toFloat
       bulletMusic.play()
       val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
@@ -154,6 +169,17 @@ class BotViewController(
       val preExecuteAction = TankGameEvent.UserPressKeyMedical(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, serialNum = getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
       playGameActor ! DispatchMsg(preExecuteAction)
+    }
+    val moveStateReceive = move2Byte(key.move)
+    if (moveStateReceive != moveStateNow) {
+      println(s"move state change to: [$moveStateReceive]")
+      val preExecuteAction = TankGameEvent.UserMoveState(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, moveStateReceive, getActionSerialNum)
+      gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+      playGameActor ! DispatchMsg(preExecuteAction)
+      if (org.seekloud.tank.shared.model.Constants.fakeRender) {
+        gameContainerOpt.get.addMyAction(preExecuteAction)
+      }
+      moveStateNow = moveStateReceive
     }
   }
   def receiveReincarnation ={

@@ -62,19 +62,25 @@ case class GameContainerClientImpl(
     * mutable: 所有物品：子弹、道具
     * bodies: 所有坦克
     * state: 自身坦克状态，左上角信息
+    * kernel: 操控核心
     **/
-  val locationCanvas = if (isBot) drawFrame.createCanvas(450, 420) else viewCanvas
+
+  val layerWidth = config.layerCanvasWidth
+  val layerHeight = config.layerCanvasHeight
+  val locationCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
   val locationCtx = locationCanvas.getCtx
-  val mapCanvas = if (isBot) drawFrame.createCanvas(200, 250) else viewCanvas
+  val mapCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
   val mapCtx = mapCanvas.getCtx
-  val immutableCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
+  val immutableCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
   val immutableCtx = immutableCanvas.getCtx
-  val mutableCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
+  val mutableCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
   val mutableCtx = mutableCanvas.getCtx
-  val bodiesCanvas = if (isBot) drawFrame.createCanvas(800, 400) else viewCanvas
+  val bodiesCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
   val bodiesCtx = bodiesCanvas.getCtx
-  val statusCanvas = if (isBot) drawFrame.createCanvas(200, 200) else viewCanvas
+  val statusCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
   val statusCtx = statusCanvas.getCtx
+  val kernelCanvas = if(isBot)drawFrame.createCanvas(layerWidth,layerHeight) else viewCanvas
+  val kernelCtx = kernelCanvas.getCtx
 
   protected val obstacleAttackedAnimationMap = mutable.HashMap[Int, Int]()
   protected val tankAttackedAnimationMap = mutable.HashMap[Int, Int]()
@@ -251,16 +257,22 @@ case class GameContainerClientImpl(
     if (tankMap.contains(tankId)) {
       val tank = tankMap(tankId).asInstanceOf[TankClientImpl]
       if (actions.nonEmpty) {
-        val tankMoveSet = mutable.Set[Byte]()
+//        val tankMoveSet = mutable.Set[Byte]()
+        var tankMoveState:Byte = 8
         actions.sortBy(t => t.serialNum).foreach {
-          case a: UserPressKeyDown =>
-            tankMoveSet.add(a.keyCodeDown)
-          case a: UserPressKeyUp =>
-            tankMoveSet.remove(a.keyCodeUp)
+//          case a: UserPressKeyDown =>
+//            tankMoveSet.add(a.keyCodeDown)
+//          case a: UserPressKeyUp =>
+//            tankMoveSet.remove(a.keyCodeUp)
+          case a: UserMoveState =>
+            tankMoveState = a.moveState
           case _ =>
         }
-        if (tankMoveSet.nonEmpty && !tank.getTankIsMove()) {
-          tank.setFakeTankDirection(tankMoveSet.toSet, systemFrame)
+//        if (tankMoveSet.nonEmpty && !tank.getTankIsMove()) {
+//          tank.setFakeTankDirection(tankMoveSet.toSet, systemFrame)
+//        }
+        if (tankMoveState < 8 && !tank.getTankIsMove()) {
+          tank.setFakeTankDirection(tankMoveState, systemFrame)
         }
       }
     }
@@ -297,7 +309,7 @@ case class GameContainerClientImpl(
     tankMap.clear()
     obstacleMap.clear()
     propMap.clear()
-    tankMoveAction.clear()
+    tankMoveState.clear()
     bulletMap.clear()
     environmentMap.clear()
 
@@ -317,10 +329,8 @@ case class GameContainerClientImpl(
       quadTree.insert(prop)
       propMap.put(t.pId, prop)
     }
-    gameContainerAllState.tankMoveAction.foreach { t =>
-      val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Byte]())
-      t._2.foreach(l => l.foreach(set.add))
-      tankMoveAction.put(t._1, set)
+    gameContainerAllState.tankMoveState.foreach { t =>
+      tankMoveState.put(t._1, t._2)
     }
     gameContainerAllState.bullet.foreach { t =>
       val bullet = new Bullet(config, t)
@@ -351,7 +361,7 @@ case class GameContainerClientImpl(
       systemFrame = gameContainerState.f
       quadTree.clear()
       tankMap.clear()
-      tankMoveAction.clear()
+      tankMoveState.clear()
       gameContainerState.tanks match {
         case Some(tanks) =>
           tanks.foreach { t =>
@@ -363,12 +373,10 @@ case class GameContainerClientImpl(
         case None =>
           info(s"handle game container client--no tanks")
       }
-      gameContainerState.tankMoveAction match {
+      gameContainerState.tankMoveState match {
         case Some(as) =>
           as.foreach { t =>
-            val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Byte]())
-            t._2.foreach(l => l.foreach(set.add))
-            tankMoveAction.put(t._1, set)
+            tankMoveState.put(t._1, t._2)
           }
         case None =>
       }
@@ -417,7 +425,7 @@ case class GameContainerClientImpl(
         case None =>
           gameContainerStateOpt match {
             case Some(state) =>
-              gameContainerStateOpt = Some(TankGameEvent.GameContainerState(gameContainerState.f, state.tanks, state.tankMoveAction))
+              gameContainerStateOpt = Some(TankGameEvent.GameContainerState(gameContainerState.f, state.tanks, state.tankMoveState))
             case None =>
           }
       }
@@ -480,17 +488,18 @@ case class GameContainerClientImpl(
   //  def drawGame(time: Long, networkLatency: Long, dataSize:String): Unit = {
   def drawGame(time: Long, networkLatency: Long, dataSizeList: List[String], supportLiveLimit: Boolean = false): Unit = {
     val offsetTime = math.min(time, config.frameDuration)
-    val h = canvasSize.y
-    val w = canvasSize.x
+    val h = canvasSize.y / canvasUnit
+    val w = canvasSize.x / canvasUnit
     //    val startTime = System.currentTimeMillis()
     if (!waitSyncData) {
       viewCtx.setLineCap("round")
       viewCtx.setLineJoin("round")
       tankMap.get(tankId) match {
         case Some(tank) =>
-          val offset = canvasSize / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
+          val offset = canvasSize / canvasUnit / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
           drawBackground(offset)
           drawLocationMap(tank)
+          drawKernelMap(tank)
           drawObstacles(offset, Point(w, h))
           drawEnvironment(offset, Point(w, h))
           drawProps(offset, Point(w, h))

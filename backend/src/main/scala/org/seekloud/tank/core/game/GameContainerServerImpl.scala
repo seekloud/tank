@@ -454,8 +454,9 @@ case class GameContainerServerImpl(
     val action = preExecuteUserAction match {
       case a: TankGameEvent.UserMouseMoveByte => a.copy(frame = f)
       case a: TankGameEvent.UserMouseClick => a.copy(frame = f)
-      case a: TankGameEvent.UserPressKeyDown => a.copy(frame = f)
-      case a: TankGameEvent.UserPressKeyUp => a.copy(frame = f)
+      case a: TankGameEvent.UserMoveState=> a.copy(frame = f)
+//      case a: TankGameEvent.UserPressKeyDown => a.copy(frame = f)
+//      case a: TankGameEvent.UserPressKeyUp => a.copy(frame = f)
       case a: TankGameEvent.UserKeyboardMove => a.copy(frame = f)
       case a: TankGameEvent.UserPressKeyMedical => a.copy(frame = f)
     }
@@ -556,7 +557,7 @@ case class GameContainerServerImpl(
     GameContainerState(
       systemFrame,
       if(frameOnly) None else Some(tankMap.values.map(_.getTankState()).toList),
-      if(frameOnly) None else Some(tankMoveAction.toList.map(t => (t._1,if(t._2.isEmpty) None else Some(t._2.toList))))
+      if(frameOnly) None else Some(tankMoveState.toList)
     )
   }
 
