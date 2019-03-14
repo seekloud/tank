@@ -95,16 +95,16 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
             viewCtx.setGlobalAlpha(1)
             if(isBot){
               mutableCtx.setGlobalAlpha(0.5)
-              mutableCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
-                Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
+              mutableCtx.drawImage(airBoxImg, p.x * canvasUnit /layerCanvasSize, p.y * canvasUnit /layerCanvasSize,
+                Some(obstacle.getWidth * canvasUnit /layerCanvasSize, obstacle.getHeight * canvasUnit /layerCanvasSize))
               mutableCtx.setGlobalAlpha(1)
             }
           } else {
             viewCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
               Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
             if(isBot){
-              mutableCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
-                Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
+              mutableCtx.drawImage(airBoxImg, p.x * canvasUnit /layerCanvasSize, p.y * canvasUnit /layerCanvasSize,
+                Some(obstacle.getWidth * canvasUnit /layerCanvasSize, obstacle.getHeight * canvasUnit /layerCanvasSize))
             }
           }
         }else{
@@ -113,12 +113,12 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
             val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false), generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
             viewCtx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
             if(isBot){
-              mutableCtx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
+              mutableCtx.drawImage(cache, p.x * canvasUnit /layerCanvasSize, p.y * canvasUnit /layerCanvasSize)
             }
           } else {
             drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color)
             if(isBot){
-              drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color,mutableCtx)
+              drawObstacle(obstacle.getPosition /layerCanvasSize + offset /layerCanvasSize, obstacle.getWidth /layerCanvasSize, obstacle.getHeight /layerCanvasSize, obstacle.bloodPercent(), color,mutableCtx)
             }
           }
         }
@@ -157,8 +157,8 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
       mutableCtx.setLineCap("round")
       mutableCtx.setStrokeStyle(color)
       mutableCtx.beginPath()
-      mutableCtx.moveTo(startX, startY)
-      mutableCtx.lineTo(startX + lineLen, startY)
+      mutableCtx.moveTo(startX /layerCanvasSize, startY /layerCanvasSize)
+      mutableCtx.lineTo(startX /layerCanvasSize + lineLen /layerCanvasSize, startY /layerCanvasSize)
       mutableCtx.stroke()
       mutableCtx.closePath()
       mutableCtx.restore()
@@ -201,7 +201,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
             generateEnvironmentCacheCanvas(obstacle.obstacleType, obstacle.getWidth, obstacle.getHeight, isAttacked))
           viewCtx.drawImage(cacheCanvas, p.x * canvasUnit, p.y * canvasUnit)
           if(isBot){
-            immutableCtx.drawImage(cacheCanvas, p.x * canvasUnit *0.5, p.y * canvasUnit * 0.5)
+            immutableCtx.drawImage(cacheCanvas, p.x * canvasUnit /layerCanvasSize, p.y * canvasUnit /layerCanvasSize)
           }
         } else {
           viewCtx.beginPath()
@@ -212,8 +212,8 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
           viewCtx.closePath()
           if(isBot){
             immutableCtx.beginPath()
-            immutableCtx.drawImage(img, p.x * canvasUnit * 0.5, p.y * canvasUnit * 0.5,
-              Some(obstacle.getWidth * canvasUnit * 0.5, obstacle.getHeight * canvasUnit * 0.5))
+            immutableCtx.drawImage(img, p.x * canvasUnit /layerCanvasSize, p.y * canvasUnit /layerCanvasSize,
+              Some(obstacle.getWidth * canvasUnit /layerCanvasSize, obstacle.getHeight * canvasUnit /layerCanvasSize))
             immutableCtx.fill()
             immutableCtx.stroke()
             immutableCtx.closePath()
