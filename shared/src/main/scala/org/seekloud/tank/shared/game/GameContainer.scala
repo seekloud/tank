@@ -72,7 +72,7 @@ trait GameContainer extends KillInformation{
   val environmentMap = mutable.HashMap[Int,Obstacle]() //obstacleId -> steel and river  不可打击
   val propMap = mutable.HashMap[Int,Prop]() //propId -> prop 道具信息
 
-  val tankMoveAction = mutable.HashMap[Int,mutable.HashSet[Byte]]() //tankId -> pressed direction key code
+//  val tankMoveAction = mutable.HashMap[Int,mutable.HashSet[Byte]]() //tankId -> pressed direction key code
 
   val tankMoveState = mutable.HashMap[Int,Byte]()
 
@@ -136,7 +136,7 @@ trait GameContainer extends KillInformation{
   }
 
   protected final def handleUserLeftRoom(e:UserLeftRoom) :Unit = {
-    tankMoveAction.remove(e.tankId)
+//    tankMoveAction.remove(e.tankId)
     tankMoveState.remove(e.tankId)
 
     tankMap.get(e.tankId).foreach(quadTree.remove)
@@ -164,7 +164,7 @@ trait GameContainer extends KillInformation{
     actions.sortBy(t => (t.tankId,t.serialNum)).foreach{ action =>
 //      val tankMoveSet = tankMoveAction.getOrElse(action.tankId,mutable.HashSet[Byte]())
 
-      var tankMove = tankMoveState.getOrElse(action.tankId,-1)
+//      var tankMove = tankMoveState.getOrElse(action.tankId,8)
 
       tankMap.get(action.tankId) match {
         case Some(tank) =>
@@ -178,9 +178,9 @@ trait GameContainer extends KillInformation{
             }
 
             case a:UserMoveState =>
-              tankMove = a.moveState
-              tankMoveState.put(a.tankId,tankMove)
-              tank.setTankDirection(tankMove)
+//              tankMove = a.moveState
+              tankMoveState.put(a.tankId,a.moveState)
+              tank.setTankDirection(a.moveState)
 
             case a:UserKeyboardMove => tank.setTankKeyBoardDirection(a.angle)
             case a:UserPressKeyMedical => tank.addBlood()
@@ -215,7 +215,8 @@ trait GameContainer extends KillInformation{
         bulletTankOpt.foreach(_.killTankNum += 1)
         quadTree.remove(tank)
         tankMap.remove(e.tankId)
-        tankMoveAction.remove(e.tankId)
+//        tankMoveAction.remove(e.tankId)
+        tankMoveState.remove(e.tankId)
         addKillInfo(tankHistoryMap.getOrElse(e.bulletTankId,"未知"),tank.name)
         dropTankCallback(e.bulletTankId,tankHistoryMap.getOrElse(e.bulletTankId,"未知"),tank)
       }
@@ -600,7 +601,8 @@ trait GameContainer extends KillInformation{
       propMap.values.map(_.getPropState).toList,
       obstacleMap.values.map(_.getObstacleState()).toList,
       environmentMap.values.map(_.getObstacleState()).toList,
-      tankMoveAction.toList.map(t => (t._1,if(t._2.isEmpty) None else Some(t._2.toList)))
+//      tankMoveAction.toList.map(t => (t._1,if(t._2.isEmpty) None else Some(t._2.toList))),
+      tankMoveState.toList
     )
   }
 

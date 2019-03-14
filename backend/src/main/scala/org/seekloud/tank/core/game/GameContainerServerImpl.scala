@@ -557,7 +557,7 @@ case class GameContainerServerImpl(
     GameContainerState(
       systemFrame,
       if(frameOnly) None else Some(tankMap.values.map(_.getTankState()).toList),
-      if(frameOnly) None else Some(tankMoveAction.toList.map(t => (t._1,if(t._2.isEmpty) None else Some(t._2.toList))))
+      if(frameOnly) None else Some(tankMoveState.toList)
     )
   }
 

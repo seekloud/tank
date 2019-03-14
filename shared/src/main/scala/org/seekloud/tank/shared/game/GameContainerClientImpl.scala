@@ -302,7 +302,7 @@ case class GameContainerClientImpl(
     tankMap.clear()
     obstacleMap.clear()
     propMap.clear()
-    tankMoveAction.clear()
+    tankMoveState.clear()
     bulletMap.clear()
     environmentMap.clear()
 
@@ -322,10 +322,8 @@ case class GameContainerClientImpl(
       quadTree.insert(prop)
       propMap.put(t.pId, prop)
     }
-    gameContainerAllState.tankMoveAction.foreach { t =>
-      val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Byte]())
-      t._2.foreach(l => l.foreach(set.add))
-      tankMoveAction.put(t._1, set)
+    gameContainerAllState.tankMoveState.foreach { t =>
+      tankMoveState.put(t._1, t._2)
     }
     gameContainerAllState.bullet.foreach { t =>
       val bullet = new Bullet(config, t)
@@ -356,7 +354,7 @@ case class GameContainerClientImpl(
       systemFrame = gameContainerState.f
       quadTree.clear()
       tankMap.clear()
-      tankMoveAction.clear()
+      tankMoveState.clear()
       gameContainerState.tanks match {
         case Some(tanks) =>
           tanks.foreach { t =>
@@ -368,12 +366,10 @@ case class GameContainerClientImpl(
         case None =>
           println(s"handle game container client--no tanks")
       }
-      gameContainerState.tankMoveAction match {
+      gameContainerState.tankMoveState match {
         case Some(as) =>
           as.foreach { t =>
-            val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Byte]())
-            t._2.foreach(l => l.foreach(set.add))
-            tankMoveAction.put(t._1, set)
+            tankMoveState.put(t._1, t._2)
           }
         case None =>
       }
@@ -422,7 +418,7 @@ case class GameContainerClientImpl(
         case None =>
           gameContainerStateOpt match {
             case Some(state) =>
-              gameContainerStateOpt = Some(TankGameEvent.GameContainerState(gameContainerState.f, state.tanks, state.tankMoveAction))
+              gameContainerStateOpt = Some(TankGameEvent.GameContainerState(gameContainerState.f, state.tanks, state.tankMoveState))
             case None =>
           }
       }
