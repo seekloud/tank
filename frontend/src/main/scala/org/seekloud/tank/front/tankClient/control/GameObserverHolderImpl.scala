@@ -60,7 +60,7 @@ class GameObserverHolderImpl(canvasObserver:String, roomId:Long, accessCode:Stri
     data match {
       case e:TankGameEvent.YourInfo =>
         //        setGameState(Constants.GameState.loadingPlay)
-        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,canvas,e.config,e.userId,e.tankId,e.name, canvasBoundary, canvasUnit,setKillCallback,versionInfoOpt))
+        gameContainerOpt = Some(GameContainerClientImpl(drawFrame,canvas,e.config,e.userId,e.tankId,e.name, canvasSize, canvasUnit,setKillCallback,versionInfoOpt))
         gameContainerOpt.get.changeTankId(e.tankId)
         Shortcut.cancelSchedule(timer)
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)

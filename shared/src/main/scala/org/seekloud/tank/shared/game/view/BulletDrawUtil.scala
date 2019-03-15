@@ -66,7 +66,7 @@ trait BulletDrawUtil { this:GameContainerClientImpl =>
         val radius = bullet.getRadius
         viewCtx.drawImage(cacheCanvas, (p.x - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5, (p.y - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5)
         if(isBot){
-          mutableCtx.drawImage(cacheCanvas, (p.x - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5 /layerCanvasSize, (p.y - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5 /layerCanvasSize)
+          mutableCtx.drawImage(cacheCanvas, (p.x - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5 /layerCanvasUnit, (p.y - bullet.getRadius) * canvasUnit - radius * canvasUnit / 2.5 /layerCanvasUnit)
           }
       }
     }

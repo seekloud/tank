@@ -67,8 +67,6 @@ object TankGameEvent {
 
   @deprecated
   final case class YouAreKilled(tankId:Int, name:String, hasLife:Boolean,killTankNum:Int,lives:Int,damageStatistics:Int) extends WsMsgServer //可能会丢弃
-  @deprecated
-  final case class Ranks(currentRank: List[Score], historyRank: List[Score] = Nil) extends WsMsgServer
   final case class SyncGameState(state:GameContainerState) extends WsMsgServer
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
   final case class FirstSyncGameAllState(gState:GameContainerAllState,tankId:Int,name:String,config:TankGameConfigImpl) extends WsMsgServer

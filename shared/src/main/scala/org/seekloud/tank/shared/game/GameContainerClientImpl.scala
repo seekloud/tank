@@ -30,6 +30,9 @@ import scala.collection.mutable
 /**
   * Created by hongruying on 2018/8/24
   * 终端
+  *
+  * @param canvasSize canvas实际大小
+  * @param canvasBoundary canvas比例大小
   */
 case class GameContainerClientImpl(
                                     drawFrame: MiddleFrame,
@@ -44,7 +47,8 @@ case class GameContainerClientImpl(
                                     versionInfo: Option[String] = None,
                                     isBot: Boolean = false,
                                     logInfo: String => Unit = println,
-                                    layerCanvasSize: Int = 2
+                                    layerCanvasSize:Point = Point(400,200),
+                                    layerCanvasUnit: Int = 2
                                   ) extends GameContainer with EsRecover
   with BackgroundDrawUtil with BulletDrawUtil with FpsComponentsDrawUtil with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil with InfoDrawUtil {
 
@@ -66,21 +70,19 @@ case class GameContainerClientImpl(
     * kernel: 操控核心
     **/
 
-  val layerWidth = config.layerCanvasWidth
-  val layerHeight = config.layerCanvasHeight
-  val locationCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
+  val locationCanvas = if (isBot) drawFrame.createCanvas(layerCanvasSize.x, layerCanvasSize.y) else viewCanvas
   val locationCtx = locationCanvas.getCtx
-  val mapCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
+  val mapCanvas = if (isBot) drawFrame.createCanvas(layerCanvasSize.x, layerCanvasSize.y) else viewCanvas
   val mapCtx = mapCanvas.getCtx
-  val immutableCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
+  val immutableCanvas = if (isBot) drawFrame.createCanvas(layerCanvasSize.x, layerCanvasSize.y) else viewCanvas
   val immutableCtx = immutableCanvas.getCtx
-  val mutableCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
+  val mutableCanvas = if (isBot) drawFrame.createCanvas(layerCanvasSize.x, layerCanvasSize.y) else viewCanvas
   val mutableCtx = mutableCanvas.getCtx
-  val bodiesCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
+  val bodiesCanvas = if (isBot) drawFrame.createCanvas(layerCanvasSize.x, layerCanvasSize.y) else viewCanvas
   val bodiesCtx = bodiesCanvas.getCtx
-  val statusCanvas = if (isBot) drawFrame.createCanvas(layerWidth, layerHeight) else viewCanvas
+  val statusCanvas = if (isBot) drawFrame.createCanvas(layerCanvasSize.x, layerCanvasSize.y) else viewCanvas
   val statusCtx = statusCanvas.getCtx
-  val kernelCanvas = if(isBot)drawFrame.createCanvas(layerWidth,layerHeight) else viewCanvas
+  val kernelCanvas = if(isBot)drawFrame.createCanvas(layerCanvasSize.x,layerCanvasSize.y) else viewCanvas
   val kernelCtx = kernelCanvas.getCtx
 
   protected val obstacleAttackedAnimationMap = mutable.HashMap[Int, Int]()
@@ -133,7 +135,8 @@ case class GameContainerClientImpl(
 
   def updateClientSize(canvasS: Point, cUnit: Int) = {
     canvasUnit = cUnit
-    canvasSize = canvasS
+    canvasSize = canvasS*canvasUnit
+    //fixme 其余canvasBoundary的修改
     updateBackSize(canvasS)
     updateBulletSize(canvasS)
     updateFpsSize(canvasS)

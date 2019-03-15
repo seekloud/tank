@@ -32,7 +32,7 @@ import org.seekloud.tank.shared.protocol.TankGameEvent
 
 import scala.collection.mutable
 import scala.concurrent.duration.FiniteDuration
-
+import org.seekloud.tank.protocol.ActorProtocol.JoinRoom
 /**
   * Created by hongruying on 2018/7/9
   * 管理房间的地图数据以及分发操作
@@ -54,13 +54,11 @@ object RoomActor {
 
   private final case object GameLoopKey
 
-  sealed trait Command
+  trait Command
 
   case class GetSyncState(uid:String) extends Command
 
   case class BotJoinRoom(bid: String, tankIdOpt: Option[Int], name: String, startTime: Long, botActor: ActorRef[BotActor.Command], roomId: Long) extends Command with RoomManager.Command
-
-  case class JoinRoom(uid: String, tankIdOpt: Option[Int], name: String, startTime: Long, userActor: ActorRef[UserActor.Command], roomId: Long) extends Command
 
   case class WebSocketMsg(uid: String, tankId: Int, req: TankGameEvent.UserActionEvent) extends Command with RoomManager.Command
 
@@ -141,7 +139,7 @@ object RoomActor {
           ): Behavior[Command] = {
     Behaviors.receive { (ctx, msg) =>
       msg match {
-        case JoinRoom(uid, tankIdOpt, name, startTime, userActor, roomId) =>
+        case JoinRoom(uid, tankIdOpt, name, startTime, userActor, roomIdOpt, passwordOpt) =>
           log.debug(s"joinRoom ${tankIdOpt}")
           gameContainer.joinGame(uid, tankIdOpt, name, userActor)
           //这一桢结束时会告诉所有新加入用户的tank信息以及地图全量数据

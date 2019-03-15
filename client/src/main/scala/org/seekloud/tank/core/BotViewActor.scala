@@ -37,8 +37,8 @@ import org.seekloud.tank.shared.protocol.TankGameEvent
 object BotViewActor {
   private val log = LoggerFactory.getLogger(this.getClass)
   //fixme 此处需要放到配置文件
-  private val windowWidth = 800
-  private val windowHeight = 400
+  private val windowWidth = AppSettings.viewWidth
+  private val windowHeight = AppSettings.viewHeight
   sealed trait Command
 
   case class GetByte(locationByte: Array[Byte], mapByte: Array[Byte], immutableByte: Array[Byte], mutableByte: Array[Byte], bodiesByte: Array[Byte], stateByte: Array[Byte], viewByte: Option[Array[Byte]]) extends Command

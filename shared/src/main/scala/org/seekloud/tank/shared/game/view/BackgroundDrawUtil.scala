@@ -108,9 +108,9 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
   protected def drawBackground(offset:Point) = {
     clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, viewCtx)
     if(isBot){
-      clearScreen("#000000",1, canvasBoundary.x /layerCanvasSize, canvasBoundary.y /layerCanvasSize, immutableCtx)
-      clearScreen("#000000",1, canvasBoundary.x /layerCanvasSize, canvasBoundary.y /layerCanvasSize, mutableCtx)
-      clearScreen("#000000",1, canvasBoundary.x /layerCanvasSize, canvasBoundary.y /layerCanvasSize, bodiesCtx)
+      clearScreen("#000000",1, layerCanvasSize.x, layerCanvasSize.y, immutableCtx)
+      clearScreen("#000000",1, layerCanvasSize.x, layerCanvasSize.y, mutableCtx)
+      clearScreen("#000000",1, layerCanvasSize.x, layerCanvasSize.y, bodiesCtx)
     }
     val boundStart = Point(canvasBoundary.x/2, canvasBoundary.y/2)
     val boundEnd = Point(canvasBoundary.x/2 + boundary.x, canvasBoundary.y/2 + boundary.y)
@@ -122,35 +122,35 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     val height = end.y - start.y
     if(canvasStart.x < boundStart.x && canvasStart.y > boundStart.y){
       clearScreen("#E8E8E8", 1, width, height, viewCtx, Point(canvasBoundary.x - width, 0))
-      if(isBot){
-        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, immutableCtx, Point(canvasBoundary.x /layerCanvasSize- width /layerCanvasSize, 0))
-        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, mutableCtx, Point(canvasBoundary.x /layerCanvasSize - width /layerCanvasSize, 0))
-        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, bodiesCtx, Point(canvasBoundary.x /layerCanvasSize - width /layerCanvasSize, 0))
-      }
+     /* if(isBot){
+        clearScreen("#000000", 1, width /layerCanvasUnit, height /layerCanvasUnit, immutableCtx, Point(canvasBoundary.x /layerCanvasUnit- width /layerCanvasUnit, 0))
+        clearScreen("#000000", 1, width /layerCanvasUnit, height /layerCanvasUnit, mutableCtx, Point(canvasBoundary.x /layerCanvasUnit - width /layerCanvasUnit, 0))
+        clearScreen("#000000", 1, width /layerCanvasUnit, height /layerCanvasUnit, bodiesCtx, Point(canvasBoundary.x /layerCanvasUnit - width /layerCanvasUnit, 0))
+      }*/
     }
     else if(canvasStart.x > boundStart.x && canvasStart.y < boundStart.y){
       clearScreen("#E8E8E8", 1, width, height, viewCtx, Point(0, canvasBoundary.y - height))
-      if(isBot){
-        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, immutableCtx, Point(0, canvasBoundary.y /layerCanvasSize - height /layerCanvasSize))
-        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, mutableCtx, Point(0, canvasBoundary.y /layerCanvasSize - height /layerCanvasSize))
-        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, bodiesCtx, Point(0, canvasBoundary.y /layerCanvasSize - height /layerCanvasSize))
-      }
+    /*  if(isBot){
+        clearScreen("#000000", 1, width /layerCanvasUnit, height /layerCanvasUnit, immutableCtx, Point(0, canvasBoundary.y /layerCanvasUnit - height /layerCanvasUnit))
+        clearScreen("#000000", 1, width /layerCanvasUnit, height /layerCanvasUnit, mutableCtx, Point(0, canvasBoundary.y /layerCanvasUnit - height /layerCanvasUnit))
+        clearScreen("#000000", 1, width /layerCanvasUnit, height /layerCanvasUnit, bodiesCtx, Point(0, canvasBoundary.y /layerCanvasUnit - height /layerCanvasUnit))
+      }*/
     }
     else if(canvasStart.x < boundStart.x && canvasStart.y < boundStart.y){
       clearScreen("#E8E8E8", 1, width, height, viewCtx, Point(canvasBoundary.x - width, canvasBoundary.y - height))
-      if(isBot){
-        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, immutableCtx,  Point(canvasBoundary.x - width, canvasBoundary.y /layerCanvasSize - height /layerCanvasSize))
-        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, mutableCtx,  Point(canvasBoundary.x - width, canvasBoundary.y /layerCanvasSize - height /layerCanvasSize))
-        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, bodiesCtx,  Point(canvasBoundary.x - width, canvasBoundary.y /layerCanvasSize - height /layerCanvasSize))
-      }
+     /* if(isBot){
+        clearScreen("#000000", 1, width /layerCanvasUnit, height /layerCanvasUnit, immutableCtx,  Point(canvasBoundary.x - width, canvasBoundary.y /layerCanvasUnit - height /layerCanvasUnit))
+        clearScreen("#000000", 1, width /layerCanvasUnit, height /layerCanvasUnit, mutableCtx,  Point(canvasBoundary.x - width, canvasBoundary.y /layerCanvasUnit - height /layerCanvasUnit))
+        clearScreen("#000000", 1, width /layerCanvasUnit, height /layerCanvasUnit, bodiesCtx,  Point(canvasBoundary.x - width, canvasBoundary.y /layerCanvasUnit - height /layerCanvasUnit))
+      }*/
     }
     else{
       clearScreen("#E8E8E8", 1, width, height, viewCtx)
-      if(isBot){
-        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, immutableCtx)
-        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, mutableCtx)
-        clearScreen("#000000", 1, width /layerCanvasSize, height /layerCanvasSize, bodiesCtx)
-      }
+      /*if(isBot){
+        clearScreen("#000000", 1, width /layerCanvasUnit, height /layerCanvasUnit, immutableCtx)
+        clearScreen("#000000", 1, width /layerCanvasUnit, height /layerCanvasUnit, mutableCtx)
+        clearScreen("#000000", 1, width /layerCanvasUnit, height /layerCanvasUnit, bodiesCtx)
+      }*/
     }
     viewCtx.setLineWidth(3)
     viewCtx.setStrokeStyle("rgba(0,0,0,0.05)")

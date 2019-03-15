@@ -19,7 +19,8 @@ package org.seekloud.tank.core
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.actor.typed.{ActorRef, Behavior}
 import org.seekloud.tank.protocol.EsheepProtocol._
-import org.seekloud.tank.protocol.ReplayProtocol.{EssfMapJoinLeftInfo, EssfMapKey, GetRecordFrameMsg, GetUserInRecordMsg}
+import org.seekloud.tank.protocol.ReplayProtocol.{EssfMapJoinLeftInfo, EssfMapKey}
+import org.seekloud.tank.protocol.ActorProtocol.{GetRecordFrameMsg, GetUserInRecordMsg}
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.essf.io.{FrameData, FrameInputStream}
 import org.seekloud.tank.common.AppSettings

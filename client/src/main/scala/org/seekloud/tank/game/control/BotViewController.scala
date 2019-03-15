@@ -65,7 +65,6 @@ class BotViewController(
 
   private var lastMoveFrame = -1L
   private var lastMouseMoveAngle: Byte = 0
-  private val bulletMusic = new AudioClip(getClass.getResource("/music/bullet.mp3").toString)
 
   private var moveStateNow:Byte = 8
 
@@ -157,7 +156,6 @@ class BotViewController(
         **/
       val point = mousePlace + Point(24, 24)
       val theta = point.getTheta(canvasBoundary  / 2).toFloat
-      bulletMusic.play()
       val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
       playGameActor ! DispatchMsg(preExecuteAction)

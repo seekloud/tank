@@ -62,4 +62,7 @@ object AppSettings {
   val botId = appConfig.getString("botInfo.botId")
   val botKey = appConfig.getString("botInfo.botKey")
 
+  val viewWidth = appConfig.getInt("viewSize.width")
+  val viewHeight = appConfig.getInt("viewSize.height")
+
 }

@@ -18,16 +18,17 @@ package org.seekloud.tank.game.control
 
 
 import akka.actor.typed.scaladsl.AskPattern._
+import akka.actor.typed.scaladsl.adapter._
 import javafx.animation.{Animation, KeyFrame, Timeline}
 import javafx.scene.control.{Alert, ButtonBar, ButtonType}
 import javafx.scene.input.KeyCode
 import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 import javafx.util.Duration
 import org.seekloud.tank.ClientApp
-import org.seekloud.tank.ClientApp.{executor, scheduler, timeout, tokenActor}
+import org.seekloud.tank.ClientApp.{executor, scheduler, system, timeout, tokenActor}
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
-import org.seekloud.tank.core.{PlayGameActor, TokenActor}
-import org.seekloud.tank.common.Context
+import org.seekloud.tank.core.{BotViewActor, PlayGameActor, TokenActor}
+import org.seekloud.tank.common.{AppSettings, Context}
 import org.seekloud.tank.controller.HallScreenController
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo, TokenAndAcessCode, UserInfo}
 import org.seekloud.tank.shared.model.Constants.GameState
@@ -54,7 +55,9 @@ class UserViewController(
                           roomPwd: Option[String] = None,
                           isCreated: Boolean,
                           isBot:Boolean=true
-                        ) extends GameController(if(isBot) 800 else context.getStageWidth.toFloat, if(isBot) 400 else context.getStageHeight.toFloat, isBot) {
+                        ) extends GameController(if(isBot) AppSettings.viewWidth*4 else context.getStageWidth.toFloat, if(isBot) AppSettings.viewHeight*4 else context.getStageHeight.toFloat, isBot) {
+  import org.seekloud.tank.common.AppSettings.{viewWidth,viewHeight}
+  val botViewActor = if(isBot) system.spawn(BotViewActor.create(), "BotViewActor")
   private var spaceKeyUpState = true
   private var lastMouseMoveAngle: Byte = 0
   private val perMouseMoveFrame = 2
@@ -136,7 +139,9 @@ class UserViewController(
 
   override protected def gameStopCallBack: Unit = timeline.play()
 
-  override protected def canvas2Byte4Bot: Unit = {}
+  override protected def canvas2Byte4Bot: Unit = {
+
+  }
 
   private def addUserActionListenEvent: Unit = {
     canvas.getCanvas.requestFocus()
@@ -284,7 +289,7 @@ class UserViewController(
         }else{
           canvas.getCanvas.setLayoutX(0)
           canvas.getCanvas.setLayoutY(0)
-          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
+          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX()
           r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
           r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1220)
           r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)

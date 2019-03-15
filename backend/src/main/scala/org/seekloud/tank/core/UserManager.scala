@@ -25,7 +25,7 @@ import akka.stream.scaladsl.Flow
 import akka.stream.{ActorAttributes, Supervision}
 import akka.util.ByteString
 import org.seekloud.tank.models.TankGameUserInfo
-import org.seekloud.tank.protocol.ReplayProtocol.{ChangeRecordMsg, GetRecordFrameMsg, GetUserInRecordMsg}
+import org.seekloud.tank.protocol.ActorProtocol.{ChangeRecordMsg, GetRecordFrameMsg, GetUserInRecordMsg}
 import org.seekloud.tank.common.Constants
 import org.seekloud.tank.core.UserActor.{ChangeUserInfo, ChangeWatchedPlayerId, TankRelive4UserActor}
 import org.seekloud.tank.protocol.EsheepProtocol

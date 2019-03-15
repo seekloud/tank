@@ -28,7 +28,7 @@ import concurrent.duration._
 import org.seekloud.tank.Boot.executor
 import org.seekloud.tank.common.AppSettings
 import org.seekloud.tank.core.RoomActor.{BotJoinRoom, BotLeftRoom, LeftRoomByKilled}
-import org.seekloud.tank.core.UserActor.JoinRoom
+import org.seekloud.tank.protocol.ActorProtocol.{JoinRoom}
 
 import scala.collection.mutable
 
@@ -71,7 +71,7 @@ object RoomManager {
                 case Some(ls) =>
                  if(pw == ls._1){
                    roomInUse.put(roomId,(pw,(uid,name):: ls._2))
-                   getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
+                   getRoomActor(ctx,roomId) ! JoinRoom(uid,tankIdOpt,name,startTime,userActor,Some(roomId),passwordOpt)
                  } else{
                    //密码不正确
                    userActor ! UserActor.JoinRoomFail("密码错误！")
@@ -82,12 +82,12 @@ object RoomManager {
               roomInUse.find(p => p._2._2.length < AppSettings.personLimit).toList.sortBy(_._1).headOption match{
                 case Some(t) =>
                   roomInUse.put(t._1,(t._2._1,(uid,name) :: t._2._2))
-                  getRoomActor(ctx,t._1) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,t._1)
+                  getRoomActor(ctx,t._1) ! JoinRoom(uid,tankIdOpt,name,startTime,userActor,Some(t._1))
                 case None =>
                   var roomId = roomIdGenerator.getAndIncrement()
                   while(roomInUse.exists(_._1 == roomId))roomId = roomIdGenerator.getAndIncrement()
                   roomInUse.put(roomId,("",List((uid,name))))
-                  getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
+                  getRoomActor(ctx,roomId) ! JoinRoom(uid,tankIdOpt,name,startTime,userActor,Some(roomId))
               }
           }
           log.debug(s"now roomInUse:$roomInUse")
@@ -96,7 +96,7 @@ object RoomManager {
         case CreateRoom(uid,tankIdOpt,name,startTime,userActor,roomIdOpt,passwordOpt) =>
           val roomId = if(roomIdOpt.nonEmpty) roomIdOpt.get else roomIdGenerator.getAndIncrement()
           roomInUse.put(roomId,(passwordOpt.getOrElse(""),List((uid,name))))
-          getRoomActor(ctx,roomId) ! RoomActor.JoinRoom(uid,tankIdOpt,name,startTime,userActor,roomId)
+          getRoomActor(ctx,roomId) ! JoinRoom(uid,tankIdOpt,name,startTime,userActor,Some(roomId))
           Behaviors.same
 
         case msg:BotJoinRoom=>

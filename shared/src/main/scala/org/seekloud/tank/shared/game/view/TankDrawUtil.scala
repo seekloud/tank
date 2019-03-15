@@ -72,12 +72,12 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         viewCtx.closePath()
         if(isBot){
           bodiesCtx.beginPath()
-          bodiesCtx.moveTo(gunPositionList.last.x /layerCanvasSize , gunPositionList.last.y /layerCanvasSize)
-          gunPositionList.foreach(t => bodiesCtx.lineTo(t.x /layerCanvasSize, t.y /layerCanvasSize))
+          bodiesCtx.moveTo(gunPositionList.last.x /layerCanvasUnit , gunPositionList.last.y /layerCanvasUnit)
+          gunPositionList.foreach(t => bodiesCtx.lineTo(t.x /layerCanvasUnit, t.y /layerCanvasUnit))
           bodiesCtx.setFill("#7A7A7A")
           bodiesCtx.setStrokeStyle("#636363")
           bodiesCtx.fill()
-          bodiesCtx.setLineWidth(0.4 * canvasUnit  /layerCanvasSize )
+          bodiesCtx.setLineWidth(0.4 * canvasUnit  /layerCanvasUnit )
           bodiesCtx.stroke()
           bodiesCtx.closePath()
 
@@ -97,7 +97,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
           if(isBot){
             bodiesCtx.beginPath()
             bodiesCtx.setFill("rgba(128, 100, 162, 0.2)")
-            bodiesCtx.arc(centerX.toFloat /layerCanvasSize, centerY.toFloat /layerCanvasSize, radius /layerCanvasSize , startAngle.toFloat , lengthAngle.toFloat )
+            bodiesCtx.arc(centerX.toFloat /layerCanvasUnit, centerY.toFloat /layerCanvasUnit, radius /layerCanvasUnit , startAngle.toFloat , lengthAngle.toFloat )
             bodiesCtx.fill()
             bodiesCtx.closePath()
 
@@ -120,9 +120,9 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         viewCtx.setGlobalAlpha(1)
         if(isBot){
           bodiesCtx.beginPath()
-          bodiesCtx.setLineWidth(0.4*canvasUnit  /layerCanvasSize)
+          bodiesCtx.setLineWidth(0.4*canvasUnit  /layerCanvasUnit)
           bodiesCtx.setStrokeStyle("#636363")
-          bodiesCtx.arc(centerX.toFloat /layerCanvasSize, centerY.toFloat /layerCanvasSize, radius /layerCanvasSize , startAngle.toFloat , lengthAngle.toFloat )
+          bodiesCtx.arc(centerX.toFloat /layerCanvasUnit, centerY.toFloat /layerCanvasUnit, radius /layerCanvasUnit , startAngle.toFloat , lengthAngle.toFloat )
           bodiesCtx.setFill(tankColor)
           bodiesCtx.fill()
           bodiesCtx.stroke()
@@ -148,7 +148,7 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
           bodiesCtx.setTextAlign("center")
           bodiesCtx.setFont("楷体", "normal", 2 * canvasUnit )
           bodiesCtx.setLineWidth(2)
-          bodiesCtx.fillText(s"${tank.name}", namePosition.x /layerCanvasSize, namePosition.y /layerCanvasSize, 20 * canvasUnit /layerCanvasSize)
+          bodiesCtx.fillText(s"${tank.name}", namePosition.x /layerCanvasUnit, namePosition.y /layerCanvasUnit, 20 * canvasUnit /layerCanvasUnit)
           bodiesCtx.closePath()
 
         }
@@ -197,28 +197,28 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
       bodiesCtx.beginPath()
       bodiesCtx.setLineCap("butt")
       bodiesCtx.setLineJoin("miter")
-      bodiesCtx.setLineWidth(0.5 * canvasUnit /layerCanvasSize)
+      bodiesCtx.setLineWidth(0.5 * canvasUnit /layerCanvasUnit)
       bodiesCtx.setStrokeStyle("#BEBEBE")
-      bodiesCtx.moveTo(sliderPositions.last.x /layerCanvasSize,sliderPositions.last.y /layerCanvasSize)
-      bodiesCtx.lineTo(sliderPositions.head.x /layerCanvasSize,sliderPositions.head.y /layerCanvasSize)
+      bodiesCtx.moveTo(sliderPositions.last.x /layerCanvasUnit,sliderPositions.last.y /layerCanvasUnit)
+      bodiesCtx.lineTo(sliderPositions.head.x /layerCanvasUnit,sliderPositions.head.y /layerCanvasUnit)
       bodiesCtx.stroke()
       bodiesCtx.closePath()
 
       for(i <- Range(1 ,sliderPositions.length,2)){
         bodiesCtx.beginPath()
-        bodiesCtx.setLineWidth(0.5 * canvasUnit  /layerCanvasSize)
+        bodiesCtx.setLineWidth(0.5 * canvasUnit  /layerCanvasUnit)
 
 
         if((i+1) / 2 <= 1f * tank.getCurBlood / 20){
           bodiesCtx.setStrokeStyle("rgb(255,0,0)")
-          bodiesCtx.moveTo(sliderPositions(i-1).x /layerCanvasSize ,sliderPositions(i-1).y  /layerCanvasSize)
-          bodiesCtx.lineTo(sliderPositions(i).x  /layerCanvasSize,sliderPositions(i).y /layerCanvasSize )
+          bodiesCtx.moveTo(sliderPositions(i-1).x /layerCanvasUnit ,sliderPositions(i-1).y  /layerCanvasUnit)
+          bodiesCtx.lineTo(sliderPositions(i).x  /layerCanvasUnit,sliderPositions(i).y /layerCanvasUnit )
           bodiesCtx.stroke()
         }
         if(tank.getCurBlood / 20 < 1f * tank.getCurBlood / 20 && (i+1) / 2 == tank.getCurBlood / 20 + 1){
           bodiesCtx.setStrokeStyle("rgb(255,0,0)")
-          bodiesCtx.moveTo(sliderPositions(i-1).x  /layerCanvasSize,sliderPositions(i-1).y  /layerCanvasSize)
-          bodiesCtx.lineTo(sliderPositions(i-1).x  /layerCanvasSize+ 1f * (tank.getCurBlood - tank.getCurBlood / 20 * 20) / 20 * width * canvasUnit /layerCanvasSize ,sliderPositions(i-1).y /layerCanvasSize )
+          bodiesCtx.moveTo(sliderPositions(i-1).x  /layerCanvasUnit,sliderPositions(i-1).y  /layerCanvasUnit)
+          bodiesCtx.lineTo(sliderPositions(i-1).x  /layerCanvasUnit+ 1f * (tank.getCurBlood - tank.getCurBlood / 20 * 20) / 20 * width * canvasUnit /layerCanvasUnit ,sliderPositions(i-1).y /layerCanvasUnit )
           bodiesCtx.stroke()
         }
         bodiesCtx.closePath()
@@ -238,9 +238,9 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
         Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
       if(isBot){
-        bodiesCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit /layerCanvasSize,
-          (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit /layerCanvasSize,
-          Some(SmallBullet.width * canvasUnit /layerCanvasSize , SmallBullet.height * canvasUnit  /layerCanvasSize))
+        bodiesCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit /layerCanvasUnit,
+          (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit /layerCanvasUnit,
+          Some(SmallBullet.width * canvasUnit /layerCanvasUnit , SmallBullet.height * canvasUnit  /layerCanvasUnit))
 
       }
       left = left + SmallBullet.width
@@ -254,9 +254,9 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
         Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
       if(isBot){
-        bodiesCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit /layerCanvasSize,
-          (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit /layerCanvasSize,
-          Some(SmallBullet.width * canvasUnit  /layerCanvasSize, SmallBullet.height * canvasUnit  /layerCanvasSize))
+        bodiesCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit /layerCanvasUnit,
+          (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit /layerCanvasUnit,
+          Some(SmallBullet.width * canvasUnit  /layerCanvasUnit, SmallBullet.height * canvasUnit  /layerCanvasUnit))
       }
       left = left + SmallBullet.width
 
@@ -285,9 +285,9 @@ trait TankDrawUtil{ this:GameContainerClientImpl =>
         starPos.y * canvasUnit,
         Some(TankStar.width * canvasUnit, TankStar.height * canvasUnit))
       if(isBot){
-        bodiesCtx.drawImage(img, starPos.x * canvasUnit /layerCanvasSize,
-          starPos.y * canvasUnit /layerCanvasSize,
-          Some(TankStar.width * canvasUnit  /layerCanvasSize, TankStar.height * canvasUnit /layerCanvasSize))
+        bodiesCtx.drawImage(img, starPos.x * canvasUnit /layerCanvasUnit,
+          starPos.y * canvasUnit /layerCanvasUnit,
+          Some(TankStar.width * canvasUnit  /layerCanvasUnit, TankStar.height * canvasUnit /layerCanvasUnit))
       }
     }
 

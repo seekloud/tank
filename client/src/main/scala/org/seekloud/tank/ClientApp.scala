@@ -49,6 +49,7 @@ class  ClientApp extends Application {
     val enterScreen = new EnterScreen(context)
     context.switchScene(enterScreen.getScene,resize = true)
     new EnterScreenController(context, enterScreen)
+    /**bot启动*/
 //    loginActor ! LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey))
   }
 
@@ -81,8 +82,4 @@ object ClientApp {
   def pushStack2AppThread(fun: => Unit) = {
     Platform.runLater(() => fun)
   }
-
- /* def main(args: Array[String]): Unit = {
-    loginActor ! LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey))
-  }*/
 }

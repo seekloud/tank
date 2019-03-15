@@ -198,9 +198,6 @@ trait TankGameConfig{
   def getTankGameConfigImpl(): TankGameConfigImpl
 
   def getPropDisappearFrame: Short
-
-  val layerCanvasWidth: Double = 400
-  val layerCanvasHeight : Double = 200
 }
 
 case class TankGameConfigImpl(

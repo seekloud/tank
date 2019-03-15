@@ -24,7 +24,7 @@ import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.FileIO
 import org.seekloud.tank.protocol.EsheepProtocol._
 import org.seekloud.tank.protocol.RecordApiProtocol._
-import org.seekloud.tank.protocol.ReplayProtocol.ChangeRecordMsg
+import org.seekloud.tank.protocol.ActorProtocol.{ChangeRecordMsg, GetRecordFrameMsg, GetUserInRecordMsg}
 import org.seekloud.tank.protocol.{EsheepProtocol, ReplayProtocol}
 import org.seekloud.tank.Boot.{esheepSyncClient, userManager}
 import org.seekloud.tank.core.EsheepSyncClient
@@ -194,7 +194,7 @@ trait RecordApiService extends ServiceUtils {
 
   private val getRecordFrame = (path("getRecordFrame") & post) {
     dealPostReq[GetRecordFrameReq] { req =>
-      val flowFuture: Future[CommonRsp] = userManager ? (ReplayProtocol.GetRecordFrameMsg(req.recordId, req.playerId, _))
+      val flowFuture: Future[CommonRsp] = userManager ? (GetRecordFrameMsg(req.recordId, req.playerId, _))
       flowFuture.map {
         case r: GetRecordFrameRsp =>
           complete(r)
@@ -228,7 +228,7 @@ trait RecordApiService extends ServiceUtils {
 
   private val getRecordPlayerList = (path("getRecordPlayerList") & post) {
     dealPostReq[GetUserInRecordReq] { req =>
-      val flowFuture: Future[CommonRsp] = userManager ? (ReplayProtocol.GetUserInRecordMsg(req.recordId, req.playerId, _))
+      val flowFuture: Future[CommonRsp] = userManager ? (GetUserInRecordMsg(req.recordId, req.playerId, _))
       flowFuture.map {
         case r: GetUserInRecordRsp =>
           complete(r)

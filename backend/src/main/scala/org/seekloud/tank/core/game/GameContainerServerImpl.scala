@@ -86,7 +86,6 @@ case class GameContainerServerImpl(
 
     tank.launchBullet()(config) match {
       case Some((bulletDirection, position, damage)) =>
-        //fixme 此处涉及到子弹到达顺序 之后可以对子弹增加标志位确认是否为中心
         val momentum = if (tank.getTankIsMove()) config.bulletSpeed.rotate(bulletDirection) * config.frameDuration / 1000 +
           config.getMoveDistanceByFrame(tank.getTankSpeedLevel()).rotate(tank.getTankDirection()).*(0.2f)
         else config.bulletSpeed.rotate(bulletDirection) * config.frameDuration / 1000
@@ -148,7 +147,6 @@ case class GameContainerServerImpl(
       }
     }
     val totalScore = tankState.bulletPowerLevel.toInt + tankState.bloodLevel.toInt + tankState.speedLevel.toInt - 2
-    //fixme 出现多道具
     var index=1
     def changeInt2P(index:Int)={
       index match {
@@ -371,7 +369,7 @@ case class GameContainerServerImpl(
   def handleTankRelive(userId: String, tankIdOpt: Option[Int], name: String) = {
     val tank = genATank(userId, tankIdOpt, name)
     tankLivesMap.update(tank.tankId, tank.getTankState())
-    //remind 区分bot和user复活
+    // 区分bot和user复活
     if(userId.contains("BotActor-")){
       botManager ! BotManager.ReliveBot(userId)
     }else{
@@ -520,8 +518,7 @@ case class GameContainerServerImpl(
       obstacleMap.put(obstacle.oId, obstacle)
       quadTree.insert(obstacle)
     }
-    //fixme 此处brickNum?
-    (1 to config.airDropNum).foreach { _ =>
+    (1 to config.brickNum).foreach { _ =>
       val obstacle = generateBrick()
       val event = TankGameEvent.GenerateObstacle(systemFrame, obstacle.getObstacleState())
       addGameEvent(event)

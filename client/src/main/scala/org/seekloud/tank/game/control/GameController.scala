@@ -21,12 +21,11 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.typed.scaladsl.adapter._
 import javafx.animation.AnimationTimer
 import javafx.scene.input.KeyCode
-
 import org.seekloud.tank.ClientApp
 import org.seekloud.tank.ClientApp.system
 import org.seekloud.tank.core.PlayGameActor
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
-import org.seekloud.tank.common.Constants
+import org.seekloud.tank.common.{AppSettings, Constants}
 import org.seekloud.tank.game.NetworkInfo
 import org.seekloud.tank.model.JoinRoomRsp
 import org.seekloud.tank.shared.`object`.Tank
@@ -183,7 +182,7 @@ abstract class GameController(
             **/
           println("start------------")
           try {
-            gameContainerOpt = Some(GameContainerClientImpl(drawFrame, canvas, e.config, e.userId, e.tankId, e.name, canvasBoundary, canvasUnit, setKillCallback, isBot = isBot, logInfo = log.info))
+            gameContainerOpt = Some(GameContainerClientImpl(drawFrame, canvas, e.config, e.userId, e.tankId, e.name, canvasBoundary, canvasUnit, setKillCallback, isBot = isBot, logInfo = log.info,layerCanvasSize = Point(AppSettings.viewWidth,AppSettings.viewHeight), layerCanvasUnit = getCanvasUnit(AppSettings.viewWidth)))
             initGameContainerCallBack
             gameContainerOpt.get.changeTankId(e.tankId)
             recvYourInfo = true
