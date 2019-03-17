@@ -55,7 +55,6 @@ class UserViewController(
                           roomPwd: Option[String] = None,
                           isCreated: Boolean
                         ) extends GameController( context.getStageWidth.toFloat, context.getStageHeight.toFloat, false) {
-  import org.seekloud.tank.common.AppSettings.{viewWidth,viewHeight}
   private var spaceKeyUpState = true
   private var lastMouseMoveAngle: Byte = 0
   private val perMouseMoveFrame = 2

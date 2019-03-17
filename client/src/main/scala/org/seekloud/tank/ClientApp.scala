@@ -42,12 +42,15 @@ import scala.util.{Failure, Success}
   */
 class ClientApp extends Application {
   override def start(primaryStage: Stage): Unit = {
-    val context = new Context(primaryStage)
-    val enterScreen = new EnterScreen(context)
-    context.switchScene(enterScreen.getScene,resize = true)
-    new EnterScreenController(context, enterScreen)
-    /**bot启动*/
-//    ClientApp.startApp
+    if(AppSettings.isView){
+      val context = new Context(primaryStage)
+      val enterScreen = new EnterScreen(context)
+      context.switchScene(enterScreen.getScene,resize = true)
+      new EnterScreenController(context, enterScreen)
+    }else{
+      /**bot启动*/
+      ClientApp.startApp
+    }
   }
 }
 

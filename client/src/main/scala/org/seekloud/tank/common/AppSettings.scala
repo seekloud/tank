@@ -55,6 +55,7 @@ object AppSettings {
   val esheepGameKey = esheepConfig.getString("gsKey")
   val esheepAuthToken = esheepConfig.getBoolean("authToken")
 
+  val isView = appConfig.getBoolean("isView")
   val isGray = appConfig.getBoolean("isGray")
 
   val botServerPort = appConfig.getInt("botServerPort")
