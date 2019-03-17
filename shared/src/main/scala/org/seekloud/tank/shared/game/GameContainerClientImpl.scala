@@ -57,33 +57,33 @@ case class GameContainerClientImpl(
   val viewCtx = viewCanvas.getCtx
 
   /**
-    * 分层图层
-    * 此处修改时考虑 canvasSize canvasBoundary 重构
-    * 目前 canvasSize=canvasBoundary 修改为 canvasBoundary=canvasSize/canvasUnit 减少计算量 将修改后canvasSize替代下方数值
-    * 根据isBot 选择是否渲染以下图层
+    * 目前 canvasBoundary遗留问题，在各绘制文件中的canvasBoundary可以使用canvasSize替换
+    * layerCanvasUnit的使用
+    * 分层图层重写
     * location: 视野范围
-    * map: 小地图
-    * immutable: 所有物品：钢铁、河流
-    * mutable: 所有物品：子弹、道具
-    * bodies: 所有坦克
-    * state: 自身坦克状态，左上角信息
-    * kernel: 操控核心
+    * immutable: 钢铁、河流
+    * mutable: 子弹、道具、砖块
+    * bodies: 所有坦克，每个坦克颜色不同，开始可根据（tankId%255，三种等级对应（0，100，255），0）
+    * ownership: 权视图，所有坦克操纵核心，所有子弹，对应相应颜色
+    * self: 自身操控核心,自己的子弹
+    * pointer: 鼠标位置
+    * state: 自身坦克状态，柱状图：血量等级，速度等级，子弹等级，医疗包数量，血量剩余，子弹剩余
     **/
 
   val locationCanvas = if (isBot) drawFrame.createCanvas(layerCanvasSize.x, layerCanvasSize.y) else viewCanvas
   val locationCtx = locationCanvas.getCtx
-  val mapCanvas = if (isBot) drawFrame.createCanvas(layerCanvasSize.x, layerCanvasSize.y) else viewCanvas
-  val mapCtx = mapCanvas.getCtx
   val immutableCanvas = if (isBot) drawFrame.createCanvas(layerCanvasSize.x, layerCanvasSize.y) else viewCanvas
   val immutableCtx = immutableCanvas.getCtx
   val mutableCanvas = if (isBot) drawFrame.createCanvas(layerCanvasSize.x, layerCanvasSize.y) else viewCanvas
   val mutableCtx = mutableCanvas.getCtx
   val bodiesCanvas = if (isBot) drawFrame.createCanvas(layerCanvasSize.x, layerCanvasSize.y) else viewCanvas
   val bodiesCtx = bodiesCanvas.getCtx
+  val ownerShipCanvas = if (isBot) drawFrame.createCanvas(layerCanvasSize.x, layerCanvasSize.y) else viewCanvas
+  val ownerShipCtx = ownerShipCanvas.getCtx
+  val selfCanvas = if(isBot)drawFrame.createCanvas(layerCanvasSize.x,layerCanvasSize.y) else viewCanvas
+  val selfCtx = selfCanvas.getCtx
   val statusCanvas = if (isBot) drawFrame.createCanvas(layerCanvasSize.x, layerCanvasSize.y) else viewCanvas
   val statusCtx = statusCanvas.getCtx
-  val kernelCanvas = if(isBot)drawFrame.createCanvas(layerCanvasSize.x,layerCanvasSize.y) else viewCanvas
-  val kernelCtx = kernelCanvas.getCtx
 
   protected val obstacleAttackedAnimationMap = mutable.HashMap[Int, Int]()
   protected val tankAttackedAnimationMap = mutable.HashMap[Int, Int]()

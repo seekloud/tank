@@ -304,10 +304,6 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     }
 
     viewCtx.drawImage(minimapCanvas.change2Image(), 0, (canvasBoundary.y - LittleMap.h) * canvasUnit - 6)
-    if(isBot){
-      mapCtx.drawImage(minimapCanvas.change2Image(), 0,  canvasUnit * 2)
-    }
-
 
   }
 
@@ -335,16 +331,16 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
   protected def drawKernelMap(tank:Tank):Unit={
     if(isBot){
-      kernelCtx.setFill("black")
-      kernelCtx.fillRec(0,0,220,200)
-      kernelCtx.beginPath()
-      kernelCtx.setStrokeStyle("white")
+      selfCtx.setFill("black")
+      selfCtx.fillRec(0,0,220,200)
+      selfCtx.beginPath()
+      selfCtx.setStrokeStyle("white")
       val x = tank.getPosition.x * 0.5
       val y = tank.getPosition.y * 0.5
-      kernelCtx.setFill("white")
-      kernelCtx.arc(x,y,2.5,0,360)
-      kernelCtx.stroke()
-      kernelCtx.closePath()
+      selfCtx.setFill("white")
+      selfCtx.arc(x,y,2.5,0,360)
+      selfCtx.stroke()
+      selfCtx.closePath()
     }
   }
 

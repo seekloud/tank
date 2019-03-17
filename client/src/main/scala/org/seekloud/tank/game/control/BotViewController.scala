@@ -36,13 +36,16 @@ import javafx.scene.image.WritableImage
 import javafx.scene.media.AudioClip
 import org.seekloud.pb.api.ActionReq
 import org.seekloud.tank.BotSdkTest
+import org.seekloud.tank.common.Context
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.shared.model.Constants.GameState
 import org.seekloud.tank.shared.model.Point
 import org.seekloud.tank.shared.protocol.TankGameEvent
 import org.seekloud.tank.shared.model
 import org.seekloud.tank.shared.util.canvas.MiddleCanvas
+import org.seekloud.tank.view.PlayGameScreen
 
+import scala.language.implicitConversions
 /**
   * Created by sky
   * Date on 2019/3/11
@@ -50,18 +53,21 @@ import org.seekloud.tank.shared.util.canvas.MiddleCanvas
   * bot游玩控制
   */
 object BotViewController{
-  var botViewController:BotViewController = _
   var SDKReplyTo:ActorRef[JoinRoomRsp] = _
 }
-
+import org.seekloud.tank.common.AppSettings.{viewWidth,viewHeight}
 class BotViewController(
                          playerInfo: PlayerInfo,
-                         gameServerInfo: GameServerInfo
-                       ) extends GameController(800, 400, true) {
+                         gameServerInfo: GameServerInfo,
+                         isView:Boolean=false,
+                         playGameScreenOpt: Option[PlayGameScreen]=None,
+                       ) extends GameController(viewWidth*4, viewHeight*4, true) {
   import BotViewController._
-
   val botViewActor= system.spawn(BotViewActor.create(), "BotViewActor")
-  var mousePlace = Point(400,200)
+
+  val pointerCanvas=drawFrame.createCanvas(viewWidth, viewHeight)
+  val pointerCtx=pointerCanvas.getCtx
+  var mousePlace = Point(viewWidth,viewHeight)
 
   private var lastMoveFrame = -1L
   private var lastMouseMoveAngle: Byte = 0
@@ -95,10 +101,12 @@ class BotViewController(
     gameContainerOpt.foreach(r =>
       botViewActor ! BotViewActor.GetByte(
         r.locationCanvas.canvas2byteArray,
-        r.mapCanvas.canvas2byteArray,
         r.immutableCanvas.canvas2byteArray,
         r.mutableCanvas.canvas2byteArray,
         r.bodiesCanvas.canvas2byteArray,
+        r.ownerShipCanvas.canvas2byteArray,
+        r.selfCanvas.canvas2byteArray,
+        pointerCanvas.canvas2byteArray,
         r.statusCanvas.canvas2byteArray,
         Some(canvas.canvas2byteArray)
       )
@@ -110,7 +118,39 @@ class BotViewController(
     BotSdkTest.test
   }
 
-  override protected def initGameContainerCallBack: Unit = {}
+  override protected def initGameContainerCallBack: Unit = {
+    if(isView){
+      gameContainerOpt.foreach{r=>
+        canvas.getCanvas.setLayoutX(0)
+        canvas.getCanvas.setLayoutY(0)
+        r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4)
+        r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
+        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+        r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4)
+        r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight)
+        r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
+        r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight)
+        r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4)
+        r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*2)
+        r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
+        r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*2)
+        pointerCanvas.getCanvas.setLayoutX(viewWidth*4)
+        pointerCanvas.getCanvas.setLayoutY(viewHeight*3)
+        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
+        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*3)
+        playGameScreenOpt.get.group.getChildren.add(canvas.getCanvas)
+        playGameScreenOpt.get.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreenOpt.get.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreenOpt.get.group.getChildren.add(r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreenOpt.get.group.getChildren.add(r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreenOpt.get.group.getChildren.add(r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreenOpt.get.group.getChildren.add(r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreenOpt.get.group.getChildren.add(pointerCanvas.getCanvas)
+        playGameScreenOpt.get.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+      }
+    }
+  }
 
   def getBotScore = gameContainerOpt.map { r =>
     r.currentRank.find(_.id == r.myTankId).getOrElse(model.Score(r.myTankId, "", 0, 0, 0))
@@ -132,6 +172,7 @@ class BotViewController(
       /**
         * 鼠标移动
         **/
+        //todo 增加鼠标位置绘画
       val d = key.swing.get.distance
       val r = key.swing.get.radian
       mousePlace  += Point(d * math.cos(r).toFloat,d * math.sin(r).toFloat)

@@ -30,11 +30,13 @@ package org.seekloud.pb;
 message LayeredObservation {
 
   ImgData location_in_map = 1;
-  ImgData map = 2;
-  ImgData immutable = 3;
-  ImgData mutable = 4;
-  ImgData bodies = 5;
-  ImgData state = 6;
+  ImgData immutable = 2;
+  ImgData mutable = 3;
+  ImgData bodies = 4;
+  ImgData ownerShip = 5;
+  ImgData selfAsset = 6;
+  ImgData pointer = 7;
+  ImgData state = 8;
 
 
 }

@@ -41,7 +41,7 @@ object BotViewActor {
   private val windowHeight = AppSettings.viewHeight
   sealed trait Command
 
-  case class GetByte(locationByte: Array[Byte], mapByte: Array[Byte], immutableByte: Array[Byte], mutableByte: Array[Byte], bodiesByte: Array[Byte], stateByte: Array[Byte], viewByte: Option[Array[Byte]]) extends Command
+  case class GetByte(locationByte: Array[Byte], immutableByte: Array[Byte], mutableByte: Array[Byte], bodiesByte: Array[Byte],ownerShip:Array[Byte],selfAsset:Array[Byte],pointer:Array[Byte], stateByte: Array[Byte], viewByte: Option[Array[Byte]]) extends Command
 
   case class GetObservation(sender:ActorRef[ObservationRsp]) extends Command
 
@@ -50,11 +50,11 @@ object BotViewActor {
   def create(): Behavior[Command] = {
     Behaviors.setup[Command] {
       _ =>
-        idle(Array[Byte](), Array[Byte](), Array[Byte](), Array[Byte](), Array[Byte](), Array[Byte](), Some(Array[Byte]()))
+        idle(Array[Byte](), Array[Byte](), Array[Byte](), Array[Byte](), Array[Byte](), Array[Byte](), Array[Byte](), Array[Byte](), Some(Array[Byte]()))
     }
   }
 
-  def idle(locationByte: Array[Byte], mapByte: Array[Byte], immutableByte: Array[Byte], mutableByte: Array[Byte], bodiesByte: Array[Byte], stateByte: Array[Byte], viewByte: Option[Array[Byte]]): Behavior[Command] = {
+  def idle(locationByte: Array[Byte], immutableByte: Array[Byte], mutableByte: Array[Byte], bodiesByte: Array[Byte],ownerShip:Array[Byte],selfAsset:Array[Byte],pointer:Array[Byte], stateByte: Array[Byte], viewByte: Option[Array[Byte]]): Behavior[Command] = {
     Behaviors.receive[Command] {
       (ctx, msg) =>
         msg match {
@@ -62,26 +62,30 @@ object BotViewActor {
             val pixel = if (AppSettings.isGray) 1 else 4
             val layer = LayeredObservation(
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(locationByte))),
-              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(mapByte))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(immutableByte))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(mutableByte))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(bodiesByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(ownerShip))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(selfAsset))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(pointer))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(stateByte)))
             )
             val observation = ObservationRsp(Some(layer), if(viewByte.isDefined) Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(viewByte.get))) else None)
             if(BotServer.isObservationConnect) {
               BotServer.streamSender.get ! GrpcStreamActor.NewObservation(observation)
             }
-            idle(m.locationByte,m.mapByte,m.immutableByte,m.mutableByte,m.bodiesByte,m.stateByte,m.viewByte)
+            idle(m.locationByte,m.immutableByte,m.mutableByte,m.bodiesByte,m.ownerShip,m.selfAsset,m.pointer,m.stateByte,m.viewByte)
 
           case t: GetObservation =>
             val pixel = if (AppSettings.isGray) 1 else 4
             val layer = LayeredObservation(
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(locationByte))),
-              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(mapByte))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(immutableByte))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(mutableByte))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(bodiesByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(ownerShip))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(selfAsset))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(pointer))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(stateByte)))
             )
             val observation = ObservationRsp(Some(layer), if(viewByte.isDefined) Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(viewByte.get))) else None)

@@ -40,6 +40,7 @@ import io.circe.generic.auto._
 import org.seekloud.tank.BotServer
 import org.seekloud.tank.common.AppSettings
 import org.seekloud.tank.game.control.BotViewController
+import org.seekloud.tank.view.PlayGameScreen
 
 
 /**
@@ -54,7 +55,7 @@ object LoginActor {
   final case object QrLogin extends Command
   final case object EmailLogin extends Command
   final case class EmailLogin(mail:String, pwd:String) extends Command
-  final case class BotLogin(req:BotKeyReq) extends Command
+  final case class BotLogin(req:BotKeyReq,replyTo:ActorRef[(PlayerInfo,GameServerInfo)]) extends Command
   final case class Request(m: String) extends Command
   final case object StopWs extends Command
 
@@ -116,7 +117,7 @@ object LoginActor {
           }
           Behaviors.same
 
-        case BotLogin(req)=>
+        case BotLogin(req,replyTo)=>
           EsheepClient.getBotToken(req.botId, req.botKey).map{
             case Right(validateRst) =>
               EsheepClient.linkGameAgent(validateRst.token,s"bot${req.botId}").map{
@@ -124,9 +125,7 @@ object LoginActor {
                   val userInfo = UserInfo(1000l,"bot" + validateRst.botName, validateRst.token, 7200)
                   val playerInfo= PlayerInfo(userInfo,"bot" + validateRst.botName, validateRst.botName, linkRst.accessCode)
                   val gameServerInfo = GameServerInfo(linkRst.gsPrimaryInfo.ip, linkRst.gsPrimaryInfo.port, linkRst.gsPrimaryInfo.domain)
-                  val c = new BotViewController(playerInfo, gameServerInfo)
-                  c.startGame
-                  botServer ! BotServer.BuildServer(AppSettings.botServerPort, executor, c)
+                  replyTo ! (playerInfo,gameServerInfo)
                 case Left(e) =>
                   log.warn(s"${ctx.self.path} VerifyAccessCode failed, error:$e")
               }

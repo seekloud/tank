@@ -16,14 +16,24 @@
 
 package org.seekloud.tank.controller
 
-import org.seekloud.tank.ClientApp
-import org.seekloud.tank.common.Context
-import org.seekloud.tank.view.{EnterSceneListener, EnterScreen, LoginScreen}
+import org.seekloud.tank.{BotServer, ClientApp}
+import org.seekloud.tank.ClientApp.{botServer, executor, loginActor, scheduler, timeout}
+import org.seekloud.tank.common.{AppSettings, Context}
+import org.seekloud.tank.core.LoginActor
+import akka.actor.typed.scaladsl.AskPattern._
+import org.seekloud.tank.game.control.BotViewController
+import org.seekloud.tank.model.{BotKeyReq, GameServerInfo, PlayerInfo}
+import org.seekloud.tank.view.{EnterSceneListener, EnterScreen, LoginScreen, PlayGameScreen}
+import org.slf4j.LoggerFactory
 
-class EnterScreenController(val context:Context, val enter:EnterScreen) {
-  enter.setListener(new EnterSceneListener{
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
+
+class EnterScreenController(val context: Context, val enter: EnterScreen) {
+  private val log = LoggerFactory.getLogger(this.getClass)
+  enter.setListener(new EnterSceneListener {
     override def onBtnForMan(): Unit = {
-      ClientApp.pushStack2AppThread{
+      ClientApp.pushStack2AppThread {
         val loginScreen = new LoginScreen(context)
         LoginScreenController.loginScreenController = new LoginScreenController(context, loginScreen)
         LoginScreenController.loginScreenController.start
@@ -31,10 +41,24 @@ class EnterScreenController(val context:Context, val enter:EnterScreen) {
     }
 
     override def onBtnForBot(): Unit = {
-
+      val rspFuture: Future[(PlayerInfo, GameServerInfo)] = loginActor ? (LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey), _))
+      rspFuture.onComplete {
+        case Success(value) =>
+          log.info("botView start")
+          ClientApp.pushStack2AppThread {
+            /** bot启动 */
+            val playGameScreen: PlayGameScreen = new PlayGameScreen(context)
+            context.switchScene(playGameScreen.getScene(), resize = true, fullScreen = true)
+            playGameScreen.setCursor
+            val c = new BotViewController(value._1, value._2, true, Some(playGameScreen))
+            c.startGame
+            botServer ! BotServer.BuildServer(AppSettings.botServerPort, executor, c)
+          }
+        case Failure(exception) =>
+          log.error(exception.getMessage)
+      }
     }
   })
-
 
 
 }

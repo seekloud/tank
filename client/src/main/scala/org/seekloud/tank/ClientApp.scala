@@ -23,8 +23,6 @@ import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.dispatch.MessageDispatcher
 import akka.event.{Logging, LoggingAdapter}
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.Directives.{getFromResource, pathPrefix}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import javafx.application.{Application, Platform}
@@ -42,17 +40,15 @@ import scala.util.{Failure, Success}
 /**
   * Created by hongruying on 2018/10/22
   */
-class  ClientApp extends Application {
-
+class ClientApp extends Application {
   override def start(primaryStage: Stage): Unit = {
     val context = new Context(primaryStage)
     val enterScreen = new EnterScreen(context)
     context.switchScene(enterScreen.getScene,resize = true)
     new EnterScreenController(context, enterScreen)
     /**bot启动*/
-//    loginActor ! LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey))
+//    ClientApp.startApp
   }
-
 }
 
 object ClientApp {
@@ -81,5 +77,18 @@ object ClientApp {
 
   def pushStack2AppThread(fun: => Unit) = {
     Platform.runLater(() => fun)
+  }
+
+  def startApp={
+    val rspFuture:Future[(PlayerInfo,GameServerInfo)]=loginActor ? (LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey),_))
+    rspFuture.onComplete{
+      case Success(value)=>
+        val c = new BotViewController(value._1, value._2)
+        c.startGame
+        botServer ! BotServer.BuildServer(AppSettings.botServerPort, executor, c)
+        log.info("startApp success")
+      case Failure(exception)=>
+        log.info(s"startApp error ${exception.getCause}")
+    }
   }
 }

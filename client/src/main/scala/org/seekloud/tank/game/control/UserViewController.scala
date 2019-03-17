@@ -53,11 +53,9 @@ class UserViewController(
                           playGameScreen: PlayGameScreen,
                           roomInfo: Option[String] = None,
                           roomPwd: Option[String] = None,
-                          isCreated: Boolean,
-                          isBot:Boolean=true
-                        ) extends GameController(if(isBot) AppSettings.viewWidth*4 else context.getStageWidth.toFloat, if(isBot) AppSettings.viewHeight*4 else context.getStageHeight.toFloat, isBot) {
+                          isCreated: Boolean
+                        ) extends GameController( context.getStageWidth.toFloat, context.getStageHeight.toFloat, false) {
   import org.seekloud.tank.common.AppSettings.{viewWidth,viewHeight}
-  val botViewActor = if(isBot) system.spawn(BotViewActor.create(), "BotViewActor")
   private var spaceKeyUpState = true
   private var lastMouseMoveAngle: Byte = 0
   private val perMouseMoveFrame = 2
@@ -127,12 +125,10 @@ class UserViewController(
   }
 
   override protected def checkScreenSize: Unit = {
-    if(!isBot){
-      val (boundary, unit) = getScreenSize()
-      if (unit != 0) {
-        gameContainerOpt.foreach { r =>
-          r.updateClientSize(boundary, unit)
-        }
+    val (boundary, unit) = getScreenSize()
+    if (unit != 0) {
+      gameContainerOpt.foreach { r =>
+        r.updateClientSize(boundary, unit)
       }
     }
   }
@@ -283,36 +279,8 @@ class UserViewController(
   override protected def initGameContainerCallBack: Unit = {
     gameContainerOpt.foreach { r =>
       ClientApp.pushStack2AppThread {
-        if(!isBot){
-          playGameScreen.group.getChildren.add(canvas.getCanvas)
-          addUserActionListenEvent
-        }else{
-          canvas.getCanvas.setLayoutX(0)
-          canvas.getCanvas.setLayoutY(0)
-          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX()
-          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
-          r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1220)
-          r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
-          r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(810)
-          r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(210)
-          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(1220)
-          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(210)
-          r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(0)
-          r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
-          r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(410)
-          r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
-          r.kernelCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(820)
-          r.kernelCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(410)
-          playGameScreen.group.getChildren.add(canvas.getCanvas)
-          addUserActionListenEvent
-          playGameScreen.group.getChildren.add(r.mapCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-          playGameScreen.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-          playGameScreen.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-          playGameScreen.group.getChildren.add(r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-          playGameScreen.group.getChildren.add(r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-          playGameScreen.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-          playGameScreen.group.getChildren.add(r.kernelCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        }
+        playGameScreen.group.getChildren.add(canvas.getCanvas)
+        addUserActionListenEvent
       }
     }
   }

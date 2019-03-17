@@ -23,7 +23,7 @@ import javafx.animation.AnimationTimer
 import javafx.scene.input.KeyCode
 import org.seekloud.tank.ClientApp
 import org.seekloud.tank.ClientApp.system
-import org.seekloud.tank.core.PlayGameActor
+import org.seekloud.tank.core.{BotViewActor, PlayGameActor}
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.common.{AppSettings, Constants}
 import org.seekloud.tank.game.NetworkInfo
