@@ -48,7 +48,12 @@ trait BotTankDrawUtil extends TankDrawUtil {
       val tank = t.asInstanceOf[TankClientImpl]
       val p = tank.getPosition + offset
       if (p.in(view, Point(t.getRadius * 4, t.getRadius * 4))) {
+        drawTankGun(p,tank,layerCanvasUnit,bodiesCtx)
         drawTank(p, tank,if(tank.tankId==myTankId) tank.getTankColor() else s"rgba(${tank.tankId%255}, ${tank.tankId%255}, ${tank.tankId%255}, 1)",layerCanvasUnit, bodiesCtx)
+        drawTank(p, tank,if(tank.tankId==myTankId) tank.getTankColor() else s"rgba(${tank.tankId%255}, ${tank.tankId%255}, ${tank.tankId%255}, 1)",layerCanvasUnit, ownerShipCtx)
+        if(tank.tankId==myTankId){
+          drawTank(p, tank,if(tank.tankId==myTankId) tank.getTankColor() else s"rgba(${tank.tankId%255}, ${tank.tankId%255}, ${tank.tankId%255}, 1)",layerCanvasUnit, selfCtx)
+        }
         drawBloodSlider(p, tank, layerCanvasUnit, bodiesCtx)
         drawTankName(p, tank.name, layerCanvasUnit, bodiesCtx)
         drawTankBullet(p, tank, layerCanvasUnit, bodiesCtx)
@@ -60,14 +65,4 @@ trait BotTankDrawUtil extends TankDrawUtil {
   protected def drawStateMap: Unit = {
 
   }
-
-  /* if (isBot) {
-     bodiesCtx.beginPath()
-     bodiesCtx.setFill("#006699")
-     bodiesCtx.setTextAlign("center")
-     bodiesCtx.setFont("楷体", "normal", 2 * canvasUnit)
-     bodiesCtx.setLineWidth(2)
-     bodiesCtx.fillText(s"${tank.name}", namePosition.x / layerCanvasUnit, namePosition.y / layerCanvasUnit, 20 * canvasUnit / layerCanvasUnit)
-     bodiesCtx.closePath()
-   }*/
 }

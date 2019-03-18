@@ -52,6 +52,7 @@ trait TankDrawUtil {
       val tank = t.asInstanceOf[TankClientImpl]
       val p = tank.getPosition4Animation(boundary, quadTree, offsetTime, systemFrame) + offset
       if (p.in(view, Point(t.getRadius * 4, t.getRadius * 4))) {
+        drawTankGun(p,tank,canvasUnit,viewCtx)
         drawTank(p,tank,tank.getTankColor(),canvasUnit,viewCtx)
         drawBloodSlider(p, tank, canvasUnit, viewCtx)
         drawTankName(p, tank.name, canvasUnit, viewCtx)
@@ -61,13 +62,12 @@ trait TankDrawUtil {
     }
   }
 
-  def drawTank(p:Point,tank:TankClientImpl,tankColor:String,unit:Int,ctx:MiddleContext)={
+  def drawTankGun(p:Point,tank:TankClientImpl,unit:Int,ctx:MiddleContext)={
     if (tankAttackedAnimationMap.contains(tank.tankId)) {
       if (tankAttackedAnimationMap(tank.tankId) <= 0) tankAttackedAnimationMap.remove(tank.tankId)
       else tankAttackedAnimationMap.put(tank.tankId, tankAttackedAnimationMap(tank.tankId) - 1)
       ctx.setGlobalAlpha(0.5)
     }
-
     //------------------------绘制炮筒--------------------------#
     val gunPositionList = tank.getGunPositions4Animation().map(t => (t + p) * unit)
     ctx.beginPath()
@@ -92,6 +92,9 @@ trait TankDrawUtil {
       ctx.fill()
       ctx.closePath()
     }
+  }
+
+  def drawTank(p:Point,tank:TankClientImpl,tankColor:String,unit:Int,ctx:MiddleContext)={
     ctx.beginPath()
     ctx.setLineWidth(0.4 * unit)
     ctx.setStrokeStyle("#636363")

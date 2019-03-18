@@ -31,6 +31,8 @@ trait BotBackgroundDrawUtil extends BackgroundDrawUtil{ this:GameContainerClient
     clearScreen("#000000",1, layerCanvasSize.x, layerCanvasSize.y, immutableCtx)
     clearScreen("#000000",1, layerCanvasSize.x, layerCanvasSize.y, mutableCtx)
     clearScreen("#000000",1, layerCanvasSize.x, layerCanvasSize.y, bodiesCtx)
+    clearScreen("#000000",1, layerCanvasSize.x, layerCanvasSize.y, ownerShipCtx)
+    clearScreen("#000000",1, layerCanvasSize.x, layerCanvasSize.y, selfCtx)
   }
 
   protected def drawLocation4Bot(tank:Tank):Unit={
