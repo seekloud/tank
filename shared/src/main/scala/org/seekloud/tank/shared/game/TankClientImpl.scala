@@ -57,15 +57,6 @@ case class TankClientImpl(
     fillBulletCallBack(tankId)
   }
 
-//  final def setFakeTankDirection(actionSet:Set[Byte],frame:Long) = {
-//    val targetDirectionOpt = getDirection(actionSet)
-//    if(targetDirectionOpt.nonEmpty) {
-//      isFakeMove = true
-//      fakeStartFrame=frame
-//      this.direction = targetDirectionOpt.get
-//    } else isFakeMove = false
-//  }
-
   final def setFakeTankDirection(moveState:Byte,frame:Long) = {
     val targetDirectionOpt = getDirection(moveState)
     if(targetDirectionOpt.nonEmpty) {

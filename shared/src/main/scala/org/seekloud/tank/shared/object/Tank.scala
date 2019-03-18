@@ -151,14 +151,6 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
     }
   }
 
-//  def getAcceleration(implicit tankGameConfig: TankGameConfig):Float = {
-//    if (isMove){
-//      tankGameConfig.getMoveDistanceByFrame(speedLevel).distance(Point(0,0)).toFloat / (accelerationTime / tankGameConfig.frameDuration)
-//    } else{
-//      - tankGameConfig.getMoveDistanceByFrame(speedLevel).distance(Point(0,0)).toFloat / (decelerationTime / tankGameConfig.frameDuration)
-//    }
-//  }
-
   def getAcceleration(implicit tankGameConfig: TankGameConfig):Point =
     tankGameConfig.getMoveDistanceByFrame(speedLevel) / (accelerationTime / tankGameConfig.frameDuration)
 

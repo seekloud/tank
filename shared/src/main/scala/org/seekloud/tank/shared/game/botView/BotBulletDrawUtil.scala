@@ -18,6 +18,7 @@ package org.seekloud.tank.shared.game.botView
 
 import org.seekloud.tank.shared.game.GameContainerClientImpl
 import org.seekloud.tank.shared.game.view.BulletDrawUtil
+import org.seekloud.tank.shared.model.Point
 
 /**
   * Created by sky
@@ -25,5 +26,19 @@ import org.seekloud.tank.shared.game.view.BulletDrawUtil
   * Time at 上午11:40
   */
 trait BotBulletDrawUtil extends BulletDrawUtil{this:GameContainerClientImpl=>
+  protected def drawBullet4bot(offset:Point, view:Point) = {
+    bulletMap.values.foreach{ bullet =>
+      val p = bullet.getPosition + offset
+      if(p.in(view,Point(bullet.getRadius * 4 ,bullet.getRadius *4))) {
+        val cacheCanvas = canvasCacheMap.getOrElseUpdate((bullet.getBulletLevel(),Some(bullet.tankId)), generateCanvas(bullet,Some(bullet.tankId)))
+        val radius = bullet.getRadius
+        mutableCtx.drawImage(cacheCanvas, (p.x - bullet.getRadius) * layerCanvasUnit - radius * layerCanvasUnit / 2.5, (p.y - bullet.getRadius) * layerCanvasUnit - radius * layerCanvasUnit / 2.5)
+        ownerShipCtx.drawImage(cacheCanvas, (p.x - bullet.getRadius) * layerCanvasUnit - radius * layerCanvasUnit / 2.5, (p.y - bullet.getRadius) * layerCanvasUnit - radius * layerCanvasUnit / 2.5)
+        if(bullet.tankId==myTankId){
+          selfCtx.drawImage(cacheCanvas, (p.x - bullet.getRadius) * layerCanvasUnit - radius * layerCanvasUnit / 2.5, (p.y - bullet.getRadius) * layerCanvasUnit - radius * layerCanvasUnit / 2.5)
+        }
 
+      }
+    }
+  }
 }

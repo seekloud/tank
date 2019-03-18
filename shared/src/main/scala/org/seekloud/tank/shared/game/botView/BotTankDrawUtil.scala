@@ -19,6 +19,7 @@ package org.seekloud.tank.shared.game.botView
 import org.seekloud.tank.shared.`object`.Tank
 import org.seekloud.tank.shared.game.{GameContainerClientImpl, TankClientImpl}
 import org.seekloud.tank.shared.game.view.TankDrawUtil
+import org.seekloud.tank.shared.model.Constants.TankColor
 import org.seekloud.tank.shared.model.Point
 import org.seekloud.tank.shared.util.canvas.MiddleContext
 
@@ -49,10 +50,10 @@ trait BotTankDrawUtil extends TankDrawUtil {
       val p = tank.getPosition + offset
       if (p.in(view, Point(t.getRadius * 4, t.getRadius * 4))) {
         drawTankGun(p,tank,layerCanvasUnit,bodiesCtx)
-        drawTank(p, tank,if(tank.tankId==myTankId) tank.getTankColor() else s"rgba(${tank.tankId%255}, ${tank.tankId%255}, ${tank.tankId%255}, 1)",layerCanvasUnit, bodiesCtx)
-        drawTank(p, tank,if(tank.tankId==myTankId) tank.getTankColor() else s"rgba(${tank.tankId%255}, ${tank.tankId%255}, ${tank.tankId%255}, 1)",layerCanvasUnit, ownerShipCtx)
+        drawTank(p, tank,if(tank.tankId==myTankId) TankColor.green else s"rgba(${tank.tankId%255}, ${tank.tankId%255}, ${tank.tankId%255}, 1)",layerCanvasUnit, bodiesCtx)
+        drawTank(p, tank,if(tank.tankId==myTankId) TankColor.green else s"rgba(${tank.tankId%255}, ${tank.tankId%255}, ${tank.tankId%255}, 1)",layerCanvasUnit, ownerShipCtx)
         if(tank.tankId==myTankId){
-          drawTank(p, tank,if(tank.tankId==myTankId) tank.getTankColor() else s"rgba(${tank.tankId%255}, ${tank.tankId%255}, ${tank.tankId%255}, 1)",layerCanvasUnit, selfCtx)
+          drawTank(p, tank,if(tank.tankId==myTankId) TankColor.green else s"rgba(${tank.tankId%255}, ${tank.tankId%255}, ${tank.tankId%255}, 1)",layerCanvasUnit, selfCtx)
         }
         drawBloodSlider(p, tank, layerCanvasUnit, bodiesCtx)
         drawTankName(p, tank.name, layerCanvasUnit, bodiesCtx)
