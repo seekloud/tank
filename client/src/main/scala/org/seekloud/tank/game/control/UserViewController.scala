@@ -188,7 +188,6 @@ class UserViewController(
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode) && !myKeySet.contains(keyCode)) {
           myKeySet.add(keyCode)
-          println(s"key down: [${e.getCode.getName}]")
           val preExecuteAction = TankGameEvent.UserMoveState(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, getMoveStateByKeySet(myKeySet.toSet), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction)
@@ -198,7 +197,6 @@ class UserViewController(
         }
         if (gunAngleAdjust.contains(keyCode) && poKeyBoardFrame != gameContainerOpt.get.systemFrame) {
           myKeySet.remove(keyCode)
-          println(s"key down: [${e.getCode.getName}]")
           poKeyBoardFrame = gameContainerOpt.get.systemFrame
           val Theta =
             if (keyCode == KeyCode.K) poKeyBoardMoveTheta

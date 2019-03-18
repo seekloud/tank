@@ -66,6 +66,7 @@ class BotViewController(
 
   val pointerCanvas=drawFrame.createCanvas(viewWidth, viewHeight)
   val pointerCtx=pointerCanvas.getCtx
+
   var mousePlace = Point(viewWidth,viewHeight)
 
   private var lastMoveFrame = -1L

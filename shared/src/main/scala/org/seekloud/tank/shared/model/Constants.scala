@@ -109,6 +109,6 @@ object Constants {
   }
 
 
-  final val WindowView = Point(192,108)
+  final val WindowView = Point(200,100)
 
 }

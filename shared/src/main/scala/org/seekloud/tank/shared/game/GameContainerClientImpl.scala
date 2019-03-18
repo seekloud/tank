@@ -18,6 +18,7 @@ package org.seekloud.tank.shared.game
 
 import org.seekloud.tank.shared.`object`._
 import org.seekloud.tank.shared.config.TankGameConfig
+import org.seekloud.tank.shared.game.botView._
 import org.seekloud.tank.shared.game.view._
 import org.seekloud.tank.shared.model.Constants.{GameAnimation, PropGenerateType}
 import org.seekloud.tank.shared.model.Point
@@ -50,7 +51,7 @@ case class GameContainerClientImpl(
                                     layerCanvasSize:Point = Point(400,200),
                                     layerCanvasUnit: Int = 2
                                   ) extends GameContainer with EsRecover
-  with BackgroundDrawUtil with BulletDrawUtil with FpsComponentsDrawUtil with ObstacleDrawUtil with PropDrawUtil with TankDrawUtil with InfoDrawUtil {
+  with BotBackgroundDrawUtil with BotBulletDrawUtil with FpsComponentsDrawUtil with BotObstacleDrawUtil with BotPropDrawUtil with BotTankDrawUtil with InfoDrawUtil {
 
   import scala.language.implicitConversions
 
@@ -61,7 +62,7 @@ case class GameContainerClientImpl(
     * layerCanvasUnit的使用
     * 分层图层重写
     * location: 视野范围
-    * immutable: 钢铁、河流
+    * immutable: 钢铁、河流、边界
     * mutable: 子弹、道具、砖块
     * bodies: 所有坦克，每个坦克颜色不同，开始可根据（tankId%255，三种等级对应（0，100，255），0）
     * ownership: 权视图，所有坦克操纵核心，所有子弹，对应相应颜色
@@ -493,8 +494,7 @@ case class GameContainerClientImpl(
         case Some(tank) =>
           val offset = canvasSize / canvasUnit / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
           drawBackground(offset)
-          drawLocationMap(tank)
-          drawKernelMap(tank)
+//          drawKernelMap(tank)
           drawObstacles(offset, Point(w, h))
           drawEnvironment(offset, Point(w, h))
           drawProps(offset, Point(w, h))
@@ -508,6 +508,12 @@ case class GameContainerClientImpl(
           drawKillInformation()
           drawRoomNumber()
           drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
+          if(isBot){
+            //todo 使用本参数
+            val layerOffset = layerCanvasSize / layerCanvasUnit /2 -tank.getPosition
+            drawBotBackground(layerOffset)
+            drawLocationMap(tank)
+          }
           val endTime = System.currentTimeMillis()
         //          renderTimes += 1
         //          renderTime += endTime - startTime
