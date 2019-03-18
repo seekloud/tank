@@ -240,7 +240,6 @@ class UserViewController(
         val keyCode = changeKeys(e.getCode)
         if (watchKeys.contains(keyCode)) {
           myKeySet.remove(keyCode)
-          println(s"key up: [${e.getCode}]")
           val preExecuteAction = TankGameEvent.UserMoveState(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, getMoveStateByKeySet(myKeySet.toSet), getActionSerialNum)
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           playGameActor ! DispatchMsg(preExecuteAction)
