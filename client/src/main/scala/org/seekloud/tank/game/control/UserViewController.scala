@@ -26,6 +26,7 @@ import javafx.scene.media.{AudioClip, Media, MediaPlayer}
 import javafx.util.Duration
 import org.seekloud.tank.ClientApp
 import org.seekloud.tank.ClientApp.{executor, scheduler, system, timeout, tokenActor}
+import org.seekloud.tank.common.AppSettings.{viewHeight, viewWidth}
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.core.{BotViewActor, PlayGameActor, TokenActor}
 import org.seekloud.tank.common.{AppSettings, Context}
@@ -54,7 +55,7 @@ class UserViewController(
                           roomInfo: Option[String] = None,
                           roomPwd: Option[String] = None,
                           isCreated: Boolean
-                        ) extends GameController( context.getStageWidth.toFloat, context.getStageHeight.toFloat, false) {
+                        ) extends GameController( /*context.getStageWidth.toFloat, context.getStageHeight.toFloat, false*/viewWidth*4, viewHeight*4, true) {
   private var spaceKeyUpState = true
   private var lastMouseMoveAngle: Byte = 0
   private val perMouseMoveFrame = 2
@@ -124,12 +125,13 @@ class UserViewController(
   }
 
   override protected def checkScreenSize: Unit = {
-    val (boundary, unit) = getScreenSize()
+    //fixme 测试阶段
+    /*val (boundary, unit) = getScreenSize()
     if (unit != 0) {
       gameContainerOpt.foreach { r =>
         r.updateClientSize(boundary, unit)
       }
-    }
+    }*/
   }
 
   override protected def gameStopCallBack: Unit = timeline.play()
@@ -278,7 +280,33 @@ class UserViewController(
   override protected def initGameContainerCallBack: Unit = {
     gameContainerOpt.foreach { r =>
       ClientApp.pushStack2AppThread {
+//        playGameScreen.group.getChildren.add(canvas.getCanvas)
+//        addUserActionListenEvent
+        //fixme 测试阶段
+        canvas.getCanvas.setLayoutX(0)
+        canvas.getCanvas.setLayoutY(0)
+        r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4)
+        r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
+        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+        r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4)
+        r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight)
+        r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
+        r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight)
+        r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4)
+        r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*2)
+        r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
+        r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*2)
+        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
+        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*3)
         playGameScreen.group.getChildren.add(canvas.getCanvas)
+        playGameScreen.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreen.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreen.group.getChildren.add(r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreen.group.getChildren.add(r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreen.group.getChildren.add(r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreen.group.getChildren.add(r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        playGameScreen.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
         addUserActionListenEvent
       }
     }

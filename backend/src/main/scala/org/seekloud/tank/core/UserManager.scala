@@ -100,9 +100,6 @@ object UserManager {
           userActor ! UserActor.WsSuccess(roomIdOpt)
           Behaviors.same
 
-
-
-
         case GetWebSocketFlow4WatchGame(roomId, watchedUserId, replyTo, playerInfoOpt) =>
           //观战用户建立Actor由userManager监管，消息来自HttpService
           val playerInfo = playerInfoOpt match {

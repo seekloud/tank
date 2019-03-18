@@ -141,8 +141,6 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
       val point = Point(e.clientX.toFloat, e.clientY.toFloat) + Point(24, 24)
       val theta = point.getTheta(canvasSize  / 2).toFloat
       val angle = point.getAngle(canvasSize  / 2)
-      //remind tank自身流畅显示
-      //fixme 此处序列号是否存疑
       val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta,-1)
       gameContainerOpt.get.preExecuteUserEvent(preMMFAction)
       if (gameContainerOpt.nonEmpty && gameState == GameState.play && lastMoveFrame+perMouseMoveFrame < gameContainerOpt.get.systemFrame) {

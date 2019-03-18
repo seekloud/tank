@@ -280,7 +280,6 @@ object PlayGameActor {
   /**
     * 链接由从平台获得IP和端口后拼接*/
   def getWebSocketUri(info:ConnectGame): String = {
-    //todo 更改为目标端口
     val host = info.gameInfo.domain
     Route.getUserJoinGameWebSocketUri(host,info.playInfo,info.roomInfo)
 

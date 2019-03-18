@@ -261,20 +261,12 @@ case class GameContainerClientImpl(
     if (tankMap.contains(tankId)) {
       val tank = tankMap(tankId).asInstanceOf[TankClientImpl]
       if (actions.nonEmpty) {
-//        val tankMoveSet = mutable.Set[Byte]()
         var tankMoveState:Byte = 8
         actions.sortBy(t => t.serialNum).foreach {
-//          case a: UserPressKeyDown =>
-//            tankMoveSet.add(a.keyCodeDown)
-//          case a: UserPressKeyUp =>
-//            tankMoveSet.remove(a.keyCodeUp)
           case a: UserMoveState =>
             tankMoveState = a.moveState
           case _ =>
         }
-//        if (tankMoveSet.nonEmpty && !tank.getTankIsMove()) {
-//          tank.setFakeTankDirection(tankMoveSet.toSet, systemFrame)
-//        }
         if (tankMoveState < 8 && !tank.getTankIsMove()) {
           tank.setFakeTankDirection(tankMoveState, systemFrame)
         }
@@ -400,7 +392,6 @@ case class GameContainerClientImpl(
         tanks.forall { tankState =>
           tankMap.get(tankState.tankId) match {
             case Some(t) =>
-              //fixme 此处排除炮筒方向
               if (t.getTankState().copy(gunDirection = 0f) != tankState.copy(gunDirection = 0f)) {
                 info(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
                 false

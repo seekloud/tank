@@ -35,7 +35,7 @@ import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.image.WritableImage
 import javafx.scene.media.AudioClip
 import org.seekloud.pb.api.ActionReq
-import org.seekloud.tank.BotSdkTest
+import org.seekloud.tank.{BotSdkTest, ClientApp}
 import org.seekloud.tank.common.Context
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.shared.model.Constants.GameState
@@ -62,7 +62,6 @@ class BotViewController(
                          isView:Boolean=false,
                          playGameScreenOpt: Option[PlayGameScreen]=None,
                        ) extends GameController(viewWidth*4, viewHeight*4, true) {
-  import BotViewController._
   val botViewActor= system.spawn(BotViewActor.create(), "BotViewActor")
 
   val pointerCanvas=drawFrame.createCanvas(viewWidth, viewHeight)
@@ -119,36 +118,38 @@ class BotViewController(
   }
 
   override protected def initGameContainerCallBack: Unit = {
-    if(isView){
-      gameContainerOpt.foreach{r=>
-        canvas.getCanvas.setLayoutX(0)
-        canvas.getCanvas.setLayoutY(0)
-        r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4)
-        r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
-        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
-        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
-        r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4)
-        r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight)
-        r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
-        r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight)
-        r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4)
-        r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*2)
-        r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
-        r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*2)
-        pointerCanvas.getCanvas.setLayoutX(viewWidth*4)
-        pointerCanvas.getCanvas.setLayoutY(viewHeight*3)
-        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
-        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*3)
-        playGameScreenOpt.get.group.getChildren.add(canvas.getCanvas)
-        playGameScreenOpt.get.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreenOpt.get.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreenOpt.get.group.getChildren.add(r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreenOpt.get.group.getChildren.add(r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreenOpt.get.group.getChildren.add(r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreenOpt.get.group.getChildren.add(r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreenOpt.get.group.getChildren.add(pointerCanvas.getCanvas)
-        playGameScreenOpt.get.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-      }
+    if(isView&&playGameScreenOpt.nonEmpty){
+      ClientApp.pushStack2AppThread(
+        gameContainerOpt.foreach{r=>
+          canvas.getCanvas.setLayoutX(0)
+          canvas.getCanvas.setLayoutY(0)
+          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4)
+          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+          r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
+          r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+          r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4)
+          r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight)
+          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
+          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight)
+          r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4)
+          r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*2)
+          r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
+          r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*2)
+          pointerCanvas.getCanvas.setLayoutX(viewWidth*4)
+          pointerCanvas.getCanvas.setLayoutY(viewHeight*3)
+          r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5)
+          r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*3)
+          playGameScreenOpt.get.group.getChildren.add(canvas.getCanvas)
+          playGameScreenOpt.get.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreenOpt.get.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreenOpt.get.group.getChildren.add(r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreenOpt.get.group.getChildren.add(r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreenOpt.get.group.getChildren.add(r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreenOpt.get.group.getChildren.add(r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreenOpt.get.group.getChildren.add(pointerCanvas.getCanvas)
+          playGameScreenOpt.get.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+        }
+      )
     }
   }
 
