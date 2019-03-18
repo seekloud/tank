@@ -513,6 +513,7 @@ case class GameContainerClientImpl(
             val layerOffset = layerCanvasSize / layerCanvasUnit /2 -tank.getPosition
             drawBackground4Bot(layerOffset)
             drawLocation4Bot(tank)
+            drawBullet4bot(layerOffset,Point(w,h))
             drawTankList4Bot(layerOffset,Point(w, h))
             drawKernel4Bot(layerOffset,tank)
             drawImmutableMap(layerOffset,Point(w,h))
