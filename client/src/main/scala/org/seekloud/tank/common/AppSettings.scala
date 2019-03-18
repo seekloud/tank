@@ -60,6 +60,8 @@ object AppSettings {
 
   val botServerPort = appConfig.getInt("botServerPort")
 
+  val framePeriod = appConfig.getInt("framePeriod")
+
   val botId = appConfig.getString("botInfo.botId")
   val botKey = appConfig.getString("botInfo.botKey")
 
