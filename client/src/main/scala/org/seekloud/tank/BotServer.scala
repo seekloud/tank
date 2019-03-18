@@ -44,7 +44,7 @@ import scala.concurrent.{ExecutionContext, Future}
   *         对接grpcAPI
   */
 object BotServer {
-  val log = LoggerFactory.getLogger(this.getClass)
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   trait Command
 
@@ -176,13 +176,11 @@ class BotServer(
 
   override def actionSpace(request: Credit): Future[ActionSpaceRsp] = {
     if (botAuth(request.apiToken)) {
-      val rsp = ActionSpaceRsp(move = List(Move.up, Move.down, Move.left, Move.right), fire = List(), apply = List(), state = BotServer.state, msg = "ok")
+      val rsp = ActionSpaceRsp(move = List(Move.up, Move.down, Move.left, Move.right, Move.r_up, Move.r_down, Move.l_up, Move.l_down, Move.noop), fire = List(0,1), apply = List(0,1), state = BotServer.state, msg = "ok")
       Future.successful(rsp)
     } else {
       Future.successful(ActionSpaceRsp(errCode = 101, state = State.unknown, msg = "auth error"))
     }
-    val rsp = ActionSpaceRsp(move = List(Move.up, Move.down, Move.left, Move.right), fire = List(), apply = List(), state = BotServer.state, msg = "ok")
-    Future.successful(rsp)
   }
 
   override def action(request: ActionReq): Future[ActionRsp] = {
@@ -228,8 +226,7 @@ class BotServer(
   }
 
   override def systemInfo(request: Credit): Future[SystemInfoRsp] = {
-    //fixme 此处不应该写死
-    val rsp = SystemInfoRsp(framePeriod = 100, state = BotServer.state, msg = "ok")
+    val rsp = SystemInfoRsp(framePeriod = AppSettings.framePeriod, state = BotServer.state, msg = "ok")
     Future.successful(rsp)
     if (botAuth(request.apiToken)) {
       Future.successful(SystemInfoRsp())

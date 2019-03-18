@@ -225,7 +225,7 @@ class BotViewController(
   def receiveReincarnation ={
     val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, gameContainerOpt.get.tankMap(gameContainerOpt.get.myTankId).getGunDirection(), getActionSerialNum)
     gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-    playGameActor ! DispatchMsg(preExecuteAction) //发送鼠标位置
+    playGameActor ! DispatchMsg(preExecuteAction)
   }
 
 }
