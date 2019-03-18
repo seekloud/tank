@@ -29,11 +29,11 @@ import scala.collection.mutable
   */
 trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
 
-  private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Any]()
+  protected val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Any]()
 
-  private val steelImg =drawFrame.createImage("/img/钢铁.png")
-  private val riverImg =drawFrame.createImage("/img/river.png")
-  private val airBoxImg =drawFrame.createImage("/img/道具.png")
+  protected val steelImg =drawFrame.createImage("/img/钢铁.png")
+  protected val riverImg =drawFrame.createImage("/img/river.png")
+  protected val airBoxImg =drawFrame.createImage("/img/道具.png")
 
   def updateObstacleSize(canvasSize:Point)={
     obstacleCanvasCacheMap.clear()
@@ -42,24 +42,24 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
   //todo  此处需要调研图片complete
   protected def obstacleImgComplete: Boolean = steelImg.isComplete && riverImg.isComplete
 
-  private def generateObstacleCacheCanvas(width: Float, height: Float, color: String): Any = {
-    val cacheCanvas = drawFrame.createCanvas((width * canvasUnit).toInt, (height * canvasUnit).toInt)
+  protected def generateObstacleCacheCanvas(width: Float, height: Float, color: String,unit:Int): Any = {
+    val cacheCanvas = drawFrame.createCanvas((width * unit).toInt, (height * unit).toInt)
     val ctxCache = cacheCanvas.getCtx
-    drawObstacle(Point(width / 2, height / 2), width, height, 1, color, ctxCache)
+    drawObstacle(Point(width / 2, height / 2), width, height, 1, color, ctxCache,canvasUnit)
     cacheCanvas.change2Image()
   }
 
-  private def drawObstacle(centerPosition:Point, width:Float, height:Float, bloodPercent:Float, color:String, context:MiddleContext = viewCtx):Unit = {
+  protected def drawObstacle(centerPosition:Point, width:Float, height:Float, bloodPercent:Float, color:String, context:MiddleContext ,unit: Int):Unit = {
     context.setFill(color)
     context.setStrokeStyle(color)
     context.setLineWidth(2)
     context.beginPath()
-    context.fillRec((centerPosition.x - width / 2) * canvasUnit, (centerPosition.y + height / 2 - bloodPercent * height) * canvasUnit,
-      width * canvasUnit, bloodPercent * height * canvasUnit)
+    context.fillRec((centerPosition.x - width / 2) * unit, (centerPosition.y + height / 2 - bloodPercent * height) * unit,
+      width * unit, bloodPercent * height * unit)
     context.closePath()
     context.beginPath()
-    context.rect((centerPosition.x - width / 2) * canvasUnit, (centerPosition.y - height / 2) * canvasUnit,
-      width * canvasUnit, height * canvasUnit
+    context.rect((centerPosition.x - width / 2) * unit, (centerPosition.y - height / 2) * unit,
+      width * unit, height * unit
     )
     context.stroke()
     context.closePath()
@@ -93,33 +93,18 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
             viewCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
               Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
             viewCtx.setGlobalAlpha(1)
-            if(isBot){
-              mutableCtx.setGlobalAlpha(0.5)
-              mutableCtx.drawImage(airBoxImg, p.x * canvasUnit /layerCanvasUnit, p.y * canvasUnit /layerCanvasUnit,
-                Some(obstacle.getWidth * canvasUnit /layerCanvasUnit, obstacle.getHeight * canvasUnit /layerCanvasUnit))
-              mutableCtx.setGlobalAlpha(1)
-            }
           } else {
             viewCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
               Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
-            if(isBot){
-              mutableCtx.drawImage(airBoxImg, p.x * canvasUnit /layerCanvasUnit, p.y * canvasUnit /layerCanvasUnit,
-                Some(obstacle.getWidth * canvasUnit /layerCanvasUnit, obstacle.getHeight * canvasUnit /layerCanvasUnit))
-            }
           }
         }else{
           if (obstacle.bloodPercent() > 0.9999999) {
             val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
-            val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false), generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
+            val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false), generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color,canvasUnit))
             viewCtx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
-            if(isBot){
-              mutableCtx.drawImage(cache, p.x * canvasUnit /layerCanvasUnit, p.y * canvasUnit /layerCanvasUnit)
-            }
+
           } else {
-            drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color)
-            if(isBot){
-              drawObstacle(obstacle.getPosition /layerCanvasUnit + offset /layerCanvasUnit, obstacle.getWidth /layerCanvasUnit, obstacle.getHeight /layerCanvasUnit, obstacle.bloodPercent(), color,mutableCtx)
-            }
+            drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color, viewCtx,canvasUnit)
           }
         }
 
@@ -151,18 +136,18 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
     viewCtx.stroke()
     viewCtx.closePath()
     viewCtx.restore()
-    if(isBot){
-      mutableCtx.save()
-      mutableCtx.setLineWidth(lineWidth)
-      mutableCtx.setLineCap("round")
-      mutableCtx.setStrokeStyle(color)
-      mutableCtx.beginPath()
-      mutableCtx.moveTo(startX /layerCanvasUnit, startY /layerCanvasUnit)
-      mutableCtx.lineTo(startX /layerCanvasUnit + lineLen /layerCanvasUnit, startY /layerCanvasUnit)
-      mutableCtx.stroke()
-      mutableCtx.closePath()
-      mutableCtx.restore()
-    }
+//    if(isBot){
+//      mutableCtx.save()
+//      mutableCtx.setLineWidth(lineWidth)
+//      mutableCtx.setLineCap("round")
+//      mutableCtx.setStrokeStyle(color)
+//      mutableCtx.beginPath()
+//      mutableCtx.moveTo(startX /layerCanvasUnit, startY /layerCanvasUnit)
+//      mutableCtx.lineTo(startX /layerCanvasUnit + lineLen /layerCanvasUnit, startY /layerCanvasUnit)
+//      mutableCtx.stroke()
+//      mutableCtx.closePath()
+//      mutableCtx.restore()
+//    }
   }
 
 

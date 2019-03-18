@@ -496,7 +496,7 @@ case class GameContainerClientImpl(
           drawBackground(offset)
           drawObstacles(offset, Point(w, h))
           drawEnvironment(offset, Point(w, h),canvasUnit,viewCtx)
-          drawProps(offset, Point(w, h))
+          drawProps(offset, Point(w, h),canvasUnit,viewCtx)
           drawBullet(offset, offsetTime, Point(w, h))
           drawTankList(offset, offsetTime, Point(w, h))
           drawObstacleBloodSlider(offset)
@@ -516,7 +516,9 @@ case class GameContainerClientImpl(
             drawBullet4bot(layerOffset,Point(w,h))
             drawTankList4Bot(layerOffset,Point(w, h))
             drawKernel4Bot(layerOffset,tank)
-            drawImmutableMap(layerOffset,Point(w,h))
+            drawEnvironment4Bot(layerOffset,Point(w,h))
+            drawProps4Bot(layerOffset,Point(w,h))
+            drawObstacles4Bot(layerOffset,Point(w,h))
           }
           val endTime = System.currentTimeMillis()
         //          renderTimes += 1
