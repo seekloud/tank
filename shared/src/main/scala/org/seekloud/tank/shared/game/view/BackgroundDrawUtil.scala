@@ -30,6 +30,7 @@ import scala.collection.mutable
 trait BackgroundDrawUtil {
   this: GameContainerClientImpl =>
 
+  private val lineWidth = 64f * canvasUnit
   private val rankWidth = 26
   private val rankHeight = 50
   private val currentRankNum = 10
@@ -97,11 +98,10 @@ trait BackgroundDrawUtil {
     viewCtx.setLineWidth(3)
     viewCtx.setStrokeStyle("rgba(0,0,0,0.05)")
 
-    val w = 64f * canvasUnit
-    for (i <- (w - canvasStart.x % w) to canvasSize.x by w) {
+    for (i <- (lineWidth - canvasStart.x % lineWidth) to canvasSize.x by lineWidth) {
       drawLine(Point(i, 0), Point(i, canvasSize.y), viewCtx)
     }
-    for (i <- (w - canvasStart.y % w) to canvasSize.y by w) {
+    for (i <- (lineWidth - canvasStart.y % lineWidth) to canvasSize.y by lineWidth) {
       drawLine(Point(0, i), Point(canvasSize.x, i), viewCtx)
     }
 
