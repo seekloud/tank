@@ -48,8 +48,8 @@ case class GameContainerClientImpl(
                                     versionInfo: Option[String] = None,
                                     isBot: Boolean = false,
                                     logInfo: String => Unit = println,
-                                    layerCanvasSize:Point = Point(200,100),
-                                    layerCanvasUnit: Int = 4
+                                    layerCanvasSize:Point = Point(400,200),
+                                    layerCanvasUnit: Int = 2
                                   ) extends GameContainer with EsRecover
   with BotBackgroundDrawUtil with BotBulletDrawUtil with FpsComponentsDrawUtil with BotObstacleDrawUtil with BotPropDrawUtil with BotTankDrawUtil with InfoDrawUtil {
 

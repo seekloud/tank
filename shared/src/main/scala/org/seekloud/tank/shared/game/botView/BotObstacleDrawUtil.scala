@@ -26,4 +26,5 @@ import org.seekloud.tank.shared.game.view.ObstacleDrawUtil
   */
 trait BotObstacleDrawUtil extends ObstacleDrawUtil{this:GameContainerClientImpl=>
 
+
 }
