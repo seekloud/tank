@@ -16,14 +16,58 @@
 
 package org.seekloud.tank.shared.game.botView
 
-import org.seekloud.tank.shared.game.GameContainerClientImpl
+import org.seekloud.tank.shared.`object`.Tank
+import org.seekloud.tank.shared.game.{GameContainerClientImpl, TankClientImpl}
 import org.seekloud.tank.shared.game.view.TankDrawUtil
+import org.seekloud.tank.shared.model.Point
+import org.seekloud.tank.shared.util.canvas.MiddleContext
 
 /**
   * Created by sky
   * Date on 2019/3/18
   * Time at 上午11:40
   */
-trait BotTankDrawUtil extends TankDrawUtil{this:GameContainerClientImpl=>
+trait BotTankDrawUtil extends TankDrawUtil {
+  this: GameContainerClientImpl =>
+  protected def drawKernel4Bot(offset: Point, tank: Tank): Unit = {
+    val p = tank.getPosition + offset
+    selfCtx.setFill("black")
+    selfCtx.fillRec(0, 0, layerCanvasSize.x, layerCanvasSize.y)
+    selfCtx.beginPath()
+    selfCtx.setStrokeStyle("white")
+    val x = p.x * layerCanvasUnit
+    val y = p.y * layerCanvasUnit
+    selfCtx.setFill("white")
+    selfCtx.arc(x, y, tank.getRadius * layerCanvasUnit, 0, 360)
+    selfCtx.stroke()
+    selfCtx.closePath()
+  }
 
+  protected def drawTankList4Bot(offset: Point, view: Point) = {
+    tankMap.values.foreach { t =>
+      val tank = t.asInstanceOf[TankClientImpl]
+      val p = tank.getPosition + offset
+      if (p.in(view, Point(t.getRadius * 4, t.getRadius * 4))) {
+        drawTank(p, tank,if(tank.tankId==myTankId) tank.getTankColor() else s"rgba(${tank.tankId%255}, ${tank.tankId%255}, ${tank.tankId%255}, 1)",layerCanvasUnit, bodiesCtx)
+        drawBloodSlider(p, tank, layerCanvasUnit, bodiesCtx)
+        drawTankName(p, tank.name, layerCanvasUnit, bodiesCtx)
+        drawTankBullet(p, tank, layerCanvasUnit, bodiesCtx)
+        drawTankStar(p, tank, layerCanvasUnit, bodiesCtx)
+      }
+    }
+  }
+
+  protected def drawStateMap: Unit = {
+
+  }
+
+  /* if (isBot) {
+     bodiesCtx.beginPath()
+     bodiesCtx.setFill("#006699")
+     bodiesCtx.setTextAlign("center")
+     bodiesCtx.setFont("楷体", "normal", 2 * canvasUnit)
+     bodiesCtx.setLineWidth(2)
+     bodiesCtx.fillText(s"${tank.name}", namePosition.x / layerCanvasUnit, namePosition.y / layerCanvasUnit, 20 * canvasUnit / layerCanvasUnit)
+     bodiesCtx.closePath()
+   }*/
 }

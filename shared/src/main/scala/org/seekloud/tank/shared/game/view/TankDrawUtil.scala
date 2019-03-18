@@ -31,13 +31,11 @@ trait TankDrawUtil {
   this: GameContainerClientImpl =>
 
   private val myTankInfoCacheMap = mutable.HashMap[(Byte, Byte, Byte), Any]()
-  private var canvasBoundary: Point = canvasSize / canvasUnit
 
   private val fillBulletImg = drawFrame.createImage("/img/子弹初始重构.png")
   private val emptyBulletImg = drawFrame.createImage("/img/子弹消失重构.png")
   private val fillMedicalImg = drawFrame.createImage("/img/yiliao.png")
   private val emptyMedicalImg = drawFrame.createImage("/img/huiyiliao.png")
-  //  private val sunImg = drawFrame.createImage("/img/sun.png")
   private val tankStarImg = drawFrame.createImage("/img/star.png")
 
 
@@ -46,251 +44,151 @@ trait TankDrawUtil {
 
   def updateTankSize(canvasSize: Point) = {
     myTankInfoCacheMap.clear()
-    canvasBoundary = canvasSize
   }
 
 
-  protected def drawTank(offset: Point, offsetTime: Long, view: Point) = {
+  protected def drawTankList(offset: Point, offsetTime: Long, view: Point) = {
     tankMap.values.foreach { t =>
       val tank = t.asInstanceOf[TankClientImpl]
       val p = tank.getPosition4Animation(boundary, quadTree, offsetTime, systemFrame) + offset
       if (p.in(view, Point(t.getRadius * 4, t.getRadius * 4))) {
-        if (tankAttackedAnimationMap.contains(tank.tankId)) {
-          if (tankAttackedAnimationMap(tank.tankId) <= 0) tankAttackedAnimationMap.remove(tank.tankId)
-          else tankAttackedAnimationMap.put(tank.tankId, tankAttackedAnimationMap(tank.tankId) - 1)
-          viewCtx.setGlobalAlpha(0.5)
-        }
-
-        //------------------------绘制炮筒--------------------------#
-        val gunPositionList = tank.getGunPositions4Animation().map(t => (t + p) * canvasUnit)
-        viewCtx.beginPath()
-        viewCtx.moveTo(gunPositionList.last.x, gunPositionList.last.y)
-        gunPositionList.foreach(t => viewCtx.lineTo(t.x, t.y))
-        viewCtx.setFill("#7A7A7A")
-        viewCtx.setStrokeStyle("#636363")
-        viewCtx.fill()
-        viewCtx.setLineWidth(0.4 * canvasUnit)
-        viewCtx.stroke()
-        viewCtx.closePath()
-        if (isBot) {
-          bodiesCtx.beginPath()
-          bodiesCtx.moveTo(gunPositionList.last.x / layerCanvasUnit, gunPositionList.last.y / layerCanvasUnit)
-          gunPositionList.foreach(t => bodiesCtx.lineTo(t.x / layerCanvasUnit, t.y / layerCanvasUnit))
-          bodiesCtx.setFill("#7A7A7A")
-          bodiesCtx.setStrokeStyle("#636363")
-          bodiesCtx.fill()
-          bodiesCtx.setLineWidth(0.4 * canvasUnit / layerCanvasUnit)
-          bodiesCtx.stroke()
-          bodiesCtx.closePath()
-
-        }
-        //----------------------------绘制坦克---------------------#
-        if (tank.getInvincibleState) {
-          viewCtx.beginPath()
-          viewCtx.setFill("rgba(128, 100, 162, 0.2)")
-          val centerX = p.x * canvasUnit
-          val centerY = p.y * canvasUnit
-          val radius = InvincibleSize.r * canvasUnit
-          val startAngle = 0
-          val lengthAngle = 360
-          viewCtx.arc(centerX.toFloat, centerY.toFloat, radius, startAngle.toFloat, lengthAngle.toFloat)
-          viewCtx.fill()
-          viewCtx.closePath()
-          if (isBot) {
-            bodiesCtx.beginPath()
-            bodiesCtx.setFill("rgba(128, 100, 162, 0.2)")
-            bodiesCtx.arc(centerX.toFloat / layerCanvasUnit, centerY.toFloat / layerCanvasUnit, radius / layerCanvasUnit, startAngle.toFloat, lengthAngle.toFloat)
-            bodiesCtx.fill()
-            bodiesCtx.closePath()
-
-          }
-        }
-        viewCtx.beginPath()
-        viewCtx.setLineWidth(0.4 * canvasUnit)
-        viewCtx.setStrokeStyle("#636363")
-        val centerX = p.x * canvasUnit
-        val centerY = p.y * canvasUnit
-        val radius = tank.getRadius * canvasUnit
-        val startAngle = 0
-        val lengthAngle = 360
-        viewCtx.arc(centerX.toFloat, centerY.toFloat, radius, startAngle.toFloat, lengthAngle.toFloat)
-        val tankColor = tank.getTankColor()
-        viewCtx.setFill(tankColor)
-        viewCtx.fill()
-        viewCtx.stroke()
-        viewCtx.closePath()
-        viewCtx.setGlobalAlpha(1)
-        if (isBot) {
-          bodiesCtx.beginPath()
-          bodiesCtx.setLineWidth(0.4 * canvasUnit / layerCanvasUnit)
-          bodiesCtx.setStrokeStyle("#636363")
-          bodiesCtx.arc(centerX.toFloat / layerCanvasUnit, centerY.toFloat / layerCanvasUnit, radius / layerCanvasUnit, startAngle.toFloat, lengthAngle.toFloat)
-          bodiesCtx.setFill(tankColor)
-          bodiesCtx.fill()
-          bodiesCtx.stroke()
-          bodiesCtx.closePath()
-          bodiesCtx.setGlobalAlpha(1)
-
-        }
-
-
-        drawBloodSlider(p, tank)
-
-        viewCtx.beginPath()
-        val namePosition = (p + Point(0, 5)) * canvasUnit
-        viewCtx.setFill("#006699")
-        viewCtx.setTextAlign("center")
-        viewCtx.setFont("楷体", "normal", 2 * canvasUnit)
-        viewCtx.setLineWidth(2)
-        viewCtx.fillText(s"${tank.name}", namePosition.x, namePosition.y, 20 * canvasUnit)
-        viewCtx.closePath()
-        if (isBot) {
-          bodiesCtx.beginPath()
-          bodiesCtx.setFill("#006699")
-          bodiesCtx.setTextAlign("center")
-          bodiesCtx.setFont("楷体", "normal", 2 * canvasUnit)
-          bodiesCtx.setLineWidth(2)
-          bodiesCtx.fillText(s"${tank.name}", namePosition.x / layerCanvasUnit, namePosition.y / layerCanvasUnit, 20 * canvasUnit / layerCanvasUnit)
-          bodiesCtx.closePath()
-
-        }
-
-        drawTankBullet(p, tank)
-        drawTankStar(p, tank)
+        drawTank(p,tank,tank.getTankColor(),canvasUnit,viewCtx)
+        drawBloodSlider(p, tank, canvasUnit, viewCtx)
+        drawTankName(p, tank.name, canvasUnit, viewCtx)
+        drawTankBullet(p, tank, canvasUnit, viewCtx)
+        drawTankStar(p, tank, canvasUnit, viewCtx)
       }
     }
   }
 
-  def drawBloodSlider(tankPosition: Point, tank: TankClientImpl) = {
+  def drawTank(p:Point,tank:TankClientImpl,tankColor:String,unit:Int,ctx:MiddleContext)={
+    if (tankAttackedAnimationMap.contains(tank.tankId)) {
+      if (tankAttackedAnimationMap(tank.tankId) <= 0) tankAttackedAnimationMap.remove(tank.tankId)
+      else tankAttackedAnimationMap.put(tank.tankId, tankAttackedAnimationMap(tank.tankId) - 1)
+      ctx.setGlobalAlpha(0.5)
+    }
+
+    //------------------------绘制炮筒--------------------------#
+    val gunPositionList = tank.getGunPositions4Animation().map(t => (t + p) * unit)
+    ctx.beginPath()
+    ctx.moveTo(gunPositionList.last.x, gunPositionList.last.y)
+    gunPositionList.foreach(t => ctx.lineTo(t.x, t.y))
+    ctx.setFill("#7A7A7A")
+    ctx.setStrokeStyle("#636363")
+    ctx.fill()
+    ctx.setLineWidth(0.4 * unit)
+    ctx.stroke()
+    ctx.closePath()
+    //----------------------------绘制坦克---------------------#
+    if (tank.getInvincibleState) {
+      ctx.beginPath()
+      ctx.setFill("rgba(128, 100, 162, 0.2)")
+      val centerX = p.x * unit
+      val centerY = p.y * unit
+      val radius = InvincibleSize.r * unit
+      val startAngle = 0
+      val lengthAngle = 360
+      ctx.arc(centerX.toFloat, centerY.toFloat, radius, startAngle.toFloat, lengthAngle.toFloat)
+      ctx.fill()
+      ctx.closePath()
+    }
+    ctx.beginPath()
+    ctx.setLineWidth(0.4 * unit)
+    ctx.setStrokeStyle("#636363")
+    val centerX = p.x * unit
+    val centerY = p.y * unit
+    val radius = tank.getRadius * unit
+    val startAngle = 0
+    val lengthAngle = 360
+    ctx.arc(centerX.toFloat, centerY.toFloat, radius, startAngle.toFloat, lengthAngle.toFloat)
+    ctx.setFill(tankColor)
+    ctx.fill()
+    ctx.stroke()
+    ctx.closePath()
+    ctx.setGlobalAlpha(1)
+  }
+
+  def drawTankName(p: Point, tankName: String, unit: Int, ctx: MiddleContext) = {
+    ctx.beginPath()
+    val namePosition = (p + Point(0, 5)) * unit
+    ctx.setFill("#006699")
+    ctx.setTextAlign("center")
+    ctx.setFont("楷体", "normal", 2 * unit)
+    ctx.setLineWidth(2)
+    ctx.fillText(s"${tankName}", namePosition.x, namePosition.y, 20 * unit)
+    ctx.closePath()
+  }
+
+  def drawBloodSlider(tankPosition: Point, tank: TankClientImpl, unit: Int, ctx: MiddleContext) = {
     val num = tank.getMaxBlood / 20
     val sliderLength = 2f * tank.getRadius
     val greyLength = 0.3f * sliderLength
     val width = (sliderLength - greyLength) / num
-    val sliderPositions = tank.getSliderPositionByBloodLevel(num, sliderLength, width, greyLength).map(t => (t + tankPosition) * canvasUnit)
-    viewCtx.beginPath()
-    viewCtx.setLineCap("butt")
-    viewCtx.setLineJoin("miter")
-    viewCtx.setLineWidth(0.5 * canvasUnit)
-    viewCtx.setStrokeStyle("#BEBEBE")
-    viewCtx.moveTo(sliderPositions.last.x, sliderPositions.last.y)
-    viewCtx.lineTo(sliderPositions.head.x, sliderPositions.head.y)
-    viewCtx.stroke()
-    viewCtx.closePath()
+    val sliderPositions = tank.getSliderPositionByBloodLevel(num, sliderLength, width, greyLength).map(t => (t + tankPosition) * unit)
+    ctx.beginPath()
+    ctx.setLineCap("butt")
+    ctx.setLineJoin("miter")
+    ctx.setLineWidth(0.5 * unit)
+    ctx.setStrokeStyle("#BEBEBE")
+    ctx.moveTo(sliderPositions.last.x, sliderPositions.last.y)
+    ctx.lineTo(sliderPositions.head.x, sliderPositions.head.y)
+    ctx.stroke()
+    ctx.closePath()
     for (i <- Range(1, sliderPositions.length, 2)) {
-      viewCtx.beginPath()
-      viewCtx.setLineWidth(0.5 * canvasUnit)
+      ctx.beginPath()
+      ctx.setLineWidth(0.5 * unit)
       if ((i + 1) / 2 <= 1f * tank.getCurBlood / 20) {
-        viewCtx.setStrokeStyle("rgb(255,0,0)")
-        viewCtx.moveTo(sliderPositions(i - 1).x, sliderPositions(i - 1).y)
-        viewCtx.lineTo(sliderPositions(i).x, sliderPositions(i).y)
-        viewCtx.stroke()
+        ctx.setStrokeStyle("rgb(255,0,0)")
+        ctx.moveTo(sliderPositions(i - 1).x, sliderPositions(i - 1).y)
+        ctx.lineTo(sliderPositions(i).x, sliderPositions(i).y)
+        ctx.stroke()
       }
       if (tank.getCurBlood / 20 < 1f * tank.getCurBlood / 20 && (i + 1) / 2 == tank.getCurBlood / 20 + 1) {
-        viewCtx.setStrokeStyle("rgb(255,0,0)")
-        viewCtx.moveTo(sliderPositions(i - 1).x, sliderPositions(i - 1).y)
-        viewCtx.lineTo(sliderPositions(i - 1).x + 1f * (tank.getCurBlood - tank.getCurBlood / 20 * 20) / 20 * width * canvasUnit, sliderPositions(i - 1).y)
-        viewCtx.stroke()
+        ctx.setStrokeStyle("rgb(255,0,0)")
+        ctx.moveTo(sliderPositions(i - 1).x, sliderPositions(i - 1).y)
+        ctx.lineTo(sliderPositions(i - 1).x + 1f * (tank.getCurBlood - tank.getCurBlood / 20 * 20) / 20 * width * unit, sliderPositions(i - 1).y)
+        ctx.stroke()
       }
-
-      viewCtx.closePath()
-    }
-
-    if (isBot) {
-      bodiesCtx.beginPath()
-      bodiesCtx.setLineCap("butt")
-      bodiesCtx.setLineJoin("miter")
-      bodiesCtx.setLineWidth(0.5 * canvasUnit / layerCanvasUnit)
-      bodiesCtx.setStrokeStyle("#BEBEBE")
-      bodiesCtx.moveTo(sliderPositions.last.x / layerCanvasUnit, sliderPositions.last.y / layerCanvasUnit)
-      bodiesCtx.lineTo(sliderPositions.head.x / layerCanvasUnit, sliderPositions.head.y / layerCanvasUnit)
-      bodiesCtx.stroke()
-      bodiesCtx.closePath()
-
-      for (i <- Range(1, sliderPositions.length, 2)) {
-        bodiesCtx.beginPath()
-        bodiesCtx.setLineWidth(0.5 * canvasUnit / layerCanvasUnit)
-
-
-        if ((i + 1) / 2 <= 1f * tank.getCurBlood / 20) {
-          bodiesCtx.setStrokeStyle("rgb(255,0,0)")
-          bodiesCtx.moveTo(sliderPositions(i - 1).x / layerCanvasUnit, sliderPositions(i - 1).y / layerCanvasUnit)
-          bodiesCtx.lineTo(sliderPositions(i).x / layerCanvasUnit, sliderPositions(i).y / layerCanvasUnit)
-          bodiesCtx.stroke()
-        }
-        if (tank.getCurBlood / 20 < 1f * tank.getCurBlood / 20 && (i + 1) / 2 == tank.getCurBlood / 20 + 1) {
-          bodiesCtx.setStrokeStyle("rgb(255,0,0)")
-          bodiesCtx.moveTo(sliderPositions(i - 1).x / layerCanvasUnit, sliderPositions(i - 1).y / layerCanvasUnit)
-          bodiesCtx.lineTo(sliderPositions(i - 1).x / layerCanvasUnit + 1f * (tank.getCurBlood - tank.getCurBlood / 20 * 20) / 20 * width * canvasUnit / layerCanvasUnit, sliderPositions(i - 1).y / layerCanvasUnit)
-          bodiesCtx.stroke()
-        }
-        bodiesCtx.closePath()
-
-      }
+      ctx.closePath()
     }
 
   }
 
-  def drawTankBullet(tankPosition: Point, tank: TankClientImpl) = {
+  def drawTankBullet(tankPosition: Point, tank: TankClientImpl, unit: Int, ctx: MiddleContext) = {
     var left = tank.bulletMaxCapacity * SmallBullet.width / 2 * -1
 
-    (1 to tank.getCurBulletNum).foreach { indedx =>
+    (1 to tank.getCurBulletNum).foreach { i =>
       val smallBulletPosition = tankPosition + Point(left, -9)
       val img = fillBulletImg
-      viewCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
-        (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
-        Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
-      if (isBot) {
-        bodiesCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit / layerCanvasUnit,
-          (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit / layerCanvasUnit,
-          Some(SmallBullet.width * canvasUnit / layerCanvasUnit, SmallBullet.height * canvasUnit / layerCanvasUnit))
-
-      }
+      ctx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * unit,
+        (smallBulletPosition.y - SmallBullet.height / 2) * unit,
+        Some(SmallBullet.width * unit, SmallBullet.height * unit))
       left = left + SmallBullet.width
     }
-    viewCtx.setGlobalAlpha(0.5)
+    ctx.setGlobalAlpha(0.5)
 
     (tank.getCurBulletNum + 1 to tank.bulletMaxCapacity).foreach { indedx =>
       val smallBulletPosition = tankPosition + Point(left, -9)
       val img = emptyBulletImg
-      viewCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit,
-        (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit,
-        Some(SmallBullet.width * canvasUnit, SmallBullet.height * canvasUnit))
-      if (isBot) {
-        bodiesCtx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * canvasUnit / layerCanvasUnit,
-          (smallBulletPosition.y - SmallBullet.height / 2) * canvasUnit / layerCanvasUnit,
-          Some(SmallBullet.width * canvasUnit / layerCanvasUnit, SmallBullet.height * canvasUnit / layerCanvasUnit))
-      }
+      ctx.drawImage(img, (smallBulletPosition.x - SmallBullet.width / 2) * unit,
+        (smallBulletPosition.y - SmallBullet.height / 2) * unit,
+        Some(SmallBullet.width * unit, SmallBullet.height * unit))
       left = left + SmallBullet.width
 
     }
-    viewCtx.setGlobalAlpha(1)
+    ctx.setGlobalAlpha(1)
 
   }
 
-  def drawTankStar(tankPosition: Point, tank: TankClientImpl) = {
+  def drawTankStar(tankPosition: Point, tank: TankClientImpl, unit: Int, ctx: MiddleContext) = {
     val firstStarPos = Point(tank.getRadius + TankStar.interval, -(tank.getRadius + TankStar.interval))
     val endStarNum = math.min(TankStar.maxNum, tank.killTankNum)
-    //    val endStarDigits = endStarNum / 10
-    //    val endStarUnits = endStarNum - (endStarDigits * 10)
-
-    //    (0 until endStarDigits).foreach{idx =>
-    //      val starPos = Point(tankPosition.x-1.1f,tankPosition.y-1.1f) + firstStarPos.rotate(idx * Pi/10)
-    //      val img = tankSunImg
-    //      ctx.drawImage(img, starPos.x * canvasUnit,
-    //        starPos.y * canvasUnit,
-    //        Some(TankStar.width * canvasUnit, TankStar.height * canvasUnit))
-    //    }
     (0 until endStarNum).foreach { idx =>
       val starPos = Point(tankPosition.x - 1.1f, tankPosition.y - 1.1f) + firstStarPos.rotate(idx * Pi / 10)
       val img = tankStarImg
-      viewCtx.drawImage(img, starPos.x * canvasUnit,
-        starPos.y * canvasUnit,
-        Some(TankStar.width * canvasUnit, TankStar.height * canvasUnit))
-      if (isBot) {
-        bodiesCtx.drawImage(img, starPos.x * canvasUnit / layerCanvasUnit,
-          starPos.y * canvasUnit / layerCanvasUnit,
-          Some(TankStar.width * canvasUnit / layerCanvasUnit, TankStar.height * canvasUnit / layerCanvasUnit))
-      }
+      ctx.drawImage(img, starPos.x * unit,
+        starPos.y * unit,
+        Some(TankStar.width * unit, TankStar.height * unit))
     }
 
   }
@@ -309,25 +207,8 @@ trait TankDrawUtil {
   }
 
   protected def drawMyTankInfo(tank: TankClientImpl, supportLiveLimit: Boolean) = {
-    def drawKernelMap(tank: Tank): Unit = {
-      selfCtx.setFill("black")
-      selfCtx.fillRec(0, 0, layerCanvasSize.x, layerCanvasSize.y)
-      selfCtx.beginPath()
-      selfCtx.setStrokeStyle("white")
-      val x = tank.getPosition.x * layerCanvasUnit
-      val y = tank.getPosition.y * layerCanvasUnit
-      selfCtx.setFill("white")
-      selfCtx.arc(x, y, tank.getRadius * layerCanvasUnit, 0, 360)
-      selfCtx.stroke()
-      selfCtx.closePath()
-    }
-
     val cache = myTankInfoCacheMap.getOrElseUpdate((tank.getBloodLevel, tank.getSpeedLevel, tank.getBulletLevel), generateMyTankInfoCanvas(tank, supportLiveLimit))
     viewCtx.drawImage(cache, 0, 2 * canvasUnit)
-    if (isBot) {
-      statusCtx.drawImage(cache, 0, 2 * canvasUnit)
-      drawKernelMap(tank)
-    }
   }
 
   def drawLevel(level: Byte, maxLevel: Byte, name: String, start: Point, length: Float, color: String, context: MiddleContext) = {
@@ -383,15 +264,6 @@ trait TankDrawUtil {
     viewCtx.setLineWidth(1)
     viewCtx.fillText(s"血包${("                       ").take(30)}(按E键使用)", 4.5 * canvasUnit, 5.5 * canvasUnit, 30 * canvasUnit)
 
-    if (isBot) {
-      statusCtx.setStrokeStyle("rgb(0,0,0)")
-      statusCtx.setTextAlign("left")
-      statusCtx.setFont("隶书", "bold", 1.8 * canvasUnit)
-      statusCtx.setLineWidth(1)
-      statusCtx.fillText(s"血包${("                       ").take(30)}(按E键使用)", 4.5 * canvasUnit, 5.5 * canvasUnit, 30 * canvasUnit)
-
-    }
-
     val medicalNum = tank.medicalNumOpt match {
       case Some(num) => num
       case None => 0
@@ -402,12 +274,6 @@ trait TankDrawUtil {
       viewCtx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
         (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
         Some(1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit))
-      if (isBot) {
-        statusCtx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
-          (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
-          Some(1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit))
-
-      }
     }
     viewCtx.setGlobalAlpha(0.5)
 
@@ -417,12 +283,6 @@ trait TankDrawUtil {
       viewCtx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
         (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
         Some(1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit))
-      if (isBot) {
-        statusCtx.drawImage(img, (smallMedicalPosition.x - config.propRadius) * canvasUnit - 5,
-          (smallMedicalPosition.y - config.propRadius) * canvasUnit - 7,
-          Some(1.5 * config.propRadius * canvasUnit, 1.5 * config.propRadius * canvasUnit))
-
-      }
     }
     viewCtx.setGlobalAlpha(1)
 

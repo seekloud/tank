@@ -494,12 +494,11 @@ case class GameContainerClientImpl(
         case Some(tank) =>
           val offset = canvasSize / canvasUnit / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
           drawBackground(offset)
-//          drawKernelMap(tank)
           drawObstacles(offset, Point(w, h))
           drawEnvironment(offset, Point(w, h))
           drawProps(offset, Point(w, h))
           drawBullet(offset, offsetTime, Point(w, h))
-          drawTank(offset, offsetTime, Point(w, h))
+          drawTankList(offset, offsetTime, Point(w, h))
           drawObstacleBloodSlider(offset)
           drawMyTankInfo(tank.asInstanceOf[TankClientImpl], supportLiveLimit)
           drawMinimap(tank)
@@ -509,10 +508,13 @@ case class GameContainerClientImpl(
           drawRoomNumber()
           drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
           if(isBot){
-            //todo 使用本参数
+            val h = layerCanvasSize.y / layerCanvasUnit
+            val w = layerCanvasSize.x / layerCanvasUnit
             val layerOffset = layerCanvasSize / layerCanvasUnit /2 -tank.getPosition
-            drawBotBackground(layerOffset)
-            drawLocationMap(tank)
+            drawBackground4Bot(layerOffset)
+            drawLocation4Bot(tank)
+            drawTankList4Bot(layerOffset,Point(w, h))
+            drawKernel4Bot(layerOffset,tank)
           }
           val endTime = System.currentTimeMillis()
         //          renderTimes += 1
