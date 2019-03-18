@@ -36,13 +36,13 @@ trait BotBackgroundDrawUtil extends BackgroundDrawUtil{ this:GameContainerClient
   protected def drawLocationMap(tank:Tank):Unit={
     if(isBot){
       locationCtx.setFill("black")
-      locationCtx.fillRec(0,0,220,200)
+      locationCtx.fillRec(0,0,108,100)
       locationCtx.beginPath()
       locationCtx.setStrokeStyle("white")
-      val x = tank.getPosition.x * 0.5 - 48
-      val y = tank.getPosition.y * 0.5 - 27
-      val w = 96
-      val h = 54
+      val w = 48
+      val h = 27
+      val x = tank.getPosition.x  / 4 - w/2
+      val y = tank.getPosition.y / 4 - h /2
       locationCtx.setFill("white")
       locationCtx.fillRec(x,y,w,h)
       locationCtx.moveTo(x,y)
