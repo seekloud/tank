@@ -32,8 +32,6 @@ trait BotTankDrawUtil extends TankDrawUtil {
   this: GameContainerClientImpl =>
   protected def drawKernel4Bot(offset: Point, tank: Tank): Unit = {
     val p = tank.getPosition + offset
-    selfCtx.setFill("black")
-    selfCtx.fillRec(0, 0, layerCanvasSize.x, layerCanvasSize.y)
     selfCtx.beginPath()
     selfCtx.setStrokeStyle("white")
     val x = p.x * layerCanvasUnit

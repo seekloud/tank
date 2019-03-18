@@ -28,7 +28,7 @@ import org.seekloud.tank.shared.model.Point
   */
 trait BotBackgroundDrawUtil extends BackgroundDrawUtil{ this:GameContainerClientImpl=>
   def drawBackground4Bot(offset:Point)={
-    val backColor=/*"#000000"*/"white"
+    val backColor="#000000"/*"white"*/
     clearScreen(backColor,1, layerCanvasSize.x, layerCanvasSize.y, immutableCtx)
     clearScreen(backColor,1, layerCanvasSize.x, layerCanvasSize.y, mutableCtx)
     clearScreen(backColor,1, layerCanvasSize.x, layerCanvasSize.y, bodiesCtx)
