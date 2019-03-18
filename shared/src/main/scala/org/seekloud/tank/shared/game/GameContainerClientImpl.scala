@@ -495,7 +495,7 @@ case class GameContainerClientImpl(
           val offset = canvasSize / canvasUnit / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
           drawBackground(offset)
           drawObstacles(offset, Point(w, h))
-          drawEnvironment(offset, Point(w, h))
+          drawEnvironment(offset, Point(w, h),canvasUnit,viewCtx)
           drawProps(offset, Point(w, h))
           drawBullet(offset, offsetTime, Point(w, h))
           drawTankList(offset, offsetTime, Point(w, h))
@@ -515,6 +515,7 @@ case class GameContainerClientImpl(
             drawLocation4Bot(tank)
             drawTankList4Bot(layerOffset,Point(w, h))
             drawKernel4Bot(layerOffset,tank)
+            drawImmutableMap(layerOffset,Point(w,h))
           }
           val endTime = System.currentTimeMillis()
         //          renderTimes += 1
