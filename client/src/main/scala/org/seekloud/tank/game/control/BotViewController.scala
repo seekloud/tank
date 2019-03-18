@@ -61,7 +61,7 @@ class BotViewController(
                          gameServerInfo: GameServerInfo,
                          isView:Boolean=false,
                          playGameScreenOpt: Option[PlayGameScreen]=None,
-                       ) extends GameController(viewWidth*4, viewHeight*4, true) {
+                       ) extends GameController(if(isView) viewWidth*4 else viewWidth, if(isView) viewHeight*4 else viewHeight, true) {
   val botViewActor= system.spawn(BotViewActor.create(), "BotViewActor")
 
   val pointerCanvas=drawFrame.createCanvas(viewWidth, viewHeight)
@@ -178,7 +178,7 @@ class BotViewController(
       val d = key.swing.get.distance
       val r = key.swing.get.radian
       mousePlace  += Point(d * math.cos(r).toFloat,d * math.sin(r).toFloat)
-      val point = mousePlace  + Point(24, 24)
+      val point = mousePlace
       val theta = point.getTheta(canvasBoundary  / 2).toFloat
       val angle = point.getAngle(canvasBoundary  / 2)
       val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)

@@ -37,7 +37,6 @@ trait BotBulletDrawUtil extends BulletDrawUtil{this:GameContainerClientImpl=>
         if(bullet.tankId==myTankId){
           selfCtx.drawImage(cacheCanvas, (p.x - bullet.getRadius) * layerCanvasUnit - radius * layerCanvasUnit / 2.5, (p.y - bullet.getRadius) * layerCanvasUnit - radius * layerCanvasUnit / 2.5)
         }
-
       }
     }
   }
