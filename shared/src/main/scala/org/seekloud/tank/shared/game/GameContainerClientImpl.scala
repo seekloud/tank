@@ -481,12 +481,10 @@ case class GameContainerClientImpl(
     if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
   }
 
-  //  def drawGame(time: Long, networkLatency: Long, dataSize:String): Unit = {
   def drawGame(time: Long, networkLatency: Long, dataSizeList: List[String], supportLiveLimit: Boolean = false): Unit = {
     val offsetTime = math.min(time, config.frameDuration)
     val h = canvasSize.y / canvasUnit
     val w = canvasSize.x / canvasUnit
-    //    val startTime = System.currentTimeMillis()
     if (!waitSyncData) {
       viewCtx.setLineCap("round")
       viewCtx.setLineJoin("round")
@@ -517,15 +515,9 @@ case class GameContainerClientImpl(
             drawTankList4Bot(layerOffset,Point(w, h))
             drawKernel4Bot(layerOffset,tank)
           }
-          val endTime = System.currentTimeMillis()
-        //          renderTimes += 1
-        //          renderTime += endTime - startTime
-
 
         case None =>
-        //          info(s"tankid=${myTankId} has no in tankMap.....................................")
-        //          setGameState(GameState.stop)
-        //          if(isObserve) drawDeadImg()
+          info(s"tankid=${myTankId} has no in tankMap.....................................")
       }
     }
   }

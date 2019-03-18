@@ -200,11 +200,11 @@ trait TankDrawUtil {
     myTankInfoCacheMap.clear()
     val canvasCache = drawFrame.createCanvas(30 * canvasUnit, 20 * canvasUnit)
     val ctxCache = canvasCache.getCtx
-    drawLevel(tank.getBloodLevel, config.getTankBloodMaxLevel(), "血量等级", Point(5, 20 - 12) * canvasUnit, 20 * canvasUnit, "#FF3030", ctxCache)
-    drawLevel(tank.getSpeedLevel, config.getTankSpeedMaxLevel(), "速度等级", Point(5, 20 - 8) * canvasUnit, 20 * canvasUnit, "#66CD00", ctxCache)
-    drawLevel(tank.getBulletLevel, config.getBulletMaxLevel(), "炮弹等级", Point(5, 20 - 4) * canvasUnit, 20 * canvasUnit, "#1C86EE", ctxCache)
+    drawLevel(tank.getBloodLevel, config.getTankBloodMaxLevel(), "血量等级", Point(5, 20 - 12) * canvasUnit, 20 * canvasUnit, "#FF3030",canvasUnit, ctxCache)
+    drawLevel(tank.getSpeedLevel, config.getTankSpeedMaxLevel(), "速度等级", Point(5, 20 - 8) * canvasUnit, 20 * canvasUnit, "#66CD00", canvasUnit,ctxCache)
+    drawLevel(tank.getBulletLevel, config.getBulletMaxLevel(), "炮弹等级", Point(5, 20 - 4) * canvasUnit, 20 * canvasUnit, "#1C86EE",canvasUnit, ctxCache)
     if (supportLiveLimit) {
-      drawLevel(tank.lives.toByte, config.getTankLivesLimit.toByte, s"生命值", Point(5, 20 - 16) * canvasUnit, 20 * canvasUnit, "#FFA500", ctxCache)
+      drawLevel(tank.lives.toByte, config.getTankLivesLimit.toByte, s"生命值", Point(5, 20 - 16) * canvasUnit, 20 * canvasUnit, "#FFA500",canvasUnit, ctxCache)
     }
     canvasCache.change2Image()
   }
@@ -214,18 +214,17 @@ trait TankDrawUtil {
     viewCtx.drawImage(cache, 0, 2 * canvasUnit)
   }
 
-  def drawLevel(level: Byte, maxLevel: Byte, name: String, start: Point, length: Float, color: String, context: MiddleContext) = {
-    println(s"${level}")
+  def drawLevel(level: Byte, maxLevel: Byte, name: String, start: Point, length: Float, color: String,unit:Int, context: MiddleContext) = {
     context.setStrokeStyle("#4D4D4D")
     context.setLineCap("round")
-    context.setLineWidth(3 * canvasUnit)
+    context.setLineWidth(3 * unit)
     context.beginPath()
     context.moveTo(start.x, start.y)
     context.lineTo(start.x + length, start.y)
     context.stroke()
     context.closePath()
 
-    context.setLineWidth(2.2 * canvasUnit)
+    context.setLineWidth(2.2 * unit)
     context.setStrokeStyle(color)
     if (level == maxLevel) {
       context.beginPath()
@@ -251,7 +250,7 @@ trait TankDrawUtil {
         context.closePath()
       }
     }
-    context.setFont("Arial", "bold", 1.8 * canvasUnit)
+    context.setFont("Arial", "bold", 1.8 * unit)
     context.setTextAlign("center")
     context.setTextBaseline("middle")
     context.setFill("#FCFCFC")
