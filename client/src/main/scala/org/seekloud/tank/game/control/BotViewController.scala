@@ -18,22 +18,24 @@ package org.seekloud.tank.game.control
 
 import akka.actor.typed.scaladsl.adapter._
 import javafx.animation.{AnimationTimer, KeyFrame}
+
 import akka.actor.typed.{ActorRef, Behavior}
 import org.seekloud.tank.ClientApp.system
 import org.seekloud.tank.core.{BotViewActor, PlayGameActor}
 import org.seekloud.tank.model._
 import org.seekloud.utils.canvas.MiddleCanvasInFx
 import javafx.scene.input.KeyCode
+
 import org.seekloud.pb.actions._
 
 import scala.concurrent.duration._
 import java.awt.event.KeyEvent
 import java.nio.ByteBuffer
-
 import javafx.scene.SnapshotParameters
 import javafx.scene.canvas.{Canvas, GraphicsContext}
-import javafx.scene.image.WritableImage
+import javafx.scene.image.{Image, WritableImage}
 import javafx.scene.media.AudioClip
+
 import org.seekloud.pb.api.ActionReq
 import org.seekloud.tank.{BotSdkTest, ClientApp}
 import org.seekloud.tank.common.Context
@@ -68,11 +70,14 @@ class BotViewController(
   val pointerCtx=pointerCanvas.getCtx
 
   var mousePlace = Point(viewWidth,viewHeight)
+  val image = drawFrame.createImage("/img/瞄准_2.png")
 
   private var lastMoveFrame = -1L
   private var lastMouseMoveAngle: Byte = 0
 
   private var moveStateNow:Byte = 8
+
+  def drawPointer() = pointerCtx.drawImage(image,mousePlace.x,mousePlace.y,None)
 
   private def move2Byte(move: Move) :Byte = {
     move match {
@@ -84,7 +89,7 @@ class BotViewController(
       case Move.l_up => 5
       case Move.up => 6
       case Move.r_up => 7
-      case Move.noop => 8
+      case _ => 8
     }
   }
 
@@ -92,6 +97,8 @@ class BotViewController(
     playGameActor ! PlayGameActor.ConnectGame(playerInfo, gameServerInfo, None)
     logicFrameTime = System.currentTimeMillis()
   }
+
+  def closeBotHolder = closeHolder
   override protected def checkScreenSize: Unit = {}
 
   override protected def gameStopCallBack: Unit = {}
@@ -179,6 +186,7 @@ class BotViewController(
       val r = key.swing.get.radian
       mousePlace  += Point(d * math.cos(r).toFloat,d * math.sin(r).toFloat)
       val point = mousePlace
+      pointerCtx.drawImage(image,point.x,point.y)
       val theta = point.getTheta(canvasBoundary  / 2).toFloat
       val angle = point.getAngle(canvasBoundary  / 2)
       val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
