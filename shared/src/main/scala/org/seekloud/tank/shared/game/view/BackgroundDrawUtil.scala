@@ -277,7 +277,7 @@ trait BackgroundDrawUtil {
     viewCtx.setFont("Arial", "normal", 3 * canvasUnit)
     viewCtx.setLineWidth(1)
     val offsetX = canvasSize.x - 20*canvasUnit
-    viewCtx.strokeText(s"当前在线人数： ${tankMap.size}", 0, canvasSize.y - (LittleMap.h - 6) * canvasUnit, 20 * canvasUnit)
+    viewCtx.strokeText(s"当前在线人数： ${tankMap.size}", 0, canvasSize.y - (LittleMap.h + 6) * canvasUnit, 20 * canvasUnit)
 
     viewCtx.beginPath()
     viewCtx.setFont("Helvetica", "normal", 2 * canvasUnit)

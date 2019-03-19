@@ -517,6 +517,7 @@ case class GameContainerClientImpl(
             drawEnvironment4Bot(layerOffset,Point(w,h))
             drawProps4Bot(layerOffset,Point(w,h))
             drawObstacles4Bot(layerOffset,Point(w,h))
+            drawState4Bot(tank.asInstanceOf[TankClientImpl])
           }
 
         case None =>
