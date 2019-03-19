@@ -31,9 +31,9 @@ import scala.collection.mutable
   */
 trait BotObstacleDrawUtil extends ObstacleDrawUtil{this:GameContainerClientImpl=>
 
-//  private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Any]()
-//  private val steelImg =drawFrame.createImage("/img/钢铁.png")
-//  private val riverImg =drawFrame.createImage("/img/river.png")
+  private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Any]()
+  private val steelImg =drawFrame.createImage("/img/钢铁.png")
+  private val riverImg =drawFrame.createImage("/img/river.png")
 
   protected def drawObstacles4Bot(offset:Point,view:Point) = {
     obstacleMap.values.foreach{ obstacle =>
@@ -68,9 +68,7 @@ trait BotObstacleDrawUtil extends ObstacleDrawUtil{this:GameContainerClientImpl=
           }
         }else{
           if (obstacle.bloodPercent() > 0.9999999) {
-            val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
-            val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false), generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color,layerCanvasUnit))
-            mutableCtx.drawImage(cache, p.x * layerCanvasUnit, p.y * layerCanvasUnit)
+            drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, 1, color,mutableCtx,layerCanvasUnit)
 
           } else {
             drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color,mutableCtx,layerCanvasUnit)
