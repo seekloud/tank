@@ -45,7 +45,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
   protected def generateObstacleCacheCanvas(width: Float, height: Float, color: String,unit:Int): Any = {
     val cacheCanvas = drawFrame.createCanvas((width * unit).toInt, (height * unit).toInt)
     val ctxCache = cacheCanvas.getCtx
-    drawObstacle(Point(width / 2, height / 2), width, height, 1, color, ctxCache,canvasUnit)
+    drawObstacle(Point(width / 2, height / 2), width, height, 1, color, ctxCache,unit)
     cacheCanvas.change2Image()
   }
 
