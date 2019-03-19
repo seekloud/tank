@@ -111,40 +111,28 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
   }
 
 
-  def drawObstacleBloodSlider(offset:Point) = {
+  def drawObstacleBloodSlider(offset:Point,ctx:MiddleContext,unit:Int) = {
     obstacleMap.values.filter(_.isInstanceOf[AirDropBox]).foreach{ obstacle =>
       if(obstacle.bloodPercent() < 0.99999999){
         val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
-        drawLine(p.x * canvasUnit, (p.y - 2) * canvasUnit, 10, obstacle.getWidth * canvasUnit, "#4D4D4D")
-        drawLine(p.x * canvasUnit, (p.y - 2) * canvasUnit, 5, obstacle.getWidth * canvasUnit * obstacle.bloodPercent(), "#98FB98")
+        drawLine(ctx,p.x * unit, (p.y - 2) * unit, obstacle.getWidth * unit /2, obstacle.getWidth * unit, "#4D4D4D")
+        drawLine(ctx,p.x * unit, (p.y - 2) * unit, obstacle.getWidth * unit / 4, obstacle.getWidth * unit * obstacle.bloodPercent(), "#98FB98")
       }
     }
   }
 
   //画血量条
-  private def drawLine(startX: Float, startY: Float, lineWidth:Float, lineLen:Float, color:String) = {
-    viewCtx.save()
-    viewCtx.setLineWidth(lineWidth)
-    viewCtx.setLineCap("round")
-    viewCtx.setStrokeStyle(color)
-    viewCtx.beginPath()
-    viewCtx.moveTo(startX, startY)
-    viewCtx.lineTo(startX + lineLen, startY)
-    viewCtx.stroke()
-    viewCtx.closePath()
-    viewCtx.restore()
-//    if(isBot){
-//      mutableCtx.save()
-//      mutableCtx.setLineWidth(lineWidth)
-//      mutableCtx.setLineCap("round")
-//      mutableCtx.setStrokeStyle(color)
-//      mutableCtx.beginPath()
-//      mutableCtx.moveTo(startX /layerCanvasUnit, startY /layerCanvasUnit)
-//      mutableCtx.lineTo(startX /layerCanvasUnit + lineLen /layerCanvasUnit, startY /layerCanvasUnit)
-//      mutableCtx.stroke()
-//      mutableCtx.closePath()
-//      mutableCtx.restore()
-//    }
+  private def drawLine(ctx:MiddleContext,startX: Float, startY: Float, lineWidth:Float, lineLen:Float, color:String) = {
+    ctx.save()
+    ctx.setLineWidth(lineWidth)
+    ctx.setLineCap("round")
+    ctx.setStrokeStyle(color)
+    ctx.beginPath()
+    ctx.moveTo(startX, startY)
+    ctx.lineTo(startX + lineLen, startY)
+    ctx.stroke()
+    ctx.closePath()
+    ctx.restore()
   }
 
 

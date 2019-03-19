@@ -34,6 +34,7 @@ trait BotObstacleDrawUtil extends ObstacleDrawUtil{this:GameContainerClientImpl=
 
   protected def drawObstacles4Bot(offset:Point,view:Point) = {
     drawObstacles(offset,view,mutableCtx,layerCanvasUnit)
+    drawObstacleBloodSlider(offset,mutableCtx,layerCanvasUnit)
   }
 
   def drawEnvironment4Bot(offset:Point,view:Point) :Unit={

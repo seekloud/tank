@@ -497,7 +497,7 @@ case class GameContainerClientImpl(
           drawProps(offset, Point(w, h),canvasUnit,viewCtx)
           drawBullet(offset, offsetTime, Point(w, h))
           drawTankList(offset, offsetTime, Point(w, h))
-          drawObstacleBloodSlider(offset)
+          drawObstacleBloodSlider(offset,viewCtx,canvasUnit)
           drawMyTankInfo(tank.asInstanceOf[TankClientImpl], supportLiveLimit)
           drawMinimap(tank)
           drawRank(supportLiveLimit, tank.tankId, tank.name)
