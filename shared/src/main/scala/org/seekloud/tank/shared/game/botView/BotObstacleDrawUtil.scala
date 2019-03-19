@@ -38,9 +38,7 @@ trait BotObstacleDrawUtil extends ObstacleDrawUtil{this:GameContainerClientImpl=
   }
 
   def drawEnvironment4Bot(offset:Point,view:Point) :Unit={
-
     drawEnvironment(offset,view,layerCanvasUnit,immutableCtx)
-
   }
 
 }

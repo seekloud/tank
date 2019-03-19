@@ -19,7 +19,7 @@ package org.seekloud.tank.shared.game.botView
 import org.seekloud.tank.shared.`object`.Tank
 import org.seekloud.tank.shared.game.GameContainerClientImpl
 import org.seekloud.tank.shared.game.view.BackgroundDrawUtil
-import org.seekloud.tank.shared.model.Point
+import org.seekloud.tank.shared.model.{Constants, Point}
 
 /**
   * Created by sky
@@ -28,33 +28,39 @@ import org.seekloud.tank.shared.model.Point
   */
 trait BotBackgroundDrawUtil extends BackgroundDrawUtil{ this:GameContainerClientImpl=>
   def drawBackground4Bot(offset:Point)={
-    val backColor="#000000"/*"white"*/
+    val backColor="#000000"
     clearScreen(backColor,1, layerCanvasSize.x, layerCanvasSize.y, immutableCtx)
     clearScreen(backColor,1, layerCanvasSize.x, layerCanvasSize.y, mutableCtx)
     clearScreen(backColor,1, layerCanvasSize.x, layerCanvasSize.y, bodiesCtx)
     clearScreen(backColor,1, layerCanvasSize.x, layerCanvasSize.y, ownerShipCtx)
     clearScreen(backColor,1, layerCanvasSize.x, layerCanvasSize.y, selfCtx)
+    clearScreen(backColor,1, layerCanvasSize.x, layerCanvasSize.y, locationCtx)
   }
 
+  private val fullSize=config.boundary
+  private val locationSize=Point(layerCanvasSize.x-20,layerCanvasSize.y-10)
+  private val locationUnit=fullSize/locationSize
+  private val realSize=Point(Constants.WindowView.x,layerCanvasSize.y/canvasUnit)/locationUnit
   protected def drawLocation4Bot(tank:Tank):Unit={
-    if(isBot){
-      locationCtx.setFill("black")
-      locationCtx.fillRec(0,0,108,100)
-      locationCtx.beginPath()
-      locationCtx.setStrokeStyle("white")
-      val w = 48
-      val h = 27
-      val x = tank.getPosition.x  / 4 - w/2
-      val y = tank.getPosition.y / 4 - h /2
-      locationCtx.setFill("white")
-      locationCtx.fillRec(x,y,w,h)
-      locationCtx.moveTo(x,y)
-      locationCtx.lineTo(x,y+h)
-      locationCtx.lineTo(x+w,y+h)
-      locationCtx.lineTo(x+w,y)
-      locationCtx.lineTo(x,y)
-      locationCtx.stroke()
-      locationCtx.closePath()
-    }
+    locationCtx.beginPath()
+    locationCtx.setStrokeStyle("white")
+    locationCtx.moveTo(10, 5)
+    locationCtx.lineTo(layerCanvasSize.x-10, 5)
+    locationCtx.lineTo(layerCanvasSize.x-10, layerCanvasSize.y-5)
+    locationCtx.lineTo(10, layerCanvasSize.y-5)
+    locationCtx.lineTo(10, 5)
+    locationCtx.stroke()
+    locationCtx.closePath()
+    val loP = tank.getPosition/locationUnit
+    locationCtx.beginPath()
+    locationCtx.setFill("white")
+    locationCtx.moveTo(loP.x-realSize.x/2+10,loP.y-realSize.y/2+5)
+    locationCtx.lineTo(loP.x+realSize.x/2+10,loP.y-realSize.y/2+5)
+    locationCtx.lineTo(loP.x+realSize.x/2+10,loP.y+realSize.y/2+5)
+    locationCtx.lineTo(loP.x-realSize.x/2+10,loP.y+realSize.y/2+5)
+    locationCtx.lineTo(loP.x-realSize.x/2+10,loP.y-realSize.y/2+5)
+    locationCtx.fill()
+    locationCtx.stroke()
+    locationCtx.closePath()
   }
 }

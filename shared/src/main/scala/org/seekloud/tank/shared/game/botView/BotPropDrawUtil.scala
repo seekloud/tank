@@ -28,7 +28,6 @@ import org.seekloud.tank.shared.model.Point
 trait BotPropDrawUtil extends PropDrawUtil{this:GameContainerClientImpl=>
 
   protected def drawProps4Bot(offset: Point, view: Point) : Unit ={
-
     drawProps(offset, view,layerCanvasUnit, mutableCtx)
   }
 }
