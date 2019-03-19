@@ -29,10 +29,10 @@ import scala.collection.mutable
   */
 trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
 
-  protected val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Any]()
+  private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Any]()
 
-  protected val steelImg =drawFrame.createImage("/img/钢铁.png")
-  protected val riverImg =drawFrame.createImage("/img/river.png")
+  private val steelImg =drawFrame.createImage("/img/钢铁.png")
+  private val riverImg =drawFrame.createImage("/img/river.png")
   protected val airBoxImg =drawFrame.createImage("/img/道具.png")
 
   def updateObstacleSize(canvasSize:Point)={
