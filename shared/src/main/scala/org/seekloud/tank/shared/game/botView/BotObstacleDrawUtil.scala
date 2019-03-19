@@ -31,9 +31,6 @@ import scala.collection.mutable
   */
 trait BotObstacleDrawUtil extends ObstacleDrawUtil{this:GameContainerClientImpl=>
 
-  private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Any]()
-  private val steelImg =drawFrame.createImage("/img/钢铁.png")
-  private val riverImg =drawFrame.createImage("/img/river.png")
 
   protected def drawObstacles4Bot(offset:Point,view:Point) = {
     drawObstacles(offset,view,mutableCtx,layerCanvasUnit)
@@ -41,33 +38,8 @@ trait BotObstacleDrawUtil extends ObstacleDrawUtil{this:GameContainerClientImpl=
 
   def drawEnvironment4Bot(offset:Point,view:Point) :Unit={
 
-    environmentMap.values.foreach { obstacle =>
-      val img = obstacle.obstacleType match {
-        case ObstacleType.steel => steelImg
-        case ObstacleType.river => riverImg
-      }
-      val p = obstacle.getPosition - Point(obstacle.getWidth, obstacle.getHeight) / 2 + offset
-      if(p.in(view,Point(obstacle.getWidth,obstacle.getHeight))) {
-        if (obstacleImgComplete) {
-          val isAttacked = obstacle.obstacleType == ObstacleType.steel && obstacleAttackedAnimationMap.contains(obstacle.oId)
-          val cacheCanvas = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, isAttacked),
-            generateEnvironmentCacheCanvas(obstacle.obstacleType, obstacle.getWidth, obstacle.getHeight, isAttacked,layerCanvasUnit))
-          immutableCtx.drawImage(cacheCanvas, p.x * layerCanvasUnit, p.y * layerCanvasUnit)
-        } else {
-          immutableCtx.beginPath()
-          immutableCtx.drawImage(img, p.x * layerCanvasUnit, p.y * layerCanvasUnit,
-            Some(obstacle.getWidth * layerCanvasUnit, obstacle.getHeight * layerCanvasUnit))
-          immutableCtx.fill()
-          immutableCtx.stroke()
-          immutableCtx.closePath()
+    drawEnvironment(offset,view,layerCanvasUnit,immutableCtx)
 
-        }
-        if (obstacle.obstacleType == ObstacleType.steel && obstacleAttackedAnimationMap.contains(obstacle.oId)) {
-          if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
-          else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
-        }
-      }
-    }
   }
 
 }

@@ -180,8 +180,8 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
         if (obstacleImgComplete) {
           val isAttacked = obstacle.obstacleType == ObstacleType.steel && obstacleAttackedAnimationMap.contains(obstacle.oId)
           val cacheCanvas = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, isAttacked),
-            generateEnvironmentCacheCanvas(obstacle.obstacleType, obstacle.getWidth, obstacle.getHeight, isAttacked,canvasUnit))
-          ctx.drawImage(cacheCanvas, p.x * unit, p.y * unit)
+            generateEnvironmentCacheCanvas(obstacle.obstacleType, obstacle.getWidth, obstacle.getHeight, isAttacked,unit))
+          ctx.drawImage(cacheCanvas, p.x * unit, p.y * unit, Some(obstacle.getWidth * unit, obstacle.getHeight * unit))
         } else {
           ctx.beginPath()
           ctx.drawImage(img, p.x * unit, p.y * unit,
