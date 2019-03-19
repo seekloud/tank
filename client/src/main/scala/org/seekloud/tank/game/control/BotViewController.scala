@@ -207,7 +207,7 @@ class BotViewController(
       /**
         * 鼠标点击，开火
         **/
-      val point = mousePlace + Point(24, 24)
+      val point = mousePlace
       val theta = point.getTheta(canvasBoundary  / 2).toFloat
       val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
