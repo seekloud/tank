@@ -17,7 +17,7 @@
 
 syntax = "proto3";
 
-package org.seekloud.pb;
+package org.seekloud.esheepapi.pb;
 
 
 

@@ -24,7 +24,7 @@ import org.seekloud.tank.core.{BotViewActor, PlayGameActor}
 import org.seekloud.tank.model._
 import org.seekloud.utils.canvas.MiddleCanvasInFx
 import javafx.scene.input.KeyCode
-import org.seekloud.pb.actions._
+import org.seekloud.esheepapi.pb.actions._
 
 import scala.concurrent.duration._
 import java.awt.event.KeyEvent
@@ -34,7 +34,7 @@ import javafx.scene.SnapshotParameters
 import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.image.WritableImage
 import javafx.scene.media.AudioClip
-import org.seekloud.pb.api.ActionReq
+import org.seekloud.esheepapi.pb.api.ActionReq
 import org.seekloud.tank.{BotSdkTest, ClientApp}
 import org.seekloud.tank.common.Context
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg

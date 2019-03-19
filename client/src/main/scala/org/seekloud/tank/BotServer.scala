@@ -22,10 +22,10 @@ import io.grpc.stub.StreamObserver
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.actor.typed.scaladsl.adapter._
 import io.grpc.{Server, ServerBuilder}
-import org.seekloud.pb.actions._
-import org.seekloud.pb.api._
-import org.seekloud.pb.service.EsheepAgentGrpc
-import org.seekloud.pb.service.EsheepAgentGrpc.EsheepAgent
+import org.seekloud.esheepapi.pb.actions._
+import org.seekloud.esheepapi.pb.api._
+import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc
+import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc.EsheepAgent
 import org.seekloud.tank.common.AppSettings
 import org.seekloud.tank.core.{BotViewActor, GrpcStreamActor, LoginActor, PlayGameActor}
 import org.seekloud.tank.game.control.BotViewController
@@ -226,10 +226,8 @@ class BotServer(
   }
 
   override def systemInfo(request: Credit): Future[SystemInfoRsp] = {
-    val rsp = SystemInfoRsp(framePeriod = AppSettings.framePeriod, state = BotServer.state, msg = "ok")
-    Future.successful(rsp)
     if (botAuth(request.apiToken)) {
-      Future.successful(SystemInfoRsp())
+      Future.successful(SystemInfoRsp(framePeriod = AppSettings.framePeriod, state = BotServer.state, msg = "ok"))
     } else {
       Future.successful(SystemInfoRsp(errCode = 101, state = State.unknown, msg = "auth error"))
     }

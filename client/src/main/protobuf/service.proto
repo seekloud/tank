@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package org.seekloud.pb;
+package org.seekloud.esheepapi.pb;
 
 
 import "api.proto";
@@ -19,9 +19,6 @@ service EsheepAgent {
 
   rpc systemInfo (Credit) returns (SystemInfoRsp);
 
-  rpc currentFrame(Credit) returns (stream CurrentFrameRsp);
-  //  rpc currentFrame(Credit) returns (CurrentFrameRsp);
-
   rpc action (ActionReq) returns (ActionRsp);
 
   rpc observation (Credit) returns (ObservationRsp);
@@ -32,5 +29,5 @@ service EsheepAgent {
 
   rpc reincarnation (Credit) returns (SimpleRsp);
 
-
+  rpc currentFrame(Credit) returns (stream CurrentFrameRsp);
 }

@@ -17,9 +17,9 @@
 package org.seekloud.tank
 
 import io.grpc.{ManagedChannel, ManagedChannelBuilder}
-import org.seekloud.pb.api._
-import org.seekloud.pb.service.EsheepAgentGrpc
-import org.seekloud.pb.service.EsheepAgentGrpc.EsheepAgentStub
+import org.seekloud.esheepapi.pb.api._
+import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc
+import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc.EsheepAgentStub
 
 import scala.concurrent.Future
 
@@ -40,7 +40,7 @@ object BotSdkTest {
 
   def createRoom(password:String): Future[CreateRoomRsp] = esheepStub.createRoom(CreateRoomReq(Some(credit),password))
 
-  def joinRoom():Future[SimpleRsp]= esheepStub.joinRoom(JoinRoomReq("3","test",Some(credit)))
+  def joinRoom():Future[SimpleRsp]= esheepStub.joinRoom(JoinRoomReq(Some(credit),"3","test"))
 
 
   def test: Unit = {

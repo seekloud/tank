@@ -21,8 +21,8 @@ import akka.actor.typed.scaladsl.Behaviors
 import com.google.protobuf.ByteString
 import org.seekloud.tank.BotServer
 import org.slf4j.LoggerFactory
-import org.seekloud.pb.api.ObservationRsp
-import org.seekloud.pb.observations.{ImgData, LayeredObservation}
+import org.seekloud.esheepapi.pb.api.ObservationRsp
+import org.seekloud.esheepapi.pb.observations.{ImgData, LayeredObservation}
 import org.seekloud.tank.common.AppSettings
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.model.JoinRoomRsp
@@ -67,8 +67,8 @@ object BotViewActor {
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(bodiesByte))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(ownerShip))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(selfAsset))),
-              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(pointer))),
-              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(stateByte)))
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(stateByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(pointer)))
             )
             val observation = ObservationRsp(Some(layer), if(viewByte.isDefined) Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(viewByte.get))) else None)
             if(BotServer.isObservationConnect) {
@@ -85,8 +85,8 @@ object BotViewActor {
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(bodiesByte))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(ownerShip))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(selfAsset))),
-              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(pointer))),
-              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(stateByte)))
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(stateByte))),
+              Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(pointer)))
             )
             val observation = ObservationRsp(Some(layer), if(viewByte.isDefined) Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(viewByte.get))) else None)
             t.sender ! observation
