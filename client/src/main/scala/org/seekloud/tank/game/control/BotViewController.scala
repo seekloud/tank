@@ -67,7 +67,7 @@ class BotViewController(
   val pointerCanvas=drawFrame.createCanvas(viewWidth, viewHeight)
   val pointerCtx=pointerCanvas.getCtx
 
-  var mousePlace = Point(viewWidth,viewHeight)
+  var mousePlace = Point(viewWidth / 2,viewHeight /2)
 
   private var lastMoveFrame = -1L
   private var lastMouseMoveAngle: Byte = 0
@@ -179,6 +179,16 @@ class BotViewController(
       val r = key.swing.get.radian
       mousePlace  += Point(d * math.cos(r).toFloat,d * math.sin(r).toFloat)
       val point = mousePlace
+
+      pointerCtx.setFill("black")
+      pointerCtx.fillRec(0,0,viewWidth,viewHeight)
+      pointerCtx.beginPath()
+      pointerCtx.setStrokeStyle("white")
+      pointerCtx.setFill("white")
+      pointerCtx.arc(mousePlace.x,mousePlace.y,5,0,360)
+      pointerCtx.stroke()
+      pointerCtx.closePath()
+
       val theta = point.getTheta(canvasBoundary  / 2).toFloat
       val angle = point.getAngle(canvasBoundary  / 2)
       val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
