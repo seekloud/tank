@@ -17,6 +17,9 @@
 package org.seekloud.tank
 
 import io.grpc.{ManagedChannel, ManagedChannelBuilder}
+import org.seekloud.esheepapi.pb.api._
+import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc
+import org.seekloud.esheepapi.pb.service.EsheepAgentGrpc.EsheepAgentStub
 import org.seekloud.pb.actions.{Move, Swing}
 import org.seekloud.pb.api._
 import org.seekloud.pb.service.EsheepAgentGrpc

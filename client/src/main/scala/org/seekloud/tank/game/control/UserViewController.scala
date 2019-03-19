@@ -58,7 +58,6 @@ class UserViewController(
                         ) extends GameController( /*context.getStageWidth.toFloat, context.getStageHeight.toFloat, false*/viewWidth*4, viewHeight*4, true) {
   private var spaceKeyUpState = true
   private var lastMouseMoveAngle: Byte = 0
-  private val perMouseMoveFrame = 2
   private var lastMoveFrame = -1L
   private val poKeyBoardMoveTheta = 2 * math.Pi / 72 //炮筒顺时针转
   private val neKeyBoardMoveTheta = -2 * math.Pi / 72 //炮筒逆时针转

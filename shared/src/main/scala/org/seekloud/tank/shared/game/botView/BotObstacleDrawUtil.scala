@@ -18,6 +18,11 @@ package org.seekloud.tank.shared.game.botView
 
 import org.seekloud.tank.shared.game.GameContainerClientImpl
 import org.seekloud.tank.shared.game.view.ObstacleDrawUtil
+import org.seekloud.tank.shared.model.Constants.ObstacleType
+import org.seekloud.tank.shared.model.Point
+import org.seekloud.tank.shared.util.canvas.MiddleContext
+
+import scala.collection.mutable
 
 /**
   * Created by sky
@@ -25,5 +30,15 @@ import org.seekloud.tank.shared.game.view.ObstacleDrawUtil
   * Time at 上午11:40
   */
 trait BotObstacleDrawUtil extends ObstacleDrawUtil{this:GameContainerClientImpl=>
+
+
+  protected def drawObstacles4Bot(offset:Point,view:Point) = {
+    drawObstacles(offset,view,mutableCtx,layerCanvasUnit)
+    drawObstacleBloodSlider(offset,mutableCtx,layerCanvasUnit)
+  }
+
+  def drawEnvironment4Bot(offset:Point,view:Point) :Unit={
+    drawEnvironment(offset,view,layerCanvasUnit,immutableCtx)
+  }
 
 }

@@ -62,7 +62,7 @@ trait TankDrawUtil {
     }
   }
 
-  def drawTankGun(p:Point,tank:TankClientImpl,unit:Int,ctx:MiddleContext)={
+  protected def drawTankGun(p:Point,tank:TankClientImpl,unit:Int,ctx:MiddleContext)={
     if (tankAttackedAnimationMap.contains(tank.tankId)) {
       if (tankAttackedAnimationMap(tank.tankId) <= 0) tankAttackedAnimationMap.remove(tank.tankId)
       else tankAttackedAnimationMap.put(tank.tankId, tankAttackedAnimationMap(tank.tankId) - 1)
@@ -94,7 +94,7 @@ trait TankDrawUtil {
     }
   }
 
-  def drawTank(p:Point,tank:TankClientImpl,tankColor:String,unit:Int,ctx:MiddleContext)={
+  protected def drawTank(p:Point,tank:TankClientImpl,tankColor:String,unit:Int,ctx:MiddleContext)={
     ctx.beginPath()
     ctx.setLineWidth(0.4 * unit)
     ctx.setStrokeStyle("#636363")
@@ -111,7 +111,7 @@ trait TankDrawUtil {
     ctx.setGlobalAlpha(1)
   }
 
-  def drawTankName(p: Point, tankName: String, unit: Int, ctx: MiddleContext) = {
+  protected def drawTankName(p: Point, tankName: String, unit: Int, ctx: MiddleContext) = {
     ctx.beginPath()
     val namePosition = (p + Point(0, 5)) * unit
     ctx.setFill("#006699")
@@ -122,7 +122,7 @@ trait TankDrawUtil {
     ctx.closePath()
   }
 
-  def drawBloodSlider(tankPosition: Point, tank: TankClientImpl, unit: Int, ctx: MiddleContext) = {
+  protected def drawBloodSlider(tankPosition: Point, tank: TankClientImpl, unit: Int, ctx: MiddleContext) = {
     val num = tank.getMaxBlood / 20
     val sliderLength = 2f * tank.getRadius
     val greyLength = 0.3f * sliderLength
@@ -157,7 +157,7 @@ trait TankDrawUtil {
 
   }
 
-  def drawTankBullet(tankPosition: Point, tank: TankClientImpl, unit: Int, ctx: MiddleContext) = {
+  protected def drawTankBullet(tankPosition: Point, tank: TankClientImpl, unit: Int, ctx: MiddleContext) = {
     var left = tank.bulletMaxCapacity * SmallBullet.width / 2 * -1
 
     (1 to tank.getCurBulletNum).foreach { i =>
@@ -183,7 +183,7 @@ trait TankDrawUtil {
 
   }
 
-  def drawTankStar(tankPosition: Point, tank: TankClientImpl, unit: Int, ctx: MiddleContext) = {
+  protected def drawTankStar(tankPosition: Point, tank: TankClientImpl, unit: Int, ctx: MiddleContext) = {
     val firstStarPos = Point(tank.getRadius + TankStar.interval, -(tank.getRadius + TankStar.interval))
     val endStarNum = math.min(TankStar.maxNum, tank.killTankNum)
     (0 until endStarNum).foreach { idx =>
@@ -214,7 +214,7 @@ trait TankDrawUtil {
     viewCtx.drawImage(cache, 0, 2 * canvasUnit)
   }
 
-  def drawLevel(level: Byte, maxLevel: Byte, name: String, start: Point, length: Float, color: String,unit:Int, context: MiddleContext) = {
+  protected def drawLevel(level: Byte, maxLevel: Byte, name: String, start: Point, length: Float, color: String,unit:Int, context: MiddleContext) = {
     context.setStrokeStyle("#4D4D4D")
     context.setLineCap("round")
     context.setLineWidth(3 * unit)
@@ -257,8 +257,7 @@ trait TankDrawUtil {
     context.fillText(name, start.x + length / 2, start.y)
   }
 
-
-  def drawCurMedicalNum(tank: TankClientImpl) = {
+  protected def drawCurMedicalNum(tank: TankClientImpl) = {
     viewCtx.beginPath()
     viewCtx.setStrokeStyle("rgb(0,0,0)")
     viewCtx.setTextAlign("left")

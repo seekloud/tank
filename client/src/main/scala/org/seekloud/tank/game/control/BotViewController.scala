@@ -26,7 +26,7 @@ import org.seekloud.tank.model._
 import org.seekloud.utils.canvas.MiddleCanvasInFx
 import javafx.scene.input.KeyCode
 
-import org.seekloud.pb.actions._
+import org.seekloud.esheepapi.pb.actions._
 
 import scala.concurrent.duration._
 import java.awt.event.KeyEvent
@@ -35,8 +35,7 @@ import javafx.scene.SnapshotParameters
 import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.image.{Image, WritableImage}
 import javafx.scene.media.AudioClip
-
-import org.seekloud.pb.api.ActionReq
+import org.seekloud.esheepapi.pb.api.ActionReq
 import org.seekloud.tank.{BotSdkTest, ClientApp}
 import org.seekloud.tank.common.Context
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
@@ -69,7 +68,7 @@ class BotViewController(
   val pointerCanvas=drawFrame.createCanvas(viewWidth, viewHeight)
   val pointerCtx=pointerCanvas.getCtx
 
-  var mousePlace = Point(viewWidth,viewHeight)
+  var mousePlace = Point(viewWidth/2,viewHeight/2)
   val image = drawFrame.createImage("/img/瞄准_2.png")
 
   private var lastMoveFrame = -1L
@@ -186,7 +185,16 @@ class BotViewController(
       val r = key.swing.get.radian
       mousePlace  += Point(d * math.cos(r).toFloat,d * math.sin(r).toFloat)
       val point = mousePlace
-      pointerCtx.drawImage(image,point.x,point.y)
+
+      pointerCtx.setFill("black")
+      pointerCtx.fillRec(0,0,viewWidth,viewHeight)
+      pointerCtx.beginPath()
+      pointerCtx.setStrokeStyle("white")
+      pointerCtx.setFill("white")
+      pointerCtx.arc(mousePlace.x,mousePlace.y,5,0,360)
+      pointerCtx.stroke()
+      pointerCtx.closePath()
+
       val theta = point.getTheta(canvasBoundary  / 2).toFloat
       val angle = point.getAngle(canvasBoundary  / 2)
       val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
@@ -205,7 +213,7 @@ class BotViewController(
       /**
         * 鼠标点击，开火
         **/
-      val point = mousePlace + Point(24, 24)
+      val point = mousePlace
       val theta = point.getTheta(canvasBoundary  / 2).toFloat
       val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)

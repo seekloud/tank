@@ -19,6 +19,7 @@ package org.seekloud.tank.shared.game.view
 import org.seekloud.tank.shared.game.GameContainerClientImpl
 import org.seekloud.tank.shared.model.Constants.{GameAnimation, PropAnimation}
 import org.seekloud.tank.shared.model.Point
+import org.seekloud.tank.shared.util.canvas.MiddleContext
 
 /**
   * Created by hongruying on 2018/8/29
@@ -31,7 +32,7 @@ trait PropDrawUtil { this: GameContainerClientImpl =>
   private val shotgunPropImg = drawFrame.createImage("/img/sandan.png")
   private val boomImg = drawFrame.createImage("/img/boom.png")
 
-  protected def drawProps(offset: Point, view: Point) = {
+  protected def drawProps(offset: Point, view: Point,unit: Int, ctx: MiddleContext) = {
     propMap.values.foreach { prop =>
       val p = prop.getPosition + offset
       if (p.in(view, Point(prop.getRadius * 3, prop.getRadius * 3))) {
@@ -46,53 +47,32 @@ trait PropDrawUtil { this: GameContainerClientImpl =>
         if(prop.getDisappearTime < PropAnimation.DisAniFrame2){
           val mod = prop.getDisappearTime % (PropAnimation.DisappearF2 + PropAnimation.DisplayF2) + 1
           if(mod <= PropAnimation.DisplayF2){
-            viewCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
-              Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
-            if(isBot){
-              mutableCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit /layerCanvasUnit, (p.y - prop.getRadius) * canvasUnit /layerCanvasUnit,
-                Some(prop.getRadius * 2 * canvasUnit /layerCanvasUnit, prop.getRadius * 2 * canvasUnit /layerCanvasUnit))
-
-            }
+            ctx.drawImage(img, (p.x - prop.getRadius) * unit, (p.y - prop.getRadius) * unit,
+              Some(prop.getRadius * 2 * unit, prop.getRadius * 2 * unit))
           }
         } else if(prop.getDisappearTime < PropAnimation.DisAniFrame1){
           val mod = prop.getDisappearTime % (PropAnimation.DisappearF1 + PropAnimation.DisplayF1) + 1
           if(mod <= PropAnimation.DisplayF1){
-            viewCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
-              Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
-            if(isBot){
-              mutableCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit /layerCanvasUnit, (p.y - prop.getRadius) * canvasUnit /layerCanvasUnit,
-                Some(prop.getRadius * 2 * canvasUnit /layerCanvasUnit, prop.getRadius * 2 * canvasUnit /layerCanvasUnit))
-            }
+            ctx.drawImage(img, (p.x - prop.getRadius) * unit, (p.y - prop.getRadius) * unit,
+              Some(prop.getRadius * 2 * unit, prop.getRadius * 2 * unit))
           }
         }else{
-          viewCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit,
-            Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
-          if(isBot){
-            mutableCtx.drawImage(img, (p.x - prop.getRadius) * canvasUnit /layerCanvasUnit, (p.y - prop.getRadius) * canvasUnit /layerCanvasUnit,
-              Some(prop.getRadius * 2 * canvasUnit /layerCanvasUnit, prop.getRadius * 2 * canvasUnit /layerCanvasUnit))
-          }
+          ctx.drawImage(img, (p.x - prop.getRadius) * unit, (p.y - prop.getRadius) * unit,
+            Some(prop.getRadius * 2 * unit, prop.getRadius * 2 * unit))
         }
 
         if (tankDestroyAnimationMap.contains(prop.pId)) {
           if (tankDestroyAnimationMap(prop.pId) > GameAnimation.tankDestroyAnimationFrame * 2 / 3) {
-            viewCtx.drawImage(boomImg, (p.x - prop.getRadius) * canvasUnit, (p.y - prop.getRadius) * canvasUnit, Some(prop.getRadius * 2 * canvasUnit, prop.getRadius * 2 * canvasUnit))
-            if(isBot){
-              mutableCtx.drawImage(boomImg, (p.x - prop.getRadius) * canvasUnit /layerCanvasUnit, (p.y - prop.getRadius) * canvasUnit /layerCanvasUnit, Some(prop.getRadius * 2 * canvasUnit /layerCanvasUnit, prop.getRadius * 2 * canvasUnit /layerCanvasUnit))
-              }
+            ctx.drawImage(boomImg, (p.x - prop.getRadius) * unit, (p.y - prop.getRadius) * unit, Some(prop.getRadius * 2 * unit, prop.getRadius * 2 * unit))
+
           } else if (tankDestroyAnimationMap(prop.pId) > GameAnimation.tankDestroyAnimationFrame / 3) {
-            viewCtx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit))
-            if(isBot){
-              mutableCtx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit /layerCanvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit /layerCanvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit /layerCanvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit /layerCanvasUnit))
-              }
+            ctx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * unit, (p.y - prop.getRadius * 2.5f) * unit, Some(prop.getRadius * 2 * 2.5 * unit, prop.getRadius * 2 * 2.5 * unit))
+
           } else if (tankDestroyAnimationMap(prop.pId) > 0) {
-            viewCtx.setGlobalAlpha(0.5)
-            viewCtx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit))
-            viewCtx.setGlobalAlpha(1)
-            if(isBot){
-              mutableCtx.setGlobalAlpha(0.5)
-              mutableCtx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * canvasUnit /layerCanvasUnit, (p.y - prop.getRadius * 2.5f) * canvasUnit /layerCanvasUnit, Some(prop.getRadius * 2 * 2.5 * canvasUnit /layerCanvasUnit, prop.getRadius * 2 * 2.5 * canvasUnit /layerCanvasUnit))
-              mutableCtx.setGlobalAlpha(1)
-            }
+            ctx.setGlobalAlpha(0.5)
+            ctx.drawImage(boomImg, (p.x - prop.getRadius * 2.5f) * unit, (p.y - prop.getRadius * 2.5f) * unit, Some(prop.getRadius * 2 * 2.5 * unit, prop.getRadius * 2 * 2.5 * unit))
+            ctx.setGlobalAlpha(1)
+
           }
 
           if (tankDestroyAnimationMap(prop.pId) <= 0) tankDestroyAnimationMap.remove(prop.pId)

@@ -18,6 +18,7 @@ package org.seekloud.tank.shared.game.botView
 
 import org.seekloud.tank.shared.game.GameContainerClientImpl
 import org.seekloud.tank.shared.game.view.PropDrawUtil
+import org.seekloud.tank.shared.model.Point
 
 /**
   * Created by sky
@@ -26,4 +27,7 @@ import org.seekloud.tank.shared.game.view.PropDrawUtil
   */
 trait BotPropDrawUtil extends PropDrawUtil{this:GameContainerClientImpl=>
 
+  protected def drawProps4Bot(offset: Point, view: Point) : Unit ={
+    drawProps(offset, view,layerCanvasUnit, mutableCtx)
+  }
 }

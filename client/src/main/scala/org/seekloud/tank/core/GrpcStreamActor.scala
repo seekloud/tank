@@ -19,7 +19,7 @@ package org.seekloud.tank.core
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import io.grpc.stub.StreamObserver
-import org.seekloud.pb.api.{Credit, CurrentFrameRsp, ObservationRsp, ObservationWithInfoRsp, State}
+import org.seekloud.esheepapi.pb.api.{Credit, CurrentFrameRsp, ObservationRsp, ObservationWithInfoRsp, State}
 import org.seekloud.tank.BotServer
 import org.seekloud.tank.game.control.BotViewController
 import org.seekloud.tank.shared.model.Constants.GameState

@@ -62,6 +62,21 @@ trait BotTankDrawUtil extends TankDrawUtil {
   }
 
   protected def drawState4Bot(tank:TankClientImpl): Unit = {
-
+    drawLevel(tank.getBloodLevel, config.getTankBloodMaxLevel(), "血量等级", Point(5, 10) * layerCanvasUnit, 100 , "#FF3030",layerCanvasUnit*3, statusCtx)
+    drawLevel(tank.getSpeedLevel, config.getTankSpeedMaxLevel(), "速度等级", Point(5, 20) * layerCanvasUnit, 100 , "#66CD00", layerCanvasUnit*3,statusCtx)
+    drawLevel(tank.getBulletLevel, config.getBulletMaxLevel(), "伤害等级", Point(5, 30) * layerCanvasUnit, 100, "#FF3030",layerCanvasUnit*3, statusCtx)
+    drawLevel(tank.getCurMedicalNum.toByte, config.getTankMedicalLimit.toByte, "医疗", Point(5, 40) * layerCanvasUnit, 100, "#66CD00", layerCanvasUnit*3,statusCtx)
+    drawLevel(tank.getCurBulletNum.toByte, config.maxBulletCapacity.toByte, "子弹剩余", Point(5, 50) * layerCanvasUnit, 100 , "#FF3030",layerCanvasUnit*3, statusCtx)
+    drawLevel(((tank.getCurBlood.toFloat/tank.getMaxBlood)*10).toByte, 10, "血量剩余", Point(5, 60) * layerCanvasUnit, 100 , "#66CD00", layerCanvasUnit*3,statusCtx)
+    if(tank.getInvincibleState){
+      drawLevel(1, 1, "无敌状态", Point(5, 70) * layerCanvasUnit, 100, "#FF3030",layerCanvasUnit*3, statusCtx)
+    }else{
+      drawLevel(0, 1, "无敌状态", Point(5, 70) * layerCanvasUnit, 100, "#FF3030",layerCanvasUnit*3, statusCtx)
+    }
+    if(tank.getShotGunState()){
+      drawLevel(1, 1, "散弹状态", Point(5, 80) * layerCanvasUnit, 100, "#66CD00",layerCanvasUnit*3, statusCtx)
+    }else{
+      drawLevel(0, 10, "散弹状态", Point(5, 80) * layerCanvasUnit, 100, "#66CD00",layerCanvasUnit*3, statusCtx)
+    }
   }
 }

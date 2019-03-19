@@ -492,12 +492,12 @@ case class GameContainerClientImpl(
         case Some(tank) =>
           val offset = canvasSize / canvasUnit / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
           drawBackground(offset)
-          drawObstacles(offset, Point(w, h))
-          drawEnvironment(offset, Point(w, h))
-          drawProps(offset, Point(w, h))
+          drawObstacles(offset, Point(w, h),viewCtx,canvasUnit)
+          drawEnvironment(offset, Point(w, h),canvasUnit,viewCtx)
+          drawProps(offset, Point(w, h),canvasUnit,viewCtx)
           drawBullet(offset, offsetTime, Point(w, h))
           drawTankList(offset, offsetTime, Point(w, h))
-          drawObstacleBloodSlider(offset)
+          drawObstacleBloodSlider(offset,viewCtx,canvasUnit)
           drawMyTankInfo(tank.asInstanceOf[TankClientImpl], supportLiveLimit)
           drawMinimap(tank)
           drawRank(supportLiveLimit, tank.tankId, tank.name)
@@ -514,6 +514,10 @@ case class GameContainerClientImpl(
             drawBullet4bot(layerOffset,Point(w,h))
             drawTankList4Bot(layerOffset,Point(w, h))
             drawKernel4Bot(layerOffset,tank)
+            drawEnvironment4Bot(layerOffset,Point(w,h))
+            drawProps4Bot(layerOffset,Point(w,h))
+            drawObstacles4Bot(layerOffset,Point(w,h))
+            drawState4Bot(tank.asInstanceOf[TankClientImpl])
           }
 
         case None =>
