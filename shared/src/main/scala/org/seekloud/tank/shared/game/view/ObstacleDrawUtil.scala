@@ -67,7 +67,7 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
   }
 
 
-  protected def drawObstacles(offset:Point,view:Point) = {
+  protected def drawObstacles(offset:Point,view:Point,ctx:MiddleContext,unit:Int) = {
     obstacleMap.values.foreach{ obstacle =>
       if((obstacle.getPosition + offset).in(view,Point(obstacle.getWidth,obstacle.getHeight))) {
         val isAttacked: Boolean = obstacleAttackedAnimationMap.get(obstacle.oId).nonEmpty
@@ -89,22 +89,19 @@ trait ObstacleDrawUtil{ this:GameContainerClientImpl =>
         if(obstacle.obstacleType == ObstacleType.airDropBox){
           val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
           if (isAttacked){
-            viewCtx.setGlobalAlpha(0.5)
-            viewCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
-              Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
-            viewCtx.setGlobalAlpha(1)
+            ctx.setGlobalAlpha(0.5)
+            ctx.drawImage(airBoxImg, p.x * unit, p.y * unit,
+              Some(obstacle.getWidth * unit, obstacle.getHeight * unit))
+            ctx.setGlobalAlpha(1)
           } else {
-            viewCtx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
-              Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
+            ctx.drawImage(airBoxImg, p.x * unit, p.y * unit,
+              Some(obstacle.getWidth * unit, obstacle.getHeight * unit))
           }
         }else{
           if (obstacle.bloodPercent() > 0.9999999) {
-            val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
-            val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false), generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color,canvasUnit))
-            viewCtx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
-
+            drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, 1, color, ctx,unit)
           } else {
-            drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color, viewCtx,canvasUnit)
+            drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color, ctx,unit)
           }
         }
 

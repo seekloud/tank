@@ -492,7 +492,7 @@ case class GameContainerClientImpl(
         case Some(tank) =>
           val offset = canvasSize / canvasUnit / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
           drawBackground(offset)
-          drawObstacles(offset, Point(w, h))
+          drawObstacles(offset, Point(w, h),viewCtx,canvasUnit)
           drawEnvironment(offset, Point(w, h),canvasUnit,viewCtx)
           drawProps(offset, Point(w, h),canvasUnit,viewCtx)
           drawBullet(offset, offsetTime, Point(w, h))
