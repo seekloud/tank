@@ -17,27 +17,17 @@
 package org.seekloud.tank.game.control
 
 import akka.actor.typed.scaladsl.adapter._
-import javafx.animation.{AnimationTimer, KeyFrame}
 
 import akka.actor.typed.{ActorRef, Behavior}
 import org.seekloud.tank.ClientApp.system
 import org.seekloud.tank.core.{BotViewActor, PlayGameActor}
 import org.seekloud.tank.model._
 import org.seekloud.utils.canvas.MiddleCanvasInFx
-import javafx.scene.input.KeyCode
 
 import org.seekloud.esheepapi.pb.actions._
 
-import scala.concurrent.duration._
-import java.awt.event.KeyEvent
-import java.nio.ByteBuffer
-import javafx.scene.SnapshotParameters
-import javafx.scene.canvas.{Canvas, GraphicsContext}
-import javafx.scene.image.{Image, WritableImage}
-import javafx.scene.media.AudioClip
 import org.seekloud.esheepapi.pb.api.ActionReq
 import org.seekloud.tank.{BotSdkTest, ClientApp}
-import org.seekloud.tank.common.Context
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.shared.model.Constants.GameState
 import org.seekloud.tank.shared.model.Point
@@ -69,14 +59,11 @@ class BotViewController(
   val pointerCtx=pointerCanvas.getCtx
 
   var mousePlace = Point(viewWidth/2,viewHeight/2)
-  val image = drawFrame.createImage("/img/瞄准_2.png")
 
   private var lastMoveFrame = -1L
   private var lastMouseMoveAngle: Byte = 0
 
   private var moveStateNow:Byte = 8
-
-  def drawPointer() = pointerCtx.drawImage(image,mousePlace.x,mousePlace.y,None)
 
   private def move2Byte(move: Move) :Byte = {
     move match {
@@ -93,8 +80,17 @@ class BotViewController(
   }
 
   def startGame: Unit = {
-    playGameActor ! PlayGameActor.ConnectGame(playerInfo, gameServerInfo, None)
-    logicFrameTime = System.currentTimeMillis()
+    if(firstCome){
+      firstCome = false
+      playGameActor ! PlayGameActor.ConnectGame(playerInfo, gameServerInfo, None)
+      logicFrameTime = System.currentTimeMillis()
+    }else{
+      gameContainerOpt.foreach { r =>
+        playGameActor ! DispatchMsg(TankGameEvent.RestartGame(Some(r.myTankId), r.myName))
+        setGameState(GameState.loadingPlay)
+        playGameActor ! PlayGameActor.StartGameLoop(r.config.frameDuration)
+      }
+    }
   }
 
   def closeBotHolder = closeHolder
@@ -184,7 +180,6 @@ class BotViewController(
       val d = key.swing.get.distance
       val r = key.swing.get.radian
       mousePlace  += Point(d * math.cos(r).toFloat,d * math.sin(r).toFloat)
-      val point = mousePlace
 
       pointerCtx.setFill("black")
       pointerCtx.fillRec(0,0,viewWidth,viewHeight)
@@ -195,6 +190,7 @@ class BotViewController(
       pointerCtx.stroke()
       pointerCtx.closePath()
 
+      val point = mousePlace  * 4
       val theta = point.getTheta(canvasBoundary  / 2).toFloat
       val angle = point.getAngle(canvasBoundary  / 2)
       val preMMFAction = TankGameEvent.UserMouseMove(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
@@ -213,7 +209,7 @@ class BotViewController(
       /**
         * 鼠标点击，开火
         **/
-      val point = mousePlace
+      val point = mousePlace * 4
       val theta = point.getTheta(canvasBoundary  / 2).toFloat
       val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
@@ -240,9 +236,8 @@ class BotViewController(
     }
   }
   def receiveReincarnation ={
-    val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, gameContainerOpt.get.tankMap(gameContainerOpt.get.myTankId).getGunDirection(), getActionSerialNum)
-    gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-    playGameActor ! DispatchMsg(preExecuteAction)
+    firstCome = false
+    startGame
   }
 
 }
