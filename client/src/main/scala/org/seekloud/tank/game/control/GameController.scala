@@ -22,7 +22,7 @@ import akka.actor.typed.scaladsl.adapter._
 import javafx.animation.AnimationTimer
 import javafx.scene.input.KeyCode
 
-import org.seekloud.tank.{BotServer, ClientApp}
+import org.seekloud.tank.{BotSdkTest, BotServer, ClientApp}
 import org.seekloud.tank.ClientApp.system
 import org.seekloud.tank.core.{BotViewActor, GrpcStreamActor, PlayGameActor}
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
@@ -141,9 +141,14 @@ abstract class GameController(
           tickCount += 1
 
         case GameState.stop =>
-          closeHolder
-          gameContainerOpt.foreach(_.drawCombatGains())
-          gameStopCallBack
+          if(isBot){
+            gameContainerOpt.foreach(_.drawCombatGains())
+            BotSdkTest.reincarnation()
+          }else{
+            closeHolder
+            gameContainerOpt.foreach(_.drawCombatGains())
+            gameStopCallBack
+          }
 
         case _ => log.info(s"state=${gameState} failed")
       }

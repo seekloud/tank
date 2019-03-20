@@ -58,27 +58,12 @@ object BotSdkTest {
 
   def reincarnation():Future[SimpleRsp] = esheepStub.reincarnation(credit)
 
-
-
-
-//  def test: Unit = {
-//    createRoom("test").map{ rsp =>
-//      println(rsp)
-//      if(rsp.errCode == 0)
-//        esheepStub.joinRoom(JoinRoomReq(rsp.roomId.toString,"test",Some(credit))).map{rsp2=>
-//          println(rsp2)
-//        }
-//    }
-////    joinRoom()
-//  }
-  private def sleep():Unit = Thread.sleep(5000)
+  def test = {
+    joinRoom()
+    ()
+  }
+  private def sleep():Unit = Thread.sleep(10000)
   def main(args: Array[String]): Unit = {
     joinRoom()
-    sleep()
-    (0 to 9).foreach{i =>
-      println(i)
-      action(Move.fromValue(i),Some(Swing(0f,5f)),i % 2, i % 2).map(rsp => println(rsp))
-      Thread.sleep(3000)
-    }
   }
 }

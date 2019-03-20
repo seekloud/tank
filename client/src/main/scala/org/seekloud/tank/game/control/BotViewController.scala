@@ -117,11 +117,11 @@ class BotViewController(
 
   override protected def handleWsSuccess(e: TankGameEvent.WsSuccess): Unit = {
     //fixme 此处测试需要
-//    BotSdkTest.test
+    BotSdkTest.test
   }
 
   override protected def initGameContainerCallBack: Unit = {
-    if(isView&&playGameScreenOpt.nonEmpty){
+    if(isView && playGameScreenOpt.nonEmpty && firstCome){
       ClientApp.pushStack2AppThread(
         gameContainerOpt.foreach{r=>
           canvas.getCanvas.setLayoutX(0)
