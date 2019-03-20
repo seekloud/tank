@@ -481,7 +481,7 @@ case class GameContainerClientImpl(
     if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
   }
 
-  def drawGame(time: Long, networkLatency: Long, dataSizeList: List[String], supportLiveLimit: Boolean = false): Unit = {
+  def drawGame(time: Long, networkLatency: Long, dataSizeList: List[String], supportLiveLimit: Boolean = false, isView:Boolean = true): Unit = {
     val offsetTime = math.min(time, config.frameDuration)
     val h = canvasSize.y / canvasUnit
     val w = canvasSize.x / canvasUnit
@@ -490,21 +490,23 @@ case class GameContainerClientImpl(
       viewCtx.setLineJoin("round")
       tankMap.get(tankId) match {
         case Some(tank) =>
-          val offset = canvasSize / canvasUnit / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
-          drawBackground(offset)
-          drawObstacles(offset, Point(w, h),viewCtx,canvasUnit)
-          drawEnvironment(offset, Point(w, h),canvasUnit,viewCtx)
-          drawProps(offset, Point(w, h),canvasUnit,viewCtx)
-          drawBullet(offset, offsetTime, Point(w, h))
-          drawTankList(offset, offsetTime, Point(w, h))
-          drawObstacleBloodSlider(offset,viewCtx,canvasUnit)
-          drawMyTankInfo(tank.asInstanceOf[TankClientImpl], supportLiveLimit)
-          drawMinimap(tank)
-          drawRank(supportLiveLimit, tank.tankId, tank.name)
-          renderFps(networkLatency, dataSizeList)
-          drawKillInformation()
-          drawRoomNumber()
-          drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
+          if(isView){
+            val offset = canvasSize / canvasUnit / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime, systemFrame)
+            drawBackground(offset)
+            drawObstacles(offset, Point(w, h),viewCtx,canvasUnit)
+            drawEnvironment(offset, Point(w, h),canvasUnit,viewCtx)
+            drawProps(offset, Point(w, h),canvasUnit,viewCtx)
+            drawBullet(offset, offsetTime, Point(w, h))
+            drawTankList(offset, offsetTime, Point(w, h))
+            drawObstacleBloodSlider(offset,viewCtx,canvasUnit)
+            drawMyTankInfo(tank.asInstanceOf[TankClientImpl], supportLiveLimit)
+            drawMinimap(tank)
+            drawRank(supportLiveLimit, tank.tankId, tank.name)
+            renderFps(networkLatency, dataSizeList)
+            drawKillInformation()
+            drawRoomNumber()
+            drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
+          }
           if(isBot){
             val h = layerCanvasSize.y / layerCanvasUnit
             val w = layerCanvasSize.x / layerCanvasUnit

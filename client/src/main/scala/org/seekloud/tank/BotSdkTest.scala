@@ -44,7 +44,7 @@ object BotSdkTest {
 
   def createRoom(password:String): Future[CreateRoomRsp] = esheepStub.createRoom(CreateRoomReq(Some(credit),password))
 
-  def joinRoom():Future[SimpleRsp]= esheepStub.joinRoom(JoinRoomReq(Some(credit),"test","8"))
+  def joinRoom():Future[SimpleRsp]= esheepStub.joinRoom(JoinRoomReq(Some(credit),"","-1"))
 
   def leaveRoom():Future[SimpleRsp] = esheepStub.leaveRoom(credit)
 

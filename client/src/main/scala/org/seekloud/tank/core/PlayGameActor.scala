@@ -159,7 +159,7 @@ object PlayGameActor {
 
         case t:JoinRoomReq=>
           BotViewController.SDKReplyTo = t.sender
-          frontActor ! TankGameEvent.JoinRoom(Some(t.roomId),Some(t.password))
+          frontActor ! TankGameEvent.JoinRoom(if(t.roomId == -1l) None else Some(t.roomId),if(t.password=="") None else Some(t.password))
           Behaviors.same
 
         case msg:DispatchMsg=>

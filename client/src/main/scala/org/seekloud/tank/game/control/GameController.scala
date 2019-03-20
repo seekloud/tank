@@ -136,7 +136,11 @@ abstract class GameController(
           }
           gameContainerOpt.foreach(_.update())
           canvas2Byte4Bot
-          logicFrameTime = System.currentTimeMillis()
+          if(AppSettings.isView){
+            logicFrameTime = System.currentTimeMillis()
+          }else{
+            drawGame(0l)
+          }
           ping()
           tickCount += 1
 
@@ -159,7 +163,7 @@ abstract class GameController(
 
 
   private def drawGame(offsetTime: Long) = {
-    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency, Nil, Constants.supportLiveLimit))
+    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency, Nil, Constants.supportLiveLimit, AppSettings.isView))
   }
 
 
@@ -225,7 +229,11 @@ abstract class GameController(
           gameContainerOpt.foreach(_.drawGameStop())
           if (!e.hasLife || !Constants.supportLiveLimit) {
             setGameState(GameState.stop)
-          } else animationTimer.stop()
+          } else if(AppSettings.isView){
+            animationTimer.stop()
+          } else {
+            ()
+          }
 
         case e: TankGameEvent.SyncGameState =>
           gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
@@ -237,7 +245,9 @@ abstract class GameController(
           } else {
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             logicFrameTime = System.currentTimeMillis()
-            animationTimer.start()
+            if(AppSettings.isView){
+              animationTimer.start()
+            }
             gameContainerOpt.foreach(t => playGameActor ! PlayGameActor.StartGameLoop(t.config.frameDuration))
             setGameState(GameState.play)
           }
@@ -279,7 +289,9 @@ abstract class GameController(
   }
 
   protected def closeHolder = {
-    animationTimer.stop()
+    if(AppSettings.isView){
+      animationTimer.stop()
+    }
     //remind 此处关闭WebSocket
     playGameActor ! PlayGameActor.StopGameActor
   }
