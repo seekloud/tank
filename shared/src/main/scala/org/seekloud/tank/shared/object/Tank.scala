@@ -151,10 +151,11 @@ trait Tank extends CircleObjectOfGame with ObstacleTank{
     }
   }
 
+  @deprecated
   def getAcceleration(implicit tankGameConfig: TankGameConfig):Point =
     tankGameConfig.getMoveDistanceByFrame(speedLevel) / (accelerationTime / tankGameConfig.frameDuration)
 
-
+  @deprecated
   def getDeceleration(v:Float)(implicit tankGameConfig: TankGameConfig):Point ={
     val d = if(v > 0) -1 else 1
     tankGameConfig.getMoveDistanceByFrame(speedLevel) / ( d * decelerationTime / tankGameConfig.frameDuration)

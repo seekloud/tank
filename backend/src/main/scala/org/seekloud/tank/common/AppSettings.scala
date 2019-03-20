@@ -20,11 +20,9 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.seekloud.tank.core.game.TankGameConfigServerImpl
-import org.seekloud.tank.shared.config.TankGameConfig
+import org.seekloud.tank.shared.config.{TankGameConfigImpl}
 import org.seekloud.utils.SessionSupport.SessionConfig
 import org.slf4j.LoggerFactory
-
-import scala.collection.mutable.ListBuffer
 
 /**
   * Created by hongruying on 2018/3/11
@@ -50,7 +48,7 @@ object AppSettings {
 
   val log = LoggerFactory.getLogger(this.getClass)
   val config = ConfigFactory.parseResources("product.conf").withFallback(ConfigFactory.load())
-  val tankGameConfig:TankGameConfig = TankGameConfigServerImpl(ConfigFactory.parseResources("tankGame.conf"))
+  val tankGameConfig:TankGameConfigImpl = TankGameConfigServerImpl(ConfigFactory.parseResources("tankGame.conf")).tankGameConfig
 
 
 
@@ -65,11 +63,6 @@ object AppSettings {
   val nameList = appConfig.getStringList("botManager.nameList")
   val needSpecialName = appConfig.getBoolean("botManager.needSpecialName")
 
-  //  val wxConfig = appConfig.getConfig("wx.config")
-  //  val mpAppId = wxConfig.getString("mpAppId")
-  //  val componentAppId = wxConfig.getString("componentAppid")
-  //  val clientAppId = wxConfig.getString("clientAppId")
-
 
 
   val appSecureMap = {
@@ -79,10 +72,6 @@ object AppSettings {
     require(appIdList.size == secureKeys.size, "appIdList.length and secureKeys.length not equal.")
     appIdList.zip(secureKeys).toMap
   }
-
-
-
-  //  val appIdConfig=appConfig.getConfig("appId.config")
 
   val httpInterface = appConfig.getString("http.interface")
   val httpPort = appConfig.getInt("http.port")

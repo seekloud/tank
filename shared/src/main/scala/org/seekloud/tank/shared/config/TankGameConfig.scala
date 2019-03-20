@@ -30,13 +30,10 @@ final case class GridLittleMap(width:Int,height:Int){
 }
 
 final case class TankMoveSpeed(
-                                speeds:List[Int],
+                                speeds:List[Float],
                                 accelerationTime:List[Int],
                                 decelerationTime:List[Int]
                               ){
-  //  val lowType:Byte = 1
-  //  val intermediateType:Byte = 2
-  //  val highType:Byte = 3
 
   def getTankSpeedByType(t:Byte) = Point(speeds(t-1),0)
 }
@@ -46,9 +43,6 @@ final case class TankBloodLevel(
                                  second:Int,
                                  third:Int
                                ){
-  //  val first:Byte = 1
-  //  val second:Byte = 2
-  //  val third:Byte = 3
 
   def getTankBloodByLevel(level:Int) :Int  = {
     level match {
@@ -69,9 +63,9 @@ final case class TankParameters(
                                  tankGunWidth:Float,
                                  tankGunHeight:Float,
                                  maxBulletCapacity:Int,
-                                 fillBulletDuration:Int,
-                                 initInvincibleDuration:Int,
-                                 tankReliveDuration:Int
+                                 fillBulletFrame:Int,
+                                 initInvincibleFrame:Int,
+                                 tankReliveFrame:Int
                                ){
   def getTankBloodByLevel(l:Byte):Int = tankBloodLevel(l-1)
 }
@@ -80,7 +74,7 @@ final case class PropParameters(
                                  radius:Float,
                                  medicalBlood:Int,
                                  shotgunDuration:Int, //散弹持续时间
-                                 disappearTime:Int
+                                 disappearFrame:Int
                                )
 
 final case class AirDropParameters(
@@ -179,9 +173,9 @@ trait TankGameConfig{
   def tankGunWidth:Float
   def tankGunHeight:Float
   def maxBulletCapacity:Int
-  def fillBulletDuration:Int
-  def initInvincibleDuration:Int
-  def getTankReliveDuration:Int
+  def fillBulletFrame:Int
+  def initInvincibleFrame:Int
+  def getTankReliveFrame:Int
   def getTankSpeedByType(t:Byte):Point
   def getTankAccByLevel(l: Byte): Int
   def getTankDecByLevel(l: Byte): Int
@@ -193,7 +187,7 @@ trait TankGameConfig{
 
   def getBulletRadiusByDamage(d:Int):Float
 
-  def getMoveDistanceByFrame(t:Byte) = getTankSpeedByType(t) * frameDuration / 1000
+  def getMoveDistanceByFrame(t:Byte) = getTankSpeedByType(t)
 
   def getTankGameConfigImpl(): TankGameConfigImpl
 
@@ -258,9 +252,9 @@ case class TankGameConfigImpl(
   def tankGunWidth = tankParameters.tankGunWidth
   def tankGunHeight = tankParameters.tankGunHeight
   def maxBulletCapacity = tankParameters.maxBulletCapacity
-  def fillBulletDuration = tankParameters.fillBulletDuration
-  def initInvincibleDuration = tankParameters.initInvincibleDuration
-  def getTankReliveDuration = tankParameters.tankReliveDuration
+  def fillBulletFrame = tankParameters.fillBulletFrame
+  def initInvincibleFrame = tankParameters.initInvincibleFrame
+  def getTankReliveFrame = tankParameters.tankReliveFrame
   def getTankSpeedByType(t:Byte) = tankParameters.tankSpeed.getTankSpeedByType(t)
 
   def getTankSpeedMaxLevel():Byte = tankParameters.tankSpeed.speeds.size.toByte
@@ -277,7 +271,7 @@ case class TankGameConfigImpl(
   def getTankDecByLevel(l: Byte): Int = tankParameters.tankSpeed.decelerationTime(l - 1)
   def obstacleWO: Float = obstacleParameters.collisionWidthOffset
 
-  def getPropDisappearFrame: Short = (propParameters.disappearTime / frameDuration).toShort
+  def getPropDisappearFrame: Short = propParameters.disappearFrame.toShort
 
 
 

@@ -101,7 +101,7 @@ object RoomActor {
     stashBuffer.unstashAll(ctx, behavior)
   }
 
-  def create(roomId: Long): Behavior[Command] = {
+  def create(roomId: Long,frameDuration:Long): Behavior[Command] = {
     log.debug(s"Room Actor-${roomId} start...")
     Behaviors.setup[Command] {
       ctx =>
@@ -110,7 +110,7 @@ object RoomActor {
             val subscribersMap = mutable.HashMap[String, ActorRef[UserActor.Command]]()
             val observersMap = mutable.HashMap[String, ActorRef[UserActor.Command]]()
             implicit val sendBuffer = new MiddleBufferInJvm(81920)
-            val gameContainer = game.GameContainerServerImpl(AppSettings.tankGameConfig, ctx.self, timer, log, roomId,
+            val gameContainer = game.GameContainerServerImpl(AppSettings.tankGameConfig.copy(frameDuration=frameDuration), ctx.self, timer, log, roomId,
               dispatch(subscribersMap, observersMap),
               dispatchTo(subscribersMap, observersMap)
             )
