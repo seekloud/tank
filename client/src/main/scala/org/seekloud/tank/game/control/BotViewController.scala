@@ -81,7 +81,6 @@ class BotViewController(
 
   def startGame: Unit = {
     if(firstCome){
-      firstCome = false
       playGameActor ! PlayGameActor.ConnectGame(playerInfo, gameServerInfo, None)
       logicFrameTime = System.currentTimeMillis()
     }else{
@@ -122,6 +121,7 @@ class BotViewController(
 
   override protected def initGameContainerCallBack: Unit = {
     if(isView && playGameScreenOpt.nonEmpty && firstCome){
+      firstCome = false
       ClientApp.pushStack2AppThread(
         gameContainerOpt.foreach{r=>
           canvas.getCanvas.setLayoutX(0)
@@ -236,7 +236,6 @@ class BotViewController(
     }
   }
   def receiveReincarnation ={
-    firstCome = false
     startGame
   }
 
