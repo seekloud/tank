@@ -186,7 +186,7 @@ class BotViewController(
       pointerCtx.beginPath()
       pointerCtx.setStrokeStyle("white")
       pointerCtx.setFill("white")
-      pointerCtx.arc(mousePlace.x,mousePlace.y,5,0,360)
+      pointerCtx.arc(mousePlace.x,mousePlace.y,2,0,360)
       pointerCtx.stroke()
       pointerCtx.closePath()
 
