@@ -108,6 +108,8 @@ object Constants {
     val leave = 6
   }
 
+  final val frameDurationDefault = 100l
+
 
   final val WindowView = Point(200,100)
 

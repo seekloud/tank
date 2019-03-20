@@ -39,6 +39,8 @@ import org.seekloud.byteobject.ByteObject._
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.seekloud.tank.shared.protocol.TankGameEvent.ReplayFrameData
 import org.seekloud.tank.shared.ptcl.ErrorRsp
+import org.seekloud.tank.shared.model.Constants.frameDurationDefault
+
 
 /**
   * Created by hongruying on 2018/7/9
@@ -251,7 +253,7 @@ object UserActor {
 
             case Some(t: TankGameEvent.CreateRoom) =>
               log.info(s"cerate room msg")
-              roomManager ! RoomManager.CreateRoom(uId, None, userInfo.name, startTime, ctx.self, t.roomId, t.password)
+              roomManager ! RoomManager.CreateRoom(uId, None, userInfo.name, startTime, ctx.self, t.roomId, t.password, t.frameDuration.getOrElse(frameDurationDefault))
               Behaviors.same
 
             case _ =>
