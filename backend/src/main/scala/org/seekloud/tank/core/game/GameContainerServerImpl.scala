@@ -86,17 +86,17 @@ case class GameContainerServerImpl(
 
     tank.launchBullet()(config) match {
       case Some((bulletDirection, position, damage)) =>
-        val momentum = if (tank.getTankIsMove()) config.bulletSpeed.rotate(bulletDirection) * config.frameDuration / 1000 +
+        val momentum = if (tank.getTankIsMove()) config.bulletSpeed.rotate(bulletDirection)  +
           config.getMoveDistanceByFrame(tank.getTankSpeedLevel()).rotate(tank.getTankDirection()).*(0.2f)
-        else config.bulletSpeed.rotate(bulletDirection) * config.frameDuration / 1000
+        else config.bulletSpeed.rotate(bulletDirection)
 
         if (tank.getShotGunState()) {
           List(Math.PI / 8, -Math.PI / 8).foreach { bulletOffsetDirection =>
             val bulletPos = tank.getOtherLaunchBulletPosition(bulletOffsetDirection.toFloat)(config)
             val bulletDir = bulletDirection + bulletOffsetDirection.toFloat
-            val momentum = if (tank.getTankIsMove()) config.bulletSpeed.rotate(bulletDir) * config.frameDuration / 1000 +
+            val momentum = if (tank.getTankIsMove()) config.bulletSpeed.rotate(bulletDir) +
               config.getMoveDistanceByFrame(tank.getTankSpeedLevel()).rotate(tank.getTankDirection()).*(0.2f)
-            else config.bulletSpeed.rotate(bulletDir) * config.frameDuration / 1000
+            else config.bulletSpeed.rotate(bulletDir)
             val bulletState = `object`.BulletState(bulletIdGenerator.getAndIncrement(), tankId, systemFrame, bulletPos, damage.toByte, momentum)
             transformGenerateBulletEvent(bulletState,false)
           }
@@ -122,7 +122,7 @@ case class GameContainerServerImpl(
     val killEvent = TankGameEvent.YouAreKilled(bulletTankId, bulletTankName, tankState.lives > 1, tank.killTankNum, tank.lives, tank.damageStatistics)
     if (tank.lives > 1 && AppSettings.supportLiveLimit) {
       log.debug(s"${roomActorRef.path} timer for relive is starting...")
-      timer.startSingleTimer(s"TankRelive_${tank.tankId}", RoomActor.TankRelive(tank.userId, Some(tank.tankId), tank.name), config.getTankReliveDuration.millis)
+      timer.startSingleTimer(s"TankRelive_${tank.tankId}", RoomActor.TankRelive(tank.userId, Some(tank.tankId), tank.name), (config.getTankReliveFrame*config.frameDuration).millis)
     }
     if(tank.userId.contains("BotActor-")){
       botManager ! BotManager.StopBot(tank.userId,if(tank.lives>1 && AppSettings.supportLiveLimit) BotManager.StopMap.stop else BotManager.StopMap.delete)

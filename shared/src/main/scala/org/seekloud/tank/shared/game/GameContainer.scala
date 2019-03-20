@@ -61,7 +61,7 @@ trait GameContainer extends KillInformation{
   val tankLivesMap:mutable.HashMap[Int,TankState] = mutable.HashMap[Int,TankState]() // tankId -> lives
 //  val tankEatPropMap = mutable.HashMap[Int,mutable.HashSet[Prop]]()//tankId -> Set(propId)
 
-  val maxFollowFrame=math.max(math.max(config.shotgunDuration,config.initInvincibleDuration),config.fillBulletDuration)
+  val maxFollowFrame=math.max(math.max(config.shotgunDuration,config.initInvincibleFrame),config.fillBulletFrame)
 
 //  var tankId = -1
   var systemFrame:Long = 0L //系统帧数
@@ -134,9 +134,7 @@ trait GameContainer extends KillInformation{
   }
 
   protected final def handleUserLeftRoom(e:UserLeftRoom) :Unit = {
-//    tankMoveAction.remove(e.tankId)
     tankMoveState.remove(e.tankId)
-
     tankMap.get(e.tankId).foreach(quadTree.remove)
     tankMap.remove(e.tankId)
     removeTankHistoryMap.get(systemFrame+1000) match {
@@ -213,7 +211,6 @@ trait GameContainer extends KillInformation{
         bulletTankOpt.foreach(_.killTankNum += 1)
         quadTree.remove(tank)
         tankMap.remove(e.tankId)
-//        tankMoveAction.remove(e.tankId)
         tankMoveState.remove(e.tankId)
         addKillInfo(tankHistoryMap.getOrElse(e.bulletTankId,"未知"),tank.name)
         dropTankCallback(e.bulletTankId,tankHistoryMap.getOrElse(e.bulletTankId,"未知"),tank)
@@ -492,11 +489,11 @@ trait GameContainer extends KillInformation{
   }
 
   final protected def fillBulletCallBack(tid:Int):Unit={
-    addFollowEvent(TankGameEvent.TankFillBullet(tid,systemFrame+config.fillBulletDuration))
+    addFollowEvent(TankGameEvent.TankFillBullet(tid,systemFrame+config.fillBulletFrame))
   }
 
   final protected def tankInvincibleCallBack(tid:Int):Unit={
-    addFollowEvent(TankGameEvent.TankInvincible(tid,systemFrame+config.initInvincibleDuration))
+    addFollowEvent(TankGameEvent.TankInvincible(tid,systemFrame+config.initInvincibleFrame))
   }
 
   final protected def tankShotgunExpireCallBack(tid:Int):Unit={
@@ -611,7 +608,7 @@ trait GameContainer extends KillInformation{
   protected def reSetFollowEventMap(frame:Long)={
     followEventMap.foreach{l=>
       val eventList=l._2.filter(r=>
-        (r.isInstanceOf[TankGameEvent.TankInvincible]&&(r.frame-config.initInvincibleDuration<frame))||(r.isInstanceOf[TankGameEvent.TankFillBullet]&&(r.frame-config.fillBulletDuration<frame))||
+        (r.isInstanceOf[TankGameEvent.TankInvincible]&&(r.frame-config.initInvincibleFrame<frame))||(r.isInstanceOf[TankGameEvent.TankFillBullet]&&(r.frame-config.fillBulletFrame<frame))||
           (r.isInstanceOf[TankGameEvent.TankShotgunExpire]&&(r.frame-config.shotgunDuration<frame)))
       followEventMap.put(l._1,eventList)
     }

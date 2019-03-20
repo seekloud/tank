@@ -62,7 +62,7 @@ object TankGameEvent {
   final case class WsMsgErrorRsp(errCode:Int, msg:String) extends WsMsgServer
   final case class WsSuccess(roomId:Option[Long]) extends WsMsgServer
   final case class JoinRoom(roomId:Option[Long], password:Option[String]) extends WsMsgFront
-  final case class CreateRoom(roomId:Option[Long],password:Option[String]) extends WsMsgFront
+  final case class CreateRoom(roomId:Option[Long],password:Option[String],frameDuration:Option[Long]=None) extends WsMsgFront
   final case class YourInfo(userId:String,tankId:Int,name:String,roomId:Long,config:TankGameConfigImpl) extends WsMsgServer
 
   @deprecated

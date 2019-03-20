@@ -77,8 +77,6 @@ object UserActor {
 
   case class UserLeft[U](actorRef: ActorRef[U]) extends Command
 
-  case class CreateRoom(roomId: Option[Long], password: Option[String]) extends Command
-
   case class StartReplay(rid: Long, wid: String, f: Int) extends Command
 
   case class ChangeUserInfo(info: TankGameUserInfo) extends Command
@@ -212,10 +210,6 @@ object UserActor {
           frontActor ! TankGameEvent.Wrap(TankGameEvent.WsSuccess(roomIdOpt).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           Behaviors.same
 
-        case CreateRoom(roomId, pwd) =>
-          roomManager ! RoomManager.CreateRoom(uId, None, userInfo.name, startTime, ctx.self, roomId, pwd)
-          Behaviors.same
-
         case JoinRoomFail(msg) =>
           frontActor ! TankGameEvent.Wrap(TankGameEvent.WsMsgErrorRsp(10001, msg).asInstanceOf[TankGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result())
           Behaviors.same
@@ -257,7 +251,7 @@ object UserActor {
 
             case Some(t: TankGameEvent.CreateRoom) =>
               log.info(s"cerate room msg")
-              ctx.self ! CreateRoom(t.roomId, t.password)
+              roomManager ! RoomManager.CreateRoom(uId, None, userInfo.name, startTime, ctx.self, t.roomId, t.password)
               Behaviors.same
 
             case _ =>

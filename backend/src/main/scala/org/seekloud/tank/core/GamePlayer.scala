@@ -125,10 +125,8 @@ object GamePlayer {
           timer.cancel(GameLoopKey)
           userMap.filter(t => t._1.userId == msg.userId && t._2.leftF >= msg.f).sortBy(_._2.joinF).headOption match {
             case Some(u)=>
-              //val tankCofig = metaData.tankConfig.copy(frameDuration = 50L)
               val replayRate = AppSettings.tankGameConfig.getTankGameConfigImpl().replayRate
               val tankConfig = metaData.tankConfig.copy(playRate = replayRate)
-              //dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,metaData.tankConfig))
               dispatchTo(msg.userActor,YourInfo(u._1.userId,u._1.tankId,u._1.name,-1l,tankConfig))
 
               log.info(s" set replay from frame=${msg.f}")
