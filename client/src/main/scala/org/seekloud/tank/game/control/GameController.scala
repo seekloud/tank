@@ -21,9 +21,10 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.typed.scaladsl.adapter._
 import javafx.animation.AnimationTimer
 import javafx.scene.input.KeyCode
-import org.seekloud.tank.ClientApp
+
+import org.seekloud.tank.{BotServer, ClientApp}
 import org.seekloud.tank.ClientApp.system
-import org.seekloud.tank.core.{BotViewActor, PlayGameActor}
+import org.seekloud.tank.core.{BotViewActor, GrpcStreamActor, PlayGameActor}
 import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.common.{AppSettings, Constants}
 import org.seekloud.tank.game.NetworkInfo
@@ -117,6 +118,9 @@ abstract class GameController(
   protected def canvas2Byte4Bot:Unit
 
   def logicLoop() = {
+    if(BotServer.isFrameConnect) {
+      BotServer.streamSender.foreach(_ ! GrpcStreamActor.NewFrame(gameContainerOpt.map(_.systemFrame).getOrElse(0l)))
+    }
     ClientApp.pushStack2AppThread {
       checkScreenSize
       gameState match {
