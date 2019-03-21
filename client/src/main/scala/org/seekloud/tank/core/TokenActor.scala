@@ -19,12 +19,13 @@ package org.seekloud.tank.core
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.actor.typed.{ActorRef, Behavior}
 import org.seekloud.tank.model.TokenAndAcessCode
-import org.seekloud.utils.EsheepClient
+import org.seekloud.utils.{EsheepClient, FileUtil}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 import org.seekloud.tank.ClientApp._
+import org.seekloud.tank.common.AppSettings
 
 /**
   * Created by hongruying on 2019/2/1
@@ -68,7 +69,7 @@ object TokenActor {
       msg match {
         case t:InitToken =>
           Behaviors.withTimers[Command] { implicit timer =>
-            ctx.self ! RefreshToken
+            timer.startSingleTimer(RefreshTokenKey, RefreshToken, t.tokenExpireTime.seconds)
             work(t.token,t.tokenExpireTime,t.playerId)
           }
         case _ =>
@@ -86,8 +87,6 @@ object TokenActor {
       msg match {
 
         case RefreshToken=>
-          println("playerId--------" + playerId)
-          timer.startSingleTimer(RefreshTokenKey, RefreshToken, refreshTime)
           ctx.self ! GetNewToken
           //刷新token
           Behaviors.same
@@ -97,6 +96,13 @@ object TokenActor {
             case Success(rst) =>
               rst match {
                 case Right(value) =>
+                  //fixme 有问题
+                  val info=FileUtil.readFile(AppSettings.filePath)
+                  if(info.nonEmpty){
+                    val a=info.get.copy(info.get.Ws4AgentRsp.copy(data = info.get.Ws4AgentRsp.data.copy(token = value.token)))
+                    FileUtil.saveFile(a.toString,AppSettings.filePath)
+                  }
+                  timer.startSingleTimer(RefreshTokenKey, RefreshToken, value.expireTime.seconds)
                   ctx.self !  SwitchBehavior("work",work(value.token,value.expireTime,playerId))
                 case Left(error) =>
                   //异常

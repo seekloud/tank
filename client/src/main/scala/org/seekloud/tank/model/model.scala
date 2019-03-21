@@ -109,7 +109,7 @@ package object model {
                              gsPrimaryInfo: GameServerInfo
                            )
   case class JoinGameRsp(
-                        data: GameServerData,
+                        data: Option[GameServerData],
                         errCode: Int = 0,
                         msg: String = "ok"
                         ) extends CommonRsp

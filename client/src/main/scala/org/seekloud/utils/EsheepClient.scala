@@ -105,7 +105,7 @@ object EsheepClient extends HttpUtil {
         decode[JoinGameRsp](jsonStr) match {
           case Right(rsp) =>
             if (rsp.errCode == 0) {
-              Right(rsp.data)
+              Right(rsp.data.get)
             } else {
               log.debug(s"${methodName} failed,error:${rsp.msg}")
               Left(ErrorRsp(rsp.errCode, rsp.msg))

@@ -212,11 +212,13 @@ object LoginActor {
             loginScreenController.joinGame(playerInfo, gameServerInfo)
           case Left(error) =>
             //异常
+            FileUtil.saveFile("",AppSettings.filePath)
             loginScreenController.showLoginError("登录失败")
-            println(error)
+            log.error(error.msg)
         }
       case Failure(exception) =>
         //异常
+        FileUtil.saveFile("",AppSettings.filePath)
         log.warn(s" linkGameAgent failed, error:${exception.getMessage}")
         loginScreenController.showLoginError("登录失败")
     }
