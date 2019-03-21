@@ -25,7 +25,7 @@ import org.seekloud.tank.game.control.BotViewController
 import org.seekloud.tank.model.{BotKeyReq, GameServerInfo, PlayerInfo}
 import org.seekloud.tank.view.{EnterSceneListener, EnterScreen, LoginScreen, PlayGameScreen}
 import org.slf4j.LoggerFactory
-
+import org.seekloud.tank.ClientApp
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
@@ -34,6 +34,7 @@ class EnterScreenController(val context: Context, val enter: EnterScreen) {
   enter.setListener(new EnterSceneListener {
     override def onBtnForMan(): Unit = {
       ClientApp.pushStack2AppThread {
+        loginActor ! LoginActor.Login
         val loginScreen = new LoginScreen(context)
         LoginScreenController.loginScreenController = new LoginScreenController(context, loginScreen)
         LoginScreenController.loginScreenController.start
@@ -44,7 +45,9 @@ class EnterScreenController(val context: Context, val enter: EnterScreen) {
       ClientApp.pushStack2AppThread{
         val loginScreen = new LoginScreen(context)
         loginScreen.botLogin()
-        LoginScreenController.loginScreenController = new LoginScreenController(context,loginScreen)
+        LoginScreenController.loginScreenController = new LoginScreenController(context, loginScreen)
+        LoginScreenController.loginScreenController.start
+//        LoginScreenController.loginScreenController = new LoginScreenController(context,loginScreen)
       }
 //      val rspFuture: Future[(PlayerInfo, GameServerInfo)] = loginActor ? (LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey), _))
 //      rspFuture.onComplete {

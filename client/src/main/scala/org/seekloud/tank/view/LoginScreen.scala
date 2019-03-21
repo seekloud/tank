@@ -186,20 +186,22 @@ class LoginScreen(context: Context) {
       val id = botIdField.getText()
       val key = botKeyField.getText()
       val frame = botFrameField.getText().toInt
-      if(frame< framePeriod){
-        warningText.setText("帧率最小为40")
-      }else if(id.trim() == ""){
+      if(id.trim() == ""){
         warningText.setText("botId不可为空")
       }else if(key.trim() == ""){
         warningText.setText("botKey不可为空")
+      }else if(frame.toString == "") {
+        warningText.setText("botFrame不可为空")
+      }else if(frame.toString != "" &&frame< framePeriod){
+        warningText.setText("帧率最小为40")
       }else{
-        loginSceneListener.onButtonBot(id,key,frame)
+        loginSceneListener.onButtonBot(botIdField.getText,botKeyField.getText,botFrameField.getText.toInt)
       }
     }
 
     val hbBtn = new HBox(10)
     hbBtn.setAlignment(Pos.BOTTOM_RIGHT)
-    hbBtn.getChildren.addAll( btn)
+    hbBtn.getChildren.addAll(btn)
     grid.add(hbBtn, 1, 4)
 
     val senceNew = new Scene(grid,Constants.SceneBound.weight,Constants.SceneBound.height)

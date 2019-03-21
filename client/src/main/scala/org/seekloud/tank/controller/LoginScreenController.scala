@@ -43,7 +43,7 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
 
   import org.seekloud.tank.ClientApp._
 
-  loginActor ! LoginActor.Login
+//  loginActor ! LoginActor.Login
 
   def start={}
 
