@@ -47,24 +47,8 @@ class EnterScreenController(val context: Context, val enter: EnterScreen) {
         loginScreen.botLogin()
         LoginScreenController.loginScreenController = new LoginScreenController(context, loginScreen)
         LoginScreenController.loginScreenController.start
-//        LoginScreenController.loginScreenController = new LoginScreenController(context,loginScreen)
       }
-//      val rspFuture: Future[(PlayerInfo, GameServerInfo)] = loginActor ? (LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey), _))
-//      rspFuture.onComplete {
-//        case Success(value) =>
-//          log.info("botView start")
-//          ClientApp.pushStack2AppThread {
-//            /** bot启动 */
-//            val playGameScreen: PlayGameScreen = new PlayGameScreen(context)
-//            context.switchScene(playGameScreen.getScene(), resize = true, fullScreen = true)
-//            playGameScreen.setCursor
-//            val c = new BotViewController(value._1, value._2, true, Some(playGameScreen))
-//            c.startGame
-//            botServer ! BotServer.BuildServer(AppSettings.botServerPort, executor, c)
-//          }
-//        case Failure(exception) =>
-//          log.error(exception.getMessage)
-//      }
+
     }
   })
 
