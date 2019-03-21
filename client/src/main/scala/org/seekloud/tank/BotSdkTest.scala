@@ -24,6 +24,7 @@ import org.seekloud.esheepapi.pb.actions.{Move, Swing}
 
 import scala.concurrent.Future
 import org.seekloud.tank.ClientApp.{executor, scheduler, system, timeout}
+import org.seekloud.tank.common.AppSettings
 
 import scala.util.Random
 
@@ -34,7 +35,7 @@ import scala.util.Random
   */
 object BotSdkTest {
   val host = "127.0.0.1"
-  val port = 5321
+  val port = AppSettings.botServerPort
   val pId = "test"
   val apiToken = "test"
 
@@ -47,7 +48,6 @@ object BotSdkTest {
   def joinRoom():Future[SimpleRsp]= esheepStub.joinRoom(JoinRoomReq(Some(credit),"","-1"))
 
   def leaveRoom():Future[SimpleRsp] = esheepStub.leaveRoom(credit)
-
 
   def randomMove: Move = {
     val seed = Random.nextInt(9)
@@ -64,6 +64,7 @@ object BotSdkTest {
   }
   private def sleep():Unit = Thread.sleep(10000)
   def main(args: Array[String]): Unit = {
-    joinRoom()
+//    joinRoom()
+    createRoom("test")
   }
 }

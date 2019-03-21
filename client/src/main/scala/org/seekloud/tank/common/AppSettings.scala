@@ -68,4 +68,6 @@ object AppSettings {
   val viewWidth = appConfig.getInt("viewSize.width")
   val viewHeight = appConfig.getInt("viewSize.height")
 
+  val filePath = "file.txt"
+
 }

@@ -261,7 +261,9 @@ abstract class GameController(
             case e: TankGameEvent.UserRelive =>
               gameContainerOpt.foreach(_.receiveGameEvent(e))
               if (e.userId == gameContainerOpt.get.myId) {
-                animationTimer.start()
+                if(AppSettings.isView){
+                  animationTimer.start()
+                }
               }
             case ee: TankGameEvent.GenerateBullet =>
               gameContainerOpt.foreach(_.receiveGameEvent(e))

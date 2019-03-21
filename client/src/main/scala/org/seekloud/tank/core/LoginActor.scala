@@ -26,7 +26,7 @@ import akka.stream.scaladsl.{Keep, Sink, Source}
 import org.seekloud.tank.ClientApp.tokenActor
 import org.seekloud.tank.controller.LoginScreenController
 import org.seekloud.tank.model._
-import org.seekloud.utils.EsheepClient
+import org.seekloud.utils.{EsheepClient, FileUtil}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
@@ -76,19 +76,24 @@ object LoginActor {
           Behaviors.same
 
         case QrLogin =>
-          EsheepClient.getLoginInfo().onComplete{
-            case Success(rst) =>
-              rst match {
-                case Right(value) =>
-                  loginScreenController.showScanUrl(value.scanUrl)
-                  ctx.self ! WSLogin(value.wsUrl)
-                case Left(error) =>
-                  log.error(s"获取二维码失败$error")
-                  loginScreenController.showLoginError("获取二维码失败")
-              }
-            case Failure(exception) =>
-              log.warn(s"${ctx.self.path} VerifyAccessCode failed, error:${exception.getMessage}")
-              loginScreenController.showLoginError("获取二维码失败")
+          val info=FileUtil.readFile(AppSettings.filePath)
+          if(info.nonEmpty){
+            login(info.get)
+          }else{
+            EsheepClient.getLoginInfo().onComplete{
+              case Success(rst) =>
+                rst match {
+                  case Right(value) =>
+                    loginScreenController.showScanUrl(value.scanUrl)
+                    ctx.self ! WSLogin(value.wsUrl)
+                  case Left(error) =>
+                    log.error(s"获取二维码失败$error")
+                    loginScreenController.showLoginError("获取二维码失败")
+                }
+              case Failure(exception) =>
+                log.warn(s"${ctx.self.path} VerifyAccessCode failed, error:${exception.getMessage}")
+                loginScreenController.showLoginError("获取二维码失败")
+            }
           }
           Behaviors.same
 
@@ -181,26 +186,8 @@ object LoginActor {
       case TextMessage.Strict(msg) =>
         decode[Ws4AgentRsp](msg) match {
           case Right(rsp) =>
-            val data = rsp.Ws4AgentRsp.data
-            EsheepClient.linkGameAgent(data.token,s"user${data.userId}").onComplete{
-              case Success(rst) =>
-                rst match {
-                  case Right(value) =>
-                    tokenActor ! TokenActor.InitToken(data.token,data.tokenExpireTime,s"user${data.userId}")
-                    val playerInfo= PlayerInfo(data,s"user${data.userId}", data.nickname,value.accessCode)
-                    val gameServerInfo = GameServerInfo(value.gsPrimaryInfo.ip, value.gsPrimaryInfo.port, value.gsPrimaryInfo.domain)
-                    loginScreenController.showSuccess()
-                    loginScreenController.joinGame(playerInfo, gameServerInfo)
-                  case Left(error) =>
-                    //异常
-                    loginScreenController.showLoginError("登录失败")
-                    println(error)
-                }
-              case Failure(exception) =>
-                //异常
-                log.warn(s" linkGameAgent failed, error:${exception.getMessage}")
-                loginScreenController.showLoginError("登录失败")
-            }
+            FileUtil.saveFile(msg,AppSettings.filePath)
+            login(rsp)
 
           case Left(error) =>
             //controller.showLoginError(error.getMessage)
@@ -212,7 +199,28 @@ object LoginActor {
         log.error(s"wsclient receive unknown message:$unknown")
     }
 
-
+  private def login(rsp:Ws4AgentRsp)={
+    val data = rsp.Ws4AgentRsp.data
+    EsheepClient.linkGameAgent(data.token,s"user${data.userId}").onComplete{
+      case Success(rst) =>
+        rst match {
+          case Right(value) =>
+            tokenActor ! TokenActor.InitToken(data.token,data.tokenExpireTime,s"user${data.userId}")
+            val playerInfo= PlayerInfo(data,s"user${data.userId}", data.nickname,value.accessCode)
+            val gameServerInfo = GameServerInfo(value.gsPrimaryInfo.ip, value.gsPrimaryInfo.port, value.gsPrimaryInfo.domain)
+            loginScreenController.showSuccess()
+            loginScreenController.joinGame(playerInfo, gameServerInfo)
+          case Left(error) =>
+            //异常
+            loginScreenController.showLoginError("登录失败")
+            println(error)
+        }
+      case Failure(exception) =>
+        //异常
+        log.warn(s" linkGameAgent failed, error:${exception.getMessage}")
+        loginScreenController.showLoginError("登录失败")
+    }
+  }
 
 
 }

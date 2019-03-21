@@ -60,7 +60,7 @@ object RoomManager {
   }
 
   def idle(roomIdGenerator:AtomicLong,
-           roomInUse:mutable.HashMap[Long,(Option[String],Long,List[(String,String)])]) // roomId => (password,List[userId, userName])
+           roomInUse:mutable.HashMap[Long,(Option[String],Long,List[(String,String)])]) // roomId => (Option[password],frame,List[userId, userName])
           (implicit stashBuffer: StashBuffer[Command],timer:TimerScheduler[Command]) = {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {

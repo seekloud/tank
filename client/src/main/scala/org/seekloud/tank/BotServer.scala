@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory
 import org.seekloud.tank.ClientApp.{executor, scheduler, system, timeout}
 
 import scala.concurrent.{ExecutionContext, Future}
-
 /**
   * Created by hongruying on 2018/11/29
   *
@@ -58,6 +57,7 @@ object BotServer {
   var isObservationConnect = false
   var isFrameConnect = false
   var state: State = State.unknown
+  var frameDuration=AppSettings.framePeriod
 
   private def build(
                      port: Int,
@@ -131,7 +131,7 @@ class BotServer(
     if (request.credit.nonEmpty && botAuth(request.credit.get.apiToken)) {
       log.info(s"createRoom Called by [$request]")
       state = State.in_game
-      val getRoomIdRsp: Future[JoinRoomRsp] = gameController.playGameActor ? (PlayGameActor.CreateRoomReq(request.password, _))
+      val getRoomIdRsp: Future[JoinRoomRsp] = gameController.playGameActor ? (PlayGameActor.CreateRoomReq(request.password, frameDuration,_))
       getRoomIdRsp.map {
         rsp =>
           if (rsp.errCode == 0) {
@@ -241,7 +241,7 @@ class BotServer(
 
   override def systemInfo(request: Credit): Future[SystemInfoRsp] = {
     if (botAuth(request.apiToken)) {
-      Future.successful(SystemInfoRsp(framePeriod = AppSettings.framePeriod, state = BotServer.state, msg = "ok"))
+      Future.successful(SystemInfoRsp(framePeriod = frameDuration, state = BotServer.state, msg = "ok"))
     } else {
       Future.successful(SystemInfoRsp(errCode = 101, state = State.unknown, msg = "auth error"))
     }

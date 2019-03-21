@@ -80,7 +80,7 @@ object PlayGameActor {
 
   case object GameLoopTimeOut extends Command
 
-  case class CreateRoomReq(password:String,sender:ActorRef[JoinRoomRsp]) extends Command
+  case class CreateRoomReq(password:String,frameDuration:Int,sender:ActorRef[JoinRoomRsp]) extends Command
 
   case class JoinRoomReq(roomId:Long,password:String,sender:ActorRef[JoinRoomRsp]) extends Command
 
@@ -154,7 +154,7 @@ object PlayGameActor {
         case m:CreateRoomReq=>
           log.info("createRoomReq")
           BotViewController.SDKReplyTo = m.sender
-          frontActor ! TankGameEvent.CreateRoom(None, Some(m.password))
+          frontActor ! TankGameEvent.CreateRoom(None, Some(m.password),Some(m.frameDuration))
           Behaviors.same
 
         case t:JoinRoomReq=>

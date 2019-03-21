@@ -66,3 +66,4 @@ gameDataDirectoryPath/
 backend/src/main/resources/product.conf
 client/src/main/resources/product.conf
 client/logs/
+client/file.txt
