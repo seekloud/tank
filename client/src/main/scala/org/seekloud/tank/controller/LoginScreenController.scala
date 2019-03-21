@@ -24,6 +24,15 @@ import org.seekloud.tank.common.Context
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo}
 import org.seekloud.tank.view.{GameHallScreen, LoginScene, LoginScreen}
 
+import org.seekloud.tank.BotServer
+import org.seekloud.tank.common.AppSettings
+import akka.actor.typed.scaladsl.AskPattern._
+import org.seekloud.tank.game.control.BotViewController
+import org.seekloud.tank.model.BotKeyReq
+import org.seekloud.tank.view.PlayGameScreen
+
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 /**
   * Created by hongruying on 2018/10/23
   */
@@ -54,6 +63,25 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
     override def onLinkToQr(): Unit = {
       loginActor ! LoginActor.QrLogin
     }
+
+    override def onButtonBot(id: String, key: String, frame: Int): Unit = {
+      val rspFuture: Future[(PlayerInfo, GameServerInfo)] = loginActor ? (LoginActor.BotLogin(BotKeyReq(id, key), _))
+      rspFuture.onComplete {
+        case Success(value) =>
+          log.info("botView start")
+          ClientApp.pushStack2AppThread {
+            /** bot启动 */
+            val playGameScreen: PlayGameScreen = new PlayGameScreen(context)
+            context.switchScene(playGameScreen.getScene(), resize = true, fullScreen = true)
+            playGameScreen.setCursor
+            val c = new BotViewController(value._1, value._2, true, Some(playGameScreen))
+            c.startGame
+            botServer ! BotServer.BuildServer(AppSettings.botServerPort, executor, c)
+          }
+        case Failure(exception) =>
+          log.error(exception.getMessage)
+      }
+    }
   })
 
   /**
@@ -76,7 +104,6 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
   def showEmailLogin() = {
     ClientApp.pushStack2AppThread(loginScreen.emailLogin())
   }
-
 
 
   /**

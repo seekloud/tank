@@ -27,7 +27,7 @@ import javafx.scene.{Group, Scene}
 import org.seekloud.tank.common.{Constants, Context}
 import org.seekloud.tank.view.LoginScene.LoginSceneListener
 import sun.misc.BASE64Decoder
-
+import org.seekloud.tank.common.AppSettings.framePeriod
 
 /**
   * Created by hongruying on 2018/10/23
@@ -39,6 +39,7 @@ object LoginScene {
     def onButtonEmail(mail:String, pwd:String)
     def onLinkToEmail()
     def onLinkToQr()
+    def onButtonBot(id:String,key:String,frame:Int)
   }
 }
 
@@ -141,6 +142,64 @@ class LoginScreen(context: Context) {
     val hbBtn = new HBox(10)
     hbBtn.setAlignment(Pos.BOTTOM_RIGHT)
     hbBtn.getChildren.addAll(qrLink, btn)
+    grid.add(hbBtn, 1, 4)
+
+    val senceNew = new Scene(grid,Constants.SceneBound.weight,Constants.SceneBound.height)
+    context.switchScene(senceNew)
+  }
+
+  def botLogin() :Unit={
+
+    val grid = new GridPane()
+    grid.setAlignment(Pos.CENTER)
+    grid.setHgap(10)
+    grid.setVgap(10)
+    grid.setPadding(new Insets(30, 30, 30, 30))
+
+    val sceneTitle = new Text("bot登录")
+    sceneTitle.setFont(Font.font("Cambria", FontWeight.NORMAL, 20))
+    grid.add(sceneTitle, 0, 0, 2, 1)
+
+    val warningText = new Text()
+
+    val botIdLabel = new Label("botId")
+    grid.add(botIdLabel, 0, 1)
+
+    val botIdField = new TextField()
+    grid.add(botIdField, 1, 1)
+
+    val botKeyLabel = new Label("botKey")
+    grid.add(botKeyLabel, 0, 2)
+
+    val botKeyField = new TextField()
+    grid.add(botKeyField, 1, 2)
+
+    val botFrameLable = new Label("botFrame")
+    grid.add(botFrameLable,0,3)
+
+    val botFrameField = new TextField()
+    grid.add(botFrameField,1,3)
+
+
+    val btn = new Button("BotJion")
+    btn.setOnAction{_ =>
+      val id = botIdField.getText()
+      val key = botKeyField.getText()
+      val frame = botFrameField.getText().toInt
+      if(frame< framePeriod){
+        warningText.setText("帧率最小为40")
+      }else if(id.trim() == ""){
+        warningText.setText("botId不可为空")
+      }else if(key.trim() == ""){
+        warningText.setText("botKey不可为空")
+      }else{
+        loginSceneListener.onButtonBot(id,key,frame)
+      }
+    }
+
+    val hbBtn = new HBox(10)
+    hbBtn.setAlignment(Pos.BOTTOM_RIGHT)
+    hbBtn.getChildren.addAll( btn)
     grid.add(hbBtn, 1, 4)
 
     val senceNew = new Scene(grid,Constants.SceneBound.weight,Constants.SceneBound.height)

@@ -49,7 +49,7 @@ class ClientApp extends Application {
       new EnterScreenController(context, enterScreen)
     }else{
       /**bot启动*/
-      ClientApp.startApp
+      ClientApp.startApp(AppSettings.botId,AppSettings.botKey)
     }
   }
 }
@@ -82,8 +82,8 @@ object ClientApp {
     Platform.runLater(() => fun)
   }
 
-  def startApp={
-    val rspFuture:Future[(PlayerInfo,GameServerInfo)]=loginActor ? (LoginActor.BotLogin(BotKeyReq(AppSettings.botId, AppSettings.botKey),_))
+  def startApp(botId:String,botKey:String)={
+    val rspFuture:Future[(PlayerInfo,GameServerInfo)]=loginActor ? (LoginActor.BotLogin(BotKeyReq(botId, botKey),_))
     rspFuture.onComplete{
       case Success(value)=>
         val c = new BotViewController(value._1, value._2)
