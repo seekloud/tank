@@ -99,6 +99,7 @@ object PlayGameActor {
     Behaviors.setup[Command] { ctx =>
       implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
       Behaviors.withTimers[Command] { implicit timer =>
+        log.info("create playGameActor")
         init(control)
       }
     }

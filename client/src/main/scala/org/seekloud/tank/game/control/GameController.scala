@@ -151,7 +151,6 @@ abstract class GameController(
           }else{
             closeHolder
             gameContainerOpt.foreach(_.drawCombatGains())
-            gameStopCallBack
           }
 
         case _ => log.info(s"state=${gameState} failed")
@@ -221,18 +220,13 @@ abstract class GameController(
             **/
           println(s"you are killed")
           gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum, e.name, e.damageStatistics))
-          //          killNum = e.killTankNum
-          //          damageNum = e.damageStatistics
-          //          killerList = killerList :+ e.name
-          //          killerName = e.name
-          //          animationTimer.stop()
           gameContainerOpt.foreach(_.drawGameStop())
           if (!e.hasLife || !Constants.supportLiveLimit) {
             setGameState(GameState.stop)
-          } else if(AppSettings.isView){
+            gameStopCallBack
+          }
+          if(AppSettings.isView){
             animationTimer.stop()
-          } else {
-            ()
           }
 
         case e: TankGameEvent.SyncGameState =>

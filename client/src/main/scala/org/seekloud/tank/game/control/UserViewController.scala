@@ -76,13 +76,13 @@ class UserViewController(
   timeline.setCycleCount(Animation.INDEFINITE)
   val keyFrame = new KeyFrame(Duration.millis(5000), { _ =>
     ClientApp.pushStack2AppThread {
-      //      killerList = List.empty[String]
       val gameHallScreen = new GameHallScreen(context, playerInfo)
       context.switchScene(gameHallScreen.getScene, resize = true)
       val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
       accessCodeInfo.map {
         info =>
           if (info.token != "") {
+            log.info(info.token)
             val newUserInfo = UserInfo(playerInfo.userInfo.userId, playerInfo.userInfo.nickname, info.token, info.expireTime)
             val newPlayerInfo = PlayerInfo(newUserInfo, playerInfo.playerId, playerInfo.nickName, info.accessCode)
             new HallScreenController(context, gameHallScreen, gameServerInfo, newPlayerInfo)
@@ -172,7 +172,6 @@ class UserViewController(
       if (gameContainerOpt.nonEmpty && gameState == GameState.play) {
         val point = Point(e.getX.toFloat, e.getY.toFloat) + Point(24, 24)
         val theta = point.getTheta(canvasBoundary  / 2).toFloat
-        bulletMusic.play()
         val preExecuteAction = TankGameEvent.UC(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, theta, getActionSerialNum)
         gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
         playGameActor ! DispatchMsg(preExecuteAction)
@@ -220,13 +219,13 @@ class UserViewController(
           playGameActor ! DispatchMsg(preExecuteAction)
         }
         else if (keyCode == KeyCode.M) {
-          if (needBgm) {
-            gameMusicPlayer.pause()
-            needBgm = false
-          } else {
-            gameMusicPlayer.play()
-            needBgm = true
-          }
+//          if (needBgm) {
+//            gameMusicPlayer.pause()
+//            needBgm = false
+//          } else {
+//            gameMusicPlayer.play()
+//            needBgm = true
+//          }
         }
       }
     }

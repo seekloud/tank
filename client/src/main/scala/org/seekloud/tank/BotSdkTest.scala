@@ -45,7 +45,7 @@ object BotSdkTest {
 
   def createRoom(password:String): Future[CreateRoomRsp] = esheepStub.createRoom(CreateRoomReq(Some(credit),password))
 
-  def joinRoom():Future[SimpleRsp]= esheepStub.joinRoom(JoinRoomReq(Some(credit),"","-1"))
+  def joinRoom():Future[SimpleRsp]= esheepStub.joinRoom(JoinRoomReq(Some(credit),"test","3"))
 
   def leaveRoom():Future[SimpleRsp] = esheepStub.leaveRoom(credit)
 
@@ -60,11 +60,10 @@ object BotSdkTest {
 
   def test = {
     joinRoom()
-    ()
   }
   private def sleep():Unit = Thread.sleep(10000)
   def main(args: Array[String]): Unit = {
-//    joinRoom()
-    createRoom("test")
+    joinRoom()
+//    createRoom("test")
   }
 }

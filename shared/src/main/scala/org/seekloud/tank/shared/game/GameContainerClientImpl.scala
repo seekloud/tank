@@ -523,7 +523,7 @@ case class GameContainerClientImpl(
           }
 
         case None =>
-          info(s"tankid=${myTankId} has no in tankMap.....................................")
+//          info(s"tankid=${myTankId} has no in tankMap.....................................")
       }
     }
   }
