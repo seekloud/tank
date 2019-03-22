@@ -59,6 +59,7 @@ class BotViewController(
   val pointerCtx=pointerCanvas.getCtx
 
   var mousePlace = Point(viewWidth/2,viewHeight/2)
+  drawPointer
 
   private var lastMoveFrame = -1L
   private var lastMouseMoveAngle: Byte = 0
@@ -174,6 +175,17 @@ class BotViewController(
     (myTankInfo.damageStatistics,myTankInfo.killTankNum,myTankInfo.lives)
   }
 
+  private def drawPointer={
+    pointerCtx.setFill("black")
+    pointerCtx.fillRec(0,0,viewWidth,viewHeight)
+    pointerCtx.beginPath()
+    pointerCtx.setStrokeStyle("white")
+    pointerCtx.setFill("white")
+    pointerCtx.arc(mousePlace.x,mousePlace.y,2,0,360)
+    pointerCtx.stroke()
+    pointerCtx.closePath()
+  }
+
   def gameActionReceiver(key: ActionReq) = {
     if(key.swing.nonEmpty && gameContainerOpt.nonEmpty && gameState == GameState.play){
       /**
@@ -183,16 +195,7 @@ class BotViewController(
       val d = key.swing.get.distance
       val r = key.swing.get.radian
       mousePlace  += Point(d * math.cos(r).toFloat,d * math.sin(r).toFloat)
-
-      pointerCtx.setFill("black")
-      pointerCtx.fillRec(0,0,viewWidth,viewHeight)
-      pointerCtx.beginPath()
-      pointerCtx.setStrokeStyle("white")
-      pointerCtx.setFill("white")
-      pointerCtx.arc(mousePlace.x,mousePlace.y,2,0,360)
-      pointerCtx.stroke()
-      pointerCtx.closePath()
-
+      drawPointer
       val point = mousePlace  * 4
       val theta = point.getTheta(canvasBoundary  / 2).toFloat
       val angle = point.getAngle(canvasBoundary  / 2)

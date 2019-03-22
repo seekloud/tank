@@ -24,7 +24,7 @@ import javafx.scene.image.{Image, ImageView}
 import javafx.scene.layout.{GridPane, HBox, _}
 import javafx.scene.text.{Font, FontWeight, Text}
 import javafx.scene.{Group, Scene}
-import org.seekloud.tank.common.{Constants, Context}
+import org.seekloud.tank.common.{AppSettings, Constants, Context}
 import sun.misc.BASE64Decoder
 import org.seekloud.tank.common.AppSettings.framePeriod
 
@@ -160,18 +160,21 @@ class LoginScreen(context: Context) {
 
     val botIdField = new TextField()
     grid.add(botIdField, 1, 1)
+    botIdField.setText(AppSettings.botId)
 
     val botKeyLabel = new Label("botKey")
     grid.add(botKeyLabel, 0, 2)
 
     val botKeyField = new TextField()
     grid.add(botKeyField, 1, 2)
+    botKeyField.setText(AppSettings.botKey)
 
     val botFrameLable = new Label("botFrame")
     grid.add(botFrameLable,0,3)
 
     val botFrameField = new TextField()
     grid.add(botFrameField,1,3)
+    botFrameField.setText("100")
 
 
     val btn = new Button("BotJion")

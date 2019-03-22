@@ -36,6 +36,7 @@ import org.seekloud.tank.model.{BotKeyReq, GameServerInfo, PlayerInfo}
 import org.seekloud.tank.view.EnterScreen
 
 import scala.concurrent.Future
+import scala.sys.ShutdownHookThread
 import scala.util.{Failure, Success}
 /**
   * Created by hongruying on 2018/10/22
@@ -94,4 +95,5 @@ object ClientApp {
         log.info(s"startApp error ${exception.getCause}")
     }
   }
+
 }

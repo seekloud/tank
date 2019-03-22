@@ -28,6 +28,7 @@ import org.seekloud.tank.core.PlayGameActor.DispatchMsg
 import org.seekloud.tank.model.JoinRoomRsp
 import org.seekloud.tank.game.control.BotViewController
 import org.seekloud.tank.shared.protocol.TankGameEvent
+
 /**
   * Created by sky
   * Date on 2019/3/11
@@ -39,11 +40,12 @@ object BotViewActor {
   //fixme 此处需要放到配置文件
   private val windowWidth = AppSettings.viewWidth
   private val windowHeight = AppSettings.viewHeight
+
   sealed trait Command
 
-  case class GetByte(locationByte: Array[Byte], immutableByte: Array[Byte], mutableByte: Array[Byte], bodiesByte: Array[Byte],ownerShip:Array[Byte],selfAsset:Array[Byte],pointer:Array[Byte], stateByte: Array[Byte], viewByte: Option[Array[Byte]]) extends Command
+  case class GetByte(locationByte: Array[Byte], immutableByte: Array[Byte], mutableByte: Array[Byte], bodiesByte: Array[Byte], ownerShip: Array[Byte], selfAsset: Array[Byte], pointer: Array[Byte], stateByte: Array[Byte], viewByte: Option[Array[Byte]]) extends Command
 
-  case class GetObservation(sender:ActorRef[ObservationRsp]) extends Command
+  case class GetObservation(sender: ActorRef[ObservationRsp]) extends Command
 
   case class GetViewByte(viewByte: Array[Byte]) extends Command
 
@@ -54,12 +56,12 @@ object BotViewActor {
     }
   }
 
-  def idle(locationByte: Array[Byte], immutableByte: Array[Byte], mutableByte: Array[Byte], bodiesByte: Array[Byte],ownerShip:Array[Byte],selfAsset:Array[Byte],pointer:Array[Byte], stateByte: Array[Byte], viewByte: Option[Array[Byte]]): Behavior[Command] = {
+  def idle(locationByte: Array[Byte], immutableByte: Array[Byte], mutableByte: Array[Byte], bodiesByte: Array[Byte], ownerShip: Array[Byte], selfAsset: Array[Byte], pointer: Array[Byte], stateByte: Array[Byte], viewByte: Option[Array[Byte]]): Behavior[Command] = {
     Behaviors.receive[Command] {
       (ctx, msg) =>
         msg match {
-          case m:GetByte=>
-            val pixel = if (AppSettings.isGray) 1 else 4
+          case m: GetByte =>
+            val pixel = if (locationByte.isEmpty) 0 else if (AppSettings.isGray) 1 else 4
             val layer = LayeredObservation(
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(locationByte))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(immutableByte))),
@@ -70,14 +72,14 @@ object BotViewActor {
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(stateByte))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(pointer)))
             )
-            val observation = ObservationRsp(Some(layer), if(viewByte.isDefined) Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(viewByte.get))) else None)
-            if(BotServer.isObservationConnect) {
+            val observation = ObservationRsp(Some(layer), if (viewByte.isDefined) Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(viewByte.get))) else None)
+            if (BotServer.isObservationConnect) {
               BotServer.streamSender.get ! GrpcStreamActor.NewObservation(observation)
             }
-            idle(m.locationByte,m.immutableByte,m.mutableByte,m.bodiesByte,m.ownerShip,m.selfAsset,m.pointer,m.stateByte,m.viewByte)
+            idle(m.locationByte, m.immutableByte, m.mutableByte, m.bodiesByte, m.ownerShip, m.selfAsset, m.pointer, m.stateByte, m.viewByte)
 
           case t: GetObservation =>
-            val pixel = if (AppSettings.isGray) 1 else 4
+            val pixel = if (locationByte.isEmpty) 0 else if (AppSettings.isGray) 1 else 4
             val layer = LayeredObservation(
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(locationByte))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(immutableByte))),
@@ -88,7 +90,7 @@ object BotViewActor {
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(stateByte))),
               Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(pointer)))
             )
-            val observation = ObservationRsp(Some(layer), if(viewByte.isDefined) Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(viewByte.get))) else None)
+            val observation = ObservationRsp(Some(layer), if (viewByte.isDefined) Some(ImgData(windowWidth, windowHeight, pixel, ByteString.copyFrom(viewByte.get))) else None)
             t.sender ! observation
             Behaviors.same
 

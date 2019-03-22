@@ -102,7 +102,7 @@ class GamePlayHolderImpl(name: String, playerInfoOpt: Option[PlayerInfo] = None)
     startGameModal.render
   }
 
-  private def start(name: String, roomIdOpt: Option[Long]): Unit = {
+  def start(name: String, roomIdOpt: Option[Long]): Unit = {
     canvas.getCanvas.focus()
     dom.window.cancelAnimationFrame(nextFrame)
     Shortcut.cancelSchedule(timer)

@@ -42,15 +42,19 @@ case class PlayPage(
 
 
 
-  private val cannvas = <canvas id ="GameView" tabindex="1"></canvas>
+  private val canvas = <canvas id ="GameView" tabindex="1"></canvas>
 
 
   private val modal = Var(emptyHTML)
 
   def init(playerInfo: PlayerInfo) = {
     val gameHolder = new GamePlayHolderImpl("GameView", Some(playerInfo))
-    val startGameModal = gameHolder.getStartGameModal()
-    modal := startGameModal
+    if(parsePlayerInfoSeq.isEmpty){
+      val startGameModal = gameHolder.getStartGameModal()
+      modal := startGameModal
+    }else{
+      gameHolder.start(parsePlayerInfoSeq.get.userName,parsePlayerInfoSeq.get.roomIdOpt)
+    }
   }
 
 
@@ -63,7 +67,7 @@ case class PlayPage(
         Shortcut.scheduleOnce(() =>init(playerInfo),0)
         <div>
           <div >{modal}</div>
-          {cannvas}
+          {canvas}
         </div>
       case None =>
         <div>

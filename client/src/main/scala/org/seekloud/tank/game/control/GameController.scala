@@ -135,12 +135,12 @@ abstract class GameController(
             gameContainerOpt.foreach(t => t.rankUpdated = true)
           }
           gameContainerOpt.foreach(_.update())
-          canvas2Byte4Bot
           if(AppSettings.isView){
             logicFrameTime = System.currentTimeMillis()
           }else{
             drawGame(0l)
           }
+          canvas2Byte4Bot
           ping()
           tickCount += 1
 
@@ -287,8 +287,8 @@ abstract class GameController(
     if(AppSettings.isView){
       animationTimer.stop()
     }
-    //remind 此处关闭WebSocket
-    playGameActor ! PlayGameActor.StopGameActor
+    //fixme 此处关闭WebSocket
+//    playGameActor ! PlayGameActor.StopGameActor
   }
 
 }
