@@ -147,7 +147,6 @@ abstract class GameController(
         case GameState.stop =>
           if(isBot){
             gameContainerOpt.foreach(_.drawCombatGains())
-            BotSdkTest.reincarnation()
           }else{
             closeHolder
             gameContainerOpt.foreach(_.drawCombatGains())
@@ -192,7 +191,7 @@ abstract class GameController(
           /**
             * 更新游戏数据
             **/
-          println("start------------")
+          println(s"start${e.userId+"="+e.tankId+"="+e.roomId}")
           try {
             gameContainerOpt = Some(GameContainerClientImpl(drawFrame, canvas, e.config, e.userId, e.tankId, e.name, canvasBoundary, canvasUnit, setKillCallback, isBot = isBot, logInfo = log.info,layerCanvasSize = Point(AppSettings.viewWidth,AppSettings.viewHeight), layerCanvasUnit = getCanvasUnit(AppSettings.viewWidth)))
             initGameContainerCallBack

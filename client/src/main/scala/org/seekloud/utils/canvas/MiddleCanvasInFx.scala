@@ -101,7 +101,7 @@ class MiddleCanvasInFx private() extends MiddleCanvas {
         for (y <- 0 until h; x <- 0 until w) {
           val color = reader.getColor(x, y).grayscale()
           val gray = (color.getRed * 255).toByte
-          byteArray(y * h + x) = gray
+          byteArray(y * w + x) = gray
         }
         byteArray
       }
