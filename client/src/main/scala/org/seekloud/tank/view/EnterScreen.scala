@@ -27,6 +27,9 @@ abstract class EnterSceneListener {
     def onBtnForBot()
 }
 
+object EnterScreen{
+  var enterScreen:EnterScreen=_
+}
 
 class EnterScreen(context:Context){
   private var enterSceneListener: EnterSceneListener = _
@@ -51,7 +54,7 @@ class EnterScreen(context:Context){
   borderPane.setCenter(hBox)
   group.getChildren.add(borderPane)
 
-  def getScene:Scene = this.scene
+  def show = context.switchScene(this.scene,resize = true)
 
   def setListener(listener:EnterSceneListener):Unit = {
     enterSceneListener = listener

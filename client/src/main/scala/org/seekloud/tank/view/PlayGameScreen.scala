@@ -29,6 +29,9 @@ import org.seekloud.utils.canvas.MiddleFrameInFx
   * 玩游戏的view
   *
   */
+object PlayGameScreen{
+  var playGameScreen:PlayGameScreen=_
+}
 class PlayGameScreen(context: Context) {
 
   import javafx.stage.Screen
@@ -47,5 +50,7 @@ class PlayGameScreen(context: Context) {
   setCursor
 
   def getScene(): Scene = scene
+
+  def show= context.switchScene(scene,resize = true,fullScreen = true)
 
 }

@@ -39,6 +39,9 @@ import scala.util.{Failure, Success}
   * 获取房间列表，指定房间进入和随机进入房间
   * 实例化完成即向服务器请求房间列表
   * */
+object HallScreenController{
+  var hallScreenController:HallScreenController=_
+}
 class HallScreenController(val context:Context, val gameHall:GameHallScreen, gameServerInfo: GameServerInfo, playerInfo:PlayerInfo){
   private val log = LoggerFactory.getLogger(this.getClass)
   private var timer:Cancellable = _
@@ -96,10 +99,17 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
   gameHall.setListener(new GameHallListener{
     override def randomBtnListener(): Unit = {
       ClientApp.pushStack2AppThread{
-        val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
-        context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-        new UserViewController(playerInfo,gameServerInfo,context,playGameScreen,None,None,false).startGame
-        playGameScreen.setCursor
+        if(PlayGameScreen.playGameScreen == null){
+          PlayGameScreen.playGameScreen = new PlayGameScreen(context)
+          PlayGameScreen.playGameScreen.show
+          UserViewController.userViewController=new UserViewController(playerInfo,gameServerInfo,context,PlayGameScreen.playGameScreen,None,None,false)
+          UserViewController.userViewController.startGame
+          PlayGameScreen.playGameScreen.setCursor
+        }else{
+          PlayGameScreen.playGameScreen.show
+          UserViewController.userViewController.startGame
+          PlayGameScreen.playGameScreen.setCursor
+        }
         close()
       }
     }
@@ -108,10 +118,10 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
       ClientApp.pushStack2AppThread{
         if(roomIdTextField != "" && roomMap.contains(roomIdTextField.toLong)){
           if(!roomMap(roomIdTextField.toLong)){
-            val playGameScreen: PlayGameScreen = new PlayGameScreen(context)
-            context.switchScene(playGameScreen.getScene(), resize = true, fullScreen = true)
-            new UserViewController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdTextField), None, false).startGame
-            playGameScreen.setCursor
+            PlayGameScreen.playGameScreen = new PlayGameScreen(context)
+            PlayGameScreen.playGameScreen.show
+            new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Some(roomIdTextField), None, false).startGame
+            PlayGameScreen.playGameScreen.setCursor
             close()
           }
           else{
@@ -119,19 +129,19 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
             pwdInput.setHeaderText("请输入房间密码")
             val pwdResult = pwdInput.showAndWait()
             if(pwdResult.isPresent){
-              val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
-              context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-              new UserViewController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdTextField), Some(pwdResult.get()),false).startGame
-              playGameScreen.setCursor
+              PlayGameScreen.playGameScreen = new PlayGameScreen(context)
+              PlayGameScreen.playGameScreen.show
+              new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Some(roomIdTextField), None, false).startGame
+              PlayGameScreen.playGameScreen.setCursor
               close()
             }
           }
         }else if(roomIdListView != ""){
           if(!roomMap(roomIdListView.toLong)){
-            val playGameScreen: PlayGameScreen = new PlayGameScreen(context)
-            context.switchScene(playGameScreen.getScene(), resize = true, fullScreen = true)
-            new UserViewController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdListView), None, false).startGame
-            playGameScreen.setCursor
+            PlayGameScreen.playGameScreen = new PlayGameScreen(context)
+            PlayGameScreen.playGameScreen.show
+            new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Some(roomIdTextField), None, false).startGame
+            PlayGameScreen.playGameScreen.setCursor
             close()
           }
           else{
@@ -139,10 +149,10 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
             pwdInput.setHeaderText("请输入房间密码")
             val pwdResult = pwdInput.showAndWait()
             if(pwdResult.isPresent){
-              val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
-              context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-              new UserViewController(playerInfo, gameServerInfo, context, playGameScreen, Some(roomIdListView), Some(pwdResult.get()),false).startGame
-              playGameScreen.setCursor
+              PlayGameScreen.playGameScreen = new PlayGameScreen(context)
+              PlayGameScreen.playGameScreen.show
+              new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Some(roomIdTextField), None, false).startGame
+              PlayGameScreen.playGameScreen.setCursor
               close()
             }
           }
@@ -163,10 +173,10 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
     override def createRoom(roomId: String, pwd: Option[String]): Unit = {
       ClientApp.pushStack2AppThread{
         if(!roomMap.contains(if(roomId == null) -1L else roomId.toLong)){
-          val playGameScreen:PlayGameScreen = new PlayGameScreen(context)
-          context.switchScene(playGameScreen.getScene(),resize = true,fullScreen = true)
-          new UserViewController(playerInfo, gameServerInfo, context, playGameScreen, Option(roomId), pwd, true).startGame
-          playGameScreen.setCursor
+          PlayGameScreen.playGameScreen = new PlayGameScreen(context)
+          PlayGameScreen.playGameScreen.show
+          new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Option(roomId), pwd, true).startGame
+          PlayGameScreen.playGameScreen.setCursor
           close()
         }
         else{
@@ -188,9 +198,13 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
 
     override def backToRoomList(): Unit = {
       ClientApp.pushStack2AppThread{
-        val gameHallScreen = new GameHallScreen(context, playerInfo)
-        context.switchScene(gameHallScreen.getScene,resize = true)
-        new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)
+        if(HallScreenController.hallScreenController == null){
+          GameHallScreen.gameHallScreen = new GameHallScreen(context, playerInfo)
+          GameHallScreen.gameHallScreen.show
+          HallScreenController.hallScreenController= new HallScreenController(context, GameHallScreen.gameHallScreen, gameServerInfo, playerInfo)
+        }else{
+          GameHallScreen.gameHallScreen.show
+        }
         close()
       }
     }

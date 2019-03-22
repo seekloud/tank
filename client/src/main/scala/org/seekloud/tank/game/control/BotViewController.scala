@@ -81,13 +81,16 @@ class BotViewController(
 
   def startGame: Unit = {
     if(firstCome){
+      if(!isView){
+        firstCome = false
+      }
       playGameActor ! PlayGameActor.ConnectGame(playerInfo, gameServerInfo, None)
       logicFrameTime = System.currentTimeMillis()
     }else{
       gameContainerOpt.foreach { r =>
         playGameActor ! DispatchMsg(TankGameEvent.RestartGame(Some(r.myTankId), r.myName))
         setGameState(GameState.loadingPlay)
-        playGameActor ! PlayGameActor.StartGameLoop(r.config.frameDuration)
+//        playGameActor ! PlayGameActor.StartGameLoop(r.config.frameDuration)
       }
     }
   }

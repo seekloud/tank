@@ -22,14 +22,12 @@ import org.seekloud.tank.ClientApp
 import org.seekloud.tank.core.LoginActor
 import org.seekloud.tank.common.Context
 import org.seekloud.tank.model.{GameServerInfo, PlayerInfo}
-import org.seekloud.tank.view.{GameHallScreen, LoginScene, LoginScreen}
-
+import org.seekloud.tank.view._
 import org.seekloud.tank.BotServer
 import org.seekloud.tank.common.AppSettings
 import akka.actor.typed.scaladsl.AskPattern._
 import org.seekloud.tank.game.control.BotViewController
 import org.seekloud.tank.model.BotKeyReq
-import org.seekloud.tank.view.PlayGameScreen
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -43,11 +41,9 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
 
   import org.seekloud.tank.ClientApp._
 
-//  loginActor ! LoginActor.Login
-
   def start={}
 
-  loginScreen.setLoginSceneListener(new LoginScene.LoginSceneListener {
+  loginScreen.setLoginSceneListener(new LoginSceneListener {
     override def onButtonConnect(): Unit = {
       loginActor ! LoginActor.QrLogin
     }
@@ -126,19 +122,8 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
     * eg.关闭Actor
     * */
   private def close():Unit = {
+
   }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

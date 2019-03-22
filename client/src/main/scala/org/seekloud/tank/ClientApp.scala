@@ -44,9 +44,9 @@ class ClientApp extends Application {
   override def start(primaryStage: Stage): Unit = {
     if(AppSettings.isView){
       val context = new Context(primaryStage)
-      val enterScreen = new EnterScreen(context)
-      context.switchScene(enterScreen.getScene,resize = true)
-      new EnterScreenController(context, enterScreen)
+      EnterScreen.enterScreen = new EnterScreen(context)
+      EnterScreen.enterScreen.show
+      EnterScreenController.enterScreenController=new EnterScreenController(context, EnterScreen.enterScreen)
     }else{
       /**bot启动*/
       ClientApp.startApp(AppSettings.botId,AppSettings.botKey)

@@ -25,7 +25,6 @@ import javafx.scene.layout.{GridPane, HBox, _}
 import javafx.scene.text.{Font, FontWeight, Text}
 import javafx.scene.{Group, Scene}
 import org.seekloud.tank.common.{Constants, Context}
-import org.seekloud.tank.view.LoginScene.LoginSceneListener
 import sun.misc.BASE64Decoder
 import org.seekloud.tank.common.AppSettings.framePeriod
 
@@ -33,14 +32,8 @@ import org.seekloud.tank.common.AppSettings.framePeriod
   * Created by hongruying on 2018/10/23
   */
 
-object LoginScene {
-  trait LoginSceneListener {
-    def onButtonConnect()
-    def onButtonEmail(mail:String, pwd:String)
-    def onLinkToEmail()
-    def onLinkToQr()
-    def onButtonBot(id:String,key:String,frame:Int)
-  }
+object LoginScreen {
+  var loginScene: LoginScreen = _
 }
 
 class LoginScreen(context: Context) {
@@ -214,4 +207,10 @@ class LoginScreen(context: Context) {
 
 }
 
-
+trait LoginSceneListener {
+  def onButtonConnect()
+  def onButtonEmail(mail:String, pwd:String)
+  def onLinkToEmail()
+  def onLinkToQr()
+  def onButtonBot(id:String,key:String,frame:Int)
+}

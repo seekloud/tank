@@ -28,16 +28,20 @@ import org.slf4j.LoggerFactory
 import org.seekloud.tank.ClientApp
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
-
+object EnterScreenController{
+  var enterScreenController:EnterScreenController=_
+}
 class EnterScreenController(val context: Context, val enter: EnterScreen) {
   private val log = LoggerFactory.getLogger(this.getClass)
   enter.setListener(new EnterSceneListener {
     override def onBtnForMan(): Unit = {
       ClientApp.pushStack2AppThread {
         loginActor ! LoginActor.Login
-        val loginScreen = new LoginScreen(context)
-        LoginScreenController.loginScreenController = new LoginScreenController(context, loginScreen)
-        LoginScreenController.loginScreenController.start
+        if(LoginScreen.loginScene == null){
+          LoginScreen.loginScene = new LoginScreen(context)
+          LoginScreenController.loginScreenController = new LoginScreenController(context, LoginScreen.loginScene)
+          LoginScreenController.loginScreenController.start
+        }
       }
     }
 

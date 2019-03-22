@@ -47,6 +47,9 @@ import scala.concurrent.Future
   *
   * @author sky
   */
+object UserViewController{
+  var userViewController:UserViewController=_
+}
 class UserViewController(
                           playerInfo: PlayerInfo,
                           gameServerInfo: GameServerInfo,
@@ -76,17 +79,31 @@ class UserViewController(
   timeline.setCycleCount(Animation.INDEFINITE)
   val keyFrame = new KeyFrame(Duration.millis(5000), { _ =>
     ClientApp.pushStack2AppThread {
-      val gameHallScreen = new GameHallScreen(context, playerInfo)
-      context.switchScene(gameHallScreen.getScene, resize = true)
-      val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
-      accessCodeInfo.map {
-        info =>
-          if (info.token != "") {
-            log.info(info.token)
-            val newUserInfo = UserInfo(playerInfo.userInfo.userId, playerInfo.userInfo.nickname, info.token, info.expireTime)
-            val newPlayerInfo = PlayerInfo(newUserInfo, playerInfo.playerId, playerInfo.nickName, info.accessCode)
-            new HallScreenController(context, gameHallScreen, gameServerInfo, newPlayerInfo)
-          }
+      if(HallScreenController.hallScreenController == null||GameHallScreen.gameHallScreen==null){
+        GameHallScreen.gameHallScreen = new GameHallScreen(context, playerInfo)
+        GameHallScreen.gameHallScreen.show
+        val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
+        accessCodeInfo.map {
+          info =>
+            if (info.token != "") {
+              log.info(info.token)
+              val newUserInfo = UserInfo(playerInfo.userInfo.userId, playerInfo.userInfo.nickname, info.token, info.expireTime)
+              val newPlayerInfo = PlayerInfo(newUserInfo, playerInfo.playerId, playerInfo.nickName, info.accessCode)
+              HallScreenController.hallScreenController=new HallScreenController(context, GameHallScreen.gameHallScreen, gameServerInfo, newPlayerInfo)
+            }
+        }
+      }else{
+        GameHallScreen.gameHallScreen.show
+        val accessCodeInfo: Future[TokenAndAcessCode] = tokenActor ? TokenActor.GetAccessCode
+        accessCodeInfo.map {
+          info =>
+            if (info.token != "") {
+              log.info(info.token)
+              val newUserInfo = UserInfo(playerInfo.userInfo.userId, playerInfo.userInfo.nickname, info.token, info.expireTime)
+              val newPlayerInfo = PlayerInfo(newUserInfo, playerInfo.playerId, playerInfo.nickName, info.accessCode)
+              HallScreenController.hallScreenController=new HallScreenController(context, GameHallScreen.gameHallScreen, gameServerInfo, newPlayerInfo)
+            }
+        }
       }
     }
     timeline.stop()
@@ -95,7 +112,6 @@ class UserViewController(
 
   def startGame = {
     if (firstCome) {
-      firstCome = false
       println("start!!!!!!!")
       playGameActor ! PlayGameActor.ConnectGame(playerInfo, gameServerInfo, roomInfo)
       logicFrameTime = System.currentTimeMillis()
@@ -103,7 +119,7 @@ class UserViewController(
       gameContainerOpt.foreach { r =>
         playGameActor ! DispatchMsg(TankGameEvent.RestartGame(Some(r.myTankId), r.myName))
         setGameState(GameState.loadingPlay)
-        playGameActor ! PlayGameActor.StartGameLoop(r.config.frameDuration)
+//        playGameActor ! PlayGameActor.StartGameLoop(r.config.frameDuration)
       }
     }
   }
@@ -275,34 +291,39 @@ class UserViewController(
   override protected def initGameContainerCallBack: Unit = {
     gameContainerOpt.foreach { r =>
       ClientApp.pushStack2AppThread {
-//        playGameScreen.group.getChildren.add(canvas.getCanvas)
-//        addUserActionListenEvent
-        //fixme 测试阶段
-        canvas.getCanvas.setLayoutX(0)
-        canvas.getCanvas.setLayoutY(0)
-        r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4+5)
-        r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
-        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5+10)
-        r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
-        r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4+5)
-        r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight+5)
-        r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5+10)
-        r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight+5)
-        r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4+5)
-        r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*2+10)
-        r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5+10)
-        r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*2+10)
-        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5+10)
-        r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*3+15)
-        playGameScreen.group.getChildren.add(canvas.getCanvas)
-        playGameScreen.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreen.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreen.group.getChildren.add(r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreen.group.getChildren.add(r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreen.group.getChildren.add(r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreen.group.getChildren.add(r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        playGameScreen.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
-        addUserActionListenEvent
+        log.info("initGameContainerCallBack")
+        if(firstCome){
+          firstCome = false
+          //        playGameScreen.group.getChildren.add(canvas.getCanvas)
+          //        addUserActionListenEvent
+          //fixme 测试阶段
+          canvas.getCanvas.setLayoutX(0)
+          canvas.getCanvas.setLayoutY(0)
+          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4+5)
+          r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+          r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5+10)
+          r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(0)
+          r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4+5)
+          r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight+5)
+          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5+10)
+          r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight+5)
+          r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*4+5)
+          r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*2+10)
+          r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5+10)
+          r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*2+10)
+          r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5+10)
+          r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*3+15)
+          playGameScreen.group.getChildren.add(canvas.getCanvas)
+          playGameScreen.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.mutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.bodiesCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.ownerShipCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreen.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          addUserActionListenEvent
+        }
+
       }
     }
   }

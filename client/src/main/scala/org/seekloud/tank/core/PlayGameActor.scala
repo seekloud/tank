@@ -39,7 +39,7 @@ import io.circe.syntax._
 import io.circe._
 import io.circe.generic.auto._
 import org.seekloud.tank.BotSdkTest
-import org.seekloud.tank.game.control.{BotViewController, GameController, UserViewController}
+import org.seekloud.tank.game.control.{BotViewController, GameController}
 
 /**
   * Created by hongruying on 2018/10/23

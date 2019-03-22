@@ -32,7 +32,12 @@ import org.seekloud.tank.model.PlayerInfo
 /**
   * created by benyafang on 2018/10/26
   * */
+object GameHallScreen{
+  var gameHallScreen:GameHallScreen=_
+}
 class GameHallScreen(context:Context,playerInfo: PlayerInfo){
+  private var gameHallListener:GameHallListener = _
+
   //房间列表
   private val group = new Group()
   private val scene = new Scene(group,Constants.SceneBound.weight,Constants.SceneBound.height)
@@ -49,12 +54,11 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   private val roomListLabel = new Label("房间列表")
 
   private val confirmBtn = new Button("确定")
-  confirmBtn.setOnAction(e => listener.confirmBtnListener(listView.getSelectionModel.selectedItemProperty().get(), roomIdTextField.getText()))
+  confirmBtn.setOnAction(e => gameHallListener.confirmBtnListener(listView.getSelectionModel.selectedItemProperty().get(), roomIdTextField.getText()))
 
   private val randomBtn = new Button("随机进入")
-  randomBtn.setOnAction(e => listener.randomBtnListener())
+  randomBtn.setOnAction(e => gameHallListener.randomBtnListener())
 
-  private var listener:GameHallListener = _
   private var roomList:List[Long] = List.empty[Long]
 
   private val observableList:ObservableList[String] = FXCollections.observableArrayList()
@@ -64,7 +68,7 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   roomIdTextField.setPromptText("请输入指定房间号")
 
   private val addRoomBtn = new Button()
-  addRoomBtn.setOnAction(e => listener.addSelfDefinedRoom())
+  addRoomBtn.setOnAction(e => gameHallListener.addSelfDefinedRoom())
   private val imageView = new ImageView(new Image(getClass.getResourceAsStream("/img/add.png")))
   imageView.setFitHeight(20)
   imageView.setFitWidth(20)
@@ -82,12 +86,12 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   private val enLink = new Hyperlink()
   enLink.setText("带密码创建")
   enLink.setFont(Font.font("Cambria", FontWeight.NORMAL, 10))
-  enLink.setOnAction(_ => listener.change2Encrypt())
+  enLink.setOnAction(_ => gameHallListener.change2Encrypt())
 
   private val plainLink = new Hyperlink()
   plainLink.setText("不带密码创建")
   plainLink.setFont(Font.font("Cambria", FontWeight.NORMAL, 10))
-  plainLink.setOnAction(_ => listener.change2Plain())
+  plainLink.setOnAction(_ => gameHallListener.change2Plain())
 
   private val btnBack = new Button()
   private val imageView4back = new ImageView(new Image(getClass.getResourceAsStream("/img/back_1.png")))
@@ -96,15 +100,15 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
   btnBack.setGraphic(imageView4back)
   btnBack.setPrefSize(20,20)
   btnBack.setStyle("-fx-background-color:transparent;")
-  btnBack.setOnAction(_ => listener.backToRoomList())
+  btnBack.setOnAction(_ => gameHallListener.backToRoomList())
 
   private val btn4plain = new Button("开始游戏")
   btn4plain.setPrefSize(80,20)
-  btn4plain.setOnAction(_ => listener.createRoom(roomField.getText, None))
+  btn4plain.setOnAction(_ => gameHallListener.createRoom(roomField.getText, None))
 
   private val btn4Encry = new Button("开始游戏")
   btn4Encry.setPrefSize(80,20)
-  btn4Encry.setOnAction(_ => listener.createRoom(roomField.getText, Some(pwBox.getText)))
+  btn4Encry.setOnAction(_ => gameHallListener.createRoom(roomField.getText, Some(pwBox.getText)))
 
   private val hBox4Plain = new HBox(10)
   hBox4Plain.setAlignment(Pos.BOTTOM_RIGHT)
@@ -173,8 +177,10 @@ class GameHallScreen(context:Context,playerInfo: PlayerInfo){
 
   def getScene:Scene = this.scene
 
+  def show =context.switchScene(this.scene,resize = true)
+
   def setListener(gameHallListener:GameHallListener):Unit = {
-    this.listener = gameHallListener
+    this.gameHallListener = gameHallListener
   }
 
   def updateRoomList(roomList:List[Long]):Unit = {
