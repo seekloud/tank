@@ -67,10 +67,10 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
           log.info("botView start")
           ClientApp.pushStack2AppThread {
             /** bot启动 */
-            val playGameScreen: PlayGameScreen = new PlayGameScreen(context)
-            context.switchScene(playGameScreen.getScene(), resize = true, fullScreen = true)
-            playGameScreen.setCursor
-            val c = new BotViewController(value._1, value._2, true, Some(playGameScreen))
+            PlayGameScreen.playGameScreen = new PlayGameScreen(context)
+            PlayGameScreen.playGameScreen.show
+            PlayGameScreen.playGameScreen.setCursor
+            val c = new BotViewController(value._1, value._2, true, Some(PlayGameScreen.playGameScreen))
             c.startGame
             botServer ! BotServer.BuildServer(AppSettings.botServerPort, executor, c)
           }
@@ -109,9 +109,9 @@ class LoginScreenController(val context: Context, val loginScreen: LoginScreen) 
     println("joinGame----------")
     loginActor ! LoginActor.StopWs
     ClientApp.pushStack2AppThread{
-      val gameHallScreen = new GameHallScreen(context, playerInfo)
-      context.switchScene(gameHallScreen.getScene,resize = true)
-      new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)
+      GameHallScreen.gameHallScreen = new GameHallScreen(context, playerInfo)
+      GameHallScreen.gameHallScreen.show
+      new HallScreenController(context, GameHallScreen.gameHallScreen, gameServerInfo, playerInfo)
       close()
     }
   }

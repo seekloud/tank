@@ -47,9 +47,9 @@ class EnterScreenController(val context: Context, val enter: EnterScreen) {
 
     override def onBtnForBot(): Unit = {
       ClientApp.pushStack2AppThread{
-        val loginScreen = new LoginScreen(context)
-        loginScreen.botLogin()
-        LoginScreenController.loginScreenController = new LoginScreenController(context, loginScreen)
+        LoginScreen.loginScene = new LoginScreen(context)
+        LoginScreen.loginScene.botLogin()
+        LoginScreenController.loginScreenController = new LoginScreenController(context, LoginScreen.loginScene)
         LoginScreenController.loginScreenController.start
       }
 

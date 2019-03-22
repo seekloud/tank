@@ -281,9 +281,9 @@ class UserViewController(
       warn.setTitle("警示")
       val buttonType = warn.showAndWait()
       if (buttonType.get().getButtonData.equals(ButtonBar.ButtonData.YES)) warn.close()
-      val gameHallScreen = new GameHallScreen(context, playerInfo)
-      context.switchScene(gameHallScreen.getScene, resize = true)
-      new HallScreenController(context, gameHallScreen, gameServerInfo, playerInfo)
+      GameHallScreen.gameHallScreen = new GameHallScreen(context, playerInfo)
+      GameHallScreen.gameHallScreen.show
+      new HallScreenController(context, GameHallScreen.gameHallScreen, gameServerInfo, playerInfo)
       closeHolder
     }
   }
