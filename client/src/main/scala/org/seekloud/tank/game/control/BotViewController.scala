@@ -61,7 +61,7 @@ class BotViewController(
   var mousePlace = Point(viewWidth/2,viewHeight/2)
   drawPointer
 
-  val actionMsgCanvas = drawFrame.createCanvas(viewWidth*4,viewHeight)
+  val actionMsgCanvas = drawFrame.createCanvas(viewWidth*4,viewHeight*4)
   val actionMsgCtx = actionMsgCanvas.getCtx
   var actionMsgList: List[String] = Nil
 
@@ -151,7 +151,7 @@ class BotViewController(
           r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5+10)
           r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*3+15)
           actionMsgCanvas.getCanvas.setLayoutX(0)
-          actionMsgCanvas.getCanvas.setLayoutY(viewWidth*4 + 20)
+          actionMsgCanvas.getCanvas.setLayoutY(viewHeight*4 + 20)
           playGameScreenOpt.get.group.getChildren.add(canvas.getCanvas)
           playGameScreenOpt.get.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
           playGameScreenOpt.get.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
