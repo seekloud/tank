@@ -46,31 +46,21 @@ object GrpcStreamActor {
 
   case object LeaveRoom extends Command
 
-  def create(gameControl:BotViewController): Behavior[Command] = {
+  def create(gameControl: BotViewController): Behavior[Command] = {
     Behaviors.setup[Command] { ctx =>
-      val fStream = new StreamObserver[CurrentFrameRsp] {
-        override def onNext(value: CurrentFrameRsp): Unit = {}
-        override def onCompleted(): Unit = {}
-        override def onError(t: Throwable): Unit = {}
-      }
-      val oStream = new StreamObserver[ObservationWithInfoRsp] {
-        override def onNext(value: ObservationWithInfoRsp): Unit = {}
-        override def onCompleted(): Unit = {}
-        override def onError(t: Throwable): Unit = {}
-      }
-      working(gameControl,fStream, oStream)
+      working(gameControl, null, null)
     }
   }
 
-  def working(gameControl:BotViewController, frameObserver: StreamObserver[CurrentFrameRsp], oObserver: StreamObserver[ObservationWithInfoRsp] ): Behavior[Command] = {
+  def working(gameControl: BotViewController, frameObserver: StreamObserver[CurrentFrameRsp], oObserver: StreamObserver[ObservationWithInfoRsp]): Behavior[Command] = {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
 
         case ObservationObserver(observationObserver) =>
-          working(gameControl,frameObserver, observationObserver)
+          working(gameControl, frameObserver, observationObserver)
 
         case FrameObserver(fObserver) =>
-          working(gameControl,fObserver, oObserver)
+          working(gameControl, fObserver, oObserver)
 
         case NewFrame(frame) =>
           val rsp = CurrentFrameRsp(frame)
@@ -84,10 +74,10 @@ object GrpcStreamActor {
           }
 
         case NewObservation(observation) =>
-          BotServer.state = if (gameControl.getGameState==GameState.play) State.in_game else State.killed
+          BotServer.state = if (gameControl.getGameState == GameState.play) State.in_game else State.killed
           val rsp = ObservationWithInfoRsp(observation.layeredObservation, observation.humanObservation,
             gameControl.getBotScore.d, gameControl.getBotScore.k,
-            if (gameControl.getGameState==GameState.play) 1 else 0, gameControl.getCurFrame,
+            if (gameControl.getGameState == GameState.play) 1 else 0, gameControl.getCurFrame,
             0, BotServer.state, "ok")
           try {
             oObserver.onNext(rsp)
