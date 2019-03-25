@@ -59,7 +59,7 @@ class UserViewController(
                           roomInfo: Option[String] = None,
                           roomPwd: Option[String] = None,
                           isCreated: Boolean
-                        ) extends GameController(context.getStageWidth.toFloat, context.getStageHeight.toFloat, false) {
+                        ) extends GameController( /*context.getStageWidth.toFloat, context.getStageHeight.toFloat, false*/viewWidth*4, viewHeight*4, true) {
   private var spaceKeyUpState = true
   private var lastMouseMoveAngle: Byte = 0
   private var lastMoveFrame = -1L
