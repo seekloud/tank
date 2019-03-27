@@ -74,6 +74,7 @@ object GrpcStreamActor {
           }
 
         case NewObservation(observation) =>
+          print("state"+BotServer.state)
           BotServer.state = if (gameControl.getGameState == GameState.play) State.in_game else State.killed
           val rsp = ObservationWithInfoRsp(observation.layeredObservation, observation.humanObservation,
             gameControl.getBotScore.d, gameControl.getBotScore.k,

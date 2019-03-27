@@ -241,7 +241,7 @@ object PlayGameActor {
 
         //akka http 分片流
       case msg: BinaryMessage.Streamed =>
-        log.info(s"ssssssssssss${msg}")
+        log.info(s"${msg}")
         val f = msg.dataStream.runFold(new ByteStringBuilder().result()) {
           case (s, str) => s.++(str)
         }

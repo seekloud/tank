@@ -232,7 +232,7 @@ class BotServer(
 
   override def reincarnation(request: Credit): Future[SimpleRsp] = {
     if (botAuth(request.apiToken)) {
-      gameController.receiveReincarnation
+      gameController.startGame
       Future.successful(SimpleRsp(state = BotServer.state, msg = "ok"))
     } else {
       Future.successful(SimpleRsp(errCode = 101, state = State.unknown, msg = "auth error"))

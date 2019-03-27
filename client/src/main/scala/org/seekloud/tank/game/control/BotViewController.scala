@@ -231,7 +231,7 @@ class BotViewController(
     }
     val moveStateReceive = move2Byte(key.move)
     if (moveStateReceive != moveStateNow) {
-      println(s"move state change to: [$moveStateReceive]")
+      log.info(s"move state change to: [$moveStateReceive]")
       val preExecuteAction = TankGameEvent.UserMoveState(gameContainerOpt.get.myTankId, gameContainerOpt.get.systemFrame + preExecuteFrameOffset, moveStateReceive, getActionSerialNum)
       gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
       playGameActor ! DispatchMsg(preExecuteAction)
@@ -240,9 +240,6 @@ class BotViewController(
       }
       moveStateNow = moveStateReceive
     }
-  }
-  def receiveReincarnation ={
-    startGame
   }
 
 }

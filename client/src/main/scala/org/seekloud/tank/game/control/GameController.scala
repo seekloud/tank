@@ -135,7 +135,7 @@ abstract class GameController(
             gameContainerOpt.foreach(t => t.rankUpdated = true)
           }
           gameContainerOpt.foreach(_.update())
-          if(AppSettings.isView){
+          if(!isBot){
             logicFrameTime = System.currentTimeMillis()
           }else{
             drawGame(0l)
@@ -224,7 +224,7 @@ abstract class GameController(
             setGameState(GameState.stop)
             gameStopCallBack
           }
-          if(AppSettings.isView){
+          if(!isBot){
             animationTimer.stop()
           }
 
@@ -238,7 +238,7 @@ abstract class GameController(
           } else {
             gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
             logicFrameTime = System.currentTimeMillis()
-            if(AppSettings.isView){
+            if(!isBot){
               animationTimer.start()
             }
             gameContainerOpt.foreach(t => playGameActor ! PlayGameActor.StartGameLoop(t.config.frameDuration))
@@ -254,7 +254,7 @@ abstract class GameController(
             case e: TankGameEvent.UserRelive =>
               gameContainerOpt.foreach(_.receiveGameEvent(e))
               if (e.userId == gameContainerOpt.get.myId) {
-                if(AppSettings.isView){
+                if(!isBot){
                   animationTimer.start()
                 }
               }
@@ -284,7 +284,7 @@ abstract class GameController(
   }
 
   protected def closeHolder = {
-    if(AppSettings.isView){
+    if(!isBot){
       animationTimer.stop()
     }
     //fixme 此处关闭WebSocket
