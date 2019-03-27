@@ -61,6 +61,10 @@ class BotViewController(
   var mousePlace = Point(viewWidth/2,viewHeight/2)
   drawPointer
 
+  val actionMsgCanvas = drawFrame.createCanvas(viewWidth*4,viewHeight*4)
+  val actionMsgCtx = actionMsgCanvas.getCtx
+  var actionMsgList: List[String] = Nil
+
   private var lastMoveFrame = -1L
   private var lastMouseMoveAngle: Byte = 0
 
@@ -146,6 +150,8 @@ class BotViewController(
           pointerCanvas.getCanvas.setLayoutY(viewHeight*3+15)
           r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutX(viewWidth*5+10)
           r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas.setLayoutY(viewHeight*3+15)
+          actionMsgCanvas.getCanvas.setLayoutX(0)
+          actionMsgCanvas.getCanvas.setLayoutY(viewHeight*4 + 20)
           playGameScreenOpt.get.group.getChildren.add(canvas.getCanvas)
           playGameScreenOpt.get.group.getChildren.add(r.locationCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
           playGameScreenOpt.get.group.getChildren.add(r.immutableCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
@@ -155,6 +161,7 @@ class BotViewController(
           playGameScreenOpt.get.group.getChildren.add(r.selfCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
           playGameScreenOpt.get.group.getChildren.add(pointerCanvas.getCanvas)
           playGameScreenOpt.get.group.getChildren.add(r.statusCanvas.asInstanceOf[MiddleCanvasInFx].getCanvas)
+          playGameScreenOpt.get.group.getChildren.add(actionMsgCanvas.getCanvas)
         }
       )
     }
@@ -186,7 +193,24 @@ class BotViewController(
     pointerCtx.closePath()
   }
 
+  private def drawActionMsg() = {
+    actionMsgCtx.setFill("white")
+    actionMsgCtx.fillRec(0,0,viewWidth*4,viewHeight*4)
+    actionMsgCtx.setFill("black")
+    actionMsgCtx.setTextAlign("left")
+    actionMsgCtx.setTextBaseline("top")
+    actionMsgCtx.setFont(s"Helvetica","normal",14)
+    var i = 0
+    val len = actionMsgList.length
+    while(i < len){
+      actionMsgCtx.fillText(actionMsgList(i),10, 18 * i)
+      i += 1
+    }
+  }
+
   def gameActionReceiver(key: ActionReq) = {
+    actionMsgList = (key.toString :: actionMsgList).take(10)
+    drawActionMsg()
     if(key.swing.nonEmpty && gameContainerOpt.nonEmpty && gameState == GameState.play){
       /**
         * 鼠标移动

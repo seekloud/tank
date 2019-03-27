@@ -120,7 +120,8 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
           if(!roomMap(roomIdTextField.toLong)){
             PlayGameScreen.playGameScreen = new PlayGameScreen(context)
             PlayGameScreen.playGameScreen.show
-            new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Some(roomIdTextField), None, false).startGame
+            UserViewController.userViewController = new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Some(roomIdTextField), None, false)
+            UserViewController.userViewController.startGame
             PlayGameScreen.playGameScreen.setCursor
             close()
           }
@@ -131,7 +132,8 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
             if(pwdResult.isPresent){
               PlayGameScreen.playGameScreen = new PlayGameScreen(context)
               PlayGameScreen.playGameScreen.show
-              new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Some(roomIdTextField), None, false).startGame
+              UserViewController.userViewController = new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Some(roomIdTextField), None, false)
+              UserViewController.userViewController.startGame
               PlayGameScreen.playGameScreen.setCursor
               close()
             }
@@ -140,7 +142,8 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
           if(!roomMap(roomIdListView.toLong)){
             PlayGameScreen.playGameScreen = new PlayGameScreen(context)
             PlayGameScreen.playGameScreen.show
-            new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Some(roomIdTextField), None, false).startGame
+            UserViewController.userViewController = new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Some(roomIdTextField), None, false)
+            UserViewController.userViewController.startGame
             PlayGameScreen.playGameScreen.setCursor
             close()
           }
@@ -151,7 +154,8 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
             if(pwdResult.isPresent){
               PlayGameScreen.playGameScreen = new PlayGameScreen(context)
               PlayGameScreen.playGameScreen.show
-              new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Some(roomIdTextField), None, false).startGame
+              UserViewController.userViewController = new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Some(roomIdTextField), None, false)
+              UserViewController.userViewController.startGame
               PlayGameScreen.playGameScreen.setCursor
               close()
             }
@@ -175,7 +179,8 @@ class HallScreenController(val context:Context, val gameHall:GameHallScreen, gam
         if(!roomMap.contains(if(roomId == null) -1L else roomId.toLong)){
           PlayGameScreen.playGameScreen = new PlayGameScreen(context)
           PlayGameScreen.playGameScreen.show
-          new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Option(roomId), pwd, true).startGame
+          UserViewController.userViewController = new UserViewController(playerInfo, gameServerInfo, context, PlayGameScreen.playGameScreen, Option(roomId), pwd, true)
+          UserViewController.userViewController.startGame
           PlayGameScreen.playGameScreen.setCursor
           close()
         }
